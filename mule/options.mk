@@ -6,7 +6,10 @@ PKG_SUGGESTED_OPTIONS=	canna wnn4 x11
 
 .include "../../mk/bsd.options.mk"
 
+PLIST_VARS+=	wnn4
+
 .if !empty(PKG_OPTIONS:Mwnn4)
+PLIST.wnn4=		yes
 .include "../../inputmethod/ja-freewnn-lib/buildlink3.mk"
 CONFIGURE_ARGS+=	--with-wnn4
 CONFIGURE_ARGS+=	--wnn-includes=${BUILDLINK_PREFIX.ja-FreeWnn-lib}/include/wnn

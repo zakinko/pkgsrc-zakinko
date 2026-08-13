@@ -321,6 +321,7 @@ lib/mule/19.28/lisp/egg-jsymbol.el
 lib/mule/19.28/lisp/egg-keymap.el
 lib/mule/19.28/lisp/egg.el
 lib/mule/19.28/lisp/egg.elc
+${PLIST.wnn4}lib/mule/19.28/lisp/eggrc
 lib/mule/19.28/lisp/eggrc-sj3
 lib/mule/19.28/lisp/eggrc-wnn
 lib/mule/19.28/lisp/ehelp.el

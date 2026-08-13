@@ -103,5 +103,15 @@ post-install:
 		-e 's/jiskan24/j83-48/' \
 		< ${WRKSRC}/etc/CHARSETS > ${DESTDIR}${PREFIX}/lib/mule/19.28/etc/CHARSETS
 	#diff -u		${WRKSRC}/etc/CHARSETS ${DESTDIR}${PREFIX}/lib/mule/19.28/etc/CHARSETS
+.if !empty(PKG_OPTIONS:Mwnn4)
+# egg looks for ~/.eggrc and then for a file literally called "eggrc" on
+# the load-path, but upstream only ships the two candidates eggrc-wnn and
+# eggrc-sj3 and leaves the choice to whoever installs.  With neither name
+# present egg stops at "egg-startup-file がありません" before it registers
+# a single dictionary, which makes Wnn input unusable out of the box.  We
+# built against Wnn, so eggrc-wnn is the one that belongs here.
+	${CP} ${DESTDIR}${PREFIX}/lib/mule/19.28/lisp/eggrc-wnn \
+		${DESTDIR}${PREFIX}/lib/mule/19.28/lisp/eggrc
+.endif
 
 .include "../../mk/bsd.pkg.mk"
