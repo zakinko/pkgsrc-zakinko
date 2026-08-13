@@ -40,7 +40,18 @@ FORTIFY_SUPPORTED=	no
 
 .include "../../mk/bsd.prefs.mk"
 
-CFLAGS+=	-g -fno-builtin-malloc -fno-strict-aliasing
+CFLAGS+=	-g -fno-strict-aliasing
+
+# alloc.c installs __malloc_hook, __realloc_hook and __free_hook, and each
+# hook unhooks itself, calls the real allocator, then hooks itself back.
+# That only works if the compiler treats the allocator call as something
+# that might read the hook variable.  GCC knows all three as builtins that
+# do not read global memory, so it drops the first store as dead and the
+# hook recurses into itself until the stack runs out.  Only -fno-builtin-
+# malloc was listed here, which left free and realloc exposed; verified on
+# NetBSD/i386 with GCC 7.5, where the store before `call free' is simply
+# absent from the generated emacs_blocked_free.
+CFLAGS+=	-fno-builtin-malloc -fno-builtin-realloc -fno-builtin-free
 # GCC 10, which is what NetBSD 10 ships as the base compiler, made
 # -fno-common the default.  This tree predates that convention and has
 # tentative definitions of the same global in several translation units.
