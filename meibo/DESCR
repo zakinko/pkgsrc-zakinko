@@ -1,0 +1,36 @@
+meibo (名簿) is an identity lifecycle and single sign-on server built for
+the way Japanese companies and schools actually work.
+
+It keeps one authoritative roster of people and their affiliations, and drives
+everything else from it:
+
+  * Lifecycle as a state machine.  Joining, enrolling, taking leave of absence,
+    returning, resigning, withdrawing and graduating are modelled as explicit
+    transitions.  Corporate and academic organisations share the machine but get
+    different vocabulary (休職 vs 休学, 退職 vs 退学).  Effective dates are
+    honoured: a 4/1 hire is provisioned the night before, a 3/31 resignation is
+    reclaimed the morning after.
+
+  * Japanese name handling.  Family/given names are kept separate, with kana and
+    Hepburn romaji alongside, plus former surname (旧姓) and preferred name, so
+    the same person renders correctly in every downstream SaaS.
+
+  * Identity provider.  OpenID Connect (authorization code + PKCE only) and
+    SAML 2.0, with presets for Google Workspace, Microsoft 365 federation and
+    GakuNin (学認).
+
+  * Multi-factor authentication.  Passkeys (WebAuthn) and TOTP, with recovery
+    codes.
+
+  * Provisioning.  Inbound SCIM 2.0 and CSV import from HR or student
+    information systems; outbound to Google Workspace, Microsoft Graph and any
+    SCIM 2.0 endpoint.
+
+  * STNS v2 API, so the same roster can serve POSIX accounts and SSH keys to
+    NetBSD and Linux hosts without running LDAP.
+
+  * torii, an identity-aware proxy, so internal web applications can be exposed
+    without an intranet perimeter.
+
+meibo is a set of static Go binaries with PostgreSQL as its only runtime
+dependency.

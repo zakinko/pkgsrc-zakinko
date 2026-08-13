@@ -1,0 +1,12 @@
+@comment $NetBSD$
+bin/meibod
+bin/meiboctl
+bin/torii
+share/doc/meibo/README.md
+share/doc/meibo/connectors.md
+share/doc/meibo/runbook.md
+share/examples/meibo/meibo.conf
+share/examples/meibo/routes.json
+share/examples/meibo/torii.conf
+share/examples/rc.d/meibod
+share/examples/rc.d/torii
