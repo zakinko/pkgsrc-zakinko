@@ -1,0 +1,129 @@
+$NetBSD: patch-af,v 1.3 2013/04/21 15:39:59 joerg Exp $
+
+Pull in <machine/limits.h> on NetBSD for DBL_DIG.
+
+Declare the Lisp_Object-returning functions that were only ever
+reached through an implicit declaration.  That was survivable while
+sizeof(int) == sizeof(Lisp_Object), but on an LP64 host built with
+LONG_LISP_OBJECT the implicit int return truncates the object to 32
+bits, which is what makes a dumped mule fault on garbage pointers.
+
+--- src/lisp.h.orig	1994-10-21 04:20:28.000000000 +0000
++++ src/lisp.h
+@@ -29,6 +29,10 @@
+ 	DOS-Extender GO32 and EMX supported. */
+ /* 93.1.15  modified for Mule Ver.0.9.7.1 by Y.Akiba <akiba@cbs.canon.co.jp>
+ 	Patch for NeXT is updated. */
++
++#if defined(__NetBSD__)
++#include <machine/limits.h> /* for DBLL_DIG */
++#endif
+ 
+ /* Define the fundamental Lisp data structures */
+ 
+@@ -1550,3 +1554,105 @@
+  
+ /* Set up the name of the machine we're running on.  */
+ extern void init_system_name ();
++void init_data (void);
++
++/* The declarations below used to be missing entirely.  On an ILP32 host
++   that was harmless: an implicitly declared function returns int, and
++   int is the same width as Lisp_Object there.  On an LP64 host with
++   LONG_LISP_OBJECT the two no longer agree, so every one of these calls
++   silently truncated a 64-bit Lisp_Object to 32 bits and handed back a
++   garbage object.  */
++
++/* defined in buffer.c */
++extern Lisp_Object Fbuffer_disable_undo (), Fbuffer_enable_undo ();
++extern Lisp_Object Fbuffer_modified_p (), Fset_buffer_modified_p ();
++extern Lisp_Object Ferase_buffer (), Fkill_buffer ();
++extern Lisp_Object Fnext_overlay_change (), Foverlay_start (), Foverlay_end ();
++
++/* defined in casefiddle.c */
++extern Lisp_Object Fcapitalize_word (), Fupcase_region ();
++extern Lisp_Object upcase_initials_region ();
++
++/* defined in cmds.c */
++extern Lisp_Object Fend_of_line (), Fforward_byte (), Fforward_char ();
++extern Lisp_Object Fforward_line ();
++
++/* defined in data.c */
++extern Lisp_Object Fmake_local_variable (), do_symval_forwarding ();
++
++/* defined in dispnew.c */
++extern Lisp_Object Fding (), Fredraw_frame (), Fsit_for (), Fsleep_for ();
++
++/* defined in editfns.c */
++extern Lisp_Object Fdelete_region (), Finsert_and_inherit ();
++extern Lisp_Object Finsert_before_markers (), Finsert_buffer_substring ();
++extern Lisp_Object Finsert_char (), Fnarrow_to_region (), Fwiden ();
++
++/* defined in emacs.c */
++extern Lisp_Object Fkill_emacs ();
++
++/* defined in eval.c */
++extern Lisp_Object call6 ();
++
++/* defined in fileio.c */
++extern Lisp_Object Fdo_auto_save (), Fwrite_region ();
++
++/* defined in filelock.c */
++extern Lisp_Object Funlock_buffer ();
++
++/* defined in fns.c */
++extern Lisp_Object Felt (), Fmember ();
++
++/* defined in frame.c */
++extern Lisp_Object Fframe_first_window (), Fhandle_switch_frame ();
++extern Lisp_Object Fraise_frame (), Fredirect_frame_focus (), get_frame_param ();
++
++/* defined in indent.c */
++extern Lisp_Object Fmove_to_column ();
++
++/* defined in keyboard.c */
++extern Lisp_Object Fset_input_mode (), command_loop_1 ();
++extern Lisp_Object menu_bar_items (), recursive_edit_1 ();
++
++/* defined in keymap.c */
++extern Lisp_Object Fdefine_key (), Fkey_binding (), Flookup_key ();
++extern Lisp_Object Fmake_sparse_keymap ();
++
++/* defined in marker.c */
++extern Lisp_Object Fset_marker (), set_marker_restricted ();
++
++/* defined in minibuf.c */
++extern Lisp_Object get_minibuffer ();
++
++/* defined in mule.c */
++extern Lisp_Object Fdefine_word_pattern ();
++
++/* defined in print.c */
++extern Lisp_Object internal_with_output_to_temp_buffer ();
++
++/* defined in process.c */
++extern Lisp_Object Fwaiting_for_user_input_p ();
++
++/* defined in search.c */
++extern Lisp_Object Fmatch_beginning (), Fmatch_end ();
++extern Lisp_Object Fskip_chars_backward (), Fskip_chars_forward ();
++
++/* defined in syntax.c */
++extern Lisp_Object Fforward_word ();
++
++/* defined in textprop.c */
++extern Lisp_Object Fget_char_property (), Fget_text_property ();
++extern Lisp_Object Fprevious_single_property_change (), Fput_text_property ();
++
++/* defined in window.c */
++extern Lisp_Object Fpos_visible_in_window_p (), Frecenter ();
++extern Lisp_Object Freplace_buffer_in_windows (), Fscroll_other_window ();
++extern Lisp_Object Fselected_window (), Fset_window_start ();
++
++#ifdef HAVE_X_WINDOWS
++/* defined in xfns.c */
++extern Lisp_Object Fx_close_current_connection (), x_get_focus_frame ();
++
++/* defined in xmenu.c */
++extern Lisp_Object Fx_popup_dialog (), Fx_popup_menu ();
++#endif /* HAVE_X_WINDOWS */

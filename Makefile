@@ -7,6 +7,7 @@ COMMENT=	Local packages maintained by zakinko
 
 SUBDIR+=	github-keys
 SUBDIR+=	meibo
+SUBDIR+=	mule
 SUBDIR+=	nss_stns
 SUBDIR+=	stnsd
 

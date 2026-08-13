@@ -1,6 +1,7 @@
 # pkgsrc-zakinko
 
-zakinko が自作したソフトウェアの pkgsrc パッケージ置き場。
+zakinko が自作したソフトウェアの pkgsrc パッケージ置き場。本家から削除された
+パッケージを引き取って手元で維持する場合も、ここに置いています。
 
 本家 pkgsrc ツリーの `security` や `www` に混ぜず、`zakinko` という独立した
 カテゴリとして切っています。本家を更新しても自作分が消えず、どれが自作かも
@@ -34,11 +35,15 @@ make install
 
 `bmake` を使っている環境では読み替えてください。
 
-配布物のチェックサムは追跡していません。初回は次で生成します。
+自作パッケージの配布物のチェックサムは追跡していません。初回は次で生成します。
 
 ```sh
 make makesum
 ```
+
+第三者のソフトウェアを引き取ったものは例外で、`distinfo` を追跡しています。
+配布物の版が固定されていますし、`mule` のようにパッチが 100 個を超えるものは
+そのチェックサムこそが中身の保証になるためです。
 
 ## 収録パッケージ
 
@@ -46,6 +51,7 @@ make makesum
 | --- | --- |
 | [github-keys](github-keys/) | GitHub に公開された SSH 鍵を sshd に渡す |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
+| [mule](mule/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
 | [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
 | [stnsd](stnsd/) | 小さな STNS API サーバ |
 
@@ -65,6 +71,9 @@ meibo は純 Go（cgo なし）なので `netbsd/amd64`, `netbsd/arm64`, `netbsd
 nss_stns は pkgsrc が FreeBSD と DragonFly にも bootstrap できることを踏まえ、
 `OPSYS` からモジュール名 (`nss_stns.so.0` / `nss_stns.so.1`) を決めるので、
 同じパッケージディレクトリで三者に通ります。
+
+mule だけは自作ではなく、本家から引き取ったものです。NetBSD 10 の i386 と
+amd64 を狙っています。
 
 ## nss_stns が `INSTALL` / `DEINSTALL` を持っている理由
 
@@ -108,3 +117,21 @@ rc.d スクリプトは二重に持たず、upstream の `rc.d/stnsd.in` から 
 生成します。rc.conf のスイッチ名が NetBSD では `stnsd`、FreeBSD では
 `stnsd_enable` と違うので、パスと一緒に変数名も差し替わります。おかげで
 どちらのパッケージにも `files/` ディレクトリが要りません。
+
+## mule が PIE と RELRO を切っている理由
+
+`temacs` は起動に必要な Lisp を読み込んだ状態で `unexec()` を呼び、走っている
+自分自身の ELF イメージを書き換えて実行ファイルとして吐き出します。初期化済み
+データセグメントを丸ごと保存して、次回はそれをそのまま復元する方式です。
+
+PIE はそのイメージを再配置してしまい、RELRO は `unexec()` が書き換えなければ
+ならない領域を write-protect します。どちらもダンプを壊すので、パッケージの
+`Makefile` で `MKPIE_SUPPORTED` と `RELRO_SUPPORTED` を `no` にしています。
+FORTIFY の `__builtin_object_size` も、1995 年の pre-ANSI な文字列処理とは
+同居できないので同様に切ってあります。
+
+このあたりを緩めると、ビルドは通るのにダンプ済みバイナリが起動時に落ちる、
+という分かりにくい壊れ方をします。
+
+X (Lucid toolkit) 版は今のところ動きません。`x11` オプションを外した端末のみ
+の構成が先に通ることを目標にしています。
