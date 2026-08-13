@@ -44,7 +44,16 @@ make makesum
 
 | パッケージ | 内容 |
 |---|---|
+| [github-keys](github-keys/) | GitHub に公開された SSH 鍵を sshd に渡す |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
+| [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
+| [stnsd](stnsd/) | 小さな STNS API サーバ |
+
+どのパッケージも第二カテゴリを併記してあるので (`stnsd` は `zakinko` と
+`security` の両方)、本家の分類でも探せます。
+
+FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
+にあります。
 
 ## 対象
 
@@ -52,3 +61,7 @@ NetBSD で動かすことを前提にしています。
 
 meibo は純 Go（cgo なし）なので `netbsd/amd64`, `netbsd/arm64`, `netbsd/386`
 でそのままビルドできます。
+
+nss_stns は pkgsrc が FreeBSD と DragonFly にも bootstrap できることを踏まえ、
+`OPSYS` からモジュール名 (`nss_stns.so.0` / `nss_stns.so.1`) を決めるので、
+同じパッケージディレクトリで三者に通ります。

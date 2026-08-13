@@ -1,3 +1,6 @@
-work/
+work
+work.*
+.work.log
+.broken
 *.core
 .DS_Store

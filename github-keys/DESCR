@@ -1,0 +1,9 @@
+github-keys prints the SSH public keys a user publishes on GitHub, for
+sshd_config's AuthorizedKeysCommand, so that a machine can accept the keys
+people already keep on their GitHub account without copying them anywhere.
+
+It can also be chained after another key source: with chain_ssh_wrapper in
+stns.conf it adds GitHub's keys to the ones an STNS server serves.
+
+Only public keys are visible, because no credentials are sent, and one HTTPS
+request is made per authentication attempt.

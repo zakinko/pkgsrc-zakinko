@@ -5,6 +5,9 @@
 
 COMMENT=	Local packages maintained by zakinko
 
+SUBDIR+=	github-keys
 SUBDIR+=	meibo
+SUBDIR+=	nss_stns
+SUBDIR+=	stnsd
 
 .include "../mk/misc/category.mk"

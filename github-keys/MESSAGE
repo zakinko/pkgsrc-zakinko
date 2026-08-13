@@ -1,0 +1,18 @@
+===========================================================================
+$NetBSD$
+
+To let sshd accept the keys people publish on GitHub:
+
+	AuthorizedKeysCommand ${PREFIX}/libexec/github-keys
+	AuthorizedKeysCommandUser nobody
+
+in /etc/ssh/sshd_config, then "/etc/rc.d/sshd reload".
+
+Where a local account name is not the GitHub login, list the exceptions
+in ${PKG_SYSCONFDIR}/github-keys.map, one "localname githublogin" pair
+per line.  Accounts not listed keep their own name.
+
+No credentials are sent, so only keys the user has chosen to publish are
+visible -- and whoever controls that GitHub account controls the login.
+Worth deciding on purpose before enabling it for privileged accounts.
+===========================================================================
