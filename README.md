@@ -72,8 +72,9 @@ nss_stns は pkgsrc が FreeBSD と DragonFly にも bootstrap できること�
 `OPSYS` からモジュール名 (`nss_stns.so.0` / `nss_stns.so.1`) を決めるので、
 同じパッケージディレクトリで三者に通ります。
 
-mule だけは自作ではなく、本家から引き取ったものです。NetBSD 10 の i386 と
-amd64 を狙っています。
+mule だけは自作ではなく、本家から引き取ったものです。NetBSD 9.4/i386 で端末
+のみの構成と X11 (Lucid) の構成の両方がビルドでき、ダンプまで通って動くところ
+まで確認しています。amd64 は未確認です。
 
 ## nss_stns が `INSTALL` / `DEINSTALL` を持っている理由
 
@@ -133,5 +134,8 @@ FORTIFY の `__builtin_object_size` も、1995 年の pre-ANSI な文字列処�
 このあたりを緩めると、ビルドは通るのにダンプ済みバイナリが起動時に落ちる、
 という分かりにくい壊れ方をします。
 
-X (Lucid toolkit) 版は今のところ動きません。`x11` オプションを外した端末のみ
-の構成が先に通ることを目標にしています。
+X (Lucid toolkit) の構成も NetBSD 9.4/i386 では通ります。Xvfb 上で実際に
+フレームが開き、`window-system` が `x` になることを確認しました。2017 年に
+tsutsui が amd64 で「`mule -nw` は動くが Xt 版は core を吐く」と記録している
+ので、これは LP64 固有の問題だったと見ています。amd64 で試すときはそこを疑って
+ください。
