@@ -1,19 +1,24 @@
 $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
 
+wnn-server-set-rev falls off the end without returning a value, so it
+hands a garbage word back to Lisp.  Return something defined.  Its
+docstring also had the sense of the argument backwards: the code
+selects the normal environment for nil and the reverse one otherwise.
+
 --- src/wnnfns.c.orig	1995-05-30 06:49:10.000000000 +0000
 +++ src/wnnfns.c
-@@ -322,6 +322,10 @@ static struct wnn_env *wnnfns_env_rev[NS
+@@ -321,6 +321,10 @@
+ static struct wnn_env *wnnfns_env_rev[NSERVER];
  static int wnnfns_norm;
  static unsigned char lc_wnn_server_type[NSERVER] = {LCJP, LCCN, LCINV, LCKR};
- 
++
 +static int yes_or_no();
 +static void puts2();
 +static void w2y(w_char *w);
-+
+ 
  /* Lisp Variables and Constants Definition */
  Lisp_Object	Qjserver;
- Lisp_Object	Qcserver;
-@@ -430,8 +434,6 @@ Specify password files of dictionary and
+@@ -430,8 +434,6 @@
       int			nargs;
       register Lisp_Object	*args;
  {
@@ -22,7 +27,15 @@ $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
    struct gcpro gcpro1;
    int	snum;
    CHECK_STRING (args[0], 0);
-@@ -539,12 +541,12 @@ DEFUN ("wnn-server-set-rev", Fwnn_set_re
+@@ -532,22 +534,23 @@
+ 
+ DEFUN ("wnn-server-set-rev", Fwnn_set_rev, Swnn_set_rev, 
+        1, 1, 0,
+-       "Switch the translation mode to normal if T, or reverse if NIL.")
++       "Switch the translation mode to normal if NIL, or reverse if T.")
+      (rev)
+      register Lisp_Object rev;
+ {
    int	snum;
    if ((snum = check_wnn_server_type()) == -1) return Qnil;
    if(rev == Qnil){
@@ -37,7 +50,11 @@ $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
      jl_env_set(wnnfns_buf[snum], wnnfns_env_rev[snum]);
      wnnfns_norm = 0;
    }
-@@ -1242,8 +1244,6 @@ Specify password files of dictionary and
++  return Qt;
+ }
+ 
+ DEFUN ("wnn-server-henkan-begin", Fwnn_begin_henkan, Swnn_begin_henkan, 
+@@ -1242,8 +1245,6 @@
       int                        nargs;
       register Lisp_Object       *args;
  {
@@ -46,7 +63,7 @@ $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
    struct gcpro gcpro1;
    int   snum;
    CHECK_STRING (args[0], 0);
-@@ -1278,8 +1278,6 @@ Specify password files of dictionary and
+@@ -1278,8 +1279,6 @@
       int                        nargs;
       register Lisp_Object       *args;
  {
@@ -55,7 +72,7 @@ $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
    struct gcpro gcpro1;
    int   snum;
    CHECK_STRING (args[0], 0);
-@@ -1314,8 +1312,6 @@ Specify password files of dictionary and
+@@ -1314,8 +1313,6 @@
       int                        nargs;
       register Lisp_Object       *args;
  {
@@ -64,7 +81,7 @@ $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
    struct gcpro gcpro1;
    int   snum;
    int	dic_no;
-@@ -1376,8 +1372,6 @@ Specify password files of dictionary and
+@@ -1376,8 +1373,6 @@
       int                        nargs;
       register Lisp_Object       *args;
  {
@@ -73,7 +90,7 @@ $NetBSD: patch-cj,v 1.2 2013/04/21 15:39:59 joerg Exp $
    struct gcpro gcpro1;
    int   snum;
    int   dic_no;
-@@ -1918,8 +1912,7 @@ int x;
+@@ -1918,8 +1913,7 @@
  }
  
  /* static void */
