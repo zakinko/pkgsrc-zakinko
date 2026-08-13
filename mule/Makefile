@@ -50,15 +50,18 @@ CONFIGURE_ARGS+=	${MACHINE_ARCH}--${LOWER_OPSYS}
 CONFIGURE_ARGS+=	--terminal-face --mcpath --canna-libraries=${PREFIX}/lib
 
 # --valbits is only consulted when the src/m/ file leaves VALBITS
-# undefined, and src/m/intel386.h does not: it sets VALBITS 26 and
-# GCTYPEBITS 5 itself, putting the mark bit at 31.  On i386 configure
-# therefore prints "The system configuration file defines VALBITS as 26"
-# and ignores this flag.  It is src/m/amd64.h, which keeps its own VALBITS
-# under an #if 0, that actually takes the value -- and there the built-in
-# default would be 56, so passing 26 caps every Lisp pointer at 26 bits,
-# i.e. the whole Lisp heap has to live below 64MB.  That has held so far,
-# but if a dumped mule starts faulting on truncated pointers, set
-# MULE_VALBITS= (empty) and let src/lisp.h use its own 56.
+# undefined, and on NetBSD both of ours do: intel386.h only sets it under
+# #ifdef XENIX, and amd64.h keeps its own under an #if 0.  So this flag is
+# what actually decides VALBITS here.  src/config.h then derives
+# GCTYPEBITS as 32 - VALBITS - 1, which for 26 gives 5 and puts the mark
+# bit at 31 -- the right layout for ILP32, and verified in config.h on
+# NetBSD/i386.
+#
+# The catch is that 26 caps every Lisp pointer at 26 bits, so the whole
+# Lisp heap has to live below 64MB.  That is no constraint on i386, but on
+# LP64 it throws away the address space that LONG_LISP_OBJECT exists to
+# reach.  If a dumped mule there starts faulting on truncated pointers,
+# raise MULE_VALBITS rather than hunting for the fault.
 MULE_VALBITS?=	26
 .if ${MACHINE_ARCH} != "alpha" && ${MACHINE_ARCH} != "sparc64" && \
     !empty(MULE_VALBITS)
