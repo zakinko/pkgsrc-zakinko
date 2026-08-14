@@ -72,9 +72,9 @@ nss_stns は pkgsrc が FreeBSD と DragonFly にも bootstrap できること�
 `OPSYS` からモジュール名 (`nss_stns.so.0` / `nss_stns.so.1`) を決めるので、
 同じパッケージディレクトリで三者に通ります。
 
-mule だけは自作ではなく、本家から引き取ったものです。NetBSD 9.4/i386 で端末
-のみの構成と X11 (Lucid) の構成の両方がビルドでき、ダンプまで通って動くところ
-まで確認しています。amd64 は未確認です。
+mule だけは自作ではなく、本家から引き取ったものです。端末のみの構成と X11
+(Lucid) の構成の両方が、NetBSD 9.4/i386 (gcc 7.5) と NetBSD 11.0/amd64
+(gcc 12.5) でビルドでき、ダンプまで通って動くことを確認しています。
 
 ## nss_stns が `INSTALL` / `DEINSTALL` を持っている理由
 
@@ -134,8 +134,13 @@ FORTIFY の `__builtin_object_size` も、1995 年の pre-ANSI な文字列処�
 このあたりを緩めると、ビルドは通るのにダンプ済みバイナリが起動時に落ちる、
 という分かりにくい壊れ方をします。
 
-X (Lucid toolkit) の構成も NetBSD 9.4/i386 では通ります。Xvfb 上で実際に
-フレームが開き、`window-system` が `x` になることを確認しました。2017 年に
-tsutsui が amd64 で「`mule -nw` は動くが Xt 版は core を吐く」と記録している
-ので、これは LP64 固有の問題だったと見ています。amd64 で試すときはそこを疑って
-ください。
+X (Lucid toolkit) の構成も通ります。i386 でも amd64 でも Xvfb 上で実際に
+フレームが開き、`window-system` が `x` になることを確認しました。
+
+2017 年に tsutsui が amd64 で「`mule -nw` は動くが Xt 版は core を吐く」と
+記録しており、その原因を「LP64 で `Lisp_Object` を返す関数が宣言なしに呼ばれて
+いて、暗黙の int 戻り値が 64bit の値を切り詰めている」と見て `src/lisp.h` に
+宣言を 75 個足しました。NetBSD 11.0/amd64 で確認したところ、その core dump は
+再現しません。EUC-JP を読ませて `forward-char` で数えると 8 文字ぶん進み、
+ISO-2022-JP で書き出したバイト列も正しいので、多バイト文字が 64bit 環境でも
+壊れていません。
