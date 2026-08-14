@@ -1,6 +1,6 @@
 # $NetBSD$
 
-DISTNAME=	stnsd-0.2.0
+DISTNAME=	stnsd-0.3.0
 CATEGORIES=	zakinko security
 MASTER_SITES=	${MASTER_SITE_GITHUB:=zakinko/}
 GITHUB_TAG=	v${PKGVERSION_NOREV}
