@@ -20,11 +20,12 @@
 # inputmethod/ddskk か mozc-elisp に移すことになる。
 #
 # ただし版を広げるだけでは足りなかった。anthy.el は Emacs が後で消した
-# 名前を二つ使っていて、片方 (set-face-underline-p, Emacs 29 で削除) は
+# 名前を五つ使っている。set-face-underline-p (Emacs 29 で削除) は
 # トップレベルで呼ばれるため、emacs30 では anthy-isearch.elc と
-# anthy-kyuri.elc ができず PLIST と食い違って失敗する。もう片方
-# (last-command-char, Emacs 24 で削除) は関数の中なので建つが、キーを
-# 打った瞬間に落ちる。overlay/inputmethod/anthy/patches で両方直している。
+# anthy-kyuri.elc ができず PLIST と食い違って失敗する。残りは関数の中に
+# あるので建ってしまい、使った瞬間に落ちる。とくに
+# process-kill-without-query (Emacs 30 で削除) は agent の起動経路にあり、
+# 最初の変換で踏む。overlay/inputmethod/anthy/patches で全部直している。
 #
 # PKGREVISION を上げているのはその patch のぶん。入る .elc が変わる。
 #

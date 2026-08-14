@@ -1,7 +1,8 @@
 $NetBSD$
 
-Make anthy.el work on current Emacs.  Five names it uses were made obsolete
-and later removed, and one reader syntax was dropped:
+Make anthy.el work on current Emacs.  Four names it uses were made obsolete
+and later removed.  (The old backquote syntax it also used is already dealt
+with by patch-anthy.el.)
 
 set-face-underline-p became an alias for set-face-underline in Emacs 24.3
 and was removed in Emacs 29.  The call is at top level, so on Emacs 29 and
@@ -9,17 +10,12 @@ and was removed in Emacs 29.  The call is at top level, so on Emacs 29 and
 anthy-kyuri.el then fail to byte-compile because they (require 'anthy) --
 their .elc files end up missing from what PLIST expects.
 
-The old backquote syntax, (` (foo (, bar))), was removed in Emacs 28.  On
-Emacs 28 and later anthy-deflocalvar expands to nil, so none of the eleven
-buffer-local variables it is used to define -- anthy-context-id, anthy-mode,
-anthy-preedit and the rest -- come into existence.  This does not break the
-build; it breaks the input method, which dies with a void-variable error the
-moment it is switched on.
-
 process-kill-without-query was obsoleted by set-process-query-on-exit-flag
 in Emacs 22.1 and removed in Emacs 30.  It is called from anthy-check-agent,
-which anthy-do-send-recv-command calls to start anthy-agent, so on Emacs 30
-the first conversion request fails.
+which anthy-do-send-recv-command calls to start anthy-agent.  This one does
+not break the build -- byte compilation only warns about an unknown function
+and every .elc is still produced -- but japanese-anthy fails on the first
+conversion request, that is, as soon as the input method is used at all.
 
 inactivate-input-method was renamed deactivate-input-method in Emacs 24.3
 and the old name was removed in Emacs 30.  It is called from
@@ -35,9 +31,7 @@ removed in Emacs 24.  The XEmacs branch of this function already uses
 last-command-event; only the GNU Emacs branch was left behind.
 
 emacs20, emacs21 and the XEmacs versions in EMACS_VERSIONS_ACCEPTED do not
-have the new names, so the calls are guarded rather than renamed.  The
-backquote rewrite needs no guard: the modern syntax has worked since Emacs
-19.29 and in XEmacs 20.
+have the new names, so the calls are guarded rather than renamed.
 
 anthy has not been released since 2009, so there is nowhere upstream to
 send this.
@@ -55,23 +49,6 @@ send this.
  (copy-face 'underline 'anthy-underline-face)
  
  ;;
-@@ -161,11 +163,11 @@
- 
- ;; From skk-macs.el From viper-util.el.  Welcome!
- (defmacro anthy-deflocalvar (var default-value &optional documentation)
--  (` (progn
--       (defvar (, var) (, default-value)
--	 (, (format "%s\n\(buffer local\)" documentation)))
--       (make-variable-buffer-local '(, var))
--       )))
-+  `(progn
-+     (defvar ,var ,default-value
-+       ,(format "%s\n\(buffer local\)" documentation))
-+     (make-variable-buffer-local ',var)
-+     ))
- 
- ;; buffer local variables
- (anthy-deflocalvar anthy-context-id nil "コンテキストのid")
 @@ -745,7 +747,9 @@
  	(if anthy-agent-process
  	    (kill-process anthy-agent-process))
