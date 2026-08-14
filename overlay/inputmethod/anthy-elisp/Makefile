@@ -19,12 +19,18 @@
 # 上流 (MAINTAINER: taya@NetBSD.org) に送る。通らなければ入力方式を
 # inputmethod/ddskk か mozc-elisp に移すことになる。
 #
-# PKGREVISION は上げていない。中身は変わらず、受け付ける版が増えるだけで、
-# 建つ Emacs が変われば PKGNAME の側 (EMACS_PKGNAME_PREFIX) が変わる。
+# ただし版を広げるだけでは足りなかった。anthy.el は Emacs が後で消した
+# 名前を二つ使っていて、片方 (set-face-underline-p, Emacs 29 で削除) は
+# トップレベルで呼ばれるため、emacs30 では anthy-isearch.elc と
+# anthy-kyuri.elc ができず PLIST と食い違って失敗する。もう片方
+# (last-command-char, Emacs 24 で削除) は関数の中なので建つが、キーを
+# 打った瞬間に落ちる。overlay/inputmethod/anthy/patches で両方直している。
+#
+# PKGREVISION を上げているのはその patch のぶん。入る .elc が変わる。
 
 .include	"../../inputmethod/anthy/Makefile.common"
 PKGNAME=	${EMACS_PKGNAME_PREFIX}anthy-elisp-${ANTHY_VERSION}
-PKGREVISION=	6
+PKGREVISION=	7
 CATEGORIES=	inputmethod editors
 
 MAINTAINER=	taya@NetBSD.org

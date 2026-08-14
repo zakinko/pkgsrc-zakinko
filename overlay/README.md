@@ -43,13 +43,17 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 |---|---|---|
 | `sysutils/augeas` | CVE-2025-2588 の NULL 参照修正 + PKGREVISION 2 | pkgsrc が同等の patch を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
 | `textproc/libxml2` | 2.15.1 → 2.15.3。CVE 5 件分 | pkgsrc が 2.15.2 以降に上がったとき |
-| `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加 | pkgsrc が同等の変更を入れたとき |
+| `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 7 | pkgsrc が同等の変更を入れたとき |
+| `inputmethod/anthy` | anthy.el が使う廃止シンボル 2 つを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
 | `editors/emacs30-nox11` | `_EMACS_REQD` の綴りを `emacs30-no-x11` から `emacs30-nox11` へ | pkgsrc が同等の変更を入れたとき |
 
-`libxml2` と `anthy-elisp` は NetBSD 11.0/i386 でビルド確認済み (pkgsrc
-trunk `fa7ad771c96929bf742033e6ccfd8bb45b9cab49`)。`augeas` は patch を
-上流 commit そのものに差し替えたところで、9.4/i386 でビルドと `make test`
-を確認済み、11.0 は CI で確認中。`emacs30-nox11` も同じ CI で見る。
+`augeas` は 9.4 / 10.1 / 11.0 の三つで建つことを確認済み。`make test` は
+263 件中 7 件落ちるが、patch を外しても同じ 7 件が落ちるので当て物とは
+無関係で、CVE の回帰テスト (`fatest`) は三つとも通っている。
+
+`emacs30-nox11` の綴り修正は効いていて、`depends.mk` で止まらなくなった。
+`anthy-elisp` はその先で別の壁に当たっていて、`inputmethod/anthy` の patch
+はそれを越えるためのもの。次の CI で確かめる。
 
 `anthy-elisp` は上流が emacs21 世代しか受け付けず、`~/.emacs` の
 `(load-library "anthy")` を塞いでいた。26 以降を足したところ `.elc` が 6 本
