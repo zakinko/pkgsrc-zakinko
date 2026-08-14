@@ -53,14 +53,17 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 4
+      # 二つの軸を両方 matrix に書く。include に image を持たないものを
+      # 並べると、全ての組み合わせにマージされて最後の一つだけが残り、
+      # 端末構成が消える。
       matrix:
         image: ${{ fromJSON(needs.plan.outputs.pkgsrc) }}
-        include:
+        config:
           - options: '-canna -wnn4 -x11'
             label: terminal
           - options: 'canna wnn4 x11'
             label: x11
-    name: ${{ matrix.image }} ${{ matrix.label }}
+    name: ${{ matrix.image }} ${{ matrix.config.label }}
     steps:
       - uses: actions/checkout@v4
 
@@ -98,7 +101,7 @@ jobs:
             | sha512sum -c -
 
       - name: 組んで確かめる
-        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}' '${{ matrix.options }}'
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}' '${{ matrix.config.options }}'
 
       - name: 転けたらコンソールを出す
         if: failure()
