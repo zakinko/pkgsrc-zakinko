@@ -49,7 +49,6 @@ make makesum
 
 | パッケージ | 内容 |
 | --- | --- |
-| [github-keys](github-keys/) | GitHub に公開された SSH 鍵を sshd に渡す |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
 | [mule](mule/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
 | [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
@@ -105,22 +104,6 @@ libc は `dlopen("nss_stns.so.<version>")` を裸の名前で呼び、set-user-I
 `make install` が張る symlink を止め、代わりに自分のフックから張ります。
 pkgsrc では `INSTALL` と `DEINSTALL`、FreeBSD port では `pkg-plist` の
 `@postexec` / `@postunexec` がそれです。
-
-## github-keys が `NO_BUILD` でない理由
-
-中身はシェルスクリプトですが、ビルド段階で `${LOCALBASE}`、`${LIBEXECDIR}`、
-map ファイルのパスをスクリプトに埋め込んでいます。sshd が
-`AuthorizedKeysCommand` を実行するときの `PATH` は
-`/usr/bin:/bin:/usr/sbin:/sbin` しかなく、裸の `curl` は「まさに誰かが
-ログインしようとしている瞬間」に見つからないからです。
-
-その curl はビルド依存ではなく実行時依存です。スクリプトが起動するだけで、
-何もリンクしていません。だから `buildlink3.mk` や `LIB_DEPENDS` ではなく
-`DEPENDS` / `RUN_DEPENDS` で書いてあります。
-
-nss_stns の port が `net` なのに対して github-keys が `security` なのは、
-こちらがディレクトリのクライアントではなく、誰がログインしてよいかを
-決めるものだからです。
 
 ## stnsd と nss_stns を同じ機械に入れられる理由
 
