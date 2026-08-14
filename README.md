@@ -61,6 +61,23 @@ make makesum
 FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 にあります。
 
+## overlay
+
+[overlay/](overlay/) は自作パッケージではなく、**上流 pkgsrc への当て物**を
+置くところです。カテゴリの `Makefile` の `SUBDIR` には入れていないので、
+`make` からは見えません。
+
+```
+overlay/textproc/libxml2/         2.15.1 → 2.15.3 (CVE 5 件)
+overlay/sysutils/augeas/          CVE-2025-2588 の修正
+overlay/inputmethod/anthy-elisp/  emacs26〜30 を受け付けるように
+```
+
+[NetBSD-i386](https://github.com/zakinko/NetBSD-i386) の CI が、この repo を
+`zakinko` カテゴリとして重ねたあとに `overlay/` を上流のカテゴリへ上書き
+コピーしてからビルドします。上流 pkgsrc が取り込んだら消します。詳しくは
+[overlay/README.md](overlay/README.md)。
+
 ## 対象
 
 NetBSD で動かすことを前提にしています。
