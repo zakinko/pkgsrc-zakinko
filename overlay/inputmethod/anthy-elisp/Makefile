@@ -27,10 +27,15 @@
 # 打った瞬間に落ちる。overlay/inputmethod/anthy/patches で両方直している。
 #
 # PKGREVISION を上げているのはその patch のぶん。入る .elc が変わる。
+#
+# 7 -> 8 は patch を足したぶん。7 は既に CI が Releases に上げてしまって
+# いて、番号を据え置くと「もうある」と見なされて建て直されない。実際に
+# 一度それで、中身の違う patch を当てたまま build 0 件の green を出した。
+# patch を触ったら必ず上げること。
 
 .include	"../../inputmethod/anthy/Makefile.common"
 PKGNAME=	${EMACS_PKGNAME_PREFIX}anthy-elisp-${ANTHY_VERSION}
-PKGREVISION=	7
+PKGREVISION=	8
 CATEGORIES=	inputmethod editors
 
 MAINTAINER=	taya@NetBSD.org

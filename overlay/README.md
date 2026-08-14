@@ -43,7 +43,7 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 |---|---|---|
 | `sysutils/augeas` | CVE-2025-2588 の NULL 参照修正 + PKGREVISION 2 | pkgsrc が同等の patch を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
 | `textproc/libxml2` | 2.15.1 → 2.15.3。CVE 5 件分 | pkgsrc が 2.15.2 以降に上がったとき |
-| `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 7 | pkgsrc が同等の変更を入れたとき |
+| `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 8 | pkgsrc が同等の変更を入れたとき |
 | `inputmethod/anthy` | anthy.el と anthy-dic.el が使う廃止シンボル 5 つと、旧式バッククォートを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
 | `editors/emacs30-nox11` | `_EMACS_REQD` の綴りを `emacs30-no-x11` から `emacs30-nox11` へ | pkgsrc が同等の変更を入れたとき |
 
