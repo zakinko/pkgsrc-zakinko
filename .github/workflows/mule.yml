@@ -1,0 +1,105 @@
+name: mule
+
+# mule を NetBSD の各版で組んで、日本語が編集できるところまで確かめる。
+#
+# イメージは netbsd-ci-images の release から取る。runner は x86_64 の
+# Linux で KVM が使えるので、i386 と amd64 のゲストはほぼ実速で動く。
+#
+# 経路が二つある。
+#
+#   pkgsrc  現行 pkgsrc が通る版。パッケージとして組み、導入まで見る。
+#   src     現行 pkgsrc が通らない古い版。配布物にパッチを当てて直に
+#           configure/make し、動作だけ見る。パッケージにはならないが、
+#           1995 年のこのコードが今のパッチ当てで各版に載るかは分かる。
+#
+# 境目は経験的なもので、pkgsrc 側が「この版から下は駄目」と宣言している
+# わけではない。実際に転けたら src 側へ移す。
+
+on:
+  push:
+    paths:
+      - 'mule/**'
+      - '.github/workflows/mule.yml'
+      - '.github/ci/**'
+  pull_request:
+    paths:
+      - 'mule/**'
+      - '.github/ci/**'
+  workflow_dispatch:
+    inputs:
+      images:
+        description: '対象イメージ (例 "i386-11.0 amd64-10.1")。空なら既定'
+        required: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      pkgsrc: ${{ steps.q.outputs.pkgsrc }}
+    steps:
+      - id: q
+        env:
+          I: ${{ inputs.images }}
+        run: |
+          set -e
+          [ -n "$I" ] || I="i386-11.0 i386-10.1 i386-9.4 amd64-11.0 amd64-10.1 amd64-9.4"
+          printf 'pkgsrc=%s\n' "$(printf '%s\n' $I | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  pkgsrc:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        image: ${{ fromJSON(needs.plan.outputs.pkgsrc) }}
+        include:
+          - options: '-canna -wnn4 -x11'
+            label: terminal
+          - options: 'canna wnn4 x11'
+            label: x11
+    name: ${{ matrix.image }} ${{ matrix.label }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      # ftp.m17n.org は消滅していて、残っているのは KAIST の書庫だけ。
+      # 落ちていても CI が転ばないよう、取れたものは残す。
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: |
+          mkdir -p distfiles
+          if [ ! -s distfiles/mule-2.3.tar.gz ]; then
+            curl -fsSL -o distfiles/mule-2.3.tar.gz \
+              http://ftp.kaist.ac.kr/hangul/mirror/mule/mule-2.3.tar.gz
+          fi
+          echo "5f6a9047e6c9d752787d6cab3573516c6efd65cd901fbab74d314a5967e6c68b2dc7c2aa7454d8588d421553530c87dd3ee9692d523d818e01739580cb1201fd  distfiles/mule-2.3.tar.gz" \
+            | sha512sum -c -
+
+      - name: 組んで確かめる
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}' '${{ matrix.options }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true
