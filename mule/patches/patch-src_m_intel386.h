@@ -19,6 +19,16 @@ array instead.  Every other machine description we build for -- amd64,
 sparc, alpha, powerpc -- defines it.  i386 is the one that left it
 commented out.
 
+Upstream reached the same conclusion and went further.  Current GNU Emacs
+has no NO_ARG_ARRAY and no &fn anywhere; call0 through call6 are gone, and
+what replaced them always builds the array:
+
+    #define CALLMANY(f, array) (f) (countof (array), array)
+    #define CALLN(f, ...) CALLMANY (f, ((Lisp_Object []) {__VA_ARGS__}))
+
+Defining the switch here selects, in 1994 code, the branch that upstream
+eventually made unconditional.
+
 --- src/m/intel386.h.orig	1994-05-04 06:37:41.000000000 +0000
 +++ src/m/intel386.h
 @@ -70,7 +70,7 @@
