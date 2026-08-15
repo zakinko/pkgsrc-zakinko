@@ -2,16 +2,24 @@
 #
 # 上流 pkgsrc の sysutils/augeas/Makefile の写し。直しているのは三つ。
 #
-# 一つめが本題で、USE_TOOLS に gmake を足している。上流の Makefile.am が
+# 一つめが本題で、patches/patch-Makefile.in。上流の Makefile.am が
 #
 #	dist_lens_DATA=$(wildcard lenses/*.aug)
 #
 # と書いていて、$(wildcard) は GNU make の関数なので bmake では文字列の
 # まま展開される。結果 lens が一本も入らず、augtool は設定ファイルを何も
 # 読めない。pkgsrc が 2014 年にこの package を入れてから一度もである。
-# NetBSD 11.0/amd64 の公式パッケージでも確認した。FreeBSD は USES に
-# gmake、OpenBSD は USE_GMAKE=Yes で、どちらも 462 本入れている。
-# PLIST もその 462 本ぶん膨らむ。
+# NetBSD 11.0/amd64 の公式パッケージでも確認した。PLIST もその 462 本ぶん
+# 膨らむ。
+#
+# FreeBSD は USES に gmake、OpenBSD は USE_GMAKE=Yes を足して回避している
+# が、ここでは $(wildcard) を素の glob に変える。install 規則は
+#
+#	@list='$(dist_lens_DATA)'; ... for p in $$list; do ...
+#
+# と展開するので、リストを広げるのは make ではなくシェルであり、bmake でも
+# gmake でも通る。上流にも同じものを出した。gmake を建てさせずに済み、
+# 上流が取り込んだらこの patch を消すだけになる。
 #
 # 二つめが patches/patch-CVE-2025-2588。上流 commit
 # af2aa88ab37fc48167d8c5e43b1770a4ba2ff403 をそのまま写したもので、手は
@@ -25,7 +33,7 @@
 # 三つめは time_t の書式。32bit 移植では long が 32bit で time_t が 64bit
 # なので "%ld" は誤り。上流は今もそのままで、issue も出ていない。
 #
-# PKGREVISION 2 -> 3 は gmake と PLIST のぶん。2 は既に CI が Releases に
+# PKGREVISION 2 -> 3 は lens と time_t のぶん。2 は既に CI が Releases に
 # 上げていて、据え置くと「もうある」と見なされて建て直されない。
 #
 # pkgsrc が取り込んだら overlay/sysutils/augeas ごと消すこと。
@@ -42,7 +50,7 @@ COMMENT=	Tool for editing configuration programmatically
 LICENSE=	gnu-lgpl-v2.1
 
 USE_LIBTOOL=		yes
-USE_TOOLS+=		gmake pkg-config
+USE_TOOLS+=		pkg-config
 GNU_CONFIGURE=		yes
 PKGCONFIG_OVERRIDE+=	augeas.pc.in
 TEST_TARGET=		check
