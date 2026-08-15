@@ -154,6 +154,8 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 
 | 当て物 | 対象 | 役割 | 確認 | 上流での経過 | 上流の直し方 |
 | --- | --- | --- | --- | --- | --- |
+| `patch-CVE-2008-1694` | `lib-src/vcdiff` | SCCS の版を /tmp の予測できる名前に取り出すのをやめる | 読了 | 24.1 まで現存 | **25.1 で vcdiff ごと廃止**。CVE の対象は 20.7〜22.1.50 |
+| `patch-CVE-2017-1000383` | `src/fileio.c` | copy-file が 0666 で作る窓を塞ぎ、backup が setuid を継ぐのを止める | 読了 | 30.1 まで現存 | `with-file-modes ?\700` と `#o1777` で同じことをしている |
 | `patch-CVE-2022-45939` | `lib-src/etags.c` | system(3) に渡す値を引用。固定長 sprintf を除去 | 実証 | 30.1 まで現存 | 28.1 まで未修正。**29.1 で修正、しかも同じ手法** |
 | `patch-aa` | `src/s/netbsd.h` | termcap を terminfo に置き換え、-lutil を落とす。a.out alpha は共有ライブラリ無し | 読了 | 25.1 で廃止 | 25.1 で src/s ごと廃止 |
 | `patch-ab` | `src/unexelf.c` | **Emacs 21.3 の unexelf.c** に NetBSD 向けの改変を重ねる | 読了 | 30.1 まで現存 | 30.1 まで現存するが unexec 自体は portable dumper に置換 |
