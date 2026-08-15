@@ -101,6 +101,18 @@ CONFIGURE_ARGS+=	--valbits=${MULE_VALBITS}
 
 .include "options.mk"
 
+# The texinfo here is from 1994 and uses markup that makeinfo has since
+# turned from warnings into errors: @itemx that does not follow its @item,
+# TeX comments taken as text, an @ignore nested inside another.  makeinfo
+# then refuses to write the file and the man stage takes the build down.
+#
+# --force writes the output anyway, which is what the makeinfo of the day
+# did.  It produces byte-identical files to hand-correcting the markup,
+# tried on all eight targets, and it does not require guessing where a 1994
+# author meant an unterminated @ignore to end.
+MAKEINFO_CMD=	makeinfo --force
+MAKE_FLAGS+=	MAKEINFO=${MAKEINFO_CMD:Q}
+
 INFO_FILES=	yes
 
 INSTALL_MAKE_FLAGS=	prefix=${DESTDIR}${PREFIX}
