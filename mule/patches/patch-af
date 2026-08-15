@@ -21,7 +21,7 @@ bits, which is what makes a dumped mule fault on garbage pointers.
  
  /* Define the fundamental Lisp data structures */
  
-@@ -1550,3 +1554,105 @@
+@@ -1550,3 +1554,111 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
@@ -119,6 +119,13 @@ bits, which is what makes a dumped mule fault on garbage pointers.
 +extern Lisp_Object Fpos_visible_in_window_p (), Frecenter ();
 +extern Lisp_Object Freplace_buffer_in_windows (), Fscroll_other_window ();
 +extern Lisp_Object Fselected_window (), Fset_window_start ();
++
++/* defined in intervals.c.  keymap.c calls this without including
++   intervals.h, where the only other declaration lives. */
++extern Lisp_Object get_local_map ();
++
++/* defined in search.c, and called from the DEFUNs above its definition. */
++extern Lisp_Object skip_chars ();
 +
 +#ifdef HAVE_X_WINDOWS
 +/* defined in xfns.c */

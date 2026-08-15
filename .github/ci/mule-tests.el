@@ -224,6 +224,27 @@
     (buffer-substring (point-min) (progn (end-of-line) (point))))))
 
 
+;; skip-chars は search.c の skip_chars が返す値をそのまま返す。その
+;; skip_chars は戻り値の型を宣言せずに定義されていた時期があり、宣言なしに
+;; 呼ばれると暗黙の int になって LP64 で切り詰められる。
+(ci-try "skipchars"
+  (function (lambda ()
+    (set-buffer (get-buffer-create "sk")) (erase-buffer)
+    (insert "aaabbb")
+    (goto-char (point-min))
+    (let ((n (skip-chars-forward "a")))
+      (format "%s,%s" n (point))))))
+
+;; where-is-internal は get_local_map の戻り値を keymap として使う。これも
+;; 宣言が無いと LP64 でタグ付きポインタの上半分が落ちる。整数と違って
+;; 落ちれば必ず壊れるので、実際に引けるかを見る。
+(ci-try "whereis"
+  (function (lambda ()
+    (let ((k (where-is-internal 'forward-char nil t)))
+      (if (vectorp k) (format "vector:%d" (length k))
+        (if k (format "%s" (type-of k)) "NOTFOUND"))))))
+
+
 ;;; --- D. byte-compile ----------------------------------------------
 
 ;; 日本語文字列を含む .el を compile して、.elc から読み直しても
