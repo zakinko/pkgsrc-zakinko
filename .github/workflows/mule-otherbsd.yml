@@ -7,14 +7,21 @@ name: mule (other BSD)
 # 「パッケージが通るか」だけでなく「pkgsrc が載るか」も込みで見たいので、
 # そこは省かない。
 #
-# VM は vmactions のものを借りる。NetBSD は anita で自分でイメージを
-# 作っているが (netbsd-ci-images)、この三者は既製のものがあるので作らない。
-# uses: に式が書けないので、同じ形の job が三つ並ぶ。中身は一本の
-# build-on-bsd.sh に寄せてある。
+# amd64 の VM は vmactions のものを借りる。NetBSD は anita で自分で
+# イメージを作っているが (netbsd-ci-images)、この三者は既製のものがある
+# ので作らない。uses: に式が書けないので、同じ形の job が並ぶ。中身は
+# 一本の build-on-bsd.sh に寄せてある。
 #
 # release は版を書き切る。先頭だけでも一番新しいものが選ばれる作りだが、
 # DragonFly の action にはその仕組みが無く "6" は 6.conf を探して転ぶ。
 # どのみち、ツリーの下が黙って動かないほうがよい。
+#
+# i386 は借りるあてが無い。vmactions も cross-platform-actions も amd64 と
+# aarch64 と riscv64 しか作っていない。FreeBSD だけは公式に i386 の qcow2
+# を配っているので、そこだけ自前で QEMU を回す (run-freebsd-i386.sh)。
+# OpenBSD には公式のイメージが無く、i386 を回すには自動インストールから
+# 作ることになる。DragonFly は 4.0 (2014) で i386 を捨てているので無い。
+# ILP32 のこのコードにとって i386 は本籍地なので、一つでも足しておく。
 #
 # 構成は端末のみ。X11 と canna と wnn4 は、まず端末版が通ってからにする。
 # workflow_dispatch から options を渡せば試せる。
@@ -88,8 +95,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .bsdcache
-          key: pkgsrc-freebsd-${{ github.run_id }}
-          restore-keys: pkgsrc-freebsd-
+          key: pkgsrc-freebsd-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-freebsd-amd64-
 
       - name: 組んで確かめる
         uses: vmactions/freebsd-vm@v1
@@ -123,8 +130,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .bsdcache
-          key: pkgsrc-openbsd-${{ github.run_id }}
-          restore-keys: pkgsrc-openbsd-
+          key: pkgsrc-openbsd-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-openbsd-amd64-
 
       - name: 組んで確かめる
         uses: vmactions/openbsd-vm@v1
@@ -158,8 +165,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .bsdcache
-          key: pkgsrc-dragonfly-${{ github.run_id }}
-          restore-keys: pkgsrc-dragonfly-
+          key: pkgsrc-dragonfly-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-dragonfly-amd64-
 
       - name: 組んで確かめる
         uses: vmactions/dragonflybsd-vm@v1
@@ -168,3 +175,51 @@ jobs:
           envs: 'OPTIONS'
           run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
 
+  freebsd-i386:
+    name: FreeBSD i386
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils \
+            netcat-openbsd xz-utils
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-freebsd-i386-${{ github.run_id }}
+          restore-keys: pkgsrc-freebsd-i386-
+
+      - name: 組んで確かめる
+        run: sh .github/ci/run-freebsd-i386.sh "$OPTIONS"
+
+      # このイメージはシリアルに何も出さないので、コンソールログは空の
+      # ままになる。代わりに host の HTTP ログを出す。ゲストが /s を取りに
+      # 来ていれば打鍵は届いており、来ていなければ届いていない。
+      - name: 転けたら鍵入れの跡を出す
+        if: failure()
+        run: cat .vm-freebsd-i386/httpd.log 2>/dev/null || true

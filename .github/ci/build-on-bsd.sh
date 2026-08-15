@@ -21,7 +21,9 @@ set -e
 OPTS=${1:-"-canna -wnn4 -x11"}
 WS=$(cd "$(dirname "$0")/../.." && pwd)
 OS=$(uname -s)
-CACHE=$WS/.bsdcache/$OS
+# キャッシュは機種ごとに分ける。同じ FreeBSD でも amd64 と i386 では
+# バイナリパッケージも bootstrap kit も混ぜられない。
+CACHE=$WS/.bsdcache/$OS-$(uname -m)
 PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz}
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/local/bin
