@@ -1,0 +1,114 @@
+name: mule (other OS)
+
+# BSD 以外の pkgsrc プラットフォームでも mule を組んでみる。
+#
+# pkgsrc が mk/platform/ に持っているのは AIX Cygwin Darwin DragonFly
+# FreeBSD FreeMiNT HPUX Haiku IRIX Linux MidnightBSD Minix NetBSD OSF1
+# OpenBSD QNX SCO_SV SunOS UnixWare の 19 で、このうち機械が手に入って
+# 走らせられるものをここに集める。BSD 系は mule-otherbsd.yml のほう。
+#
+# ここの二つは VM が要らない。GitHub の runner がそのまま Darwin であり
+# Linux であるので、pkgsrc を bootstrap して組むだけでよい。ただし runner
+# は root ではないので、sudo と、ツリーの置き場所を呼ぶ側から渡す。
+#
+# 見込み:
+#
+#   Darwin   s/darwin.h に相当するものが 1995 年の tree に無い。configure が
+#            unported で止まるはず。仮に通っても、Mach-O では unexec が
+#            成り立たない (Emacs が unexmacosx.c を持つのは 21 以降)。
+#   Linux    s/linux.h は当時からある。glibc も gcc も当時とは別物なので
+#            そのままは通らないだろうが、止まる場所は configure より先に
+#            なるはずで、BSD 勢とは違う景色が見える。
+#
+# どちらも「駄目でした」で終わらせず、どこで止まったかを残すのが目的。
+
+on:
+  push:
+    paths:
+      - 'mule/**'
+      - '.github/workflows/mule-otheros.yml'
+      - '.github/ci/**'
+  pull_request:
+    paths:
+      - 'mule/**'
+      - '.github/ci/**'
+  workflow_dispatch:
+    inputs:
+      options:
+        description: 'PKG_OPTIONS.mule (既定は端末のみ)'
+        required: false
+        default: '-canna -wnn4 -x11'
+
+env:
+  OPTIONS: ${{ inputs.options || '-canna -wnn4 -x11' }}
+  # native runner にはツリーを置く区画を選ばせない。一つしかないし、
+  # df の桁も BSD と違う。
+  PKGSRC_BASE: /opt
+
+jobs:
+  darwin:
+    name: macOS (Darwin)
+    runs-on: macos-15
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-darwin-arm64-${{ github.run_id }}
+          restore-keys: pkgsrc-darwin-arm64-
+
+      - name: 組んで確かめる
+        run: sudo -E sh .github/ci/build-on-bsd.sh "$OPTIONS"
+
+      # root で組んだものをそのままにすると、キャッシュを保存する側が
+      # 読めない。
+      - name: キャッシュを持ち帰れるようにする
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .bsdcache 2>/dev/null || true
+
+  linux:
+    name: Linux (glibc)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-linux-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-linux-amd64-
+
+      - name: 組んで確かめる
+        run: sudo -E sh .github/ci/build-on-bsd.sh "$OPTIONS"
+
+      - name: キャッシュを持ち帰れるようにする
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .bsdcache 2>/dev/null || true

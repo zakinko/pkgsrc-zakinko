@@ -39,6 +39,9 @@ name: mule (other BSD)
 #   DragonFly  patch-ca の s/dragonfly.h に初めて実際に届く。joerg が
 #              2006 年に「DragonFly が無いので未確認」と書いたまま 20 年
 #              通っているもので、当たりが付くとすればここ。
+#   MidnightBSD FreeBSD 6 系からのフォークで、pkgsrc にも MidnightBSD.mk が
+#              ある。OPSYS が違うだけで中身は FreeBSD に近いので、FreeBSD
+#              側の当て物がどこまで効くかが見える。
 #
 # つまり当面は赤い。どこで止まるかを毎回同じ形で読めるようにするための
 # 足場で、緑にしていくのはこれから。
@@ -172,6 +175,41 @@ jobs:
         uses: vmactions/dragonflybsd-vm@v1
         with:
           release: '6.4.2'
+          envs: 'OPTIONS'
+          run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
+
+  midnightbsd:
+    name: MidnightBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-midnightbsd-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-midnightbsd-amd64-
+
+      - name: 組んで確かめる
+        uses: vmactions/midnightbsd-vm@v1
+        with:
+          release: '4.0.7'
           envs: 'OPTIONS'
           run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
 

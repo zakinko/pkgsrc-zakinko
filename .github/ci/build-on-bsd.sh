@@ -1,8 +1,12 @@
 #!/bin/sh
-# FreeBSD / OpenBSD / DragonFly の中で走る。pkgsrc を bootstrap して、
-# この repo を zakinko カテゴリとして重ね、verify-mule.sh に渡す。
+# NetBSD 以外の pkgsrc プラットフォームの中で走る。pkgsrc を bootstrap
+# して、この repo を zakinko カテゴリとして重ね、verify-mule.sh に渡す。
 #
 #   sh build-on-bsd.sh "<PKG_OPTIONS.mule>"
+#
+# 名前は BSD だが、中身は OPSYS を選ばない。Darwin と Linux の native
+# runner からも同じものを呼んでいる。そちらは root で走らないので、
+# 呼ぶ側が sudo と PKGSRC_BASE を渡す。
 #
 # NetBSD 側 (run-in-qemu.sh) と違うのは二点。pkgsrc が base に無いので
 # bootstrap から始まること、そして公式のバイナリパッケージが配られて
@@ -63,6 +67,12 @@ stage "置き場所を決める"
 # tar の実装によっては symlink を消して実ディレクトリを作ってしまう。
 # 前提を増やすより、狭ければ狭いと分かるほうがよい。
 df -h
+if [ -n "${PKGSRC_BASE:-}" ]; then
+	# native runner (Darwin と Linux) はここを渡してくる。区画は一つで、
+	# しかも df の桁が BSD と違う (macOS は inode の欄が three つ余計に
+	# 並ぶ) ので、選ばせずに決め打ちする。
+	BIG=$PKGSRC_BASE
+else
 BIG=$(df -k | awk '
 	NR > 1 && NF >= 6 {
 		mp = $NF
@@ -70,6 +80,7 @@ BIG=$(df -k | awk '
 		if ($(NF - 2) + 0 > max) { max = $(NF - 2) + 0; best = mp }
 	}
 	END { print best }')
+fi
 [ -n "$BIG" ] || BIG=/
 # 一番空いているのが / だと、素直に繋ぐと //pkgsrc-ci になる。bootstrap は
 # --workdir が canonical でないと受け付けない。

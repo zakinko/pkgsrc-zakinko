@@ -25,4 +25,9 @@ SUM=$(awk '$1 == "SHA512" && $2 == "(mule-2.3.tar.gz)" { print $4 }' \
 	mule/distinfo)
 [ -n "$SUM" ] || { echo "distinfo に mule-2.3.tar.gz の SHA512 が無い"; exit 1; }
 
-echo "$SUM  $DIST" | sha512sum -c -
+# Linux の runner は sha512sum、macOS の runner は shasum しか持っていない。
+if command -v sha512sum > /dev/null 2>&1; then
+	echo "$SUM  $DIST" | sha512sum -c -
+else
+	echo "$SUM  $DIST" | shasum -a 512 -c -
+fi
