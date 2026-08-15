@@ -1,6 +1,9 @@
 $NetBSD: patch-src_abbrev_c,v 1.2 2013/04/21 15:39:59 joerg Exp $
 
-- use standard headers
+Include <stdlib.h>, and give write_abbrev and describe_abbrev a declared
+return type and typed parameters.  Both are static and passed to
+map_obarray as function pointers, so the types have to match what it
+expects.
 
 --- src/abbrev.c.orig	1993-09-13 11:20:03.000000000 +0000
 +++ src/abbrev.c

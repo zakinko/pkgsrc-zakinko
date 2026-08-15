@@ -1,6 +1,9 @@
 $NetBSD: patch-src_dired_c,v 1.2 2013/04/21 15:39:59 joerg Exp $
 
-- use standard headers
+Include <stdlib.h>, and pass compile_pattern the argument it now takes.
+
+src/regex19.h declares it with five parameters; this call site still passed
+four, so the fifth was whatever happened to be in place.
 
 --- src/dired.c.orig	1994-11-11 00:35:50.000000000 +0000
 +++ src/dired.c
