@@ -33,13 +33,13 @@
 # 三つめは time_t の書式。32bit 移植では long が 32bit で time_t が 64bit
 # なので "%ld" は誤り。上流は今もそのままで、issue も出ていない。
 #
-# PKGREVISION 2 -> 3 は lens と time_t のぶん。2 は既に CI が Releases に
-# 上げていて、据え置くと「もうある」と見なされて建て直されない。
+# PKGREVISION 3 -> 4 は gmake をやめて patch に変えたぶん。中身は同じでも、
+# 番号を据え置くと「もうある」と見なされて建て直されず、検証にならない。
 #
 # pkgsrc が取り込んだら overlay/sysutils/augeas ごと消すこと。
 
 DISTNAME=	augeas-1.14.1
-PKGREVISION=	3
+PKGREVISION=	4
 CATEGORIES=	sysutils
 MASTER_SITES=	${MASTER_SITE_GITHUB:=hercules-team/}
 GITHUB_RELEASE=	release-${PKGVERSION_NOREV}
