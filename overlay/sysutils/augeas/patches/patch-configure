@@ -1,0 +1,31 @@
+$NetBSD$
+
+Glob the lens lists here rather than with $(wildcard) in the makefile.
+See patch-Makefile.in.
+
+Doing it in configure rather than leaving a bare glob in the makefile is
+what makes an out-of-tree build work: the install rule falls back to
+$(srcdir)/ only when it can test each name, which it cannot do with a
+pattern.
+
+--- configure.orig
++++ configure
+@@ -2153,6 +2153,8 @@
+ PACKAGE_NAME
+ PATH_SEPARATOR
+ SHELL
++LENS_FILES
++LENS_TEST_FILES
+ am__quote'
+ ac_subst_files=''
+ ac_user_opts='
+@@ -52016,6 +52018,9 @@
+ fi
+ 
+ 
++LENS_FILES=`cd "$srcdir" && echo lenses/*.aug`
++LENS_TEST_FILES=`cd "$srcdir" && echo lenses/tests/*.aug`
++
+ ac_config_files="$ac_config_files Makefile gnulib/lib/Makefile gnulib/tests/Makefile src/Makefile man/Makefile tests/Makefile examples/Makefile doc/Makefile doc/naturaldocs/Makefile augeas.pc augeas.spec"
+ 
+ cat >confcache <<\_ACEOF
