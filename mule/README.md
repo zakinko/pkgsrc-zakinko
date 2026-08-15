@@ -129,64 +129,140 @@ Wnn 側は `egg` が起動ファイルを探すが、上流は候補である `e
 `eggrc-sj3` しか置かず `eggrc` を作らない。無いと egg は辞書をひとつも登録
 しないまま止まる。`wnn4` オプションが有効なとき `eggrc-wnn` を複写している。
 
-## 当て物の構成
+## 当て物の一覧
 
-109 本ある。名前 (`patch-aa` … `patch-cc`) からは中身が分からないので、すべてに
-何のための物かを書いてある。
+109 本ある。名前 (`patch-aa` … `patch-cc`) からは中身が分からないので、一つずつ
+表にした。
 
-**確認**の欄は、その当て物について何をしたかを表す。
+**確認**の欄は、その当て物について私が何をしたかを表す。
 
 - **実証** — 当てる前と後の両方を動かして違いを見た
 - **読了** — 差分を読み、直している対象を原典で確かめた
 - **未確認** — 差分は読んだが、それ以上は追っていない
 
-**上流**の欄は、現在の GNU Emacs が同じ問題をどう扱っているかを実際に見た結果。
+全部を同じ深さで見たわけではない。同じ深さで見たように書くと、後から裏を取る
+人が確かめ直すべき箇所を見失う。
 
-### 一つずつ見たもの
+**上流**の欄は、現在の GNU Emacs の該当ファイルを実際に取って照合した結果。
+当てている 108 ファイルのうち、上流に現存するのは 52、消滅しているのは 56。
 
-| 当て物 | 対象 | 役割 | 確認 | 上流 |
-| --- | --- | --- | --- | --- |
-| `patch-src_m_intel386.h` | `src/m/intel386.h` | `NO_ARG_ARRAY` を定義。`&fn` の仮定が inline で崩れ autoload が全滅する | **実証** | `src/m/*` は Emacs 24 で廃止。`&fn` の仕組みごと捨て、常に配列を組む `CALLN` に置換 |
-| `patch-CVE-2022-45939` | `lib-src/etags.c` | `system(3)` に渡す値を引用。固定長 `sprintf` を除去 | **実証** | **同じ手法**。単一引用符で包み `'` を `'\''` に escape |
-| `patch-af` | `src/lisp.h` | `Lisp_Object` を返す関数 77 個を宣言。無いと LP64 で戻り値が切れる | 読了 | 上流は型付きで宣言 (`get_local_map (ptrdiff_t, struct buffer *, Lisp_Object)`) |
-| `patch-src_search.c` | `src/search.c` | `compile_pattern` と `skip_chars` に戻り値の型と引数の型を与える | 読了 | `compile_pattern` は型付き。`skip_chars` は書き直され現存せず |
-| `patch-src_casefiddle.c` | `src/casefiddle.c` | `casify_region` を ANSI 定義に | 読了 | **同一の形** `casify_region (enum case_action, Lisp_Object, Lisp_Object)` |
-| `patch-src_cm.c` / `.h` | `src/cm.c` `cm.h` | `cmgoto` の定義と宣言を型付きで揃える | 読了 | 型付き (`struct tty_display_info *` が増えている) |
-| `patch-src_insdel.c` | `src/insdel.c` | `del_range` 等を ANSI 定義に | 読了 | 型付き (`ptrdiff_t`) |
-| `patch-src_undo.c` | `src/undo.c` | `record_insert` `record_delete` を ANSI 定義に | 読了 | 型付き。引数の型は後年変わっている |
-| `patch-src_dired_c` | `src/dired.c` | 標準ヘッダ + `compile_pattern` の引数不足を直す | 読了 | 該当箇所は書き直され現存せず |
-| `patch-ak` | `src/keyboard.c` | window system が無いとき `last_event_timestamp` に実体を与える | **実証** | 該当変数は現存せず |
-| `patch-src_frame.h` | `src/frame.h` | 前方宣言を `MULTI_FRAME` の外へ | **実証** | `MULTI_FRAME` 自体が廃止 |
-| `patch-cj` | `src/wnnfns.c` | `wnn-server-set-rev` が値を返さずに終わるのを直す | **実証** | wnn 対応は上流に無い |
-| `patch-src_canna.c` | `src/canna.c` | 値を返すはずの関数が返さずに終わるのを直す | 読了 | canna 対応は上流に無い |
-| `patch-ab` | `src/unexelf.c` | 新しい emacs の `unexelf.c` を持ってくる | 未確認 | `unexec` ごと廃止 (Emacs 28 で portable dumper に) |
-| `patch-ad` | `configure` | 機種と OS の追加 + cpp の検査を直す | 読了 | `configure` は全面的に書き直されている |
-| `patch-ae` | `src/m/powerpc.h` | PowerPC の機種記述を追加 | 未確認 | `src/m/*` ごと廃止 |
-| `patch-aa` / `patch-bc` / `patch-ca` | `src/s/netbsd.h` `m/alpha.h` `s/dragonfly.h` | 機種と OS の記述 | 未確認 | `src/s/*` `src/m/*` ごと廃止 |
-| `patch-src_m_amd64.h` | `src/m/amd64.h` | amd64 の機種記述を追加 | **実証** | 同上 |
-| `patch-bd` | `src/fns.c` | 標準ヘッダ + 衝突する手書き `extern` を無効化 | 読了 | 手書き宣言は現存せず |
-| `patch-bw` | `lib-src/movemail.c` | `xmalloc` を `size_t`/`void *` に | 読了 | 上流も型付き |
-| `patch-src_tparam_c` | `src/tparam.c` | `xmalloc`/`xrealloc` の宣言を LP64 でも有効に | 読了 | 該当の条件分岐は現存せず |
-| `patch-be` | `src/config.h.in` | `HAVE_STRERROR` を定義 | 読了 | configure が検出する |
-| `patch-an` / `patch-ao` | `Makefile.in` `man/Makefile` | `SUBDIR` に man を足し、info を既定で建てる | **実証** | 構成が全く異なる |
-| `patch-bb` | `man/texinfo.tex` | 1994 年版を 1997 年版へ | 未確認 | 現在の texinfo.tex は別物 |
-| `patch-cc` | `src/mcpath.h` | `NAME_MAX` が無い環境への逃げ道 | 未確認 | mcpath は上流に無い |
-| `patch-aj` | `src/getloadavg.c` | `unix` が未定義の環境を救う | 読了 | gnulib に移管 |
-| `patch-ac` | `lib-src/Makefile.in.in` | `INSTALL_PROGRAM` ではデータに合わない | 読了 | 構成が異なる |
+| 当て物 | 対象 | 役割 | 確認 | 要否 | 上流 |
+| --- | --- | --- | --- | --- | --- |
+| `patch-CVE-2022-45939` | `lib-src/etags.c` | system(3) に渡す値を引用。固定長 sprintf を除去 | 実証 | いる | **同じ手法**。単一引用符で包み `'` を escape |
+| `patch-aa` | `src/s/netbsd.h` | NetBSD では -lutil と -ltermcap が不要。a.out alpha は共有ライブラリ無し | 未確認 | いる | src/s ごと廃止 |
+| `patch-ab` | `src/unexelf.c` | 新しい emacs の unexelf.c を持ってくる | 未確認 | いる | unexec ごと廃止 (portable dumper へ) |
+| `patch-ac` | `lib-src/Makefile.in.in` | INSTALL_PROGRAM ではデータに合わない | 読了 | いる | 構成が異なる |
+| `patch-ad` | `configure` | 機種と OS の追加 + cpp の検査を直す | 読了 | いる | configure は全面的に書き直し |
+| `patch-ae` | `src/m/powerpc.h` | PowerPC の機種記述を追加 | 未確認 | いる | src/m ごと廃止 |
+| `patch-af` | `src/lisp.h` | Lisp_Object を返す関数 77 個を宣言。無いと LP64 で戻り値が切れる | 読了 | いる | 型付きで宣言している |
+| `patch-ag` | `src/coding.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-ah` | `src/fileio.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-ai` | `src/floatfns.c` | extern int errno を落とす。今の libc では errno はマクロ | 読了 | いる | 手書き宣言は現存せず |
+| `patch-aj` | `src/getloadavg.c` | unix が未定義の環境で何も定義されなくなるのを救う | 読了 | いる | gnulib に移管 |
+| `patch-ak` | `src/keyboard.c` | window system が無いとき last_event_timestamp に実体を与える | 実証 | いる | 該当変数は現存せず |
+| `patch-al` | `src/lread.c` | extern int errno を落とす。今の libc では errno はマクロ | 読了 | いる | 手書き宣言は現存せず |
+| `patch-am` | `src/xfns.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-an` | `Makefile.in` | SUBDIR に man を足す。info* を install から外す | 実証 | いる | 構成が全く異なる |
+| `patch-ao` | `man/Makefile` | info を既定で建てる。texinfo 本体の info は建てない | 実証 | いる | 構成が全く異なる |
+| `patch-ap` | `info/CCL` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-aq` | `info/ISO2022` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-ar` | `man/cl.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-as` | `man/dired-x.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-at` | `info/R2L` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-au` | `man/emacs.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-av` | `man/forms.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-aw` | `man/gnus.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-ax` | `info/XFONT` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-ay` | `info/antenews-jp` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-az` | `man/sc.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-ba` | `man/vip.texi` | 同じことを .texi に @dircategory で | 読了 | いる | **同じ書き方**を使っている (このファイル自体は現存せず) |
+| `patch-bb` | `man/texinfo.tex` | texinfo.tex を 1994 年版から 1997 年版へ | 未確認 | **要検討** | 現在の texinfo.tex は別物。TeX を走らせない以上、要否は未確認 |
+| `patch-bc` | `src/m/alpha.h` | alpha の記述のうち NetBSD で成り立たない前提を外す | 未確認 | いる | src/m ごと廃止 |
+| `patch-bd` | `src/fns.c` | 標準ヘッダ + 衝突する手書き extern を無効化 | 読了 | いる | 手書き宣言は現存せず |
+| `patch-be` | `src/config.h.in` | HAVE_STRERROR を定義 | 読了 | いる | configure が検出する |
+| `patch-bf` | `src/emacs.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-bg` | `info/canna-jp` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bh` | `info/egg-jp-1` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bi` | `info/egg-jp-2` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bj` | `info/egg-jp` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bk` | `info/egg` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bl` | `info/kbd-trans` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bm` | `info/languages` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bn` | `info/m2ps` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bo` | `info/mule-jp-1` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bp` | `info/mule-jp-2` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bq` | `info/mule-jp-3` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-br` | `info/mule-jp` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bs` | `info/mule` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bt` | `info/quail` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bu` | `info/terminology` | 生成済み info に INFO-DIR-SECTION を足す | 読了 | いる | 上流は info を配布しないので不要 |
+| `patch-bv` | `lib-src/make-path.c` | extern int errno を落とす。今の libc では errno はマクロ | 読了 | いる | 手書き宣言は現存せず (このファイル自体は現存せず) |
+| `patch-bw` | `lib-src/movemail.c` | xmalloc を size_t / void * に | 読了 | いる | 上流も型付き |
+| `patch-bx` | `lib-src/emacsserver.c` | extern int errno を落とす。今の libc では errno はマクロ | 読了 | いる | 手書き宣言は現存せず (このファイル自体は現存せず) |
+| `patch-by` | `lib-src/timer.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-bz` | `lib-src/emacsclient.c` | extern int errno を落とす。今の libc では errno はマクロ | 読了 | いる | 手書き宣言は現存せず |
+| `patch-ca` | `src/s/dragonfly.h` | DragonFly の OS 記述を追加 | 未確認 | いる | src/s ごと廃止 |
+| `patch-cb` | `src/dispnew.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-cc` | `src/mcpath.h` | NAME_MAX が無い環境への逃げ道 | 未確認 | いる | mcpath は上流に無い |
+| `patch-cd` | `src/xterm.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-ce` | `src/sysdep.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-cf` | `src/filelock.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-cg` | `src/process.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-ch` | `src/callproc.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-ci` | `src/xrdb.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-cj` | `src/wnnfns.c` | wnn-server-set-rev が値を返さずに終わるのを直す | 実証 | いる | wnn 対応は上流に無い |
+| `patch-lib-src_bdf_c` | `lib-src/bdf.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-lib-src_coco_c` | `lib-src/coco.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-lib-src_etags_c` | `lib-src/etags.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-lib-src_fakelisp_c` | `lib-src/fakelisp.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-lib-src_make-docfile_c` | `lib-src/make-docfile.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-lib-src_profile_c` | `lib-src/profile.c` | void main を直す | 読了 | いる | profile.c は現存せず |
+| `patch-lib-src_sorted-doc_c` | `lib-src/sorted-doc.c` | 標準ヘッダ + malloc の使い方 | 読了 | いる | 上流も型付き |
+| `patch-lib-src_yow_c` | `lib-src/yow.c` | time() の使い方を直す | 読了 | いる | yow.c は現存せず |
+| `patch-src_abbrev_c` | `src/abbrev.c` | 標準ヘッダ + static 二つを ANSI 定義に | 読了 | いる | abbrev.c は Lisp 化され現存せず |
+| `patch-src_alloc_c` | `src/alloc.c` | 標準ヘッダ + mark_object 等の宣言に引数の型を与える | 読了 | いる | 上流も型付き |
+| `patch-src_buffer_h` | `src/buffer.h` | 標準ヘッダ + marker と undo の入口を宣言 | 読了 | いる | 上流も型付き |
+| `patch-src_bytecode_c` | `src/bytecode.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_callint_c` | `src/callint.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_canna.c` | `src/canna.c` | 値を返すはずの関数が返さずに終わるのを直す | 読了 | いる | canna 対応は上流に無い |
+| `patch-src_casefiddle.c` | `src/casefiddle.c` | casify_region を ANSI 定義に | 読了 | いる | **同一の形** |
+| `patch-src_charset_c` | `src/charset.c` | 標準ヘッダ + mchar_to_string 等を型付きで宣言 | 読了 | いる | mule 由来。上流に該当なし |
+| `patch-src_cm.c` | `src/cm.c` | cmgoto を ANSI 定義に | 読了 | いる | 型付き |
+| `patch-src_cm.h` | `src/cm.h` | cmgoto を cm.c の定義に合わせて宣言 | 読了 | いる | 型付き |
+| `patch-src_data.c` | `src/data.c` | K&R の定義を ANSI に直し、戻り値と引数の型を宣言 | 読了 | いる | 上流も全て ANSI |
+| `patch-src_dired_c` | `src/dired.c` | 標準ヘッダ + compile_pattern の引数不足を直す | 読了 | いる | 該当箇所は書き直され現存せず |
+| `patch-src_doc_c` | `src/doc.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_doprnt_c` | `src/doprnt.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_editfns_c` | `src/editfns.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_eval_c` | `src/eval.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_frame.h` | `src/frame.h` | 前方宣言を MULTI_FRAME の外へ | 実証 | いる | MULTI_FRAME 自体が廃止 |
+| `patch-src_insdel.c` | `src/insdel.c` | del_range 等を ANSI 定義に | 読了 | いる | 型付き |
+| `patch-src_keyboard.h` | `src/keyboard.h` | K&R の定義を ANSI に直し、戻り値と引数の型を宣言 | 読了 | いる | 上流も全て ANSI |
+| `patch-src_keymap_c` | `src/keymap.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_m_amd64.h` | `src/m/amd64.h` | amd64 の機種記述を追加 | 実証 | いる | src/m ごと廃止 |
+| `patch-src_m_intel386.h` | `src/m/intel386.h` | NO_ARG_ARRAY を定義。&fn の仮定が inline で崩れ autoload が全滅する | 実証 | いる | src/m は Emacs 24 で廃止。&fn の仕組みごと捨て CALLN に置換 |
+| `patch-src_macros_c` | `src/macros.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_marker.c` | `src/marker.c` | K&R の定義を ANSI に直し、戻り値と引数の型を宣言 | 読了 | いる | 上流も全て ANSI |
+| `patch-src_mcpath_c` | `src/mcpath.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_ralloc_c` | `src/ralloc.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_regex19.h` | `src/regex19.h` | K&R の定義を ANSI に直し、戻り値と引数の型を宣言 | 読了 | いる | 上流も全て ANSI |
+| `patch-src_scroll_c` | `src/scroll.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_search.c` | `src/search.c` | compile_pattern と skip_chars に型を与える | 読了 | いる | compile_pattern は型付き。skip_chars は書き直され現存せず |
+| `patch-src_search_c` | `src/regex19.c` | 標準ヘッダ。**名前に反して src/regex19.c を当てている** | 読了 | いる | regex は gnulib/regex に置換 |
+| `patch-src_term_c` | `src/term.c` | K&R の定義を ANSI に直し、戻り値と引数の型を宣言 | 読了 | いる | 上流も全て ANSI |
+| `patch-src_textprop_c` | `src/textprop.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_tparam_c` | `src/tparam.c` | xmalloc/xrealloc の宣言を LP64 でも有効に | 読了 | いる | 該当の条件分岐は現存せず |
+| `patch-src_undo.c` | `src/undo.c` | record_insert / record_delete を ANSI 定義に | 読了 | いる | 型付き |
+| `patch-src_window.c` | `src/window.c` | K&R の定義を ANSI に直し、戻り値と引数の型を宣言 | 読了 | いる | 上流も全て ANSI |
+| `patch-src_xdisp_c` | `src/xdisp.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_xfaces_c` | `src/xfaces.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
+| `patch-src_xmenu_c` | `src/xmenu.c` | 標準ヘッダを足す | 未確認 | いる | 上流も標準ヘッダを使う |
 
-### まとめて同じことをしているもの
+紛らわしいものが二つある。**`patch-src_search_c` は `src/regex19.c` を当てており、
+`src/search.c` を当てているのは `patch-src_search.c` のほう**。末尾が `_c` か
+`.c` かの違いしかない。名前を変えると distinfo ごと動くので、当て物の中に断り
+書きを入れてある。
 
-| 当て物 | 本数 | 役割 | 確認 | 上流 |
-| --- | --- | --- | --- | --- |
-| `patch-ap` ほか | 20 | 生成済み info に `INFO-DIR-SECTION` を足す | 読了 | 上流は info を配布物に含めないので不要 |
-| `patch-ar` ほか | 7 | 同じことを `.texi` に `@dircategory` で | 読了 | **同じ書き方**を使っている |
-| `patch-src_data.c` ほか | 8 | K&R の定義を ANSI に直す | 読了 | 上流も全て ANSI |
-| `patch-ai` ほか | 5 | `extern int errno` を落とす | 読了 | 手書き宣言は現存せず |
-| `patch-src_bytecode_c` ほか | 25 | 標準ヘッダを足す | 未確認 | 上流も標準ヘッダを使う |
-
-注意が要るものが二つある。**`patch-src_search_c` は名前に反して `src/regex19.c` を
-当てている** (`patch-src_search.c` のほうが `src/search.c`)。名前を変えると distinfo
-ごと動くので、当て物の中に断り書きを入れてある。
 
 ## 検査
 
