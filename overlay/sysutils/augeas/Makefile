@@ -1,6 +1,6 @@
 # $NetBSD: Makefile,v 1.20 2026/01/07 08:48:48 wiz Exp $
 #
-# 上流 pkgsrc の sysutils/augeas/Makefile の写し。直しているのは四つ。
+# 上流 pkgsrc の sysutils/augeas/Makefile の写し。直しているのは六つ。
 # 四つめ (man のパス) は下の SUBST_CLASSES にある。
 #
 # 一つめが本題で、patches/patch-configure と patch-Makefile.in。上流の
@@ -41,15 +41,31 @@
 # 三つめは time_t の書式。32bit 移植では long が 32bit で time_t が 64bit
 # なので "%ld" は誤り。上流は今もそのままで、issue も出ていない。
 #
+# 五つめと六つめは lens の filter で、どちらも NetBSD では何も変わらない。
+# 手元で確かめようがないものを置いているのは、上流に出すものと同じ形をここで
+# 一度 make test に通しておくためである (TEST_TARGET=check が augeas 自身の
+# make check を回す)。上流の CI は runner が ubuntu-20.04 のままで、2026 年に
+# 入ってからの run は全て 24 時間待って cancelled になっており、PR を出しても
+# 回らない。
+#
+# patch-adduser-conf-simplevars は /etc/adduser.conf を Shellvars から
+# Simplevars へ移す。このファイルを shell として扱っているのは FreeBSD だけで、
+# OpenBSD と Debian の adduser(8) はどちらも perl である。NetBSD には
+# adduser(8) が無く、useradd(8) が /etc/usermgmt.conf を読む。
+#
+# patch-wsconsctl-conf-typo は Simplevars の filter にある
+# /etc/wsconsctlctl.conf を直す。ctl が一つ多く、2013 年から何にも一致して
+# いない。NetBSD にあるのは別物の /etc/wscons.conf。
+#
 # PKGREVISION は当て物を触るたびに上げている。入るファイルが変わらなくても、
 # 番号を据え置くと「もうある」と見なされて建て直されず、検証にならない。
 # 3 -> 4 が gmake をやめたぶん、4 -> 5 が configure で展開する形に、
-# 5 -> 6 が man のパスを直したぶん。
+# 5 -> 6 が man のパスを直したぶん、6 -> 7 が lens の filter 二本。
 #
 # pkgsrc が取り込んだら overlay/sysutils/augeas ごと消すこと。
 
 DISTNAME=	augeas-1.14.1
-PKGREVISION=	6
+PKGREVISION=	7
 CATEGORIES=	sysutils
 MASTER_SITES=	${MASTER_SITE_GITHUB:=hercules-team/}
 GITHUB_RELEASE=	release-${PKGVERSION_NOREV}
