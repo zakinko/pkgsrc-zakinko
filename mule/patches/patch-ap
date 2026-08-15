@@ -1,5 +1,11 @@
 $NetBSD: patch-ap,v 1.1 2005/12/01 18:13:24 wiz Exp $
 
+The info files are shipped pre-built and carry no directory entry, so
+install-info has nothing to register and they never appear in the dir
+node.  Add the block it looks for.
+
+This is one of twenty identical additions, one per shipped info file.
+
 --- info/CCL.orig	1994-10-21 05:17:57.000000000 +0100
 +++ info/CCL
 @@ -3,7 +3,10 @@ produced by `texinfo-format-buffer'

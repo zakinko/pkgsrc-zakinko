@@ -1,5 +1,8 @@
 $NetBSD: patch-src_canna.c,v 1.1 2013/04/21 15:39:59 joerg Exp $
 
+The function is declared to return a value and falls off the end
+without one, handing the caller whatever was in the return register.
+
 --- src/canna.c.orig	1995-02-17 07:47:37.000000000 +0000
 +++ src/canna.c
 @@ -1318,7 +1318,7 @@ int len,pos,rev,*clen,*cpos,*crev;

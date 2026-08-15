@@ -1,5 +1,11 @@
 $NetBSD: patch-ax,v 1.1 2005/12/01 18:13:24 wiz Exp $
 
+The info files are shipped pre-built and carry no directory entry, so
+install-info has nothing to register and they never appear in the dir
+node.  Add the block it looks for.
+
+This is one of twenty identical additions, one per shipped info file.
+
 --- info/XFONT.orig	1994-10-21 05:17:58.000000000 +0100
 +++ info/XFONT
 @@ -2,7 +2,9 @@ Info file: XFONT,    -*-Text-*-

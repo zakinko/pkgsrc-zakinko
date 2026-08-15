@@ -1,5 +1,8 @@
 $NetBSD: patch-bv,v 1.1 2006/01/04 20:35:08 joerg Exp $
 
+errno is a macro in a modern libc, and may not be a plain int at all.
+The old `extern int errno' declaration collides with it.
+
 --- lib-src/make-path.c.orig	2006-01-04 17:42:18.000000000 +0000
 +++ lib-src/make-path.c
 @@ -28,8 +28,6 @@ the Free Software Foundation, 675 Mass A

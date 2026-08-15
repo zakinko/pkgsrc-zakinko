@@ -1,5 +1,12 @@
 $NetBSD: patch-src_undo.c,v 1.1 2013/04/21 15:40:00 joerg Exp $
 
+Give the functions a declared return type and typed parameters.
+
+Called from another file without a declaration, a function is assumed to
+return int.  Where it really returns a pointer or a Lisp_Object that
+assumption truncates the value on any machine where the two are not the
+same width, and the corruption surfaces far from the call.
+
 --- src/undo.c.orig	2013-03-01 17:40:31.000000000 +0000
 +++ src/undo.c
 @@ -41,8 +41,7 @@ Lisp_Object pending_boundary;

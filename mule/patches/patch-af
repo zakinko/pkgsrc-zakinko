@@ -1,4 +1,4 @@
-$NetBSD: patch-af,v 1.3 2013/04/21 15:39:59 joerg Exp $
+$NetBSD$
 
 Pull in <machine/limits.h> on NetBSD for DBL_DIG.
 

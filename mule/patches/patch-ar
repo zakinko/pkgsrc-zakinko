@@ -1,5 +1,10 @@
 $NetBSD: patch-ar,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
+@dircategory and @direntry are what makeinfo turns into the
+INFO-DIR-SECTION block that install-info reads.  Without them a rebuilt
+info file drops out of the dir node again, undoing by hand what the
+patches against info/ put there.
+
 --- man/cl.texi.orig	1994-01-08 09:42:47.000000000 +0100
 +++ man/cl.texi
 @@ -2,6 +2,11 @@

@@ -1,5 +1,8 @@
 $NetBSD: patch-cc,v 1.1 2006/01/04 20:35:08 joerg Exp $
 
+mcpath sizes a directory entry from NAME_MAX, which lives in
+<limits.h> and is not always defined; fall back when it is not.
+
 --- src/mcpath.h.orig	2006-01-04 18:01:24.000000000 +0000
 +++ src/mcpath.h
 @@ -36,6 +36,7 @@ the Free Software Foundation, 675 Mass A

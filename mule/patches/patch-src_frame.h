@@ -1,4 +1,4 @@
-$NetBSD: patch-src_frame.h,v 1.1 2013/04/21 15:39:59 joerg Exp $
+$NetBSD$
 
 Add prototypes, and keep them out of the MULTI_FRAME arm.  A build
 without a window system takes the other arm, where the declarations

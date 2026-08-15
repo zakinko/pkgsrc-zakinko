@@ -1,5 +1,7 @@
 $NetBSD: patch-ca,v 1.1 2006/01/04 20:35:08 joerg Exp $
 
+DragonFly is close enough to 4.3BSD for this tree, given getloadavg.
+
 --- /dev/null	2006-01-04 20:13:24.000000000 +0000
 +++ src/s/dragonfly.h
 @@ -0,0 +1,67 @@

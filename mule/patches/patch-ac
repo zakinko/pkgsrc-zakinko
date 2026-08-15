@@ -1,5 +1,8 @@
 $NetBSD: patch-ac,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
+install(1) is used for data as well as programs here, so the mode that
+INSTALL_PROGRAM carries is wrong for some of what goes through it.
+
 --- lib-src/Makefile.in.in.orig	1994-12-19 05:13:45.000000000 +0100
 +++ lib-src/Makefile.in.in
 @@ -206,7 +206,7 @@ ${archlibdir}: all

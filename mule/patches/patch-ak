@@ -1,4 +1,4 @@
-$NetBSD: patch-ak,v 1.6 2017/05/07 06:49:23 tsutsui Exp $
+$NetBSD$
 
 Give last_event_timestamp a definition when there is no window system.
 xterm.c owns it otherwise, but the event loop records into it either

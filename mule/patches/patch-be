@@ -1,5 +1,7 @@
 $NetBSD: patch-be,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
+strerror exists here; configure is old enough not to look for it.
+
 --- src/config.h.in.orig	1995-07-17 03:37:51.000000000 +0200
 +++ src/config.h.in
 @@ -177,7 +177,7 @@ and this notice must be preserved on all

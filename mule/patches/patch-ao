@@ -1,5 +1,8 @@
 $NetBSD: patch-ao,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
+Build the info files by default, and stop building ../info/info: the
+standalone info reader's manual belongs to texinfo, not here.
+
 --- man/Makefile.orig	1994-07-02 23:35:17.000000000 +0200
 +++ man/Makefile
 @@ -4,7 +4,7 @@

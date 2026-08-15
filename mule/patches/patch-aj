@@ -1,5 +1,8 @@
 $NetBSD: patch-aj,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
+getloadavg's unix guard leaves nothing defined on a system that does
+not define `unix' itself.
+
 --- src/getloadavg.c.orig	1994-10-21 05:20:18.000000000 +0100
 +++ src/getloadavg.c
 @@ -64,10 +64,7 @@

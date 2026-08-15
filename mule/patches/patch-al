@@ -1,5 +1,8 @@
 $NetBSD: patch-al,v 1.3 2006/01/04 20:35:08 joerg Exp $
 
+errno is a macro in a modern libc, and may not be a plain int at all.
+The old `extern int errno' declaration collides with it.
+
 --- src/lread.c.orig	1995-02-17 08:57:05.000000000 +0100
 +++ src/lread.c
 @@ -82,13 +82,11 @@ the Free Software Foundation, 675 Mass A

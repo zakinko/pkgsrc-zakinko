@@ -1,5 +1,12 @@
 $NetBSD: patch-src_insdel.c,v 1.1 2013/04/21 15:39:59 joerg Exp $
 
+Give the functions a declared return type and typed parameters.
+
+Called from another file without a declaration, a function is assumed to
+return int.  Where it really returns a pointer or a Lisp_Object that
+assumption truncates the value on any machine where the two are not the
+same width, and the corruption surfaces far from the call.
+
 --- src/insdel.c.orig	1994-10-24 03:58:26.000000000 +0000
 +++ src/insdel.c
 @@ -589,17 +589,16 @@ insert_from_string_after_markers (string

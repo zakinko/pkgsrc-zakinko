@@ -1,5 +1,8 @@
 $NetBSD: patch-src_cm.h,v 1.1 2013/04/21 15:39:59 joerg Exp $
 
+Declare cmgoto the way cm.c now defines it.  A declaration that says
+nothing about the parameters lets a mismatched call through.
+
 --- src/cm.h.orig	1993-09-12 01:20:36.000000000 +0000
 +++ src/cm.h
 @@ -164,6 +164,6 @@ extern int evalcost ();

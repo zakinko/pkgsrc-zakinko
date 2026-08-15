@@ -1,5 +1,8 @@
 $NetBSD: patch-bz,v 1.2 2017/05/07 06:49:23 tsutsui Exp $
 
+errno is a macro in a modern libc, and may not be a plain int at all.
+The old `extern int errno' declaration collides with it.
+
 --- lib-src/emacsclient.c.orig	1994-07-27 17:57:35.000000000 +0000
 +++ lib-src/emacsclient.c
 @@ -53,7 +53,6 @@ main (argc, argv)
