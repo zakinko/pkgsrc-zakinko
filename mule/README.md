@@ -73,22 +73,35 @@ TeX のコメントが本文として読まれるもの、入れ子になった 
 
 手で markup を直した版も試したが、**出力は一バイトも変わらなかった**。
 
-### autoload が動かない (未解決)
+### autoload が動かない (i386、原因判明)
 
-**gcc 12 が `-O2` で組んだ `eval.c` では autoload が機能しない。**
-`do_autoload` が `load` に渡す文字列は呼び出し地点では正しく (gdb で確認)、
-Lisp 側の `load` に届く時点でスタックアドレスに化けている。
-`substitute-in-file-name` が文字列でないものを受け取り、autoload するもの全て
-が失敗する。`byte-optimize-lapcode` が autoload されるため `byte-compile` が
-目に見える犠牲者になるが、被害はそこに留まらない。
+`call0` から `call6` と `apply1` は、**最初の仮引数の番地を取り、引数がそこに
+並んでいるものとして `Ffuncall` に配列として渡す**。
 
-gcc 7.5 は同じソースから健全な `eval.c` を作る。`eval.c` だけを `-O0` か
-`-O1`、あるいは `-fno-inline` で組んでも直り、`-fno-inline-small-functions`
-でも直る。三つのうち一番狭いものを入れてある。
+```c
+RETURN_UNGCPRO (Ffuncall (5, &fn));
+```
 
-**ただし何を抑えているのかは分かっていない。** gcc が `do_autoload` に inline
-する二つの関数を `noinline` にしても直らないので、特定の inline を止めている
-のではなく別の最適化判断を動かしている。診断ではなく経験的な回避である。
+関数が自分の枠を持っているうちは成り立つ。**inline 展開された瞬間に崩れる。**
+仮引数は配置を持たない値になり、`&fn` は 1 語ぶんの場所しか指さず、2 つ目以降
+はスタックに残っていた何かになる。
+
+gcc 12 は `call4` を `do_autoload` に inline する。その結果、`load` に渡される
+はずのファイル名がスタックアドレスに化け、`substitute-in-file-name` が文字列
+でないものを受け取り、**autoload するもの全てが動かなくなる**。
+`byte-optimize-lapcode` が autoload されるため `byte-compile` が目に見える
+犠牲者になる。gcc 7.5 は inline しないので、この症状は新しいコンパイラでのみ
+出る。
+
+このツリーには `NO_ARG_ARRAY` という切り替えが最初から用意されている。定義
+すると、これらの関数は明示的な配列を組む。**私たちが建てる他の機種 — amd64、
+sparc、alpha、powerpc — はすべて定義しており、i386 だけがコメントアウトされて
+いた** (`patch-src_m_intel386.h`)。
+
+    /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
+     * group of arguments and treat it as an array of the arguments.  */
+
+今のコンパイラでは、まさに「できない」。
 
 ### CVE-2022-45939
 

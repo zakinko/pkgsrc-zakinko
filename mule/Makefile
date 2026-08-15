@@ -56,26 +56,6 @@ CFLAGS+=	-fno-builtin-malloc -fno-builtin-realloc -fno-builtin-free
 # -fno-common the default.  This tree predates that convention and has
 # tentative definitions of the same global in several translation units.
 CFLAGS+=	-fcommon
-# Autoload is broken when eval.c is built by GCC 12 at -O2.  do_autoload
-# hands load(1) the right string -- verified under gdb at the call site --
-# but what reaches the Lisp load is a stack address, so
-# substitute-in-file-name gets a non-string and every autoloaded function
-# fails.  byte-compile is the visible casualty, since byte-optimize-lapcode
-# is autoloaded, but nothing that autoloads works.  GCC 7.5 builds a sound
-# eval.c from the same source.
-#
-# Building only eval.c at -O0 or -O1, or with -fno-inline, cures it, and so
-# does the flag below, which is the narrowest of those.  What it is actually
-# curing is not established: marking the two functions GCC inlines into
-# do_autoload as noinline does not help, so the flag is shifting some other
-# optimisation decision rather than preventing a specific inline.  Treat it
-# as an empirical workaround, not as a diagnosis.
-#
-# CC_VERSION is not set yet while this file is parsed, so the test has to be
-# on PKGSRC_COMPILER, which bsd.prefs.mk does define.
-.if !empty(PKGSRC_COMPILER:Mgcc)
-CFLAGS+=	-fno-inline-small-functions
-.endif
 
 CONFIGURE_ARGS+=	${MACHINE_ARCH}--${LOWER_OPSYS}
 CONFIGURE_ARGS+=	--terminal-face --mcpath --canna-libraries=${PREFIX}/lib
