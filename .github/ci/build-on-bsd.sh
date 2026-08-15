@@ -69,7 +69,9 @@ BIG=$(df -k | awk '
 	}
 	END { print best }')
 [ -n "$BIG" ] || BIG=/
-REAL=$BIG/pkgsrc-ci
+# 一番空いているのが / だと、素直に繋ぐと //pkgsrc-ci になる。bootstrap は
+# --workdir が canonical でないと受け付けない。
+REAL=${BIG%/}/pkgsrc-ci
 echo "ツリーと作業場所は $REAL に置く"
 
 mkdir -p "$REAL" "$REAL/obj" "$CACHE/distfiles" "$CACHE/packages"

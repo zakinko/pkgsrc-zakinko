@@ -12,9 +12,9 @@ name: mule (other BSD)
 # uses: に式が書けないので、同じ形の job が三つ並ぶ。中身は一本の
 # build-on-bsd.sh に寄せてある。
 #
-# release は先頭だけ書けば、その中の一番新しいイメージが選ばれる。
-# 2026-08 現在で 14 → 14.3、7 → 7.8、6 → 6.4.2。FreeBSD 15 のように
-# 世代が変わったときに追随するかは、そのとき決める。
+# release は版を書き切る。先頭だけでも一番新しいものが選ばれる作りだが、
+# DragonFly の action にはその仕組みが無く "6" は 6.conf を探して転ぶ。
+# どのみち、ツリーの下が黙って動かないほうがよい。
 #
 # 構成は端末のみ。X11 と canna と wnn4 は、まず端末版が通ってからにする。
 # workflow_dispatch から options を渡せば試せる。
@@ -94,7 +94,7 @@ jobs:
       - name: 組んで確かめる
         uses: vmactions/freebsd-vm@v1
         with:
-          release: '14'
+          release: '14.4'
           envs: 'OPTIONS'
           run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
 
@@ -129,7 +129,7 @@ jobs:
       - name: 組んで確かめる
         uses: vmactions/openbsd-vm@v1
         with:
-          release: '7'
+          release: '7.9'
           envs: 'OPTIONS'
           run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
 
@@ -164,6 +164,7 @@ jobs:
       - name: 組んで確かめる
         uses: vmactions/dragonflybsd-vm@v1
         with:
-          release: '6'
+          release: '6.4.2'
           envs: 'OPTIONS'
           run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
+
