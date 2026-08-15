@@ -1,5 +1,6 @@
 work
 work.*
+.bsdcache
 .work.log
 .broken
 *.core

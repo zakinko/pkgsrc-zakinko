@@ -1,7 +1,11 @@
 #!/bin/sh
-# NetBSD の中で走る。mule を組んで、実際に日本語が編集できるところまで確かめる。
+# pkgsrc の載った BSD の中で走る。mule を組んで、実際に日本語が編集できる
+# ところまで確かめる。
 #
 #   $1  PKG_OPTIONS.mule に渡す文字列
+#
+# NetBSD からは run-in-qemu.sh が、それ以外の BSD からは build-on-bsd.sh が
+# 呼ぶ。違うのは依存の入れ方だけで、検査は同じものを通す。
 #
 # ビルドが通っただけでは通したことにしない。1995 年のこのコードは
 # 「ビルドは通るのにダンプ済みバイナリが起動時に落ちる」「変換サーバに
@@ -18,7 +22,10 @@
 # 実行でどこまで壊れているかが分かるほうが、直す側の手数が少ない。
 
 OPTS="$1"
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/X11R7/bin
+# X は NetBSD が /usr/X11R7、OpenBSD が /usr/X11R6、FreeBSD は pkg の
+# /usr/local に入る。
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
+PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin:/usr/local/bin
 export PATH
 unset PKG_PATH
 
@@ -28,10 +35,12 @@ RES=$CI_DIR/results.txt
 export CI_DIR
 HERE=$(cd "$(dirname "$0")" && pwd)
 
+OS=$(uname -s)
 ARCH=$(uname -m)
 REL=$(uname -r | sed -e 's/_.*//')
-echo "=== NetBSD ${REL} / ${ARCH} / PKG_OPTIONS.mule=\"${OPTS}\" ==="
-gcc --version 2>/dev/null | head -1
+echo "=== ${OS} ${REL} / ${ARCH} / PKG_OPTIONS.mule=\"${OPTS}\" ==="
+# NetBSD は gcc、FreeBSD と OpenBSD は clang。どちらでも cc で当たる。
+cc --version 2>/dev/null | head -1
 
 fail=0
 note() { echo "    $*"; }
@@ -67,32 +76,48 @@ must_bytes() {
 }
 
 # ------------------------------------------------------------------
-echo "--- 依存をバイナリで入れる ---"
 set -e
-PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
-export PKG_PATH
-for p in gmake gtexinfo mozilla-rootcerts; do pkg_add -U "$p" || true; done
-want canna && { pkg_add -U Canna-lib Canna-server Canna-dict || true; }
-want wnn4  && { pkg_add -U ja-FreeWnn-lib ja-FreeWnn-server || true; }
-mozilla-rootcerts install > /dev/null 2>&1 || true
-unset PKG_PATH
+if [ "$OS" = NetBSD ]; then
+	echo "--- 依存をバイナリで入れる ---"
+	PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
+	export PKG_PATH
+	for p in gmake gtexinfo mozilla-rootcerts; do pkg_add -U "$p" || true; done
+	want canna && { pkg_add -U Canna-lib Canna-server Canna-dict || true; }
+	want wnn4  && { pkg_add -U ja-FreeWnn-lib ja-FreeWnn-server || true; }
+	mozilla-rootcerts install > /dev/null 2>&1 || true
+	unset PKG_PATH
 
-# x11-links はバイナリで入れない。symlink を張るだけの小さなパッケージで、
-# 公式バイナリは pkgsrc current より古いことがある。古いほうが残っていると
-# pkgsrc が作り直した版を入れられず "A different version is already
-# installed" で転ぶので、あれば外して pkgsrc に作らせる。
-want x11 && { pkg_delete -f x11-links > /dev/null 2>&1 || true; }
+	# x11-links はバイナリで入れない。symlink を張るだけの小さな
+	# パッケージで、公式バイナリは pkgsrc current より古いことがある。
+	# 古いほうが残っていると pkgsrc が作り直した版を入れられず
+	# "A different version is already installed" で転ぶので、あれば
+	# 外して pkgsrc に作らせる。
+	want x11 && { pkg_delete -f x11-links > /dev/null 2>&1 || true; }
+
+	# 公式バイナリの Canna-lib は tree の要求より古いことがある。ソース
+	# から作らせると imake ごしに python まで引くので、入っているものを
+	# 使わせる。
+	MKARGS="BUILDLINK_API_DEPENDS.Canna-lib=Canna-lib>=3.7"
+	MKARGS="$MKARGS BUILDLINK_ABI_DEPENDS.Canna-lib=Canna-lib>=3.7"
+	PKGMAKE=make
+else
+	# NetBSD 以外に公式のバイナリ集合は無い。依存は pkgsrc に組ませ、
+	# ついでに package も作らせる。build-on-bsd.sh が PACKAGES を
+	# キャッシュに向けてあるので、次の回はそこから入る。
+	echo "--- 依存は pkgsrc に組ませる ---"
+	MKARGS="DEPENDS_TARGET=package-install"
+	# base の make は FreeBSD も OpenBSD も pkgsrc には使えない。
+	# bootstrap が入れた bmake を呼ぶ。
+	PKGMAKE=/usr/pkg/bin/bmake
+fi
 
 echo "--- build と install ---"
 cd /usr/pkgsrc/zakinko/mule
 # 同じ版が残っていると install が拒否されるので、作り直す前に外す
 pkg_delete -f mule > /dev/null 2>&1 || true
-# 公式バイナリの Canna-lib は tree の要求より古いことがある。ソースから
-# 作らせると imake ごしに python まで引くので、入っているものを使わせる。
-make PKG_OPTIONS.mule="$OPTS" \
-     BUILDLINK_API_DEPENDS.Canna-lib="Canna-lib>=3.7" \
-     BUILDLINK_ABI_DEPENDS.Canna-lib="Canna-lib>=3.7" \
-     install
+# MKARGS は展開させる。中の > は変数から出てくるので、この時点では
+# もう演算子として読まれない。
+$PKGMAKE PKG_OPTIONS.mule="$OPTS" $MKARGS install
 set +e
 
 test -x $MULE || { echo "FAIL: $MULE が無い"; exit 1; }
@@ -345,9 +370,9 @@ if [ -n "$C" ]; then bad "core を吐いている: $C"; else note "core なし";
 
 echo
 if [ $fail -eq 0 ]; then
-	echo "=== 通った: NetBSD ${REL}/${ARCH} \"${OPTS}\" ==="
+	echo "=== 通った: ${OS} ${REL}/${ARCH} \"${OPTS}\" ==="
 	exit 0
 else
-	echo "=== 落ちた: NetBSD ${REL}/${ARCH} \"${OPTS}\" ==="
+	echo "=== 落ちた: ${OS} ${REL}/${ARCH} \"${OPTS}\" ==="
 	exit 1
 fi
