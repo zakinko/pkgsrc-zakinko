@@ -1,6 +1,12 @@
 $NetBSD: patch-ca,v 1.1 2006/01/04 20:35:08 joerg Exp $
 
-DragonFly is close enough to 4.3BSD for this tree, given getloadavg.
+An operating system description for DragonFly, which is close enough to
+4.3BSD for this tree given that it has getloadavg.
+
+Not from upstream: no src/s/dragonfly.h exists in any Emacs release
+checked.  DragonFly appeared after this tree stopped being maintained.
+
+Not built here -- no DragonFly to try it on.
 
 --- /dev/null	2006-01-04 20:13:24.000000000 +0000
 +++ src/s/dragonfly.h

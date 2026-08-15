@@ -3,6 +3,10 @@ $NetBSD: patch-bb,v 1.4 2005/12/01 18:13:24 wiz Exp $
 Replace the 1994 texinfo.tex with the 1997 one, which understands
 @dircategory and @direntry.
 
+Not needed for this package as it stands: texinfo.tex is read by texi2dvi,
+which only the dvi target runs, and pkgsrc builds all -> info.  Kept because
+it costs nothing and makes the dvi target work if anyone asks for it.
+
 --- man/texinfo.tex.orig	1994-10-21 05:19:39.000000000 +0100
 +++ man/texinfo.tex
 @@ -1,5 +1,7 @@

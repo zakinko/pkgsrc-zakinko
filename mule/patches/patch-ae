@@ -1,7 +1,13 @@
 $NetBSD: patch-ae,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
-A machine description for PowerPC, which this tree does not carry.  Taken
-from the file of the same name in a later Emacs.
+A machine description for PowerPC.
+
+Not from upstream: no src/m/powerpc.h exists in any Emacs release checked
+(20.1, 20.3, 20.4, 21.1, 22.1, 23.1, 24.1).  Upstream carries macppc.h and
+powerpcle.h instead, and those bear a different copyright.  The note this
+patch used to carry credits pkgsrc's own editors/emacs, which matches.
+
+Not built here -- no PowerPC to try it on.
 
 --- src/m/powerpc.h.orig	2005-12-01 18:47:01.000000000 +0100
 +++ src/m/powerpc.h

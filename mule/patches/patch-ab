@@ -1,6 +1,15 @@
 $NetBSD: patch-ab,v 1.4 2017/04/29 01:11:55 tsutsui Exp $
 
-Pull unexelf.c from newer emacs.
+Replace unexelf.c with the one from Emacs 21.3, and adapt it.
+
+The 1994 original does not understand the ELF that current toolchains
+produce.  Identified by diffing against each release: 21.3 is the closest,
+and the copyright line here carries its dates.
+
+The adaptations are: <config.h> rather than "config.h", a declaration for
+fatal, ELFSIZE and ecoff handling for alpha and sparc_v9, and the __mips__
+case that a comment in the patch says came from the pkgsrc patches for 20.7.
+Mule's MCPATH #undef of open and chmod is not carried over.
 
 --- src/unexelf.c.orig	1994-10-21 04:21:00.000000000 +0000
 +++ src/unexelf.c

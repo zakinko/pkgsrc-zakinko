@@ -1,7 +1,11 @@
 $NetBSD: patch-cc,v 1.1 2006/01/04 20:35:08 joerg Exp $
 
-mcpath sizes a directory entry from NAME_MAX, which lives in
-<limits.h> and is not always defined; fall back when it is not.
+mcpath sizes a directory entry from NAME_MAX, which lives in <limits.h>.
+Include it, and fall back when the system does not define NAME_MAX at all.
+
+NetBSD does define it, so the fallback is not taken here; the include is
+what matters.  Without it NAME_MAX is invisible and the fallback silently
+picks a different size.
 
 --- src/mcpath.h.orig	2006-01-04 18:01:24.000000000 +0000
 +++ src/mcpath.h
