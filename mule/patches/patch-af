@@ -8,20 +8,20 @@ sizeof(int) == sizeof(Lisp_Object), but on an LP64 host built with
 LONG_LISP_OBJECT the implicit int return truncates the object to 32
 bits, which is what makes a dumped mule fault on garbage pointers.
 
---- src/lisp.h.orig	1994-10-21 04:20:28.000000000 +0000
+--- src/lisp.h.orig	1995-07-21 06:12:16.000000000 +0000
 +++ src/lisp.h
-@@ -29,6 +29,10 @@
- 	DOS-Extender GO32 and EMX supported. */
+@@ -30,6 +30,10 @@
  /* 93.1.15  modified for Mule Ver.0.9.7.1 by Y.Akiba <akiba@cbs.canon.co.jp>
  	Patch for NeXT is updated. */
-+
+ 
 +#if defined(__NetBSD__)
 +#include <machine/limits.h> /* for DBLL_DIG */
 +#endif
- 
++
  /* Define the fundamental Lisp data structures */
  
-@@ -1550,3 +1554,111 @@
+ /* Define an integer type with the same size as Lisp_Object.
+@@ -1550,3 +1554,112 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
