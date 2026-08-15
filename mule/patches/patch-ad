@@ -1,18 +1,25 @@
-$NetBSD: patch-ad,v 1.6 2011/12/20 18:33:40 ryoon Exp $
+$NetBSD$
 
-Two unrelated things configure needs.
+Three things configure needs.
 
 Machines and systems it has never heard of: alpha, powerpc and x86_64 on
-NetBSD, and DragonFly.
+NetBSD, and DragonFly and FreeBSD.
+
+DragonFly and FreeBSD need an arm of their own in the outer case.  Setting
+opsys further down is not enough on its own -- that only names the operating
+system, and without a machine the configuration is rejected as unported.  The
+machine rules cannot go in the NetBSD arm either, since that arm only runs
+for a NetBSD triple.  src/s/dragonfly.h has been in this package since 2006
+but nothing could reach it.
 
 Its test for whether the C preprocessor works checks that nothing came out
-on stderr.  A preprocessor that says anything at all -- a warning, a note
--- fails the test even though it works.  Check that the output holds what
-the input should have produced instead.
+on stderr.  A preprocessor that says anything at all -- a warning, a note --
+fails the test even though it works.  Check that the output holds what the
+input should have produced instead.
 
---- configure.orig	1995-06-05 01:11:38.000000000 +0000
+--- configure.orig	1995-07-21 06:12:16.000000000 +0000
 +++ configure
-@@ -581,13 +581,16 @@ case "${canonical}" in
+@@ -581,16 +581,36 @@
    *-*-netbsd* )
      opsys=netbsd
      case "${canonical}" in
@@ -29,7 +36,27 @@ the input should have produced instead.
      esac
    ;;
  
-@@ -1177,6 +1180,7 @@ case "${canonical}" in
++  ## DragonFly ports.  Only ever ran on x86_64.
++  *-*-dragonfly* )
++    opsys=dragonfly
++    case "${canonical}" in
++      x86_64-*-dragonfly*) machine=amd64 ;;
++    esac
++  ;;
++
++  ## FreeBSD ports
++  *-*-freebsd* )
++    opsys=freebsd
++    case "${canonical}" in
++      i[345]86-*-freebsd*) machine=intel386 ;;
++      x86_64-*-freebsd*) machine=amd64 ;;
++    esac
++  ;;
++
+   ## Alliant machines
+   ## Strictly speaking, we need the version of the alliant operating
+   ## system to choose the right machine file, but currently the
+@@ -1177,6 +1197,7 @@
        *-bsd386* | *-bsdi* )	opsys=bsd386 ;;
        *-386bsd* )	        opsys=386bsd ;;
        *-freebsd* )	        opsys=freebsd ;;
@@ -37,7 +64,7 @@ the input should have produced instead.
        *-nextstep* )             opsys=mach2 ;;
        ## Otherwise, we'll fall through to the generic opsys code at the bottom.
      esac
-@@ -1384,10 +1388,13 @@ if test -z "$CPP"; then
+@@ -1384,10 +1405,13 @@
  #include "confdefs.h"
  #include <stdio.h>
  Syntax Error
@@ -52,7 +79,7 @@ the input should have produced instead.
  if test -z "$ac_err"; then
    :
  else
-@@ -1397,10 +1404,13 @@ else
+@@ -1397,10 +1421,13 @@
  #include "confdefs.h"
  #include <stdio.h>
  Syntax Error
