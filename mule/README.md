@@ -53,7 +53,7 @@ GCC 10 から既定になった。このツリーはそれ以前の書き方な�
 
 宣言が無いと戻り値は `int` と見なされる。`Lisp_Object` を返す関数では、
 LP64 で上半分が落ちる。`src/lisp.h` に 75 個の宣言を足した
-(`patch-af`)。2017 年に tsutsui が amd64 で「`mule -nw` は動くが Xt 版は
+(`patch-src_lisp.h`)。2017 年に tsutsui が amd64 で「`mule -nw` は動くが Xt 版は
 core を吐く」と記録しており、その筋を疑ったもの。**NetBSD 11.0/amd64 では
 その core dump は再現しない。**
 
@@ -158,9 +158,9 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 | `patch-aa` | `src/s/netbsd.h` | termcap を terminfo に置き換え、-lutil を落とす。a.out alpha は共有ライブラリ無し | 読了 | 25.1 で廃止 | 25.1 で src/s ごと廃止 |
 | `patch-ab` | `src/unexelf.c` | **Emacs 21.3 の unexelf.c** に NetBSD 向けの改変を重ねる | 読了 | 30.1 まで現存 | 30.1 まで現存するが unexec 自体は portable dumper に置換 |
 | `patch-ac` | `lib-src/Makefile.in.in` | INSTALL_PROGRAM ではデータに合わない | 読了 | 20.1 の時点で無い | 構成が異なる |
-| `patch-ad` | `configure` | 機種と OS の追加 + cpp の検査を直す | 読了 | 24.1 で `autogen/configure` へ移動 | 24.1 で autogen/configure へ (生成物になる) |
+| `patch-configure` | `configure` | 機種と OS の追加 + cpp の検査を直す | 読了 | 24.1 で `autogen/configure` へ移動 | 24.1 で autogen/configure へ (生成物になる) |
 | `patch-ae` | `src/m/powerpc.h` | PowerPC の機種記述を追加。**上流由来ではなく pkgsrc の editors/emacs 由来** | 読了 | 20.1 の時点で無い | 上流に src/m/powerpc.h は存在しない (macppc.h と powerpcle.h はある) |
-| `patch-af` | `src/lisp.h` | Lisp_Object を返す関数 77 個を宣言 | 読了 | 30.1 まで現存 | `get_local_map` は **22.1 で型付き宣言に** |
+| `patch-src_lisp.h` | `src/lisp.h` | Lisp_Object を返す関数 77 個を宣言 | 読了 | 30.1 まで現存 | `get_local_map` は **22.1 で型付き宣言に** |
 | `patch-ag` | `src/coding.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-ah` | `src/fileio.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-ai` | `src/floatfns.c` | extern int errno を落とす | 読了 | 30.1 まで現存 | 手書き宣言は現存せず |
@@ -254,7 +254,7 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 | `patch-src_regex19.h` | `src/regex19.h` | K&R の定義を ANSI に直す | 読了 | 20.1 の時点で無い | 上流も ANSI 定義 |
 | `patch-src_scroll_c` | `src/scroll.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_search.c` | `src/search.c` | compile_pattern と skip_chars に型を与える | 読了 | 30.1 まで現存 | compile_pattern は型付き。skip_chars は書き直され現存せず |
-| `patch-src_search_c` | `src/regex19.c` | 標準ヘッダ。**名前に反して src/regex19.c を当てている** | 読了 | 20.1 の時点で無い | regex は gnulib に置換 |
+| `patch-src_regex19.c` | `src/regex19.c` | 標準ヘッダを足す | 読了 | 20.1 の時点で無い | regex は gnulib に置換 |
 | `patch-src_term_c` | `src/term.c` | K&R の定義を ANSI に直す | 読了 | 30.1 まで現存 | 上流も ANSI 定義 |
 | `patch-src_textprop_c` | `src/textprop.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_tparam_c` | `src/tparam.c` | xmalloc/xrealloc の宣言を LP64 でも有効に | 読了 | 30.1 まで現存 | 該当の条件分岐は現存せず |
@@ -264,10 +264,13 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 | `patch-src_xfaces_c` | `src/xfaces.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_xmenu_c` | `src/xmenu.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 
-紛らわしいものが二つある。**`patch-src_search_c` は `src/regex19.c` を当てており、
-`src/search.c` を当てているのは `patch-src_search.c` のほう**。末尾が `_c` か
-`.c` かの違いしかない。名前を変えると distinfo ごと動くので、当て物の中に断り
-書きを入れてある。
+名前が中身を表さないものは、中身に手を入れた折に改名した。`patch-ad` は
+`patch-configure` へ、`patch-af` は `patch-src_lisp.h` へ。`patch-src_search_c`
+は `src/regex19.c` を当てているのに `patch-src_search.c` (こちらが `src/search.c`)
+と紛らわしかったので `patch-src_regex19.c` にした。
+
+残りの `patch-aa` から `patch-cc` は名前のままにしてある。改名すると上流へ送る
+差分が名前の変更で埋まり、中身の変更が見えなくなる。表を引けば対象は分かる。
 
 
 ## 検査
