@@ -1,6 +1,7 @@
 # $NetBSD: Makefile,v 1.20 2026/01/07 08:48:48 wiz Exp $
 #
-# 上流 pkgsrc の sysutils/augeas/Makefile の写し。直しているのは三つ。
+# 上流 pkgsrc の sysutils/augeas/Makefile の写し。直しているのは四つ。
+# 四つめ (man のパス) は下の SUBST_CLASSES にある。
 #
 # 一つめが本題で、patches/patch-configure と patch-Makefile.in。上流の
 # Makefile.am が
@@ -42,12 +43,13 @@
 #
 # PKGREVISION は当て物を触るたびに上げている。入るファイルが変わらなくても、
 # 番号を据え置くと「もうある」と見なされて建て直されず、検証にならない。
-# 3 -> 4 が gmake をやめたぶん、4 -> 5 が configure で展開する形に変えたぶん。
+# 3 -> 4 が gmake をやめたぶん、4 -> 5 が configure で展開する形に、
+# 5 -> 6 が man のパスを直したぶん。
 #
 # pkgsrc が取り込んだら overlay/sysutils/augeas ごと消すこと。
 
 DISTNAME=	augeas-1.14.1
-PKGREVISION=	5
+PKGREVISION=	6
 CATEGORIES=	sysutils
 MASTER_SITES=	${MASTER_SITE_GITHUB:=hercules-team/}
 GITHUB_RELEASE=	release-${PKGVERSION_NOREV}
@@ -61,6 +63,20 @@ USE_LIBTOOL=		yes
 USE_TOOLS+=		pkg-config
 GNU_CONFIGURE=		yes
 PKGCONFIG_OVERRIDE+=	augeas.pc.in
+
+# man が lens の在処を /usr/share/augeas と書いている。実際に見に行くのは
+# DATADIR で、これは --prefix から作られるので、prefix が /usr でない限り
+# 嘘になる。patch にできないのは ${PREFIX} が環境で変わるため (pkgsrc は
+# /usr/pkg、macOS の pkgsrc は /opt/pkg)。
+#
+# .1 は tarball に同梱されていて .pod より新しいので作り直されない。しかも
+# 生成規則が %.1: %.pod という GNU make のパターン規則で bmake は解釈しない。
+# 両方直しておく。
+SUBST_CLASSES+=		manpath
+SUBST_STAGE.manpath=	pre-configure
+SUBST_MESSAGE.manpath=	Fixing the lens directory in the manual pages.
+SUBST_FILES.manpath=	man/*.1 man/*.pod
+SUBST_SED.manpath=	-e 's,/usr/share/augeas,${PREFIX}/share/augeas,g'
 TEST_TARGET=		check
 
 # rl_char_is_quoted_p
