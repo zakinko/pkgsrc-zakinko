@@ -41,7 +41,7 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 
 | | 何 | 消してよくなる条件 |
 |---|---|---|
-| `sysutils/augeas` | CVE-2025-2588 の NULL 参照修正 + PKGREVISION 2 | pkgsrc が同等の patch を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
+| `sysutils/augeas` | `gmake` を足して lens 462 本を入れる、CVE-2025-2588 の NULL 参照修正、`time_t` の書式。PKGREVISION 3 | pkgsrc が同等の変更を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
 | `textproc/libxml2` | 2.15.1 → 2.15.3。CVE 5 件分 | pkgsrc が 2.15.2 以降に上がったとき |
 | `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 8 | pkgsrc が同等の変更を入れたとき |
 | `inputmethod/anthy` | anthy.el と anthy-dic.el が使う廃止シンボル 5 つを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
@@ -50,6 +50,12 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 `augeas` は 9.4 / 10.1 / 11.0 の三つで建つことを確認済み。`make test` は
 263 件中 7 件落ちるが、patch を外しても同じ 7 件が落ちるので当て物とは
 無関係で、CVE の回帰テスト (`fatest`) は三つとも通っている。
+
+lens が入っていない件は pkgsrc 全体の話で、当て物とは別に元から壊れている。
+NetBSD 11.0/amd64 に公式パッケージを入れた実機で、`augtool print
+/files/etc/hosts` が何も返さないことを確認した。`$(wildcard)` が GNU make
+の関数なのが原因で、FreeBSD も OpenBSD も gmake を足して 462 本入れている。
+CVE の方は同じ 11.0/amd64 で `augparse` が SIGSEGV になることを確認した。
 
 `emacs30-nox11` の綴り修正は効いていて、`depends.mk` で止まらなくなった。
 `anthy-elisp` はその先で別の壁に当たっていて、`inputmethod/anthy` の patch
