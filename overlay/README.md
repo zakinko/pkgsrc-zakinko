@@ -41,11 +41,9 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 
 | | 何 | 消してよくなる条件 |
 |---|---|---|
-| `sysutils/augeas` | `gmake` を足して lens 462 本を入れる、CVE-2025-2588 の NULL 参照修正、`time_t` の書式。PKGREVISION 3 | pkgsrc が同等の変更を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
-| `textproc/libxml2` | 2.15.1 → 2.15.3。CVE 5 件分 | pkgsrc が 2.15.2 以降に上がったとき |
+| `sysutils/augeas` | lens 462 本が入らないのを直す、CVE-2025-2588 の NULL 参照修正、`time_t` の書式。PKGREVISION 4 | pkgsrc が同等の変更を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
 | `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 8 | pkgsrc が同等の変更を入れたとき |
 | `inputmethod/anthy` | anthy.el と anthy-dic.el が使う廃止シンボル 5 つを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
-| `editors/emacs30-nox11` | `_EMACS_REQD` の綴りを `emacs30-no-x11` から `emacs30-nox11` へ | pkgsrc が同等の変更を入れたとき |
 
 `augeas` は 9.4 / 10.1 / 11.0 の三つで建つことを確認済み。`make test` は
 263 件中 7 件落ちるが、patch を外しても同じ 7 件が落ちるので当て物とは
@@ -54,12 +52,16 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 lens が入っていない件は pkgsrc 全体の話で、当て物とは別に元から壊れている。
 NetBSD 11.0/amd64 に公式パッケージを入れた実機で、`augtool print
 /files/etc/hosts` が何も返さないことを確認した。`$(wildcard)` が GNU make
-の関数なのが原因で、FreeBSD も OpenBSD も gmake を足して 462 本入れている。
-CVE の方は同じ 11.0/amd64 で `augparse` が SIGSEGV になることを確認した。
+の関数なのが原因。FreeBSD も OpenBSD も gmake を足して回避しているが、ここ
+では素の glob に変えて gmake を要らなくしている。CVE の方は同じ 11.0/amd64
+で `augparse` が SIGSEGV になることを確認した。
 
-`emacs30-nox11` の綴り修正は効いていて、`depends.mk` で止まらなくなった。
-`anthy-elisp` はその先で別の壁に当たっていて、`inputmethod/anthy` の patch
-はそれを越えるためのもの。次の CI で確かめる。
+patch 4 本を当てて `--prefix` に入れ、`-I` を付けずに `augtool` が lens を
+見つけて読み書きできるところまで確かめてある。`DATADIR` が `--prefix` から
+生成され `AUGEAS_LENS_DIR` がそれを使うので、`/usr/pkg` でも同じになる。
+
+`anthy-elisp` は `inputmethod/anthy` の patch と組で、そちらが emacs30 で
+実際に動くようにしている。
 
 `anthy-elisp` は上流が emacs21 世代しか受け付けず、`~/.emacs` の
 `(load-library "anthy")` を塞いでいた。26 以降を足すと emacs26 では `.elc`
@@ -93,7 +95,7 @@ CVE の方は同じ 11.0/amd64 で `augparse` が SIGSEGV になることを確�
 `patch-anthy.el` を当てた状態を基準にすること。一度これを見落として、
 同じ箇所を二重に直す hunk を書き、CI で reject を出した。
 
-`emacs30-nox11` はその続きで踏んだもの。emacs30 で建てようとすると、
-`modules.mk` が要求する名前と実際の PKGNAME が食い違っていて
-`depends.mk` で止まる。emacs30-nox11 自体は建つので、壊れているのは
-依存する側すべて。
+`editors/emacs30-nox11` の当て物もその続きで踏んだものだった。`version.mk`
+の `_EMACS_REQD` が `emacs30-no-x11` と綴られていて、実際の PKGNAME
+(`emacs30-nox11`) と食い違い、依存する側が一つも建たなかった。PR 60590 で
+上流が直したので、当て物は消してある。
