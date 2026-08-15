@@ -1,6 +1,8 @@
 work
 work.*
 .bsdcache
+.vm-freebsd-i386
+.freemint
 .work.log
 .broken
 *.core

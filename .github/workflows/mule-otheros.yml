@@ -19,6 +19,10 @@ name: mule (other OS)
 #   Linux    s/linux.h は当時からある。glibc も gcc も当時とは別物なので
 #            そのままは通らないだろうが、止まる場所は configure より先に
 #            なるはずで、BSD 勢とは違う景色が見える。
+#   FreeMiNT Atari の m68k。ARAnyM という仮想機械があるので、機械が手に
+#            入らない側 (AIX, HP-UX, IRIX, Tru64, SCO, UnixWare, QNX) の
+#            中で唯一ここだけ回せる。ただし使えるイメージ (AFROS) には
+#            コンパイラが入っていないので、まずは中に何があるかを見る。
 #
 # どちらも「駄目でした」で終わらせず、どこで止まったかを残すのが目的。
 
@@ -112,3 +116,30 @@ jobs:
       - name: キャッシュを持ち帰れるようにする
         if: always()
         run: sudo chown -R "$(id -u):$(id -g)" .bsdcache 2>/dev/null || true
+
+  freemint:
+    name: FreeMiNT (ARAnyM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ARAnyM を入れる
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq aranym unzip
+          command -v aranym-jit || command -v aranym
+
+      # 8.7MB。SourceForge は落ちていることがあるので取れたら残す。
+      - name: AFROS のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: .freemint/afros812.zip
+          key: afros-8.12
+
+      - name: 起動して中を見る
+        run: sh .github/ci/run-freemint.sh
+
+      - name: 転けたら ARAnyM の言い分を出す
+        if: failure()
+        run: tail -40 .freemint/aranym.log 2>/dev/null || true
