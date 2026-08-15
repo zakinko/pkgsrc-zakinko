@@ -1,7 +1,7 @@
 $NetBSD: patch-ae,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
-NetBSD patch-bd,v 1.2 1999/06/04 04:15:44 mycroft Exp
-original patch from editors/emacs pkg.
+A machine description for PowerPC, which this tree does not carry.  Taken
+from the file of the same name in a later Emacs.
 
 --- src/m/powerpc.h.orig	2005-12-01 18:47:01.000000000 +0100
 +++ src/m/powerpc.h

@@ -1,5 +1,8 @@
 $NetBSD: patch-src_search_c,v 1.2 2013/04/21 15:40:00 joerg Exp $
 
+Note the name: this patch is against src/regex19.c, not src/search.c.
+src/search.c has its own patch under a different name again.
+
 - use standard headers
 
 --- src/regex19.c.orig	1996-07-16 01:44:24.000000000 +0000

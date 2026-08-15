@@ -1,6 +1,14 @@
 $NetBSD: patch-ad,v 1.6 2011/12/20 18:33:40 ryoon Exp $
 
-* "Should be one line" test is for gcc 4.5's cpp from emacs20's patch-ab.
+Two unrelated things configure needs.
+
+Machines and systems it has never heard of: alpha, powerpc and x86_64 on
+NetBSD, and DragonFly.
+
+Its test for whether the C preprocessor works checks that nothing came out
+on stderr.  A preprocessor that says anything at all -- a warning, a note
+-- fails the test even though it works.  Check that the output holds what
+the input should have produced instead.
 
 --- configure.orig	1995-06-05 01:11:38.000000000 +0000
 +++ configure

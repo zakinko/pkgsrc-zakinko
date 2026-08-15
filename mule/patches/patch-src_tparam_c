@@ -1,6 +1,9 @@
 $NetBSD: patch-src_tparam_c,v 1.1 2011/12/24 17:07:08 dholland Exp $
 
-- lp64 fixes
+xmalloc and xrealloc return a pointer.  Without a declaration the caller
+assumes int, which loses the top half of the value on LP64.  The
+declarations were guarded for OSF1 alone; guard them for any LP64 machine,
+which is what the original guard was really standing in for.
 
 --- src/tparam.c~	1995-02-17 07:58:11.000000000 +0000
 +++ src/tparam.c

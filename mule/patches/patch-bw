@@ -1,8 +1,8 @@
 $NetBSD: patch-bw,v 1.2 2011/12/24 17:07:07 dholland Exp $
 
-- use standard headers
-- don't declare own errno
-- fix malloc usage
+xmalloc took an unsigned and returned char *, which does not match how it
+is used, and errno was declared by hand in three places.  Declare it the
+way stdlib does and let errno come from the header.
 
 --- lib-src/movemail.c.orig	1994-08-04 23:15:22.000000000 +0000
 +++ lib-src/movemail.c

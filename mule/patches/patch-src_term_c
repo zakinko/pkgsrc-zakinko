@@ -1,6 +1,11 @@
 $NetBSD: patch-src_term_c,v 1.2 2013/04/21 15:40:00 joerg Exp $
 
-- use standard headers
+Give the functions a declared return type and typed parameters, and
+declare the static ones before they are used.
+
+The header include is one line of this; the rest is the same conversion
+done to the other files in src.  The previous note here said only "use
+standard headers", which does not describe what is in the patch.
 
 --- src/term.c.orig	1995-01-06 05:57:00.000000000 +0000
 +++ src/term.c
