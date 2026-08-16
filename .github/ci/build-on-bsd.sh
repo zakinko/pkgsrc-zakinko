@@ -135,10 +135,28 @@ if [ -s "$CACHE/bootstrap-kit.tar.gz" ]; then
 	echo "前回の binary kit を使う"
 	tar xzpf "$CACHE/bootstrap-kit.tar.gz" -C /
 elif [ ! -x "$PREFIX/bin/bmake" ]; then
+	# bootstrap は workdir が既にあると何もせず終わる (README に
+	# 「あるなら ./cleanup しろ」と書いてある)。前回の失敗が残っている
+	# ことがあるので、こちらで消してから入る。
+	rm -rf "$REAL/bootstrap-work"
+
+	# 何コアあるかは OS で訊き方が違う。getconf はだいたいどこでも動く。
+	JOBS=$(getconf _NPROCESSORS_ONLN 2>/dev/null ||
+	       sysctl -n hw.ncpu 2>/dev/null || echo 1)
+
+	# illumos と Solaris は 32bit で bootstrap されるのが既定。せっかく
+	# 64bit の機械なので合わせる。他は既定のままにする。
+	case $OS in
+	SunOS)	ABI="--abi 64" ;;
+	*)	ABI= ;;
+	esac
+
 	cd "$TREE/bootstrap"
 	./bootstrap \
 		--prefix="$PREFIX" \
 		--workdir="$REAL/bootstrap-work" \
+		--make-jobs "$JOBS" \
+		$ABI \
 		--gzip-binary-kit="$CACHE/bootstrap-kit.tar.gz"
 	rm -rf "$REAL/bootstrap-work"
 fi
