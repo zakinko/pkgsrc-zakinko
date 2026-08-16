@@ -39,14 +39,33 @@ if [ ! -f distinfo ]; then
 	$PKGMAKE $MKARGS makesum || { echo "FAIL: makesum できない"; exit 1; }
 fi
 
+# 相手にしていない OS は、転けたのではなく対象外。nss_stns がそれで、
+# ONLY_FOR_PLATFORM に NetBSD と FreeBSD と DragonFly と MidnightBSD しか
+# 書いていない。名前解決の差し込み方が OS ごとに違うためで、Linux 側は
+# glibc の NSS 向けに upstream が別の実装を持っている。ここでその別実装を
+# 組もうとしても意味がないので、飛ばしたと分かる形で終わる。
+# pkgsrc は弾く理由を PKG_FAIL_REASON に入れる。組み始める前に訊く。
+if $PKGMAKE show-vars VARNAMES=PKG_FAIL_REASON 2>/dev/null |
+   grep -qi 'not available'; then
+	echo "SKIP: $PKG は $OS を相手にしていない (ONLY_FOR_PLATFORM)"
+	$PKGMAKE show-vars VARNAMES=ONLY_FOR_PLATFORM 2>/dev/null | sed 's/^/    /'
+	exit 0
+fi
+
 # 作り直しのときに古いものが残っていると install が拒まれる。
 pkg_delete -f "$PKG" > /dev/null 2>&1 || true
 
 echo "--- build と install ---"
-if ! $PKGMAKE $MKARGS install; then
+if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKG.log 2>&1; then
+	if grep -qi 'not available for this platform' /tmp/verify-$PKG.log; then
+		echo "SKIP: $PKG は $OS を相手にしていない (ONLY_FOR_PLATFORM)"
+		exit 0
+	fi
+	tail -30 /tmp/verify-$PKG.log
 	echo "FAIL: $PKG が入らない"
 	exit 1
 fi
+tail -5 /tmp/verify-$PKG.log
 
 echo "--- 入ったものを見る ---"
 pkg_info -e "$PKG" || { echo "FAIL: pkg_info が $PKG を知らない"; exit 1; }
