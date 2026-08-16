@@ -131,26 +131,27 @@ Wnn 側は `egg` が起動ファイルを探すが、上流は候補である `e
 
 ## 当て物の一覧
 
-109 本ある。名前 (`patch-aa` … `patch-cc`) からは中身が分からないので、一つずつ
+112 本ある。名前 (`patch-aa` … `patch-cc`) からは中身が分からないので、一つずつ
 表にした。
 
 **確認**は、その当て物について私が何をしたかを表す。
 
 - **実証** — 当てる前と後の両方を動かして違いを見た (8 本)
-- **読了** — 差分を読み、直している対象を原典で確かめた (101 本)
+- **読了** — 差分を読み、直している対象を原典で確かめた (104 本)
 
 読了の中身は一様ではない。標準ヘッダを足す三十六本は、足したヘッダが宣言する
-関数をそのファイルが実際に使っているかまで確かめた。機種依存の三本
-(`patch-ae` `patch-bc` `patch-ca`) は、何をしているかは読み取れたが、**PowerPC も
-alpha も DragonFly も手元に無いので効果は試していない**。
+関数をそのファイルが実際に使っているかまで確かめた。機種依存の二本
+(`patch-ae` `patch-bc`) は、何をしているかは読み取れたが、**PowerPC も alpha も
+手元に無いので効果は試していない**。`patch-src_s_dragonfly.h` と
+`patch-src_s_freebsd.h` は CI で回しているところで、まだ緑になっていない。
 
 **上流での経過**は、Emacs 20.1 から 30.1 までの各版のファイル一覧を実際に取って
 調べた結果。mule 2.3 の土台は 19.28 で、Mule が本流に入ったのが 20.1 なので、
 20.1 が直系の子孫にあたる。master とだけ比べると三十年ぶんの隔たりで「無い」と
 しか言えず、消えたのか移ったのかも分からない。
 
-当てている 108 ファイルのうち、30.1 まで現存するのは 53、20.1 の時点で既に無い
-(mule 独自のものと生成済み info) のが 33、途中で移動または廃止されたのが 22。
+当てている 110 ファイルのうち、30.1 まで現存するのは 55、20.1 の時点で既に無い
+(mule 独自のものと生成済み info) のが 33、途中で移動または廃止されたのが 24。
 
 | 当て物 | 対象 | 役割 | 確認 | 上流での経過 | 上流の直し方 |
 | --- | --- | --- | --- | --- | --- |
@@ -209,7 +210,6 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 | `patch-bx` | `lib-src/emacsserver.c` | extern int errno を落とす | 読了 | 22.1 で廃止 | 22.1 で emacsserver.c 廃止 |
 | `patch-by` | `lib-src/timer.c` | 標準ヘッダ + errno | 読了 | 21.1 で廃止 | 21.1 で timer.c 廃止 |
 | `patch-bz` | `lib-src/emacsclient.c` | extern int errno を落とす | 読了 | 30.1 まで現存 | 手書き宣言は現存せず |
-| `patch-ca` | `src/s/dragonfly.h` | DragonFly の OS 記述を追加 | 読了 | 20.1 の時点で無い | 上流のどの版にも存在しない |
 | `patch-cb` | `src/dispnew.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-cc` | `src/mcpath.h` | `<limits.h>` を入れる。NAME_MAX が無い環境への逃げ道も | 読了 | 20.1 の時点で無い | mcpath は上流に無い |
 | `patch-cd` | `src/xterm.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
@@ -254,6 +254,8 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 | `patch-src_mcpath_c` | `src/mcpath.c` | 標準ヘッダを足す | 読了 | 20.1 の時点で無い | 上流も標準ヘッダを使う |
 | `patch-src_ralloc_c` | `src/ralloc.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_regex19.h` | `src/regex19.h` | K&R の定義を ANSI に直す | 読了 | 20.1 の時点で無い | 上流も ANSI 定義 |
+| `patch-src_s_dragonfly.h` | `src/s/dragonfly.h` | DragonFly の OS 記述を追加。`__FreeBSD__` を見る腕しかなく `BSD` が未定義になっていたのを塞ぐ | 読了 | 20.1 の時点で無い | 上流のどの版にも存在しない |
+| `patch-src_s_freebsd.h` | `src/s/freebsd.h` | FreeBSD 3 以降で `BSD` が未定義になるのを直す | 読了 | 25.1 で廃止 | **21.1 で `__FreeBSD__ >= 3` の腕を追加** (20.1 では `== 3`)。25.1 で src/s ごと廃止 |
 | `patch-src_scroll_c` | `src/scroll.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_search.c` | `src/search.c` | compile_pattern と skip_chars に型を与える | 読了 | 30.1 まで現存 | compile_pattern は型付き。skip_chars は書き直され現存せず |
 | `patch-src_regex19.c` | `src/regex19.c` | 標準ヘッダを足す | 読了 | 20.1 の時点で無い | regex は gnulib に置換 |
@@ -267,9 +269,10 @@ alpha も DragonFly も手元に無いので効果は試していない**。
 | `patch-src_xmenu_c` | `src/xmenu.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 
 名前が中身を表さないものは、中身に手を入れた折に改名した。`patch-ad` は
-`patch-configure` へ、`patch-af` は `patch-src_lisp.h` へ。`patch-src_search_c`
-は `src/regex19.c` を当てているのに `patch-src_search.c` (こちらが `src/search.c`)
-と紛らわしかったので `patch-src_regex19.c` にした。
+`patch-configure` へ、`patch-af` は `patch-src_lisp.h` へ、`patch-ca` は
+`patch-src_s_dragonfly.h` へ。`patch-src_search_c` は `src/regex19.c` を当てて
+いるのに `patch-src_search.c` (こちらが `src/search.c`) と紛らわしかったので
+`patch-src_regex19.c` にした。
 
 残りの `patch-aa` から `patch-cc` は名前のままにしてある。改名すると上流へ送る
 差分が名前の変更で埋まり、中身の変更が見えなくなる。表を引けば対象は分かる。

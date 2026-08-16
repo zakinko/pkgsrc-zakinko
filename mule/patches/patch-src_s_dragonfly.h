@@ -1,4 +1,4 @@
-$NetBSD: patch-ca,v 1.1 2006/01/04 20:35:08 joerg Exp $
+$NetBSD$
 
 An operating system description for DragonFly, which is close enough to
 4.3BSD for this tree given that it has getloadavg.
@@ -6,11 +6,16 @@ An operating system description for DragonFly, which is close enough to
 Not from upstream: no src/s/dragonfly.h exists in any Emacs release
 checked.  DragonFly appeared after this tree stopped being maintained.
 
-Not built here -- no DragonFly to try it on.
+The file was copied from s/freebsd.h, and with it the ladder that defines
+BSD only for __FreeBSD__ 1 and 2.  DragonFly does not define __FreeBSD__ at
+all, so BSD stayed undefined after the #undef and the tree took its non-BSD
+paths, which does not build; see patch-src_s_freebsd.h for what breaks.
+DragonFly is 4.4BSD-Lite2 derived, so it gets the same 199506 that Emacs
+21.1 gives FreeBSD 3 and newer.
 
 --- /dev/null	2006-01-04 20:13:24.000000000 +0000
 +++ src/s/dragonfly.h
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,64 @@
 +/* Get most of the stuff from bsd4.3 */
 +#include "bsd4-3.h"
 +
@@ -56,13 +61,10 @@ Not built here -- no DragonFly to try it on.
 +#define TABDLY OXTABS
 +#define TAB3 OXTABS
 +
-+/* this silences a few compilation warnings */
++/* DragonFly does not define __FreeBSD__, so the version ladder this file
++   was copied with left BSD undefined.  It is 4.4BSD-Lite2 derived. */
 +#undef BSD
-+#if __FreeBSD__ == 1
-+#define BSD 199103
-+#elif __FreeBSD__ == 2
-+#define BSD 199306
-+#endif
++#define BSD 199506
 +
 +#define WAITTYPE int
 +/* get this since it won't be included if WAITTYPE is defined */
