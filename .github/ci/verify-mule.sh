@@ -45,6 +45,9 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 
 OS=$(uname -s)
 ARCH=$(uname -m)
+# 依存を建てる回数が多いので並列にする。並列で壊れる package は pkgsrc 側が
+# MAKE_JOBS_SAFE=no で除いてくれるので、こちらは台数を渡すだけでよい。
+JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 1)
 REL=$(uname -r | sed -e 's/_.*//')
 echo "=== ${OS} ${REL} / ${ARCH} / PKG_OPTIONS.mule=\"${OPTS}\" ==="
 # NetBSD は gcc、FreeBSD と OpenBSD は clang。どちらでも cc で当たる。
@@ -145,7 +148,7 @@ build_install() {
 	_dir=$1; shift
 	_i=0
 	while :; do
-		( cd "$_dir" && $PKGMAKE "$@" $MKARGS install &&
+		( cd "$_dir" && $PKGMAKE "$@" MAKE_JOBS="$JOBS" $MKARGS install &&
 		  echo "__BUILD_OK__" ) 2>&1 | tee /tmp/build.log
 		if grep -q '^__BUILD_OK__$' /tmp/build.log; then
 			return 0
