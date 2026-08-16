@@ -190,7 +190,10 @@ fi
 stage "zakinko カテゴリを重ねる"
 # 何を組むかは PKGS で渡す。既定は mule だけ。空白区切りで並べれば、
 # この repo のパッケージをまとめて回せる。
-PKGS=${PKGS:-mule}
+#
+# :- ではなく - なのは、PKGS='' を「既定に戻せ」ではなく「zakinko からは
+# 何も組むな」と読ませたいため。overlay だけを見たいときにそうする。
+PKGS=${PKGS-mule}
 mkdir -p "$TREE/zakinko"
 {
 	printf '# $NetBSD$\nCOMMENT=\tLocal\n'
@@ -276,4 +279,26 @@ for p in $PKGS; do
 		sh "$WS/.github/ci/verify-pkg.sh" "$p" || rc=1
 	fi
 done
+
+# overlay/ は上流 package への当て物なので zakinko カテゴリには現れない。
+# 上で重ねてはいるが、名指ししない限り誰も組まないので当たったかどうかも
+# 分からない。OVERLAY_PKGS に <カテゴリ>/<パッケージ> を並べて確かめる。
+#
+# 検査は名前で引く。verify-<パッケージ名>.sh があればそれを、無ければ
+# verify-pkg.sh は使えない (あちらは zakinko/ 配下を見る) ので、組めた
+# かどうかだけを見て終わる。
+for p in ${OVERLAY_PKGS:-}; do
+	echo
+	echo "########## $p (overlay) ##########"
+	n=${p##*/}
+	if [ -f "$WS/.github/ci/verify-$n.sh" ]; then
+		sh "$WS/.github/ci/verify-$n.sh" "$p" || rc=1
+	elif [ -d "$TREE/$p" ]; then
+		( cd "$TREE/$p" && "$PREFIX/bin/bmake" install ) || rc=1
+	else
+		echo "!! $p が pkgsrc に無い" >&2
+		rc=1
+	fi
+done
+
 [ $rc -eq 0 ] || { echo "=== 通らなかったものがある ==="; exit 1; }

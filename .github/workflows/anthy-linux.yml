@@ -1,0 +1,164 @@
+name: anthy (Linux distros)
+
+# overlay/inputmethod/anthy と anthy-elisp の当て物を、Linux の
+# ディストリごとに確かめる。
+#
+# 当て物の中身は .el への patch なので、理屈のうえでは OS に依存しない。
+# ただし「依存しないはず」は試験ではない。NetBSD-i386 の CI は NetBSD しか
+# 見ていないので、そこでは確かめようがない。
+#
+# pkgsrc から見れば OPSYS は Linux ひとつだが、実際に違うのは libc と
+# コンパイラの世代。Alpine だけ musl で、他は glibc。emacs をソースから
+# 組むので、そこの差が出るなら出る。
+#
+# 見るのは verify-anthy-elisp.sh に書いた三段階。組んで入る、.elc が 6 本
+# そろう、実際に nihongo が 日本語 になる。三つ目が要るのは、当て物が
+# 相手にしている壊れかたの一つ (process-kill-without-query) が関数の中に
+# あって、byte-compile では警告にしかならず、二つ目まで緑で通ってしまう
+# ため。
+#
+# VM は要らない。runner の上でコンテナを回すだけなので、BSD 勢のように
+# 何十分も待たされることもない。中は root なので /usr/pkgsrc も /usr/pkg も
+# そのまま使える。
+#
+# overlay だけを見たいので PKGS は空にする。zakinko カテゴリからは何も
+# 組まない (build-on-bsd.sh が ${PKGS-mule} で読む)。
+#
+# emacs を依存で引くので長い。手で起動する。押すまで何もしない。
+
+on:
+  workflow_dispatch:
+    inputs:
+      distros:
+        description: '回す相手 (空なら全部)'
+        required: false
+      emacs_type:
+        description: 'どの Emacs で組むか'
+        type: choice
+        options: [emacs30nox, emacs29nox, emacs28nox, emacs26nox, emacs21nox]
+        default: emacs30nox
+      overlay:
+        description: '当て物を当てるか (off は素の pkgsrc で落ちることの確認)'
+        type: choice
+        options: ['on', 'off']
+        default: 'on'
+
+env:
+  EMACS_TYPE: ${{ inputs.emacs_type || 'emacs30nox' }}
+  PKGS: ''
+  OVERLAY_PKGS: 'inputmethod/anthy-elisp'
+
+jobs:
+  distro:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      # emacs を組むので一台あたりが重い。runner を食い潰さない程度に。
+      max-parallel: 3
+      matrix:
+        include:
+          - name: Debian 13
+            image: debian:13
+            pm: apt
+          - name: Ubuntu 24.04
+            image: ubuntu:24.04
+            pm: apt
+          - name: Fedora 41
+            image: fedora:41
+            pm: dnf
+          - name: AlmaLinux 9
+            image: almalinux:9
+            pm: dnf
+          - name: Rocky Linux 9
+            image: rockylinux:9
+            pm: dnf
+          - name: openSUSE Leap 15.6
+            image: opensuse/leap:15.6
+            pm: zypper
+          - name: Arch Linux
+            image: archlinux:latest
+            pm: pacman
+          - name: Alpine 3.21
+            image: alpine:3.21
+            pm: apk
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      # コンテナに git が無いと checkout は tarball 取得に落ちる。それでも
+      # 中身は揃うが、あったほうが速いので先に入れる。
+      #
+      # 入れるものは pkgsrc/bootstrap/README.Linux に従う。Debian 系は
+      # cvs libncurses-dev gcc g++ zlib1g-dev libssl-dev libudev-dev gawk と
+      # 名指しされている。Alpine は bootstrap のあとに procps と coreutils が
+      # 要るとも書いてあるので、先に入れておく (BusyBox の ps と date では
+      # pkgsrc の build/install locking が動かない)。
+      - name: 道具を入れる
+        run: |
+          set -e
+          case '${{ matrix.pm }}' in
+          apt)
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends \
+              build-essential curl ca-certificates file perl patch \
+              tar gzip xz-utils git sudo cvs libncurses-dev zlib1g-dev \
+              libssl-dev libudev-dev gawk
+            ;;
+          dnf)
+            dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+              perl patch tar gzip xz git diffutils findutils which sudo \
+              ncurses-devel zlib-devel openssl-devel gawk
+            ;;
+          zypper)
+            zypper --non-interactive --quiet refresh
+            zypper --non-interactive --quiet install \
+              gcc gcc-c++ make curl ca-certificates file perl patch \
+              tar gzip xz git diffutils findutils which sudo \
+              ncurses-devel zlib-devel libopenssl-devel gawk
+            ;;
+          pacman)
+            pacman -Sy --noconfirm --quiet base-devel curl ca-certificates \
+              file perl patch tar gzip xz git sudo ncurses zlib openssl gawk
+            ;;
+          apk)
+            apk add --no-cache build-base curl ca-certificates file perl \
+              patch tar gzip xz git sudo ncurses-dev zlib-dev openssl-dev \
+              gawk bash procps coreutils diffutils findutils
+            ;;
+          esac
+          cc --version | head -1
+          # musl には ldd が無いことがある。あるものだけ言う。
+          ldd --version 2>&1 | head -1 || true
+
+      - uses: actions/checkout@v4
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: anthy-${{ matrix.image }}-${{ env.EMACS_TYPE }}-${{ github.run_id }}
+          restore-keys: anthy-${{ matrix.image }}-${{ env.EMACS_TYPE }}-
+
+      # 当て物なしで回すときは overlay/ をどけてしまう。build-on-bsd.sh は
+      # overlay/ にあるものを黙って全部重ねるので、ここで消すのが一番早い。
+      - name: 当て物をどける
+        if: inputs.overlay == 'off'
+        run: rm -rf overlay/inputmethod
+
+      - name: 選ばれた相手か見る
+        id: pick
+        run: |
+          set -e
+          want='${{ inputs.distros }}'
+          if [ -z "$want" ]; then echo 'run=yes' >>"$GITHUB_OUTPUT"; exit 0; fi
+          case " $want " in
+          *" ${{ matrix.name }} "*) echo 'run=yes' >>"$GITHUB_OUTPUT" ;;
+          *) echo 'run=no' >>"$GITHUB_OUTPUT"; echo "飛ばす: ${{ matrix.name }}" ;;
+          esac
+
+      # コンテナの中は root なので、BSD と同じに扱える。
+      - name: 組んで確かめる
+        if: steps.pick.outputs.run == 'yes'
+        run: sh .github/ci/build-on-bsd.sh
