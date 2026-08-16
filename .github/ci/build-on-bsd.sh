@@ -147,10 +147,20 @@ fi
 
 # ------------------------------------------------------------------
 stage "zakinko カテゴリを重ねる"
-mkdir -p /usr/pkgsrc/zakinko/mule
-printf '# $NetBSD$\nCOMMENT=\tLocal\nSUBDIR+=\tmule\n.include "../mk/misc/category.mk"\n' \
-	> /usr/pkgsrc/zakinko/Makefile
-cp -R "$WS/mule/." /usr/pkgsrc/zakinko/mule/
+# 何を組むかは PKGS で渡す。既定は mule だけ。空白区切りで並べれば、
+# この repo のパッケージをまとめて回せる。
+PKGS=${PKGS:-mule}
+{
+	printf '# $NetBSD$\nCOMMENT=\tLocal\n'
+	for p in $PKGS; do printf 'SUBDIR+=\t%s\n' "$p"; done
+	printf '.include "../mk/misc/category.mk"\n'
+} > /usr/pkgsrc/zakinko/Makefile
+for p in $PKGS; do
+	[ -d "$WS/$p" ] || { echo "!! $p が repo に無い" >&2; continue; }
+	mkdir -p "/usr/pkgsrc/zakinko/$p"
+	cp -R "$WS/$p/." "/usr/pkgsrc/zakinko/$p/"
+	echo "    $p"
+done
 
 # ------------------------------------------------------------------
 stage "overlay を上流のカテゴリへ重ねる"
@@ -208,6 +218,20 @@ if [ -d "$CACHE/packages/All" ]; then
 fi
 
 # ------------------------------------------------------------------
-# あとは NetBSD と同じ。組んで、ダンプが生きているかまで見る。
+# あとは NetBSD と同じ。パッケージごとに、専用の検査があればそれを、
+# 無ければ組んで入るところまでを見る。
+#
+# 一つ転けてもそこで止めない。三つのうちどれが通ってどれが駄目かを、
+# 一回の実行で知りたい。
 stage "組んで確かめる"
-sh "$WS/.github/ci/verify-mule.sh" "$OPTS"
+rc=0
+for p in $PKGS; do
+	echo
+	echo "########## $p ##########"
+	if [ -f "$WS/.github/ci/verify-$p.sh" ]; then
+		sh "$WS/.github/ci/verify-$p.sh" "$OPTS" || rc=1
+	else
+		sh "$WS/.github/ci/verify-pkg.sh" "$p" || rc=1
+	fi
+done
+[ $rc -eq 0 ] || { echo "=== 通らなかったものがある ==="; exit 1; }

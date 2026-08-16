@@ -1,0 +1,106 @@
+name: mule (Linux distros)
+
+# pkgsrc の Linux プラットフォームを、ディストリごとに回す。
+#
+# pkgsrc から見れば OPSYS は Linux ひとつだが、実際に違うのは glibc の版と
+# コンパイラの世代と、ヘッダに何が入っているか。1995 年の tree はそこに
+# 一番敏感なので、ディストリを並べる意味がある。
+#
+# VM は要らない。runner の上でコンテナを回すだけなので、BSD 勢のように
+# 何十分も待たされることもない。中は root なので /usr/pkgsrc も /usr/pkg も
+# そのまま使え、native runner (mule-otheros.yml の linux job) で必要だった
+# sudo と PKGSRC_BASE の細工も要らない。
+#
+# 見込み: どれも configure の machine 判定で止まる。s/linux.h は 1995 年から
+# あるのに、x86_64 の腕が無いためで、FreeBSD amd64 が patch-configure で
+# 通ったのと同じ形。腕が足されたら、ここから先はディストリごとに違う景色に
+# なるはず。それまでは「全部同じ場所で止まる」ことの確認になる。
+
+on:
+  push:
+    paths:
+      - 'mule/**'
+      - 'overlay/**'
+      - '.github/workflows/mule-linux.yml'
+      - '.github/ci/**'
+  pull_request:
+    paths:
+      - 'mule/**'
+      - '.github/ci/**'
+  workflow_dispatch:
+    inputs:
+      options:
+        description: 'PKG_OPTIONS.mule (既定は端末のみ)'
+        required: false
+        default: '-canna -wnn4 -x11'
+
+env:
+  OPTIONS: ${{ inputs.options || '-canna -wnn4 -x11' }}
+
+jobs:
+  distro:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - name: Debian 13
+            image: debian:13
+            pm: apt
+          - name: Ubuntu 24.04
+            image: ubuntu:24.04
+            pm: apt
+          - name: AlmaLinux 9
+            image: almalinux:9
+            pm: dnf
+          - name: Rocky Linux 9
+            image: rockylinux:9
+            pm: dnf
+          - name: CentOS Stream 9
+            image: quay.io/centos/centos:stream9
+            pm: dnf
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      # コンテナに git が無いと checkout は tarball 取得に落ちる。それでも
+      # 中身は揃うが、あったほうが速いので先に入れる。
+      - name: 道具を入れる
+        run: |
+          set -e
+          if [ "${{ matrix.pm }}" = apt ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends \
+              build-essential curl ca-certificates file perl patch \
+              tar gzip xz-utils git sudo
+          else
+            dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+              perl patch tar gzip xz git diffutils findutils which sudo
+          fi
+          cc --version | head -1
+          ldd --version | head -1
+
+      - uses: actions/checkout@v4
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-${{ matrix.image }}-${{ github.run_id }}
+          restore-keys: pkgsrc-${{ matrix.image }}-
+
+      # コンテナの中は root なので、BSD と同じに扱える。
+      - name: 組んで確かめる
+        run: sh .github/ci/build-on-bsd.sh "$OPTIONS"

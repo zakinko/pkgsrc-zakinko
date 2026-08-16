@@ -1,0 +1,157 @@
+name: packages
+
+# この repo のパッケージ全部を、mule を回しているのと同じ相手で回す。
+#
+# mule だけが特別扱いなのは、日本語が編集できるところまで踏まないと通った
+# ことにならないからで、自作の三つ (meibo, nss_stns, stnsd) はそこまで要ら
+# ない。組めて、入って、PLIST どおりに置かれて、外せる。verify-pkg.sh が
+# それを見る。
+#
+# 三つを一つの job でまとめて回すのは、bootstrap の時間を分け合うため。
+# pkgsrc を組むところまでが長いので、そこを三度繰り返す意味がない。一つ
+# 転けても残りは走る (build-on-bsd.sh が最後にまとめて落とす)。
+#
+# 見込み:
+#
+#   meibo      純 Go。pkgsrc の lang/go を引くので初回は長い。cgo 無しなので
+#              OS を選ばないはず。
+#   nss_stns   C。OPSYS からモジュール名を決める作りなので、知らない OPSYS で
+#              どうなるかがここで出る。
+#   stnsd      C。rc.d スクリプトを upstream の .in から生成するので、
+#              rc.conf の流儀が違う相手で転ぶかどうか。
+
+on:
+  push:
+    paths:
+      - 'meibo/**'
+      - 'nss_stns/**'
+      - 'stnsd/**'
+      - '.github/workflows/packages.yml'
+      - '.github/ci/build-on-bsd.sh'
+      - '.github/ci/verify-pkg.sh'
+  workflow_dispatch:
+    inputs:
+      pkgs:
+        description: '回すパッケージ (空白区切り)'
+        required: false
+        default: 'meibo nss_stns stnsd'
+
+env:
+  PKGS: ${{ inputs.pkgs || 'meibo nss_stns stnsd' }}
+
+jobs:
+  freebsd:
+    name: FreeBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgs-freebsd-amd64-${{ github.run_id }}
+          restore-keys: pkgs-freebsd-amd64-
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  openbsd:
+    name: OpenBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgs-openbsd-amd64-${{ github.run_id }}
+          restore-keys: pkgs-openbsd-amd64-
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  dragonfly:
+    name: DragonFly amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgs-dragonfly-amd64-${{ github.run_id }}
+          restore-keys: pkgs-dragonfly-amd64-
+      - uses: vmactions/dragonflybsd-vm@v1
+        with:
+          release: '6.4.2'
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  midnightbsd:
+    name: MidnightBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgs-midnightbsd-amd64-${{ github.run_id }}
+          restore-keys: pkgs-midnightbsd-amd64-
+      - uses: vmactions/midnightbsd-vm@v1
+        with:
+          release: '4.0.7'
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  linux:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - name: Debian 13
+            image: debian:13
+            pm: apt
+          - name: AlmaLinux 9
+            image: almalinux:9
+            pm: dnf
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - name: 道具を入れる
+        run: |
+          set -e
+          if [ "${{ matrix.pm }}" = apt ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends \
+              build-essential curl ca-certificates file perl patch \
+              tar gzip xz-utils git sudo
+          else
+            dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+              perl patch tar gzip xz git diffutils findutils which sudo
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgs-${{ matrix.image }}-${{ github.run_id }}
+          restore-keys: pkgs-${{ matrix.image }}-
+      - name: 組んで確かめる
+        run: sh .github/ci/build-on-bsd.sh
