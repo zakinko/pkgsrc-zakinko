@@ -35,6 +35,8 @@ PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz}
 # 特別扱いというより本来の姿。他は従来どおり /usr/pkg と /usr/pkgsrc。
 case $OS in
 Darwin)	PREFIX=${PREFIX:-/opt/pkg} ;;
+Haiku)	# Haiku に /usr は無い。書ける場所は /boot/home の下。
+	PREFIX=${PREFIX:-/boot/home/pkg} ;;
 *)	PREFIX=${PREFIX:-/usr/pkg} ;;
 esac
 export PREFIX
@@ -97,8 +99,9 @@ REAL=${BIG%/}/pkgsrc-ci
 echo "ツリーと作業場所は $REAL に置く"
 
 mkdir -p "$REAL" "$REAL/obj" "$CACHE/distfiles" "$CACHE/packages"
-if [ "$OS" = Darwin ]; then
-	# /usr に symlink を張れないので、ツリーは置いた場所のまま使う。
+if [ "$OS" = Darwin ] || [ "$OS" = Haiku ]; then
+	# /usr に symlink を張れない (Darwin は SIP、Haiku には /usr が無い)
+	# ので、ツリーは置いた場所のまま使う。
 	# pkgsrc は /usr/pkgsrc に居ることを要求しない。カテゴリの Makefile が
 	# ../mk/misc/category.mk を読めればよく、それは相対で足りる。
 	TREE=$REAL/pkgsrc

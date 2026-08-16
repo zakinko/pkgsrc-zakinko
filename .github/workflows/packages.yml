@@ -155,3 +155,27 @@ jobs:
           restore-keys: pkgs-${{ matrix.image }}-
       - name: 組んで確かめる
         run: sh .github/ci/build-on-bsd.sh
+
+  darwin:
+    name: macOS (Darwin)
+    runs-on: macos-15
+    timeout-minutes: 300
+    env:
+      PKGSRC_BASE: /opt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgs-darwin-arm64-${{ github.run_id }}
+          restore-keys: pkgs-darwin-arm64-
+      # Darwin は /usr が書けないので prefix もツリーも /opt 側 (build-on-bsd.sh
+      # が OS を見て決める)。stnsd は素の C + curl + openssl で、rc.d の扱いも
+      # pkgsrc 任せなので通る見込み。nss_stns は ONLY_FOR_PLATFORM で弾かれる
+      # はずで、それは転けたのではなく対象外 -- macOS の名前解決は NSS では
+      # なく Open Directory で、モジュールの作りがまるで違う。
+      - name: 組んで確かめる
+        run: sudo -E env PKGS="$PKGS" sh .github/ci/build-on-bsd.sh
+      - name: キャッシュを持ち帰れるようにする
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .bsdcache 2>/dev/null || true
