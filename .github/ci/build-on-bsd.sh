@@ -191,11 +191,12 @@ stage "zakinko カテゴリを重ねる"
 # 何を組むかは PKGS で渡す。既定は mule だけ。空白区切りで並べれば、
 # この repo のパッケージをまとめて回せる。
 PKGS=${PKGS:-mule}
+mkdir -p "$TREE/zakinko"
 {
 	printf '# $NetBSD$\nCOMMENT=\tLocal\n'
 	for p in $PKGS; do printf 'SUBDIR+=\t%s\n' "$p"; done
 	printf '.include "../mk/misc/category.mk"\n'
-} > $TREE/zakinko/Makefile
+} > "$TREE/zakinko/Makefile"
 for p in $PKGS; do
 	[ -d "$WS/$p" ] || { echo "!! $p が repo に無い" >&2; continue; }
 	mkdir -p "$TREE/zakinko/$p"
