@@ -1,71 +1,70 @@
 # $NetBSD: Makefile,v 1.20 2026/01/07 08:48:48 wiz Exp $
 #
-# 上流 pkgsrc の sysutils/augeas/Makefile の写し。直しているのは六つ。
-# 四つめ (man のパス) は下の SUBST_CLASSES にある。
+# 上流 pkgsrc の sysutils/augeas/Makefile の写し。上流には patches が一本も
+# 無く、PKGREVISION は 1 である。ここで足しているのは当て物 12 本。
 #
-# 一つめが本題で、patches/patch-configure と patch-Makefile.in。上流の
-# Makefile.am が
+# 一本を除いて全て上流 augeas にも出してあり、取り込まれたものから順に消せる。
+#
+#	patch-CVE-2025-2588			上流 commit af2aa88 の写し
+#	patch-Makefile.in			hercules-team/augeas#889
+#	patch-configure				同 #889 と #891
+#	patch-src_augtool.c			#890
+#	patch-examples_dump.c			#890
+#	patch-man_Makefile.in			#892
+#	patch-lenses_pg_hba.aug			#888
+#	patch-lenses_postgresql.aug		#888
+#	patch-lenses_rsyslog.aug		#888
+#	patch-lenses_shellvars.aug		#893
+#	patch-lenses_simplevars.aug		#893 と #887
+#	patch-lenses_tests_test_simplevars.aug	#893
+#
+# 本題は #889 で、上流の Makefile.am が
 #
 #	dist_lens_DATA=$(wildcard lenses/*.aug)
 #
-# と書いていて、$(wildcard) は GNU make の関数なので bmake では文字列の
-# まま展開される。結果 lens が一本も入らず、augtool は設定ファイルを何も
-# 読めない。pkgsrc が 2014 年にこの package を入れてから一度もである。
-# NetBSD 11.0/amd64 の公式パッケージでも確認した。PLIST もその 462 本ぶん
-# 膨らむ。
+# と書いている。$(wildcard) は GNU make の関数なので bmake では文字列のまま
+# 残り、lens が一本も入らない。augtool は設定ファイルを何も読めない。pkgsrc が
+# 2014 年にこの package を入れてから一度もである。NetBSD 11.0/amd64 の公式
+# パッケージでも確認した。PLIST もその 462 本ぶん膨らむ。
 #
-# FreeBSD は USES に gmake、OpenBSD は USE_GMAKE=Yes を足して回避している
-# が、ここでは configure で glob して @LENS_FILES@ に埋める。gmake を
-# 建てさせずに済み、上流が取り込んだら patch を消すだけになる。
+# FreeBSD は USES に gmake、OpenBSD は USE_GMAKE=Yes を足して回避しているが、
+# ここでは configure で glob して @LENS_FILES@ に埋める。gmake を建てずに済む。
 #
-# makefile に素の glob (dist_lens_DATA = lenses/*.aug) を置く手もあって、
-# in-tree なら通る。install 規則がリストをシェルに渡すためである。ただし
-# ソース外ビルドで壊れる。automake の
+# 当てているのが configure と Makefile.in、つまり生成物であることに注意。
+# 上流が直すのは configure.ac と Makefile.am の方だが、そちらを当てると
+# autoreconf が要る。autoconf は help2man を、automake は autoconf と perl と
+# gm4 を連れてくるので、lens を並べて置くために gmake 一つを建てるのを嫌った
+# のに五つ建てることになる。Fedora と OpenBSD も生成物を当てている。Debian と
+# FreeBSD は元から autoreconf を回すので、あちらはソースを当てている。
 #
-#	for p in $$list; do if test -f "$$p"; then d=; else d="$(srcdir)/"; fi
+# ソースだけ当てて autoreconf を回さない、という中間の手は無い。生成物が素の
+# ままなので効かないうえ、Makefile.am の方が新しくなって automake の再生成
+# 規則が発火し、aclocal が無いところで build が止まる。
 #
-# という代替は、$$p が実在の名前でないと働かない。パターンのままでは
-# builddir にも srcdir にも見つからず、lens が 0 本になる。四通り
-# (in-tree/VPATH x bmake/gmake) で確かめて、configure で展開する方に
-# した。上流にも同じものを出す。
+# patch-CVE-2025-2588 は上流 commit af2aa88ab37fc48167d8c5e43b1770a4ba2ff403 を
+# そのまま写したもので、手は入れていない。上流の使う _REG_ENOSYS は NetBSD の
+# <regex.h> には無いが、augeas は -I ../gnulib/lib 付きで組まれ、同梱の gnulib
+# の <regex.h> が読まれるので通る。1.14.1 にはまだ入っていない。
 #
-# 二つめが patches/patch-CVE-2025-2588。上流 commit
-# af2aa88ab37fc48167d8c5e43b1770a4ba2ff403 をそのまま写したもので、手は
-# 入れていない。上流の使う _REG_ENOSYS は NetBSD の <regex.h> には無いが、
-# augeas は -I ../gnulib/lib 付きで組まれ、同梱の gnulib の <regex.h> が
-# 読まれるので通る。システムヘッダは見ていない。
-#
-# TEST_TARGET=check があるので make test で回帰テストが走る。patch から
+# TEST_TARGET=check があるので make test で回帰テストが走る。当て物から
 # src/fa.c の hunk だけ外すと tests/fatest が SIGSEGV で落ちる。それがこの CVE。
 #
-# 三つめは time_t の書式。32bit 移植では long が 32bit で time_t が 64bit
-# なので "%ld" は誤り。上流は今もそのままで、issue も出ていない。
+# lens の filter を触る四本 (#887 #888 #893) は NetBSD では効かない。
+# /etc/adduser.conf も /etc/wsconsctl.conf も NetBSD には無いためである。
+# pkgsrc は OpenBSD でも FreeBSD でも Linux でも動くので、そちらで効く。
 #
-# 五つめと六つめは lens の filter で、どちらも NetBSD では何も変わらない。
-# 手元で確かめようがないものを置いているのは、上流に出すものと同じ形をここで
-# 一度 make test に通しておくためである (TEST_TARGET=check が augeas 自身の
-# make check を回す)。上流の CI は runner が ubuntu-20.04 のままで、2026 年に
-# 入ってからの run は全て 24 時間待って cancelled になっており、PR を出しても
-# 回らない。
+# man のパスは SUBST ではなく patch-man_Makefile.in で直している。上流 #892 が
+# man/Makefile.am に install-data-hook を足す形なので、生成物側に同じものを
+# 置いた。install 時に $(datadir) が埋まるので ${PREFIX} を問わない。
 #
-# patch-adduser-conf-simplevars は /etc/adduser.conf を Shellvars から
-# Simplevars へ移す。このファイルを shell として扱っているのは FreeBSD だけで、
-# OpenBSD と Debian の adduser(8) はどちらも perl である。NetBSD には
-# adduser(8) が無く、useradd(8) が /etc/usermgmt.conf を読む。
-#
-# patch-wsconsctl-conf-typo は Simplevars の filter にある
-# /etc/wsconsctlctl.conf を直す。ctl が一つ多く、2013 年から何にも一致して
-# いない。NetBSD にあるのは別物の /etc/wscons.conf。
-#
-# PKGREVISION は当て物を触るたびに上げている。入るファイルが変わらなくても、
-# 番号を据え置くと「もうある」と見なされて建て直されず、検証にならない。
-# 3 -> 4 が gmake をやめたぶん、4 -> 5 が configure で展開する形に、
-# 5 -> 6 が man のパスを直したぶん、6 -> 7 が lens の filter 二本。
+# PKGREVISION は上流の 1 に対して 2。当て物を足した一段ぶんである。CI で建て
+# 直したいだけなら上げる必要はない。ゲスト側は同じ PKGBASE で PKGNAME の違う
+# .tgz を消してから建てるので、番号を戻しても建て直される。
 #
 # pkgsrc が取り込んだら overlay/sysutils/augeas ごと消すこと。
 
 DISTNAME=	augeas-1.14.1
-PKGREVISION=	7
+PKGREVISION=	2
 CATEGORIES=	sysutils
 MASTER_SITES=	${MASTER_SITE_GITHUB:=hercules-team/}
 GITHUB_RELEASE=	release-${PKGVERSION_NOREV}
@@ -79,20 +78,6 @@ USE_LIBTOOL=		yes
 USE_TOOLS+=		pkg-config
 GNU_CONFIGURE=		yes
 PKGCONFIG_OVERRIDE+=	augeas.pc.in
-
-# man が lens の在処を /usr/share/augeas と書いている。実際に見に行くのは
-# DATADIR で、これは --prefix から作られるので、prefix が /usr でない限り
-# 嘘になる。patch にできないのは ${PREFIX} が環境で変わるため (pkgsrc は
-# /usr/pkg、macOS の pkgsrc は /opt/pkg)。
-#
-# .1 は tarball に同梱されていて .pod より新しいので作り直されない。しかも
-# 生成規則が %.1: %.pod という GNU make のパターン規則で bmake は解釈しない。
-# 両方直しておく。
-SUBST_CLASSES+=		manpath
-SUBST_STAGE.manpath=	pre-configure
-SUBST_MESSAGE.manpath=	Fixing the lens directory in the manual pages.
-SUBST_FILES.manpath=	man/*.1 man/*.pod
-SUBST_SED.manpath=	-e 's,/usr/share/augeas,${PREFIX}/share/augeas,g'
 TEST_TARGET=		check
 
 # rl_char_is_quoted_p
