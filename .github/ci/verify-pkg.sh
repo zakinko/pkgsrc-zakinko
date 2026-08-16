@@ -14,20 +14,25 @@
 PKG=$1
 [ -n "$PKG" ] || { echo "usage: $0 <パッケージ名>"; exit 1; }
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
+OS=$(uname -s)
+# 呼ぶ側 (build-on-bsd.sh) が置き場所を決めて渡してくる。Darwin は /usr が
+# 書けないので /opt/pkg になる。単体で走らせたときのために既定も持つ。
+PREFIX=${PREFIX:-/usr/pkg}
+TREE=${TREE:-/usr/pkgsrc}
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin:/usr/local/bin
 export PATH
 unset PKG_PATH
 
-OS=$(uname -s)
-DIR=/usr/pkgsrc/zakinko/$PKG
+DIR=$TREE/zakinko/$PKG
 
 if [ "$OS" = NetBSD ]; then
 	PKGMAKE=make
 	MKARGS=
 else
 	# base の make は pkgsrc には使えない。bootstrap が入れた bmake を呼ぶ。
-	PKGMAKE=/usr/pkg/bin/bmake
+	PKGMAKE=$PREFIX/bin/bmake
 	MKARGS="DEPENDS_TARGET=package-install"
 fi
 

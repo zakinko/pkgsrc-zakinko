@@ -30,7 +30,16 @@ OS=$(uname -s)
 CACHE=$WS/.bsdcache/$OS-$(uname -m)
 PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz}
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/local/bin
+# 置き場所。Darwin だけは /usr が読めるだけで書けない (SIP) ので、prefix も
+# ツリーも /opt 側へ寄せる。pkgsrc の Darwin での慣例も /opt/pkg なので、
+# 特別扱いというより本来の姿。他は従来どおり /usr/pkg と /usr/pkgsrc。
+case $OS in
+Darwin)	PREFIX=${PREFIX:-/opt/pkg} ;;
+*)	PREFIX=${PREFIX:-/usr/pkg} ;;
+esac
+export PREFIX
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin:/usr/local/bin
 export PATH
 
 # どこまで進んだかを、転けたときに一行で言う。configure が unported で
@@ -88,42 +97,53 @@ REAL=${BIG%/}/pkgsrc-ci
 echo "ツリーと作業場所は $REAL に置く"
 
 mkdir -p "$REAL" "$REAL/obj" "$CACHE/distfiles" "$CACHE/packages"
-if [ -d /usr/pkgsrc ] && [ ! -h /usr/pkgsrc ]; then
+if [ "$OS" = Darwin ]; then
+	# /usr に symlink を張れないので、ツリーは置いた場所のまま使う。
+	# pkgsrc は /usr/pkgsrc に居ることを要求しない。カテゴリの Makefile が
+	# ../mk/misc/category.mk を読めればよく、それは相対で足りる。
+	TREE=$REAL/pkgsrc
+	TOP=$REAL
+elif [ -d /usr/pkgsrc ] && [ ! -h /usr/pkgsrc ]; then
 	# 既に実体があるなら触らない
+	TREE=/usr/pkgsrc
 	TOP=/usr
 else
 	[ -h /usr/pkgsrc ] || ln -s "$REAL/pkgsrc" /usr/pkgsrc
+	TREE=/usr/pkgsrc
 	TOP=$REAL
 fi
+export TREE
+echo "ツリーは $TREE、prefix は $PREFIX"
 
 # ------------------------------------------------------------------
 stage "pkgsrc のツリーを置く"
-if [ ! -d /usr/pkgsrc/mk ]; then
+if [ ! -d "$TREE/mk" ]; then
 	dl "$PKGSRC_URL" "$REAL/pkgsrc.tar.gz"
 	# 書庫の頂上が pkgsrc/ なので、/usr/pkgsrc の指す先の親へ展開する。
 	tar xzf "$REAL/pkgsrc.tar.gz" -C "$TOP"
 	rm -f "$REAL/pkgsrc.tar.gz"
 fi
 # どの日のツリーかは、転けたときに効く。current は毎日動く。
-echo "ツリー: $(ls -ld /usr/pkgsrc/mk/bsd.pkg.mk | awk '{ print $6, $7, $8 }')"
+echo "ツリー: $(ls -ld "$TREE/mk/bsd.pkg.mk" | awk '{ print $6, $7, $8 }')"
 
 # ------------------------------------------------------------------
 stage "bootstrap"
 if [ -s "$CACHE/bootstrap-kit.tar.gz" ]; then
 	echo "前回の binary kit を使う"
 	tar xzpf "$CACHE/bootstrap-kit.tar.gz" -C /
-elif [ ! -x /usr/pkg/bin/bmake ]; then
-	cd /usr/pkgsrc/bootstrap
+elif [ ! -x "$PREFIX/bin/bmake" ]; then
+	cd "$TREE/bootstrap"
 	./bootstrap \
+		--prefix="$PREFIX" \
 		--workdir="$REAL/bootstrap-work" \
 		--gzip-binary-kit="$CACHE/bootstrap-kit.tar.gz"
 	rm -rf "$REAL/bootstrap-work"
 fi
-test -x /usr/pkg/bin/bmake || { echo "bmake が無い"; exit 1; }
+test -x "$PREFIX/bin/bmake" || { echo "bmake が無い"; exit 1; }
 
 # ------------------------------------------------------------------
 stage "mk.conf を整える"
-MKCONF=/usr/pkg/etc/mk.conf
+MKCONF=$PREFIX/etc/mk.conf
 [ -f "$MKCONF" ] || MKCONF=/etc/mk.conf
 # 前の回の kit にも同じ追記が入っている。置き場所が今回と同じとは限らない
 # ので、残しておかずに書き直す。
@@ -154,11 +174,11 @@ PKGS=${PKGS:-mule}
 	printf '# $NetBSD$\nCOMMENT=\tLocal\n'
 	for p in $PKGS; do printf 'SUBDIR+=\t%s\n' "$p"; done
 	printf '.include "../mk/misc/category.mk"\n'
-} > /usr/pkgsrc/zakinko/Makefile
+} > $TREE/zakinko/Makefile
 for p in $PKGS; do
 	[ -d "$WS/$p" ] || { echo "!! $p が repo に無い" >&2; continue; }
-	mkdir -p "/usr/pkgsrc/zakinko/$p"
-	cp -R "$WS/$p/." "/usr/pkgsrc/zakinko/$p/"
+	mkdir -p "$TREE/zakinko/$p"
+	cp -R "$WS/$p/." "$TREE/zakinko/$p/"
 	echo "    $p"
 done
 
@@ -173,11 +193,11 @@ stage "overlay を上流のカテゴリへ重ねる"
 NEEDSUM=
 for d in $(cd "$WS/overlay" && find . -mindepth 2 -maxdepth 2 -type d |
            sed 's|^\./||' | sort); do
-	if [ ! -d "/usr/pkgsrc/$d" ]; then
+	if [ ! -d "$TREE/$d" ]; then
 		echo "!! overlay: $d が pkgsrc に無い。飛ばす。" >&2
 		continue
 	fi
-	( cd "$WS/overlay/$d" && tar cf - . ) | ( cd "/usr/pkgsrc/$d" && tar xf - )
+	( cd "$WS/overlay/$d" && tar cf - . ) | ( cd "$TREE/$d" && tar xf - )
 	echo "    $d"
 	if [ -d "$WS/overlay/$d/patches" ]; then
 		NEEDSUM="$NEEDSUM $d"
@@ -188,14 +208,14 @@ done
 # pkgtools/digest の digest を呼び、無いと黙って何も書かずに成功する。
 if [ -n "$NEEDSUM" ]; then
 	if [ ! -x /usr/pkg/bin/digest ]; then
-		( cd /usr/pkgsrc/pkgtools/digest && bmake install ) ||
+		( cd "$TREE/pkgtools/digest" && bmake install ) ||
 		    echo "!! pkgtools/digest が入らない" >&2
 	fi
 	for d in $NEEDSUM; do
 		# ここで転けても止めない。mule の依存にはこれらは入って
 		# いないので、distinfo が古いままでも今回のビルドには効かない。
 		# 万一入ったときは patch のチェックサム不一致で必ず止まる。
-		( cd "/usr/pkgsrc/$d" && bmake makepatchsum ) ||
+		( cd "$TREE/$d" && bmake makepatchsum ) ||
 		    echo "!! $d の makepatchsum に失敗" >&2
 	done
 fi
@@ -211,10 +231,10 @@ if [ -d "$CACHE/packages/All" ]; then
 	for f in "$CACHE"/packages/All/*.tgz; do
 		[ -f "$f" ] || continue
 		case $f in */mule-[0-9]*) continue ;; esac
-		/usr/pkg/sbin/pkg_add -U "$f" > /dev/null 2>&1 || true
+		$PREFIX/sbin/pkg_add -U "$f" > /dev/null 2>&1 || true
 	done
 	unset PKG_PATH
-	/usr/pkg/sbin/pkg_info | sed 's/^/    /'
+	$PREFIX/sbin/pkg_info | sed 's/^/    /'
 fi
 
 # ------------------------------------------------------------------
@@ -228,7 +248,7 @@ rc=0
 for p in $PKGS; do
 	echo
 	echo "########## $p ##########"
-	if [ -f "$WS/.github/ci/verify-$p.sh" ]; then
+	if [ "${VERIFY:-full}" != basic ] && [ -f "$WS/.github/ci/verify-$p.sh" ]; then
 		sh "$WS/.github/ci/verify-$p.sh" "$OPTS" || rc=1
 	else
 		sh "$WS/.github/ci/verify-pkg.sh" "$p" || rc=1
