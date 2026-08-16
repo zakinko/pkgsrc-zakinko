@@ -1,0 +1,114 @@
+name: mule (illumos)
+
+# pkgsrc の SunOS プラットフォームで mule を組む。
+#
+# SunOS.mk が想定しているのは SunOS 4 ではなく Solaris/illumos のほうで、
+# pkgsrc にとっては NetBSD の次に古くから面倒を見られている相手でもある
+# (SmartOS が pkgsrc をそのまま採用している)。BSD とも Linux とも違う
+# System V の系統なので、1995 年の tree がどう転ぶかは別の見物になる。
+#
+# mule 側にも当てはある。src/s/ に sol2.h と sol2-3.h と sol2-4.h、
+# src/m/ に sparc.h があり、configure にも *-sun-solaris* の腕がある。
+# ただし当時の Solaris は SPARC で、ここで回すのは x86 なので、機種の
+# 判定はやはり届かない見込み。
+#
+# job を別ファイルにしてあるのは、既存の二本と編集がぶつからないように
+# するため。中身は同じ build-on-bsd.sh を呼ぶだけ。
+#
+# OmniOS は素の状態にコンパイラが入っていないので prepare で入れる。
+# OpenIndiana は最初から gcc を持っている。
+
+on:
+  push:
+    paths:
+      - 'mule/**'
+      - 'overlay/**'
+      - '.github/workflows/mule-illumos.yml'
+      - '.github/ci/**'
+  pull_request:
+    paths:
+      - 'mule/**'
+      - '.github/ci/**'
+  workflow_dispatch:
+    inputs:
+      options:
+        description: 'PKG_OPTIONS.mule (既定は端末のみ)'
+        required: false
+        default: '-canna -wnn4 -x11'
+
+env:
+  OPTIONS: ${{ inputs.options || '-canna -wnn4 -x11' }}
+
+jobs:
+  omnios:
+    name: OmniOS r151054
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-omnios-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-omnios-amd64-
+
+      - name: 組んで確かめる
+        uses: vmactions/omnios-vm@v1
+        with:
+          release: 'r151054'
+          envs: 'OPTIONS'
+          # 素の OmniOS にコンパイラは無い。bootstrap がまず転ぶので入れる。
+          prepare: |
+            pkg install developer/gcc14 developer/build/gnu-make || true
+          run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
+
+  openindiana:
+    name: OpenIndiana 202604
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: distfile のキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: distfiles
+          key: mule-2.3-tarball
+
+      - name: distfile を取る
+        run: sh .github/ci/fetch-distfile.sh
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-openindiana-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-openindiana-amd64-
+
+      - name: 組んで確かめる
+        uses: vmactions/openindiana-vm@v1
+        with:
+          release: '202604'
+          envs: 'OPTIONS'
+          run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
