@@ -228,15 +228,15 @@ done
 # patch を足したものは distinfo に SHA1 が要る。makepatchsum は
 # pkgtools/digest の digest を呼び、無いと黙って何も書かずに成功する。
 if [ -n "$NEEDSUM" ]; then
-	if [ ! -x /usr/pkg/bin/digest ]; then
-		( cd "$TREE/pkgtools/digest" && bmake install ) ||
+	if [ ! -x "$PREFIX/bin/digest" ]; then
+		( cd "$TREE/pkgtools/digest" && "$PREFIX/bin/bmake" install ) ||
 		    echo "!! pkgtools/digest が入らない" >&2
 	fi
 	for d in $NEEDSUM; do
 		# ここで転けても止めない。mule の依存にはこれらは入って
 		# いないので、distinfo が古いままでも今回のビルドには効かない。
 		# 万一入ったときは patch のチェックサム不一致で必ず止まる。
-		( cd "$TREE/$d" && bmake makepatchsum ) ||
+		( cd "$TREE/$d" && "$PREFIX/bin/bmake" makepatchsum ) ||
 		    echo "!! $d の makepatchsum に失敗" >&2
 	done
 fi
