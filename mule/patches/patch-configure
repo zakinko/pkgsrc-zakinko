@@ -17,6 +17,20 @@ on stderr.  A preprocessor that says anything at all -- a warning, a note --
 fails the test even though it works.  Check that the output holds what the
 input should have produced instead.
 
+That check went into both arms of the test, but the second one still sent the
+preprocessor's output to /dev/null while grepping conftest2.out, which the
+`rm -rf conftest*' between the two arms has just removed.  Its verdict then
+turned on whether grep could open a file rather than on whether
+-traditional-cpp works, so either answer was an accident.  Point it at the
+file it writes.
+
+The last resort is /lib/cpp, which none of the systems this builds on has
+had for decades.  config.status writes lib-src/Makefile and src/Makefile
+through $CPP, so when it is not there both come out without rules and the
+build dies much later with `No rule to make target "all"'.  That is what
+DragonFly was doing.  Keep the -traditional-cpp candidate already in hand
+unless /lib/cpp is really present.
+
 --- configure.orig	1995-07-21 06:12:16.000000000 +0000
 +++ configure
 @@ -581,16 +581,36 @@
@@ -79,7 +93,7 @@ input should have produced instead.
  if test -z "$ac_err"; then
    :
  else
-@@ -1397,10 +1421,13 @@
+@@ -1397,15 +1421,20 @@
  #include "confdefs.h"
  #include <stdio.h>
  Syntax Error
@@ -89,8 +103,16 @@ input should have produced instead.
  # Some shells (Coherent) do redirections in the wrong order, so need
  # the parens.
 -ac_err=`eval "($ac_cpp conftest.${ac_ext} >/dev/null) 2>&1"`
-+ac_err=`eval "($ac_cpp conftest.${ac_ext} >/dev/null) 2>&1 ; \
++ac_err=`eval "($ac_cpp conftest.${ac_ext} > conftest2.out) 2>&1 ; \
 +grep -L \"Should  *be one line\" conftest2.out"`
  if test -z "$ac_err"; then
    :
  else
+   rm -rf conftest*
+-  CPP=/lib/cpp
++  if test -x /lib/cpp; then
++    CPP=/lib/cpp
++  fi
+ fi
+ rm -f conftest*
+ fi
