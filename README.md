@@ -70,12 +70,14 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 overlay/textproc/libxml2/         2.15.1 → 2.15.3 (CVE 5 件)
 overlay/sysutils/augeas/          CVE-2025-2588 の修正
 overlay/inputmethod/anthy-elisp/  emacs26〜30 を受け付けるように
+overlay/devel/libuuid/            DragonFly で util-linux が組めるように
 ```
 
-[NetBSD-i386](https://github.com/zakinko/NetBSD-i386) の CI が、この repo を
-`zakinko` カテゴリとして重ねたあとに `overlay/` を上流のカテゴリへ上書き
-コピーしてからビルドします。上流 pkgsrc が取り込んだら消します。詳しくは
-[overlay/README.md](overlay/README.md)。
+[NetBSD-i386](https://github.com/zakinko/NetBSD-i386) の CI と、この repo の
+NetBSD 以外を回す CI ([.github/ci/build-on-bsd.sh](.github/ci/build-on-bsd.sh))
+が、この repo を `zakinko` カテゴリとして重ねたあとに `overlay/` を上流の
+カテゴリへ上書きコピーしてからビルドします。上流 pkgsrc が取り込んだら
+消します。詳しくは [overlay/README.md](overlay/README.md)。
 
 ## 対象
 

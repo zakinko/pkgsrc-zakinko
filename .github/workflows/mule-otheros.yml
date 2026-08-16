@@ -32,10 +32,12 @@ on:
       - 'mule/**'
       - '.github/workflows/mule-otheros.yml'
       - '.github/ci/**'
+      - 'overlay/**'
   pull_request:
     paths:
       - 'mule/**'
       - '.github/ci/**'
+      - 'overlay/**'
   workflow_dispatch:
     inputs:
       options:

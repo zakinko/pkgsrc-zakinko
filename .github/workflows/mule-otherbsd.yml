@@ -45,6 +45,11 @@ name: mule (other BSD)
 #
 # つまり当面は赤い。どこで止まるかを毎回同じ形で読めるようにするための
 # 足場で、緑にしていくのはこれから。
+#
+# 実際に回してみると、DragonFly は mule の configure まで届いていなかった。
+# 依存の devel/libuuid (util-linux) が組めず、lang/python313 から gtexinfo
+# までが止まる。mule 側ではなく pkgsrc 側の話なので、直しは
+# overlay/devel/libuuid に置いてある。
 
 on:
   push:
@@ -52,10 +57,12 @@ on:
       - 'mule/**'
       - '.github/workflows/mule-otherbsd.yml'
       - '.github/ci/**'
+      - 'overlay/**'
   pull_request:
     paths:
       - 'mule/**'
       - '.github/ci/**'
+      - 'overlay/**'
   workflow_dispatch:
     inputs:
       options:

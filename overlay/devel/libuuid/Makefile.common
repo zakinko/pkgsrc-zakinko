@@ -1,0 +1,96 @@
+# $NetBSD: Makefile.common,v 1.14 2025/09/14 11:08:51 wiz Exp $
+# used by devel/libblkid/Makefile
+# used by devel/libuuid/Makefile
+# used by x11/mcookie/Makefile
+#
+# 上流 pkgsrc の devel/libuuid/Makefile.common の写し。足したのは下の
+# CONFIGURE_ENV.DragonFly 一行だけ。
+#
+# DragonFly では util-linux が組めず devel/libuuid が建たない。lang/python313
+# が libuuid を要るので、そこから上の devel/gettext-tools と
+# converters/help2man と devel/gtexinfo が全部止まる。mule は makeinfo を
+# 要るので、DragonFly の CI は mule の configure まで届いていなかった。
+#
+# 原因は cpu_set_t の扱い。DragonFly の <sched.h> は
+#
+#	typedef	cpumask_t		cpu_set_t;
+#
+# と書いていて、型はある。ところが持っているのは <sys/cpumask.h> の
+# CPU_ZERO() や CPU_ISSET() といった固定長のものだけで、glibc の
+# CPU_ALLOC() / CPU_SET_S() のような可変長のものは無い。util-linux の
+# configure は
+#
+#	AC_CHECK_TYPES([cpu_set_t], [have_cpu_set_t=yes], [], [[
+#	#include <sched.h>
+#	]])
+#
+# と型の有無だけを見て lib/cpuset.c を組む対象に入れ、そのうえで CPU_ALLOC
+# が無いのを見て include/cpuset.h の代替定義に落ちる。その代替は glibc から
+# 写したもので、
+#
+#	__cpu_mask *__bits = (cpusetp)->__bits;
+#
+# のように cpu_set_t の内部表現を直に触る。DragonFly の cpumask_t は
+# __uint64_t の配列なので __bits も __cpu_mask も無く、lib/cpuset.c が
+# コンパイルできない。
+#
+# NetBSD と FreeBSD が通っているのは、あちらが同じものを cpuset_t と綴って
+# いて cpu_set_t が無いため。DragonFly だけが「型はあるが API が無い」中間に
+# いて、util-linux はその場合を想定していない。master でも同じままなので、
+# 版が上がっても直らない。
+#
+# ここで作る libuuid と libblkid と mcookie はどれも cpuset を使わない。
+# util-linux 側の参照も lib/cpuset.c と include/path.h と lib/path.c と
+# make check の test_* だけで、全部 HAVE_CPU_SET_T で囲われている。なので
+# 型が無いことにしてしまえば NetBSD や FreeBSD と同じ構成になる。すぐ上の
+# SunOS が ac_cv_header_sys_vfs_h=no でやっているのと同じ手。
+#
+# PKGREVISION は上げていない。DragonFly 以外では入るものが変わらず、
+# DragonFly では今まで一つも建っていない。
+#
+# pkgsrc か util-linux が直したら overlay/devel/libuuid ごと消すこと。
+
+DISTNAME=	util-linux-2.40.2
+MASTER_SITES=	https://www.kernel.org/pub/linux/utils/util-linux/v${PKGVERSION_NOREV:R}/
+EXTRACT_SUFX=	.tar.xz
+EXTRACT_USING=	bsdtar
+
+MAINTAINER?=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/karelzak/util-linux
+
+DISTINFO_FILE=	${.CURDIR}/../../devel/libuuid/distinfo
+PATCHDIR=	${.CURDIR}/../../devel/libuuid/patches
+
+USE_GCC_RUNTIME=	yes
+USE_LIBTOOL=		yes
+GNU_CONFIGURE=		yes
+CONFIGURE_ARGS+=	--disable-all-programs
+CONFIGURE_ARGS+=	--disable-bash-completion
+CONFIGURE_ARGS+=	--without-ncurses
+CONFIGURE_ARGS+=	--without-ncursesw
+CONFIGURE_ARGS+=	--without-python
+
+# netbsd libintl lacks _nl_expand_alias, resulting in NLS being
+# disabled. for consistency, disable for all
+CONFIGURE_ARGS+=	--disable-nls
+
+CONFIGURE_ARGS.SunOS+=	--disable-symvers
+CONFIGURE_ENV.SunOS+=	ac_cv_header_sys_vfs_h=no
+
+# DragonFly has cpu_set_t (an alias for cpumask_t) but not the dynamically
+# sized CPU_ALLOC()/CPU_SET_S() family, so util-linux falls back to the
+# glibc-derived replacements in include/cpuset.h, which reach into the
+# type's __bits member and do not compile.  Nothing built here uses cpusets
+# and every reference to them is guarded by HAVE_CPU_SET_T, so configure as
+# if the type were absent, as on NetBSD and FreeBSD where it is cpuset_t.
+CONFIGURE_ENV.DragonFly+=	ac_cv_type_cpu_set_t=no
+
+.include "../../mk/bsd.prefs.mk"
+
+.if ${MACHINE_PLATFORM:MSunOS-*-i386} || \
+    ${MACHINE_PLATFORM:MLinux-*-i386} || \
+    ${MACHINE_PLATFORM:MUnixWare-*-i386}
+CONFIGURE_ARGS+=	--disable-year2038
+.endif
+
+TEST_TARGET=		check

@@ -153,6 +153,44 @@ printf '# $NetBSD$\nCOMMENT=\tLocal\nSUBDIR+=\tmule\n.include "../mk/misc/catego
 cp -R "$WS/mule/." /usr/pkgsrc/zakinko/mule/
 
 # ------------------------------------------------------------------
+stage "overlay を上流のカテゴリへ重ねる"
+# overlay/ は自作パッケージではなく、上流 pkgsrc の package への当て物。
+# NetBSD 側は NetBSD-i386 の ci/make-pkgsrc-tarball.sh がツリーへ焼き込んで
+# 渡してくるが、こちらはツリーをその場で展開するので、ここで当てる。
+#
+# 当てないと DragonFly は mule に届かない。依存の devel/libuuid が
+# そのままでは組めず、lang/python313 から gtexinfo までが全部止まる。
+NEEDSUM=
+for d in $(cd "$WS/overlay" && find . -mindepth 2 -maxdepth 2 -type d |
+           sed 's|^\./||' | sort); do
+	if [ ! -d "/usr/pkgsrc/$d" ]; then
+		echo "!! overlay: $d が pkgsrc に無い。飛ばす。" >&2
+		continue
+	fi
+	( cd "$WS/overlay/$d" && tar cf - . ) | ( cd "/usr/pkgsrc/$d" && tar xf - )
+	echo "    $d"
+	if [ -d "$WS/overlay/$d/patches" ]; then
+		NEEDSUM="$NEEDSUM $d"
+	fi
+done
+
+# patch を足したものは distinfo に SHA1 が要る。makepatchsum は
+# pkgtools/digest の digest を呼び、無いと黙って何も書かずに成功する。
+if [ -n "$NEEDSUM" ]; then
+	if [ ! -x /usr/pkg/bin/digest ]; then
+		( cd /usr/pkgsrc/pkgtools/digest && bmake install ) ||
+		    echo "!! pkgtools/digest が入らない" >&2
+	fi
+	for d in $NEEDSUM; do
+		# ここで転けても止めない。mule の依存にはこれらは入って
+		# いないので、distinfo が古いままでも今回のビルドには効かない。
+		# 万一入ったときは patch のチェックサム不一致で必ず止まる。
+		( cd "/usr/pkgsrc/$d" && bmake makepatchsum ) ||
+		    echo "!! $d の makepatchsum に失敗" >&2
+	done
+fi
+
+# ------------------------------------------------------------------
 stage "前回作った依存を入れる"
 # ここは当てにしない。ツリーは current を取るので、前回のツリーで作った
 # ものが今日の要求と合わないことがある。合わなければ入らないだけで、

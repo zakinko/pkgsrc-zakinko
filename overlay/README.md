@@ -18,6 +18,13 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 走って distinfo に patch の SHA1 が入る。pkgsrc 標準のターゲットなので、
 こちらでハッシュを計算する必要はない。
 
+この repo の CI のうち、NetBSD 以外を回す
+[.github/ci/build-on-bsd.sh](../.github/ci/build-on-bsd.sh) も当てる。
+あちらはツリーを焼き込まずその場で展開するので、`zakinko` カテゴリを
+重ねた直後に同じことをする。`makepatchsum` が転けても止めないのが違いで、
+ここに置いてあるものの大半は mule の依存に入っておらず、入ったときは
+patch のチェックサム不一致で必ず止まるため。
+
 **pkgsrc から見ると package でないディレクトリがカテゴリに混ざる形になる。**
 カテゴリの `Makefile` は `SUBDIR` を明示しているので `make` は無視するが、
 `pkglint` は文句を言うかもしれない。CI は取り除いてから渡すのでビルドには
@@ -44,6 +51,7 @@ overlay/<カテゴリ>/<パッケージ>/...  →  /usr/pkgsrc/<カテゴリ>/<�
 | `sysutils/augeas` | lens 462 本が入らないのを直す、CVE-2025-2588 の NULL 参照修正、`time_t` の書式。PKGREVISION 4 | pkgsrc が同等の変更を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
 | `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 8 | pkgsrc が同等の変更を入れたとき |
 | `inputmethod/anthy` | anthy.el と anthy-dic.el が使う廃止シンボル 5 つを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
+| `devel/libuuid` | DragonFly で util-linux が組めないのを直す。`Makefile.common` に `CONFIGURE_ENV.DragonFly+= ac_cv_type_cpu_set_t=no` 一行 | pkgsrc が同等の変更を入れるか、util-linux が cpu_set_t の判定を直して pkgsrc が追随したとき |
 
 `augeas` は 9.4 / 10.1 / 11.0 の三つで建つことを確認済み。`make test` は
 263 件中 7 件落ちるが、patch を外しても同じ 7 件が落ちるので当て物とは
@@ -99,3 +107,30 @@ patch 4 本を当てて `--prefix` に入れ、`-I` を付けずに `augtool` �
 の `_EMACS_REQD` が `emacs30-no-x11` と綴られていて、実際の PKGNAME
 (`emacs30-nox11`) と食い違い、依存する側が一つも建たなかった。PR 60590 で
 上流が直したので、当て物は消してある。
+
+`devel/libuuid` は DragonFly のためのもので、mule そのものとは離れている。
+mule は makeinfo を要り、`devel/gtexinfo` は help2man と gettext-tools を
+経て `lang/python313` を引き、python313 は libuuid を引く。その libuuid が
+DragonFly で組めないので、CI は mule の configure まで一度も届いていなかった。
+
+止まる場所は util-linux の `lib/cpuset.c`。DragonFly の `<sched.h>` は
+`cpu_set_t` を `cpumask_t` の別名として定義しているので型はあるが、持って
+いるのは `CPU_ZERO()` や `CPU_ISSET()` といった固定長のものだけで、glibc の
+`CPU_ALLOC()` / `CPU_SET_S()` のような可変長のものは無い。util-linux の
+configure は型の有無だけで `lib/cpuset.c` を組む対象に入れ、`CPU_ALLOC` が
+無いのを見て `include/cpuset.h` の代替定義に落ちる。その代替が glibc から
+写したもので `(cpusetp)->__bits` を直に触るため、`__uint64_t` の配列でしか
+ない DragonFly の `cpumask_t` では通らない。
+
+NetBSD と FreeBSD が通っているのは、あちらが同じものを `cpuset_t` と綴って
+いて `cpu_set_t` が無いから。DragonFly だけが「型はあるが API が無い」中間に
+いて、util-linux はその場合を想定していない。master でも同じままである。
+
+libuuid と libblkid と mcookie はどれも cpuset を使わず、util-linux 側の
+参照も全部 `HAVE_CPU_SET_T` で囲われている。そこで configure に型が無いと
+言わせて、NetBSD や FreeBSD と同じ構成にしている。同じ `Makefile.common` が
+既に SunOS へ `ac_cv_header_sys_vfs_h=no` を渡しているので、手としても
+その場にあるものである。
+
+patch を足していないので PKGREVISION は上げていない。DragonFly 以外では
+入るものが変わらず、DragonFly では今まで一つも建っていない。
