@@ -90,7 +90,11 @@ if [ "$OS" = NetBSD ]; then
 	PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
 	export PKG_PATH
 	for p in gmake gtexinfo mozilla-rootcerts; do pkg_add -U "$p" || true; done
-	want canna && { pkg_add -U Canna-lib Canna-server Canna-dict || true; }
+	# Canna はバイナリで入れない。公式は 3.7pl3nb1 で tree は 3.8 を求める
+	# ので、古いほうが入っていると pkgsrc が作り直した版を入れられず
+	# x11-links と同じ "A different version is already installed" で転ぶ。
+	# サーバと辞書は mule の依存には入らない (options.mk が読むのは
+	# canna-lib の buildlink3.mk だけ) ので、あとで名指しで組ませる。
 	want wnn4  && { pkg_add -U ja-FreeWnn-lib ja-FreeWnn-server || true; }
 	mozilla-rootcerts install > /dev/null 2>&1 || true
 	unset PKG_PATH
@@ -102,11 +106,15 @@ if [ "$OS" = NetBSD ]; then
 	# 外して pkgsrc に作らせる。
 	want x11 && { pkg_delete -f x11-links > /dev/null 2>&1 || true; }
 
-	# 公式バイナリの Canna-lib は tree の要求より古いことがある。ソース
-	# から作らせると imake ごしに python まで引くので、入っているものを
-	# 使わせる。
-	MKARGS="BUILDLINK_API_DEPENDS.Canna-lib=Canna-lib>=3.7"
-	MKARGS="$MKARGS BUILDLINK_ABI_DEPENDS.Canna-lib=Canna-lib>=3.7"
+	# Canna も同じ。まっさらなイメージなら入っていないが、作り直しの
+	# ときに古いものが残っていると同じ形で転ぶ。
+	want canna && { pkg_delete -f Canna-lib Canna-server Canna-dict \
+		> /dev/null 2>&1 || true; }
+
+	# tree の要求が公式バイナリより新しくても緩めない。足りなければ
+	# pkgsrc が自分で作り直す。緩めると、実際に使われる組み合わせでは
+	# ないものを検査することになる。
+	MKARGS=
 	PKGMAKE=make
 else
 	# NetBSD 以外に公式のバイナリ集合は無い。依存は pkgsrc に組ませ、
@@ -119,13 +127,48 @@ else
 	PKGMAKE=$PREFIX/bin/bmake
 fi
 
+# pkgsrc に組ませる。第 1 引数がディレクトリ、残りは make に渡す。
+#
+# NetBSD では tree と公式バイナリの出どころが違う。tree は pkgsrc current、
+# バイナリは動かしている release の四半期枝なので、current が版を上げた
+# ものは作り直しになる。その作り直した版を入れるところで pkg_add が
+# 「A different version is already installed」と言って拒む。名指しされた
+# ほうを外してやり直せば済むので、そうする。current が実際に上げたものだけ
+# が建て直され、残りはバイナリのまま使える。
+#
+# 四半期枝の tree を取れば版ずれ自体が起きず速くもなるが、それはしない。
+# 直す先は current なので、current で検査しなければ意味がない。
+#
+# 成否は make の終了状態で見たいが、tee を通すと拾えない。目印を出させて
+# それを見る。pipefail は NetBSD 以外の sh に無いので使わない。
+build_install() {
+	_dir=$1; shift
+	_i=0
+	while :; do
+		( cd "$_dir" && $PKGMAKE "$@" $MKARGS install &&
+		  echo "__BUILD_OK__" ) 2>&1 | tee /tmp/build.log
+		if grep -q '^__BUILD_OK__$' /tmp/build.log; then
+			return 0
+		fi
+
+		_old=$(sed -n 's/.*is already installed: *\([^ ]*\).*/\1/p' \
+			/tmp/build.log | tail -1)
+		_i=$((_i + 1))
+		if [ -z "$_old" ] || [ $_i -gt 20 ]; then
+			return 1
+		fi
+		echo "    古い $_old が邪魔をするので外してやり直す ($_i)"
+		pkg_delete -f "$_old" > /dev/null 2>&1 || true
+	done
+}
+
 echo "--- build と install ---"
-cd $TREE/zakinko/mule
 # 同じ版が残っていると install が拒否されるので、作り直す前に外す
 pkg_delete -f mule > /dev/null 2>&1 || true
-# MKARGS は展開させる。中の > は変数から出てくるので、この時点では
-# もう演算子として読まれない。
-$PKGMAKE PKG_OPTIONS.mule="$OPTS" $MKARGS install
+build_install $TREE/zakinko/mule PKG_OPTIONS.mule="$OPTS" || {
+	echo "FAIL: mule を組めない"
+	exit 1
+}
 set +e
 
 test -x $MULE || { echo "FAIL: $MULE が無い"; exit 1; }
@@ -227,6 +270,12 @@ done
 #   日本語 = c6fc cbdc b8ec      変換 = cad1 b4b9
 if want canna; then
 	echo "--- 3. canna: ローマ字から漢字まで ---"
+	# サーバと辞書は mule の依存ではないので、ここで組ませる。lib と同じ
+	# tree から作られるので版が揃う。
+	for d in canna-server canna-dict; do
+		build_install $TREE/inputmethod/$d ||
+			bad "$d を組めない"
+	done
 	# 辞書は libdata に入るが cannaserver が読むのは /var/dict/canna/canna
 	mkdir -p /var/dict/canna/canna /var/dict/canna/group
 	cp $PREFIX/libdata/canna/* /var/dict/canna/canna/ 2>/dev/null
