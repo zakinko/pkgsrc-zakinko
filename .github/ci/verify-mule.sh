@@ -22,14 +22,22 @@
 # 実行でどこまで壊れているかが分かるほうが、直す側の手数が少ない。
 
 OPTS="$1"
+
+# 置き場所は呼ぶ側が決める。build-on-bsd.sh は Darwin で /opt/pkg、Haiku で
+# /boot/home/pkg を使い (前者は SIP で /usr に書けず、後者に /usr は無い)、
+# ツリーもそこへ寄せて PREFIX と TREE で渡してくる。NetBSD の
+# run-in-qemu.sh は base の場所をそのまま使うので何も渡さない。
+PREFIX=${PREFIX:-/usr/pkg}
+TREE=${TREE:-/usr/pkgsrc}
+
 # X は NetBSD が /usr/X11R7、OpenBSD が /usr/X11R6、FreeBSD は pkg の
 # /usr/local に入る。
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin:/usr/local/bin
 export PATH
 unset PKG_PATH
 
-MULE=/usr/pkg/bin/mule
+MULE=$PREFIX/bin/mule
 CI_DIR=/tmp/mule-ci
 RES=$CI_DIR/results.txt
 export CI_DIR
@@ -108,11 +116,11 @@ else
 	MKARGS="DEPENDS_TARGET=package-install"
 	# base の make は FreeBSD も OpenBSD も pkgsrc には使えない。
 	# bootstrap が入れた bmake を呼ぶ。
-	PKGMAKE=/usr/pkg/bin/bmake
+	PKGMAKE=$PREFIX/bin/bmake
 fi
 
 echo "--- build と install ---"
-cd /usr/pkgsrc/zakinko/mule
+cd $TREE/zakinko/mule
 # 同じ版が残っていると install が拒否されるので、作り直す前に外す
 pkg_delete -f mule > /dev/null 2>&1 || true
 # MKARGS は展開させる。中の > は変数から出てくるので、この時点では
@@ -221,11 +229,11 @@ if want canna; then
 	echo "--- 3. canna: ローマ字から漢字まで ---"
 	# 辞書は libdata に入るが cannaserver が読むのは /var/dict/canna/canna
 	mkdir -p /var/dict/canna/canna /var/dict/canna/group
-	cp /usr/pkg/libdata/canna/* /var/dict/canna/canna/ 2>/dev/null
+	cp $PREFIX/libdata/canna/* /var/dict/canna/canna/ 2>/dev/null
 	chown -R daemon:daemon /var/dict/canna
 	chmod 775 /var/dict/canna /var/dict/canna/canna /var/dict/canna/group
 	# 既に動いていることがある。二重起動は失敗するので確かめてから。
-	pgrep -q cannaserver || /usr/pkg/sbin/cannaserver -u daemon || true
+	pgrep -q cannaserver || $PREFIX/sbin/cannaserver -u daemon || true
 	sleep 2
 	if [ ! -S /tmp/.iroha_unix/IROHA ]; then
 		bad "cannaserver が起動していない"
@@ -252,9 +260,9 @@ fi
 
 if want wnn4; then
 	echo "--- 4. wnn: 読みから漢字まで ---"
-	pgrep -q jserver || /usr/pkg/sbin/jserver || true
+	pgrep -q jserver || $PREFIX/sbin/jserver || true
 	sleep 2
-	if [ ! -f /usr/pkg/lib/mule/19.28/lisp/eggrc ]; then
+	if [ ! -f $PREFIX/lib/mule/19.28/lisp/eggrc ]; then
 		bad "eggrc が入っていない (egg が辞書を登録できない)"
 	else
 		# にほんごのへんかん
