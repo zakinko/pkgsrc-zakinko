@@ -42,13 +42,13 @@ on:
         required: false
         default: 'r151056'
       uim_options:
-        description: 'PKG_OPTIONS.uim (既定は gtk2 だけ切る)'
+        description: 'PKG_OPTIONS.uim (既定は toolkit を全部切る)'
         required: false
-        default: '-gtk2 -gtk4 -qt5 -qt6'
+        default: '-gtk2 -gtk3 -gtk4 -qt5 -qt6 -xim'
 
 env:
   OMNIOS: ${{ inputs.release || 'r151056' }}
-  UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk4 -qt5 -qt6' }}
+  UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk3 -gtk4 -qt5 -qt6 -xim' }}
 
 jobs:
   lua-socket:
@@ -89,9 +89,8 @@ jobs:
   uim:
     name: inputmethod/uim on NetBSD
     runs-on: ubuntu-latest
-    # gtk3 の依存を素から積むので初回は長い。二度目からは .bsdcache に
-    # 載ったバイナリパッケージで飛ばせる。
-    timeout-minutes: 350
+    # toolkit を切ってあるので依存は軽い。それでも anthy と ruby を引く。
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
 

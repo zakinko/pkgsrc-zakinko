@@ -45,10 +45,20 @@ OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
 
-# gtk2 だけを切る。gtk3 は残す (options.mk が gtk3 を切ると既定の toolkit を
-# gtk2 に倒すので、両方切ると別の穴を踏んで #153 の再現にならない)。
-# gtk4 と qt5 と qt6 は #153 と関係がなく、依存が重いだけなので落とす。
-OPTS=${UIM_OPTIONS:-"-gtk2 -gtk4 -qt5 -qt6"}
+# toolkit を全部切る。
+#
+# 最初は gtk2 だけ切って gtk3 を残す形にしていた。報告されたのがその形
+# だからだが、vmactions の NetBSD には X11 のセットが入っておらず
+#
+#	ERROR: [bsd.pkg.mk] uim-... uses X11, but /usr/X11R7 not found
+#
+# で configure まで届かなかった。gtk3 を残すと X11 が要り、X11_TYPE=modular
+# にすれば通るが modular X を素から積むことになる。
+#
+# 全部切っても #153 の再現になる。素の PLIST は PLIST.gtk2 と PLIST.gtk3 の
+# 両方を重ねて持っているので、切った側が全部「組まれていないのに PLIST が
+# 主張するもの」になる。むしろ 18 行ぶん全部が一度に出る。
+OPTS=${UIM_OPTIONS:-"-gtk2 -gtk3 -gtk4 -qt5 -qt6 -xim"}
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin
@@ -111,10 +121,24 @@ if $PKGMAKE $MKARGS PKG_OPTIONS.uim="$OPTS" install > /tmp/uim-plain.log 2>&1; t
 	echo '!! この箱では PR #153 の問題は起きていないことになる。'
 	rc=1
 else
-	echo 'RESULT 素のまま: 落ちた (PR #153 が言うとおり)'
+	# 落ちただけでは足りない。PLIST の食い違いで落ちたのか、依存や
+	# platform の都合で configure まで届かなかったのかを見分ける。
+	# 前は「落ちた = #153 のとおり」と書いていて、X11 が無くて
+	# can-be-built-here.mk で弾かれたのを再現と読み違えた。
+	if grep -qE 'but not installed|Files or directories in PLIST|pkg_create.*(stat|No such file)' \
+	   /tmp/uim-plain.log; then
+		echo 'RESULT 素のまま: PLIST の食い違いで落ちた (PR #153 が言うとおり)'
+	elif grep -q 'PKG_FAIL_REASON' /tmp/uim-plain.log; then
+		echo 'RESULT 素のまま: 組む前に弾かれた (#153 の再現になっていない)'
+		grep -nE 'ERROR:' /tmp/uim-plain.log | head -10
+		rc=1
+	else
+		echo 'RESULT 素のまま: 別の理由で落ちた (#153 の再現になっていない)'
+		rc=1
+	fi
 fi
 echo '--- PLIST の食い違いに触れている行 ---'
-grep -nE 'but not installed|Files or directories|missing file|pkg_create' \
+grep -nE 'but not installed|Files or directories in PLIST|pkg_create' \
 	/tmp/uim-plain.log | head -20
 echo '--- 最後の 40 行 ---'
 tail -40 /tmp/uim-plain.log
