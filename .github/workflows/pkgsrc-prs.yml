@@ -35,6 +35,10 @@ on:
       - '.github/workflows/pkgsrc-prs.yml'
       - '.github/ci/verify-lua-socket.sh'
       - '.github/ci/verify-uim.sh'
+      # 建てる土台も入れる。ここを直したのに回らず、前の結果を見て
+      # 直っていないと思い込みかけた。
+      - '.github/ci/run-in-qemu.sh'
+      - '.github/ci/build-on-bsd.sh'
   workflow_dispatch:
     inputs:
       release:
