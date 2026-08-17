@@ -78,6 +78,14 @@ else
 	echo "FAIL: $PREFIX/bin/bmake が無い"; exit 1
 fi
 
+# uim は graphics/librsvg/tool.mk を読む。既定の librsvg は Rust 実装で、
+# rust 1.92 と cargo-c を引く。PLIST を一つ見るのにその山を積む意味がない。
+# available.mk が LIBRSVG_TYPE を user-settable と明記していて、c にすると
+# graphics/librsvg-c の方を使う。mk.conf ではなくコマンドラインで渡すのは、
+# pkgsrc の優先順位が 環境変数 < mk.conf < コマンドライン だからで、
+# build-on-bsd.sh が書く mk.conf は mule と共有しているため触りたくない。
+MKARGS="$MKARGS LIBRSVG_TYPE=c"
+
 DIR=$TREE/$PKG
 cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }
 
