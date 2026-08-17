@@ -112,24 +112,6 @@ jobs:
           release: '10.1'
           mem: 8192
           envs: 'UIM_OPTIONS'
-          # vmactions の NetBSD には X11 のセットが入っていない。toolkit を
-          # 全部切っても uim は graphics/librsvg/tool.mk を読み、librsvg は
-          # cairo と gdk-pixbuf2 を経て X11 を要求するので、
-          #
-          #   ERROR: [bsd.pkg.mk] librsvg-2.62.3nb1 uses X11,
-          #          but /usr/X11R7 not found
-          #
-          # で組む前に弾かれる。X11_TYPE=modular にすれば pkgsrc 側で X を
-          # 素から積めるが、PLIST を一つ見るのに釣り合わない。配布セットの
-          # xbase と xcomp を足して native の X11 を持たせる方が早い。
-          prepare: |
-            for s in xbase xcomp; do
-              ftp -o /tmp/$s.tar.xz \
-                https://cdn.NetBSD.org/pub/NetBSD/NetBSD-10.1/amd64/binary/sets/$s.tar.xz
-              tar -xJpf /tmp/$s.tar.xz -C /
-              rm -f /tmp/$s.tar.xz
-            done
-            ls -d /usr/X11R7 && df -h /
           run: |
             PKGS='' OVERLAY_PKGS='inputmethod/uim' \
               sh .github/ci/build-on-bsd.sh
