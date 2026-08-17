@@ -14,9 +14,16 @@ name: pkgsrc PRs
 #         いる。illumos で当て物のありなしを建て分けて決める。
 #         中身は .github/ci/verify-lua-socket.sh を読むこと。
 #
-# 相手は OmniOS。#173 の投稿者が omnios-r151056 で試したと書いているので
+#   #153  uim: PLIST fix
+#         gtk2 を切ると make package が転ける。素の PLIST が PLIST.gtk2 と
+#         PLIST.gtk3 の中身を重ねて持っているためで、切ると組まれていない
+#         ものを PLIST が主張する。PR は gtk2 の 9 行しか消していないが、
+#         gtk3 の 9 行も同じ状態にある。
+#         中身は .github/ci/verify-uim.sh を読むこと。
+#
+# #173 の相手は OmniOS。投稿者が omnios-r151056 で試したと書いているので
 # 既定をそれに合わせた。mule-illumos.yml が r151054 で通っているので、
-# 版で転けたらそちらへ落とす。
+# 版で転けたらそちらへ落とす。#153 は PLIST の話なので NetBSD で見る。
 #
 # 組む土台は mule と同じ build-on-bsd.sh を使う。bootstrap から書き直すと
 # 必ず片方だけが古くなる。zakinko カテゴリからは何も組まないので PKGS は
@@ -27,15 +34,21 @@ on:
     paths:
       - '.github/workflows/pkgsrc-prs.yml'
       - '.github/ci/verify-lua-socket.sh'
+      - '.github/ci/verify-uim.sh'
   workflow_dispatch:
     inputs:
       release:
         description: 'OmniOS の版'
         required: false
         default: 'r151056'
+      uim_options:
+        description: 'PKG_OPTIONS.uim (既定は gtk2 だけ切る)'
+        required: false
+        default: '-gtk2 -gtk4 -qt5 -qt6'
 
 env:
   OMNIOS: ${{ inputs.release || 'r151056' }}
+  UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk4 -qt5 -qt6' }}
 
 jobs:
   lua-socket:
@@ -68,4 +81,35 @@ jobs:
           # build-on-bsd.sh が ${PKGS-mule} で読み分けている。
           run: |
             PKGS='' OVERLAY_PKGS='net/lua-socket' \
+              sh .github/ci/build-on-bsd.sh
+
+  uim:
+    name: inputmethod/uim on NetBSD
+    runs-on: ubuntu-latest
+    # gtk3 の依存を素から積むので初回は長い。二度目からは .bsdcache に
+    # 載ったバイナリパッケージで飛ばせる。
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-netbsd-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-netbsd-amd64-
+
+      - name: NetBSD で建てて確かめる
+        uses: vmactions/netbsd-vm@v1
+        with:
+          release: '10.1'
+          mem: 8192
+          envs: 'UIM_OPTIONS'
+          run: |
+            PKGS='' OVERLAY_PKGS='inputmethod/uim' \
               sh .github/ci/build-on-bsd.sh
