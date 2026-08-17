@@ -79,6 +79,33 @@ if [ ! -d /usr/pkgsrc/mk ]; then
 	rm -f /tmp/pkgsrc.tar.gz
 fi
 mkdir -p /usr/pkgsrc/distfiles
+
+# cdn の current/pkgsrc.tar.gz は日ごとに作り直されるわけではなく、
+# 2026-08-17 の時点で 2026-08-15 01:18 UTC 版で止まっている。その版は
+# fonts/fontconfig/Makefile rev 1.142 (2026-08-14 14:01 adam,
+# 「since it uses meson, autoconf stuff is unnecessary」) を抱えていて、
+# あの commit は pre-configure の行から先頭の - を落としてしまっている。
+#
+#	pre-configure:
+#		cd ${BUILDLINK_X11_DIR} && ${FIND} . -path "*fontconfig*" ...
+#
+# X11_TYPE=native で .x11-buildlink が作られない相手だと
+#
+#	cd: can't cd to .../work/.x11-buildlink
+#	*** Error code 2
+#
+# で止まる。- があれば無視される行なので、これは意図しない取りこぼしで
+# ある。上流は rev 1.143 (2026-08-17 01:30 pgoyette「Unbreak the build」)
+# で戻したが、スナップショットがまだ追いついていない。
+#
+# 同じ一文字を当てる。追いついたら grep が外れて何もしない。
+FC=/usr/pkgsrc/fonts/fontconfig/Makefile
+if [ -f "$FC" ] && ! grep -q -- '-cd ${BUILDLINK_X11_DIR}' "$FC" &&
+   grep -q 'cd ${BUILDLINK_X11_DIR}' "$FC"; then
+	sed 's|cd ${BUILDLINK_X11_DIR}|-cd ${BUILDLINK_X11_DIR}|' "$FC" > "$FC.new" &&
+		mv "$FC.new" "$FC"
+	echo "fontconfig: pre-configure の - を戻した (上流 rev 1.143 と同じ)"
+fi
 GUEST
 
 if [ -n "${UPSTREAM_PKG:-}" ]; then
