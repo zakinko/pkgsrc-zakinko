@@ -64,6 +64,17 @@ dl() {
 	fi
 }
 
+# illumos の base の tar は pax 拡張ヘッダ (typeflag 'x') を知らない。
+# pkgsrc.tar.gz は 100 字を超える patch 名にそれを使っているので、素の tar
+# だと「typeflag 'x' not recognized」を数百行吐いた上で非零を返し、set -e で
+# ここで止まる。警告を握り潰しても、長い名前が化けたツリーが残るだけで
+# 意味がない。GNU tar があればそちらを使う。
+TAR=tar
+for t in gtar gnutar; do
+	if command -v $t > /dev/null 2>&1; then TAR=$t; break; fi
+done
+[ "$TAR" = tar ] || echo "tar は $TAR を使う"
+
 echo "=== $OS $(uname -r) / $(uname -m) / PKG_OPTIONS.mule=\"$OPTS\" ==="
 cc --version 2>/dev/null | head -1
 
@@ -123,7 +134,7 @@ stage "pkgsrc のツリーを置く"
 if [ ! -d "$TREE/mk" ]; then
 	dl "$PKGSRC_URL" "$REAL/pkgsrc.tar.gz"
 	# 書庫の頂上が pkgsrc/ なので、/usr/pkgsrc の指す先の親へ展開する。
-	tar xzf "$REAL/pkgsrc.tar.gz" -C "$TOP"
+	$TAR xzf "$REAL/pkgsrc.tar.gz" -C "$TOP"
 	rm -f "$REAL/pkgsrc.tar.gz"
 fi
 # どの日のツリーかは、転けたときに効く。current は毎日動く。
@@ -133,7 +144,7 @@ echo "ツリー: $(ls -ld "$TREE/mk/bsd.pkg.mk" | awk '{ print $6, $7, $8 }')"
 stage "bootstrap"
 if [ -s "$CACHE/bootstrap-kit.tar.gz" ]; then
 	echo "前回の binary kit を使う"
-	tar xzpf "$CACHE/bootstrap-kit.tar.gz" -C /
+	$TAR xzpf "$CACHE/bootstrap-kit.tar.gz" -C /
 elif [ ! -x "$PREFIX/bin/bmake" ]; then
 	# bootstrap は workdir が既にあると何もせず終わる (README に
 	# 「あるなら ./cleanup しろ」と書いてある)。前回の失敗が残っている

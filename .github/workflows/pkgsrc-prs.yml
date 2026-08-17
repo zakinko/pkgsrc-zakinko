@@ -75,8 +75,11 @@ jobs:
         with:
           release: ${{ env.OMNIOS }}
           # 素の OmniOS にコンパイラは無い。bootstrap がまず転ぶので入れる。
+          # gnu-tar も要る。base の tar は pkgsrc.tar.gz の pax 拡張ヘッダを
+          # 知らず、ツリーの展開そのものが非零で終わる。
           prepare: |
-            pkg install developer/gcc14 developer/build/gnu-make || true
+            pkg install developer/gcc14 developer/build/gnu-make \
+                        archiver/gnu-tar || true
           # PKGS='' は「既定に戻せ」ではなく「zakinko からは何も組むな」。
           # build-on-bsd.sh が ${PKGS-mule} で読み分けている。
           run: |
