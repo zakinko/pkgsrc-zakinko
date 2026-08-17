@@ -86,23 +86,14 @@ fi
 # build-on-bsd.sh が書く mk.conf は mule と共有しているため触りたくない。
 MKARGS="$MKARGS LIBRSVG_TYPE=c"
 
-# X も pkgsrc 側で持つ。
+# X11_TYPE は既定 (native) のまま。netbsd-ci-images のイメージは xbase も
+# xserver も入れてあるので /usr/X11R7 がある。
 #
-# vmactions の NetBSD には X11 のセットが無いので、最初は配布セットの
-# xbase と xcomp を足して native の X11 を持たせた。そこは越えたが、今度は
-# fonts/fontconfig が
-#
-#	cd .../work/.x11-buildlink && find . -path "*fontconfig*" -type l -delete
-#	cd: can't cd to /pkgsrc-ci/obj/fonts/fontconfig/work/.x11-buildlink
-#
-# で落ちた。X11_TYPE=native のときだけ作られる場所を、作られていない状態で
-# 触りにいっている。あとから base に X を足した箱の穴で、こちらの用とは
-# 関係がない。
-#
-# modular にすれば pkgsrc が自前で X を積むので、この枝に入らない。要るのは
-# libX11 とその周りの小さいものだけで、X サーバは建たない。セットを落とす
-# 手も要らなくなる。
-MKARGS="$MKARGS X11_TYPE=modular"
+# vmactions の netbsd-vm では X のセットが無く、配布セットを足した上で
+# X11_TYPE=native にすると fonts/fontconfig が .x11-buildlink を触りに
+# いって落ちた。modular に逃がすと今度は 4 時間で 8 パッケージしか組めず
+# timeout に当たった。あちらは KVM が効かず TCG になるためで、こちらの
+# イメージなら KVM で動く。
 
 DIR=$TREE/$PKG
 cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }

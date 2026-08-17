@@ -1,9 +1,21 @@
 #!/bin/sh
-# netbsd-ci-images のイメージを QEMU で起動し、その中で mule を組んで
-# 検査を走らせる。GitHub Actions の Linux runner で動かす。
+# netbsd-ci-images のイメージを QEMU で起動し、その中で組んで検査を走らせる。
+# GitHub Actions の Linux runner で動かす。
 #
 #   sh run-in-qemu.sh <arch>-<release> "<PKG_OPTIONS.mule>"
 #   例: sh run-in-qemu.sh i386-11.0 "canna wnn4 x11"
+#
+# 上流 pkgsrc の package を見たいときは環境変数で渡す。zakinko カテゴリは
+# 作らず、検査だけを送り込んで走らせる。
+#
+#   UPSTREAM_PKG=inputmethod/uim VERIFY_SCRIPT=verify-uim.sh \
+#       sh run-in-qemu.sh amd64-10.1
+#
+# ここを使うのは、vmactions の netbsd-vm が GitHub の runner では KVM を
+# 使えず TCG になるため。uim を回したら 4 時間で 8 パッケージしか組めず
+# timeout に当たった。こちらのイメージはホストが x86_64 なので i386 でも
+# amd64 でも KVM が効く。X のセットも入っているので X11_TYPE=native で
+# 済み、modular X を積む必要もない。
 #
 # イメージは公式には配られていないので (配布物はインストーラが主で、
 # インストール済みのものは amd64 の 10.0 以降しかない)、anita で組んだ
@@ -66,7 +78,23 @@ if [ ! -d /usr/pkgsrc/mk ]; then
 	tar xzf /tmp/pkgsrc.tar.gz -C /usr
 	rm -f /tmp/pkgsrc.tar.gz
 fi
-mkdir -p /usr/pkgsrc/zakinko /usr/pkgsrc/distfiles
+mkdir -p /usr/pkgsrc/distfiles
+GUEST
+
+if [ -n "${UPSTREAM_PKG:-}" ]; then
+	# 上流の package を見る。zakinko カテゴリは要らない。
+	VERIFY_SCRIPT=${VERIFY_SCRIPT:-verify-pkg.sh}
+	echo "=== 検査を送り込む ($UPSTREAM_PKG) ==="
+	tar czf - -C "$TREE" .github/ci | $SSH "tar xzf - -C /tmp"
+
+	echo "=== 検査を走らせる ==="
+	$SSH "sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
+	exit $?
+fi
+
+$SSH sh -s <<'GUEST'
+set -e
+mkdir -p /usr/pkgsrc/zakinko
 printf '# $NetBSD$\nCOMMENT=\tLocal\nSUBDIR+=\tmule\n.include "../mk/misc/category.mk"\n' \
 	> /usr/pkgsrc/zakinko/Makefile
 GUEST
