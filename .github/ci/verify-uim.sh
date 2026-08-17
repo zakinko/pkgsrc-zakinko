@@ -132,7 +132,13 @@ cp PLIST /tmp/uim-PLIST.orig
 pkg_delete -f uim > /dev/null 2>&1 || true
 $PKGMAKE clean > /dev/null 2>&1
 
-if $PKGMAKE $MKARGS PKG_OPTIONS.uim="$OPTS" install > /tmp/uim-plain.log 2>&1; then
+# 出力を握り潰さない。ここは 5 時間を超えることがあり、握り潰すと途中が
+# 一切見えないまま timeout で切られて、何が起きていたかも残らない。実際に
+# 一度そうなった。tee で流しつつ log にも残す。$? はパイプの右端のものに
+# なるので、左の状態を別に取る。
+{ $PKGMAKE $MKARGS PKG_OPTIONS.uim="$OPTS" install 2>&1; echo $? > /tmp/uim-rc; } |
+	tee /tmp/uim-plain.log
+if [ "$(cat /tmp/uim-rc)" -eq 0 ]; then
 	echo 'RESULT 素のまま: 通った'
 	echo '!! 読みが外れている。PLIST が合わないのに入るなら、'
 	echo '!! この箱では PR #153 の問題は起きていないことになる。'
@@ -173,7 +179,9 @@ diff -u /tmp/uim-PLIST.before PLIST | grep '^-' | grep -v '^---' | sed 's/^/  /'
 
 pkg_delete -f uim > /dev/null 2>&1 || true
 $PKGMAKE clean > /dev/null 2>&1
-if $PKGMAKE $MKARGS PKG_OPTIONS.uim="$OPTS" install > /tmp/uim-fixed.log 2>&1; then
+{ $PKGMAKE $MKARGS PKG_OPTIONS.uim="$OPTS" install 2>&1; echo $? > /tmp/uim-rc; } |
+	tee /tmp/uim-fixed.log
+if [ "$(cat /tmp/uim-rc)" -eq 0 ]; then
 	echo 'RESULT 直したあと: 通った'
 else
 	echo 'RESULT 直したあと: 落ちた'
