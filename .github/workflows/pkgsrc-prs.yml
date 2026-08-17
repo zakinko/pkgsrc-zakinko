@@ -1,0 +1,71 @@
+name: pkgsrc PRs
+
+# NetBSD/pkgsrc の GitHub PR のうち、実機でしか決着しないものを確かめる。
+#
+# pkgsrc の正は CVS で、GitHub の NetBSD/pkgsrc は変換ミラーである。
+# あちらに出された PR は fork の trunk が作り直されるたび merge-base が
+# 腐るので、GitHub 側では原理的に取り込めない。放置されているものが
+# 「もう直っているのか」「まだ問題なのか」は、読んでも分からない。
+# 建てて見るしかない。
+#
+#   #173  lua-socket: SunOS does not have sun_len
+#         pkgsrc は 2026-02-26 に別の直し方で解消した (PR 60039) ように
+#         読めるが、PR が消せと言っている CFLAGS.SunOS の行は今も残って
+#         いる。illumos で当て物のありなしを建て分けて決める。
+#         中身は .github/ci/verify-lua-socket.sh を読むこと。
+#
+# 相手は OmniOS。#173 の投稿者が omnios-r151056 で試したと書いているので
+# 既定をそれに合わせた。mule-illumos.yml が r151054 で通っているので、
+# 版で転けたらそちらへ落とす。
+#
+# 組む土台は mule と同じ build-on-bsd.sh を使う。bootstrap から書き直すと
+# 必ず片方だけが古くなる。zakinko カテゴリからは何も組まないので PKGS は
+# 空にし、上流の package は OVERLAY_PKGS で名指しする。
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pkgsrc-prs.yml'
+      - '.github/ci/verify-lua-socket.sh'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'OmniOS の版'
+        required: false
+        default: 'r151056'
+
+env:
+  OMNIOS: ${{ inputs.release || 'r151056' }}
+
+jobs:
+  lua-socket:
+    name: net/lua-socket on OmniOS
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-omnios-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-omnios-amd64-
+
+      - name: OmniOS で建てて確かめる
+        uses: vmactions/omnios-vm@v1
+        with:
+          release: ${{ env.OMNIOS }}
+          # 素の OmniOS にコンパイラは無い。bootstrap がまず転ぶので入れる。
+          prepare: |
+            pkg install developer/gcc14 developer/build/gnu-make || true
+          # PKGS='' は「既定に戻せ」ではなく「zakinko からは何も組むな」。
+          # build-on-bsd.sh が ${PKGS-mule} で読み分けている。
+          run: |
+            PKGS='' OVERLAY_PKGS='net/lua-socket' \
+              sh .github/ci/build-on-bsd.sh
