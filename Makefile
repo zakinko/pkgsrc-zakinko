@@ -5,9 +5,11 @@
 
 COMMENT=	Local packages maintained by zakinko
 
+SUBDIR+=	autogen
 SUBDIR+=	meibo
 SUBDIR+=	mule
 SUBDIR+=	nss_stns
+SUBDIR+=	ntp4
 SUBDIR+=	stnsd
 
 .include "../mk/misc/category.mk"
