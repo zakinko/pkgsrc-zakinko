@@ -4,9 +4,12 @@
 # 上流ではなく隣の写しを読む。上流が動いてもこちらは動かない。
 .include	"../../zakinko/anthy/Makefile.common"
 
-# 上流の 1 に対して 2。patch を 2 本足した一段ぶん。上げないと PKGNAME が
+# 上流の 1 に対して 3。patch を 8 本足した一段ぶん。上げないと PKGNAME が
 # 上流と同じままで、pkgin が「同じものが入っている」と見て入れ替えない。
-PKGREVISION=	2
+#
+# 2 -> 3 は辞書と C の直しを足したぶん。elisp だけだった 2 と違って、
+# 入る辞書の中身と共有ライブラリが変わる。
+PKGREVISION=	3
 EXTRACT_ONLY=	${DISTNAME}.tar.gz
 
 MAINTAINER=	taya@NetBSD.org

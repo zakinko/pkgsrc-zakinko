@@ -1,0 +1,82 @@
+$NetBSD$
+
+Fix wrong kanji, wrong readings and malformed part-of-speech tags.
+
+The conversions corrected here give a different word from the one the reading
+asks for:
+
+	げんかんしょうめい	玄関証明	-> 玄関照明
+	こうかいはんてい	高階判定	-> 公開判定
+	しょうかようすい	消化用水	-> 消火用水
+	ひなんじゃくしゃ	非難弱者	-> 避難弱者
+	ひなんたいろ		非難退路	-> 避難退路
+	ゆまくいじょう		油膜以上	-> 油膜異常
+	ぜんきょくろくおん	歩道整備	-> 全曲録音
+
+The last one had been given the entry for a different word entirely; 歩道整備
+is added back under its own reading, ほどうせいび.
+
+Two readings were wrong: あいずしっき for 会津漆器, which is あいづ, and
+かんすいきんぞく for 関水金属, which is せきすい.  Several entries were
+missing the # of their part-of-speech tag, or carried #35 or #T#5 where #T30
+was meant, and were therefore ignored.
+
+Fedora has carried these since 2010, and anthy-unicode -- the fork that is
+still maintained -- has every one of them.  anthy itself has not been
+released since 2009, so there is nowhere upstream to send them.
+
+--- mkworddic/udict.orig
++++ mkworddic/udict
+@@ -378,7 +378,7 @@
+ -------------------
+ き () #KS 着
+ ふく () #T35 服
+-ようふく () T35 洋服
++ようふく () #T35 洋服
+ きもの () #T35 着物
+ うちゅうふく () #T35 宇宙服
+ せんすいふく () #T35 潜水服
+@@ -494,7 +494,7 @@
+ # 原点
+ げんてん () #T35 原典
+ よ (む) #M5r 読
+-しゅぎ () T35 主義
++しゅぎ () #T35 主義
+ -------------------
+ # 効果
+ こうか () #T05 高価
+@@ -767,10 +767,10 @@
+ れじ () #T35 レジ
+ -------------------
+ #成長
+-せいちょう () T30 成長
+-きぎょう () T35 企業
+-えんじにあ () T35 エンジニア
+-ひと () T35 人
++せいちょう () #T30 成長
++きぎょう () #T35 企業
++えんじにあ () #T35 エンジニア
++ひと () #T35 人
+ -------------------
+ # 制度
+ せいど () #T35 精度
+@@ -1191,7 +1191,7 @@
+ ぶっきょう () #T35 仏教
+ ぶっきょうと () #T35 仏教徒
+ いきょうと () #T35 異教徒
+-しゅうきょう () T35 宗教
++しゅうきょう () #T35 宗教
+ -------------------
+ #回収
+ かいしゅう () #T30 回収
+@@ -1250,8 +1250,8 @@
+ -------------------
+ #伝道
+ でんどう () #T30 伝道
+-しゅうきょう () T35 宗教
+-きりすときょう () T35 キリスト教
++しゅうきょう () #T35 宗教
++きりすときょう () #T35 キリスト教
+ きりすときょう () #T35 キリスト教
+ きりすときょうと () #T35 キリスト教徒
+ いすらむきょう () #T35 イスラム教
