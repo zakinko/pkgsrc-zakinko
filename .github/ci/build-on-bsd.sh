@@ -226,35 +226,10 @@ stage "overlay を上流のカテゴリへ重ねる"
 #
 # 当てないと DragonFly は mule に届かない。依存の devel/libuuid が
 # そのままでは組めず、lang/python313 から gtexinfo までが全部止まる。
-NEEDSUM=
-for d in $(cd "$WS/overlay" && find . -mindepth 2 -maxdepth 2 -type d |
-           sed 's|^\./||' | sort); do
-	if [ ! -d "$TREE/$d" ]; then
-		echo "!! overlay: $d が pkgsrc に無い。飛ばす。" >&2
-		continue
-	fi
-	( cd "$WS/overlay/$d" && tar cf - . ) | ( cd "$TREE/$d" && tar xf - )
-	echo "    $d"
-	if [ -d "$WS/overlay/$d/patches" ]; then
-		NEEDSUM="$NEEDSUM $d"
-	fi
-done
-
-# patch を足したものは distinfo に SHA1 が要る。makepatchsum は
-# pkgtools/digest の digest を呼び、無いと黙って何も書かずに成功する。
-if [ -n "$NEEDSUM" ]; then
-	if [ ! -x "$PREFIX/bin/digest" ]; then
-		( cd "$TREE/pkgtools/digest" && "$PREFIX/bin/bmake" install ) ||
-		    echo "!! pkgtools/digest が入らない" >&2
-	fi
-	for d in $NEEDSUM; do
-		# ここで転けても止めない。mule の依存にはこれらは入って
-		# いないので、distinfo が古いままでも今回のビルドには効かない。
-		# 万一入ったときは patch のチェックサム不一致で必ず止まる。
-		( cd "$TREE/$d" && "$PREFIX/bin/bmake" makepatchsum ) ||
-		    echo "!! $d の makepatchsum に失敗" >&2
-	done
-fi
+#
+# 中身は apply-overlay.sh に寄せた。run-in-qemu.sh も同じものを呼ぶ。
+PKGMAKE="$PREFIX/bin/bmake" sh "$WS/.github/ci/apply-overlay.sh" \
+	"$WS/overlay" "$TREE"
 
 # ------------------------------------------------------------------
 stage "前回作った依存を入れる"

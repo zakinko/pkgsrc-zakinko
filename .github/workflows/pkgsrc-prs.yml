@@ -55,6 +55,7 @@ on:
       # 直っていないと思い込みかけた。
       - '.github/ci/run-in-qemu.sh'
       - '.github/ci/build-on-bsd.sh'
+      - '.github/ci/apply-overlay.sh'
   workflow_dispatch:
     inputs:
       release:
