@@ -19,12 +19,23 @@ name: packages
 #              どうなるかがここで出る。
 #   stnsd      C。rc.d スクリプトを upstream の .in から生成するので、
 #              rc.conf の流儀が違う相手で転ぶかどうか。
+#
+# autogen と ntp4 は自作ではなく、本家へ出す前の当て物を抱えている。ここで
+# 回すのは prefix を決め打ちしていないかを見るためで、PKG_SYSCONFDIR も
+# VARBASE も相手によって変わる。NetBSD で通っても他で通るとは限らない。
+#
+#   autogen    guile22 と libxml2 を引くので初回は長い。mdoc の変換器を
+#              探しに行く不具合を直した当て物が入っている。
+#   ntp4       設定と鍵の在処を CPPFLAGS で PKG_SYSCONFDIR に向けている。
+#              man は SUBST で直すので、そこが相手を選ばないかを見る。
 
 on:
   push:
     paths:
+      - 'autogen/**'
       - 'meibo/**'
       - 'nss_stns/**'
+      - 'ntp4/**'
       - 'stnsd/**'
       - '.github/workflows/packages.yml'
       - '.github/ci/build-on-bsd.sh'
@@ -34,10 +45,10 @@ on:
       pkgs:
         description: '回すパッケージ (空白区切り)'
         required: false
-        default: 'meibo nss_stns stnsd'
+        default: 'autogen meibo nss_stns ntp4 stnsd'
 
 env:
-  PKGS: ${{ inputs.pkgs || 'meibo nss_stns stnsd' }}
+  PKGS: ${{ inputs.pkgs || 'autogen meibo nss_stns ntp4 stnsd' }}
 
 jobs:
   freebsd:
