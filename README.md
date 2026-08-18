@@ -90,9 +90,11 @@ nss_stns は pkgsrc が FreeBSD と DragonFly にも bootstrap できること�
 `OPSYS` からモジュール名 (`nss_stns.so.0` / `nss_stns.so.1`) を決めるので、
 同じパッケージディレクトリで三者に通ります。
 
-mule だけは自作ではなく、本家から引き取ったものです。端末のみの構成と X11
-(Lucid) の構成の両方が、NetBSD 9.4/i386 (gcc 7.5) と NetBSD 11.0/amd64
-(gcc 12.5) でビルドでき、ダンプまで通って動くことを確認しています。
+mule だけは自作ではなく、本家から引き取ったものです。NetBSD 9.4/i386 (gcc 7.5)
+と NetBSD 11.0/amd64 (gcc 12.5) の両方で、端末のみの構成と X11 (Lucid) の構成が
+ビルドでき、ダンプまで通って動きます。canna と wnn4 も両アーキテクチャで実際に
+変換するところまで確認しました。ローマ字 `nihongo` が `日本語` に、読み
+`にほんごのへんかん` が `日本語の変換` になります。
 
 ## nss_stns が `INSTALL` / `DEINSTALL` を持っている理由
 
@@ -146,3 +148,65 @@ X (Lucid toolkit) の構成も通ります。i386 でも amd64 でも Xvfb 上�
 再現しません。EUC-JP を読ませて `forward-char` で数えると 8 文字ぶん進み、
 ISO-2022-JP で書き出したバイト列も正しいので、多バイト文字が 64bit 環境でも
 壊れていません。
+
+## canna と wnn4 を実際に使うまで
+
+パッケージが入れるのはクライアント側だけです。変換にはサーバと辞書が別に
+要ります。
+
+```sh
+cd /usr/pkgsrc/inputmethod/canna-server    && make install
+cd /usr/pkgsrc/inputmethod/canna-dict      && make install
+cd /usr/pkgsrc/inputmethod/ja-freewnn-server && make install
+```
+
+`cannaserver` が `Initialize failed` としか言わずに落ちる場合、たいてい辞書の
+置き場所です。辞書は `/usr/pkg/libdata/canna/` に入りますが、サーバが読むのは
+`/var/dict/canna/canna/` です。`canna-dict` の導入時にそこへ複写されなかった
+環境では、手で置いてやる必要があります。`ktrace` を当てると
+`/var/dict/canna/canna/fuzokugo.cbd` の `open` が `ENOENT` で落ちているのが
+見えます。
+
+Wnn 側は `egg` が起動ファイルを探しますが、上流は候補である `eggrc-wnn` と
+`eggrc-sj3` しか置かず、`eggrc` という名前のファイルを作りません。無いと egg は
+辞書をひとつも登録しないまま止まるので、`wnn4` オプションが有効なときに
+`eggrc-wnn` を `eggrc` として複写しています。
+
+なお pkgsrc current は `Canna-lib>=3.8` を要求しますが、公式のバイナリ
+パッケージは 11.0 / 10.0 とも `3.7pl3nb1` 止まりです (2026-05-25 ビルド)。
+バイナリで済ませたい場合は `BUILDLINK_API_DEPENDS.Canna-lib` を緩めるか、
+バイナリ集合と同じ枝の pkgsrc を使ってください。
+
+## mule を NetBSD 以外の BSD で
+
+pkgsrc は FreeBSD にも OpenBSD にも DragonFly にも bootstrap できるので、
+mule もそこで通るのかを CI で見ています
+([mule-otherbsd.yml](.github/workflows/mule-otherbsd.yml))。NetBSD 側と違って
+pkgsrc そのものを組むところから始まり、バイナリパッケージも無いので依存は
+全部その場で作ります。検査は NetBSD と同じ
+[verify-mule.sh](.github/ci/verify-mule.sh) を通します。
+
+まだ通りません。1995 年のツリーが 2026 年の BSD を知らないためで、止まる
+場所がそれぞれ違います。
+
+| | 見込み |
+| --- | --- |
+| FreeBSD | `patch-configure` が腕を足したので `configure` は通る。ただし上流の `s/freebsd.h` は a.out 時代のままで、`unexsunos4.o` と `pre-crt0.o` を使い、`PENDING_OUTPUT_COUNT` が `FILE` の中身を直接触る。FreeBSD の stdio はもう不透明なのでコンパイルで転けるはず |
+| OpenBSD | `configure` に腕が無く `s/openbsd.h` も無い。OpenBSD の分岐がこのツリーより後なので当然で、unported で止まる |
+| DragonFly | `patch-src_s_dragonfly.h` の `s/dragonfly.h` に初めて実際に届く。joerg が 2006 年に「DragonFly が無いので未確認」と書いたまま 20 年通っているもので、当たりが付くとすればここ |
+
+赤いのは承知の上です。どこで止まっているかを毎回同じ形で読むための足場で、
+緑にしていくのはこれからです。
+
+i386 も一本だけ回しています。ILP32 のこのコードにとって i386 は本籍地で、
+NetBSD 側でも 9.4/i386 が主戦場です。ただし借りられるイメージは amd64 と
+aarch64 と riscv64 しかないので、公式に i386 の qcow2 を配っている FreeBSD
+だけ、自前で QEMU を起動しています
+([run-freebsd-i386.sh](.github/ci/run-freebsd-i386.sh))。鍵も cloud-init も
+入っていないイメージなので、最初の一回だけシリアルコンソールから root で
+入って公開鍵を置き、あとは ssh です。FreeBSD が i386 を配るのは 14 系まで
+で、15.0 に i386 はありません。
+
+OpenBSD の i386 は公式のイメージが無く、回すには自動インストールから
+イメージを作ることになります。DragonFly は 4.0 (2014) で i386 を捨てて
+いるので、そもそもありません。
