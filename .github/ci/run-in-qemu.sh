@@ -39,8 +39,6 @@ for f in $NAME.qcow2 $NAME.qemu; do
 	[ -s "$f" ] || { echo "--- $f を落とす ---"; curl -fsSL -o "$f" "$REL/$f"; }
 done
 
-SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-     -o BatchMode=yes -o LogLevel=ERROR -i $WORK/$NAME.id -p $PORT root@127.0.0.1"
 
 # 落ちても VM を残さない。runner は使い捨てだが、手元で回したときに掴んだ
 # ままだと次が起動できない。止め方は ACPI で、モニタの quit は使わない。
@@ -53,6 +51,10 @@ cleanup() {
 echo "=== 起動 ==="
 DIR=. sh runvm.sh "$NAME" "$PORT"
 trap cleanup EXIT INT TERM
+
+# 入り方は runvm.sh が決めて書き出す。古い sshd 向けの指定が要るので、
+# ここで書き写さずに読む。
+SSH=$(cat "$WORK/$NAME.ssh")
 
 echo "=== pkgsrc を用意する ==="
 $SSH sh -s <<'GUEST'
