@@ -80,7 +80,7 @@ post-install:
 .if !empty(PKG_OPTIONS:Mwnn4)
 # egg wants a startup file called "eggrc"; upstream ships only the
 # eggrc-wnn and eggrc-sj3 candidates and leaves the choice to the installer.
-	${CP} ${DESTDIR}${PREFIX}/lib/mule/19.28/lisp/eggrc-wnn \
+	${INSTALL_DATA} ${DESTDIR}${PREFIX}/lib/mule/19.28/lisp/eggrc-wnn \
 		${DESTDIR}${PREFIX}/lib/mule/19.28/lisp/eggrc
 .endif
 
