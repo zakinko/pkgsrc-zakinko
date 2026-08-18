@@ -79,8 +79,8 @@ jobs:
         with:
           release: 'r1beta5'
           envs: 'OPTIONS'
-          # /usr が無いので、検査も置き場所を選ぶほうに回す。
-          run: env VERIFY=basic sh .github/ci/build-on-bsd.sh "$OPTIONS"
+          # /usr が無い OS だが、置き場所は PREFIX と TREE で渡るので full で通せる。
+          run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
 
   solaris:
     name: Solaris

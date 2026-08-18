@@ -77,11 +77,10 @@ jobs:
 
       # Darwin は /usr が SIP で書けないので、prefix もツリーも /opt 側に
       # 寄る (build-on-bsd.sh が OS を見て決める)。検査のほうは
-      # verify-mule.sh が /usr/pkg を直書きしているので、いまは組んで
-      # 入るところまでを見る verify-pkg.sh に回す。あちらが置き場所を
-      # 引数で受けるようになったら full に戻す。
+      # verify-mule.sh もそれを受け取るようになったので、日本語が編集できる
+      # ところまでの full の検査を通す。
       - name: 組んで確かめる
-        run: sudo -E env VERIFY=basic PKGS=mule sh .github/ci/build-on-bsd.sh "$OPTIONS"
+        run: sudo -E sh .github/ci/build-on-bsd.sh "$OPTIONS"
 
       # root で組んだものをそのままにすると、キャッシュを保存する側が
       # 読めない。
