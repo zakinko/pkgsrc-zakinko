@@ -1,0 +1,27 @@
+===========================================================================
+$NetBSD$
+
+The NTP daemon and utilities in this package read their configuration
+from
+
+	${PKG_SYSCONFDIR}/ntp.conf
+
+A default configuration, modelled on the NetBSD base system's, has
+been installed there unless a file already existed.  When
+${PKG_SYSCONFDIR}/ntp.conf does not exist, ntpd falls back to reading
+/etc/ntp.conf.
+
+If you keep your configuration in /etc/ntp.conf, replace the contents
+of ${PKG_SYSCONFDIR}/ntp.conf with the single line
+
+	includefile /etc/ntp.conf
+
+(a modified file is preserved across package upgrades), or migrate the
+configuration to ${PKG_SYSCONFDIR}/ntp.conf.
+
+If you use dhcpcd's 50-ntp.conf hook, it updates the first ntp.conf it
+finds under /etc, /usr/pkg/etc and /usr/local/etc.  To make it manage
+${PKG_SYSCONFDIR}/ntp.conf, add the following line to /etc/dhcpcd.conf:
+
+	env NTP_CONF=${PKG_SYSCONFDIR}/ntp.conf
+===========================================================================

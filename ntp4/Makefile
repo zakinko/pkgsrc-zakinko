@@ -1,0 +1,93 @@
+# $NetBSD: Makefile,v 1.110 2025/05/17 19:20:44 zafer Exp $
+#
+
+DISTNAME=	ntp-4.2.8p15
+PKGREVISION=	5
+CATEGORIES=	net time
+MASTER_SITES=	https://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	http://www.ntp.org/
+COMMENT=	Network Time Protocol Version 4
+
+CONFLICTS+=	openntpd-[0-9]*
+
+GNU_CONFIGURE=	YES
+USE_LIBTOOL=	YES
+USE_TOOLS+=	pax perl:run
+
+CONFIGURE_ARGS+=	--sysconfdir=${PKG_SYSCONFDIR}
+CONFIGURE_ARGS+=	--with-locfile=loc/pkgsrc
+CONFIGURE_ENV+=		PATH_PERL=${PERL5}
+
+# The configuration file path is a hardcoded #define that ignores
+# --sysconfdir (PR pkg/47149), so the rc.d script required
+# ${PKG_SYSCONFDIR}/ntp.conf while the daemon read /etc/ntp.conf.
+# Point the daemon at PKG_SYSCONFDIR; if that file does not exist it
+# falls back to /etc/ntp.conf (patches/patch-ntpd_ntp__config.c), so
+# configurations in the historic location, including entries kept by
+# dhcpcd's 50-ntp.conf hook, are still honoured.
+CPPFLAGS+=	-DCONFIG_FILE=\"${PKG_SYSCONFDIR}/ntp.conf\"
+CPPFLAGS+=	-DALT_CONFIG_FILE=\"/etc/ntp.conf\"
+
+# ntpdate's symmetric-key file default is the same kind of hardcoded
+# #define, only consulted with -a and no explicit -k.  No PLIST/rc.d
+# dependency on it, so no fallback is needed here.
+CPPFLAGS+=	-DKEYFILE=\"${PKG_SYSCONFDIR}/ntp.keys\"
+
+OVERRIDE_DIRDEPTH=	4
+
+DOCS+=		COPYRIGHT ChangeLog NEWS README* TODO
+DOCDIR=		share/doc/ntp
+EXAMPLESDIR=	share/examples/ntp4
+ALL_NTP_DOCS=	${DESTDIR}${PREFIX}/${DOCDIR} ${DESTDIR}${PREFIX}/${EXAMPLESDIR}
+
+INSTALLATION_DIRS=	${DOCDIR} ${EXAMPLESDIR}
+
+RCD_SCRIPTS=	ntpd ntpdate
+
+# Install a default configuration, modelled on the NetBSD base
+# system's /etc/ntp.conf, unless the admin already has one there.
+CONF_FILES=	${PREFIX}/${EXAMPLESDIR}/ntp.conf ${PKG_SYSCONFDIR}/ntp.conf
+
+post-install:
+	cd ${WRKSRC} && ${INSTALL_DATA} ${DOCS} ${DESTDIR}${PREFIX}/${DOCDIR}
+	cd ${WRKSRC}/conf && pax -rw -pm . ${DESTDIR}${PREFIX}/${EXAMPLESDIR}
+	${INSTALL_DATA} ${FILESDIR}/ntp.conf ${DESTDIR}${PREFIX}/${EXAMPLESDIR}
+	${CHOWN} -R ${SHAREOWN}:${SHAREGRP} ${ALL_NTP_DOCS}
+	${FIND} ${ALL_NTP_DOCS} -type d -print | ${XARGS} ${CHMOD} ${PKGDIRMODE}
+	${FIND} ${ALL_NTP_DOCS} -type f -print | ${XARGS} ${CHMOD} ${SHAREMODE}
+
+.include "../../mk/bsd.prefs.mk"
+.include "options.mk"
+
+PLIST_VARS+=	ntptime tickadj timetrim
+
+.if ${OPSYS} == "NetBSD" || ${OPSYS} == "FreeBSD" || ${OPSYS} == "DragonFly" || ${OPSYS} == "Linux" || ${OPSYS} == "SunOS"
+PLIST.ntptime=		yes
+PLIST.tickadj=		yes
+.elif ${OPSYS} == "IRIX"
+PLIST.timetrim=		yes
+.elif ${OPSYS} == "Darwin"
+PLIST.tickadj=		yes
+.endif
+
+# chroot jail support
+.if ${OPSYS} == "NetBSD"
+CONFIGURE_ARGS+=	--enable-clockctl
+.elif ${OPSYS} == "Linux" && exists(/usr/include/sys/capability.h)
+CONFIGURE_ARGS+=	--enable-linuxcaps
+.else
+# no chroot/privilege drop supported
+.endif
+
+CPPFLAGS.Linux+=	-D_GNU_SOURCE	# for struct in6_pktinfo
+
+.include "../../security/openssl/buildlink3.mk"
+
+CONFIGURE_ARGS+=	--with-openssl-incdir=${SSLBASE}/include
+CONFIGURE_ARGS+=	--with-openssl-libdir=${SSLBASE}/lib
+CONFIGURE_ARGS+=	--with-crypto=openssl
+
+.include "../../mk/readline.buildlink3.mk"
+.include "../../mk/bsd.pkg.mk"
