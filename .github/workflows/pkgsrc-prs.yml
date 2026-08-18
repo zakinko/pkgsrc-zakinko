@@ -20,6 +20,13 @@ name: pkgsrc PRs
 #         公式のバイナリ集合にも zls は無い。版を合わせて BROKEN を外す。
 #         当て物は overlay/devel/zls に置いた。
 #
+#   #175  security/fail2ban: update to 1.1.0
+#         PR は 1.1.0 だがもう 1.1.1 (2026-08-15) が出ている。1.1.0 で
+#         Python 2 対応が落ちたので 2to3 の前処理と python 312 固定を外せる。
+#         あわせて compat/asyncore.py と compat/asynchat.py が同梱された
+#         ので、GitHub issue #174 (asynchat が無い) もこれで閉じる。
+#         当て物は overlay/security/fail2ban に置いた。
+#
 #   #153  uim: PLIST fix
 #         gtk2 を切ると make package が転ける。素の PLIST が PLIST.gtk2 と
 #         PLIST.gtk3 の中身を重ねて持っているためで、切ると組まれていない
@@ -43,6 +50,7 @@ on:
       - '.github/ci/verify-uim.sh'
       - '.github/ci/verify-pkg.sh'
       - 'overlay/devel/zls/**'
+      - 'overlay/security/fail2ban/**'
       # 建てる土台も入れる。ここを直したのに回らず、前の結果を見て
       # 直っていないと思い込みかけた。
       - '.github/ci/run-in-qemu.sh'
@@ -130,6 +138,42 @@ jobs:
           VERIFY_SCRIPT: verify-uim.sh
           # 公式のバイナリパッケージと版を合わせる。current のままだと依存が
           # 一つも降ってこず、素から組んで 6 時間の上限に当たる。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true
+
+  fail2ban:
+    name: security/fail2ban on NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      # python と sphinx は四半期のバイナリ集合に在るので bin-install で
+      # 降りてくる。PLIST は手で組み立てたものなので、食い違ったら
+      # verify-pkg.sh が「並べたのに無い」を並べて出す。
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: security/fail2ban
+          VERIFY_SCRIPT: verify-pkg.sh
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
 

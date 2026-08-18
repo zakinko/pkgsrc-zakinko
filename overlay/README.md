@@ -51,6 +51,8 @@ patch のチェックサム不一致で必ず止まるため。
 | `sysutils/augeas` | lens 462 本が入らないのを直す、CVE-2025-2588 の NULL 参照修正、`time_t` の書式。PKGREVISION 4 | pkgsrc が同等の変更を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
 | `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 9 | pkgsrc が同等の変更を入れたとき |
 | `inputmethod/anthy` | anthy.el と anthy-dic.el が使う廃止シンボル 5 つを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
+| `devel/zls` | zig 0.13.0 で壊れているとして `BROKEN` を抱えたまま止まっている。0.12.0 から 0.16.0 へ上げ、`zig-depends.mk` を作り直して `BROKEN` を外す | 上流 pkgsrc が同等の更新を入れたとき |
+| `security/fail2ban` | 1.0.2 から 1.1.1 へ。`2to3` の前処理と Python 3.12 固定を外せる。`compat/asyncore.py` と `compat/asynchat.py` が同梱されたので GitHub issue #174 (asynchat が無い) も閉じる | 同上 |
 | `devel/libuuid` | DragonFly で util-linux が組めないのを直す。`Makefile.common` に `CONFIGURE_ENV.DragonFly+= ac_cv_type_cpu_set_t=no` 一行 | pkgsrc が同等の変更を入れるか、util-linux が cpu_set_t の判定を直して pkgsrc が追随したとき |
 
 `augeas` は 9.4 / 10.1 / 11.0 の三つで建つことを確認済み。`make test` は
