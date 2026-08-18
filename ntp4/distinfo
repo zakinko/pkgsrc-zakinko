@@ -15,7 +15,6 @@ SHA1 (patch-libntp_socktoa.c) = ff469782951666834b753a55993fdd6a2f1f4f74
 SHA1 (patch-libntp_timexsup.c) = 385461d1049611921e19e7c75b94ed2788f7b1b7
 SHA1 (patch-libntp_work__fork.c) = f46501017291a0764db2240e258ae511a55baba7
 SHA1 (patch-ntpd_ntp__config.c) = 5b2107ab8ea5cac590b897b1e6709c47bce5b5d8
-SHA1 (patch-ntpd_ntp__config.c-alt-config) = f41196f640077ef7cb99214c714eaa95870a1054
 SHA1 (patch-ntpd_ntp__control.c) = 3c6267aa5c36bd1d2e0fa729be86875436812783
 SHA1 (patch-ntpd_ntp__io.c) = 0ad70fe53d3c0f779842fb71ba60b8c2cbb1e456
 SHA1 (patch-ntpd_ntp__keyword.h) = 158f7e93459ea30bbf87830b939a81071fa13eaa

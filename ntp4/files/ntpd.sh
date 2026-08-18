@@ -15,14 +15,7 @@ rcvar=$name
 command="@PREFIX@/sbin/${name}"
 pidfile="/var/run/${name}.pid"
 start_precmd="ntpd_precmd"
-# ntpd reads @PKG_SYSCONFDIR@/ntp.conf and falls back to /etc/ntp.conf
-# when the former does not exist; accept whichever one the daemon will
-# actually use.
-if [ -f @PKG_SYSCONFDIR@/ntp.conf ]; then
-	required_files="@PKG_SYSCONFDIR@/ntp.conf"
-else
-	required_files="/etc/ntp.conf"
-fi
+required_files="@PKG_SYSCONFDIR@/ntp.conf"
 
 ntpd_precmd()
 {

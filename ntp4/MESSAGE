@@ -6,21 +6,19 @@ from
 
 	${PKG_SYSCONFDIR}/ntp.conf
 
-A default configuration, modelled on the NetBSD base system's, has
-been installed there unless a file already existed.  When
-${PKG_SYSCONFDIR}/ntp.conf does not exist, ntpd falls back to reading
-/etc/ntp.conf.
-
-If you keep your configuration in /etc/ntp.conf, replace the contents
-of ${PKG_SYSCONFDIR}/ntp.conf with the single line
+A default configuration, modelled on the NetBSD base system's, has been
+installed there unless a file already existed.  Earlier versions of this
+package ignored that path and read /etc/ntp.conf instead, so if you have
+been keeping the configuration for this package in /etc/ntp.conf, either
+move it here or replace the contents of ${PKG_SYSCONFDIR}/ntp.conf with
+the single line
 
 	includefile /etc/ntp.conf
 
-(a modified file is preserved across package upgrades), or migrate the
-configuration to ${PKG_SYSCONFDIR}/ntp.conf.
+A modified file is preserved across package upgrades.
 
 If you use dhcpcd's 50-ntp.conf hook, it updates the first ntp.conf it
-finds under /etc, /usr/pkg/etc and /usr/local/etc.  To make it manage
+finds under /etc, ${PREFIX}/etc and /usr/local/etc.  To make it manage
 ${PKG_SYSCONFDIR}/ntp.conf, add the following line to /etc/dhcpcd.conf:
 
 	env NTP_CONF=${PKG_SYSCONFDIR}/ntp.conf

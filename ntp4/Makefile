@@ -20,21 +20,13 @@ CONFIGURE_ARGS+=	--sysconfdir=${PKG_SYSCONFDIR}
 CONFIGURE_ARGS+=	--with-locfile=loc/pkgsrc
 CONFIGURE_ENV+=		PATH_PERL=${PERL5}
 
-# The configuration file path is a hardcoded #define that ignores
-# --sysconfdir (PR pkg/47149), so the rc.d script required
-# ${PKG_SYSCONFDIR}/ntp.conf while the daemon read /etc/ntp.conf.
-# Point the daemon at PKG_SYSCONFDIR; if that file does not exist it
-# falls back to /etc/ntp.conf (patches/patch-ntpd_ntp__config.c), so
-# configurations in the historic location, including entries kept by
-# dhcpcd's 50-ntp.conf hook, are still honoured.
+# The paths to the configuration and keys files are hardcoded #defines
+# that ignore --sysconfdir (PR pkg/47149), so the rc.d script required
+# ${PKG_SYSCONFDIR}/ntp.conf while the daemon read /etc/ntp.conf.  They
+# are all #ifndef-guarded, so setting them here is enough; sntp keeps
+# its default in a generated string table rather than a plain #define,
+# and the patch adds the guard so it can be set from here too.
 CPPFLAGS+=	-DCONFIG_FILE=\"${PKG_SYSCONFDIR}/ntp.conf\"
-CPPFLAGS+=	-DALT_CONFIG_FILE=\"/etc/ntp.conf\"
-
-# ntpdate's symmetric-key file default is the same kind of hardcoded
-# #define, only consulted with -a and no explicit -k.  No PLIST/rc.d
-# dependency on it, so no fallback is needed here.  sntp keeps its
-# default in a generated string table rather than a plain #define; the
-# patch guards the macro so it can be set from here too.
 CPPFLAGS+=	-DKEYFILE=\"${PKG_SYSCONFDIR}/ntp.keys\"
 CPPFLAGS+=	-DKEYFILE_DFT_ARG=\"${PKG_SYSCONFDIR}/ntp.keys\"
 
