@@ -1,7 +1,7 @@
 # $NetBSD$
 
 DISTNAME=	mule-2.3
-PKGREVISION=	10
+PKGREVISION=	11
 CATEGORIES=	zakinko editors
 # ftp.m17n.org is gone; the KAIST archive still has a byte-identical copy.
 MASTER_SITES=	http://ftp.kaist.ac.kr/hangul/mirror/mule/
@@ -61,7 +61,12 @@ post-extract:
 	rm -f ${WRKSRC}/lisp/*.orig
 
 # Remove original versions of patched files so that aren't installed.
+# Recompile the non-dumped lisp we patched (ledit, medit, mailpost,
+# find-gc): the build only rebuilds the dumped .elc set, so the shipped
+# .elc would shadow our patched .el at load time.
 post-build:
+	cd ${WRKSRC}/src && ./emacs -batch -q -f batch-byte-compile \
+		../lisp/ledit.el ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el
 	${FIND} ${WRKSRC} -name "*.orig" | ${XARGS} ${RM} -f
 
 # Fix character mapping for pkgsrc/fonts/intlfonts
