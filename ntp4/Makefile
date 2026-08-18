@@ -2,7 +2,7 @@
 #
 
 DISTNAME=	ntp-4.2.8p15
-PKGREVISION=	5
+PKGREVISION=	6
 CATEGORIES=	net time
 MASTER_SITES=	https://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/
 
