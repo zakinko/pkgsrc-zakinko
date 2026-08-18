@@ -46,6 +46,17 @@ SUBST_FILES.ntpconf+=	sntp/sntp.man.in sntp/sntp.mdoc.in
 SUBST_SED.ntpconf=	-e 's,/etc/ntp\.conf,${PKG_SYSCONFDIR}/ntp.conf,g'
 SUBST_SED.ntpconf+=	-e 's,/etc/ntp\.keys,${PKG_SYSCONFDIR}/ntp.keys,g'
 
+# The default configuration installed below names the pid and drift
+# files, which live under VARBASE rather than a fixed /var.
+SUBST_CLASSES+=		ntpvar
+SUBST_STAGE.ntpvar=	pre-configure
+SUBST_MESSAGE.ntpvar=	Setting the state file paths in the default configuration.
+SUBST_FILES.ntpvar=	pkgsrc-ntp.conf
+SUBST_SED.ntpvar=	-e 's,/var/run/,${VARBASE}/run/,g'
+SUBST_SED.ntpvar+=	-e 's,/var/db/,${VARBASE}/db/,g'
+
+BUILD_DEFS+=		VARBASE
+
 OVERRIDE_DIRDEPTH=	4
 
 DOCS+=		COPYRIGHT ChangeLog NEWS README* TODO
@@ -61,10 +72,14 @@ RCD_SCRIPTS=	ntpd ntpdate
 # system's /etc/ntp.conf, unless the admin already has one there.
 CONF_FILES=	${PREFIX}/${EXAMPLESDIR}/ntp.conf ${PKG_SYSCONFDIR}/ntp.conf
 
+post-extract:
+	${CP} ${FILESDIR}/ntp.conf ${WRKSRC}/pkgsrc-ntp.conf
+
 post-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} ${DOCS} ${DESTDIR}${PREFIX}/${DOCDIR}
 	cd ${WRKSRC}/conf && pax -rw -pm . ${DESTDIR}${PREFIX}/${EXAMPLESDIR}
-	${INSTALL_DATA} ${FILESDIR}/ntp.conf ${DESTDIR}${PREFIX}/${EXAMPLESDIR}
+	${INSTALL_DATA} ${WRKSRC}/pkgsrc-ntp.conf \
+		${DESTDIR}${PREFIX}/${EXAMPLESDIR}/ntp.conf
 	${CHOWN} -R ${SHAREOWN}:${SHAREGRP} ${ALL_NTP_DOCS}
 	${FIND} ${ALL_NTP_DOCS} -type d -print | ${XARGS} ${CHMOD} ${PKGDIRMODE}
 	${FIND} ${ALL_NTP_DOCS} -type f -print | ${XARGS} ${CHMOD} ${SHAREMODE}
