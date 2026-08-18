@@ -1,4 +1,4 @@
-$NetBSD: distinfo,v 1.19 2021/12/27 04:59:56 dholland Exp $
+$NetBSD$
 
 BLAKE2s (mule-2.3.tar.gz) = 364dffd69e1ddc45163e74ba82ac29b3f914fae3f7f42e99beae357f85d303e7
 SHA512 (mule-2.3.tar.gz) = 5f6a9047e6c9d752787d6cab3573516c6efd65cd901fbab74d314a5967e6c68b2dc7c2aa7454d8588d421553530c87dd3ee9692d523d818e01739580cb1201fd
@@ -69,12 +69,21 @@ SHA1 (patch-configure) = 6f868f955beb1129ba0dbec6e624fd1d1c9ad527
 SHA1 (patch-lib-src_b2m.c) = 1d1accc5b1a25f8aef3a42e79b641969b72bec95
 SHA1 (patch-lib-src_bdf_c) = d739f51baf40ba9bc34e87bdd7ecab643bef7b0f
 SHA1 (patch-lib-src_coco_c) = 886628867fd689df92bbf654260c3043a72ce0cc
+SHA1 (patch-lib-src_emacsclient.c) = b4f36805c9f5d31a729e97aec9f491fa944d5ea8
+SHA1 (patch-lib-src_emacsserver.c) = 5e158e872bb1ddf6196af448d50a7a812cc5b75e
 SHA1 (patch-lib-src_etags_c) = 2c5c5907e7b652cd295252ddd86df107359b3fab
 SHA1 (patch-lib-src_fakelisp_c) = 2245e7c3353489452caddb293f0ae2e99b6d1b0a
 SHA1 (patch-lib-src_make-docfile_c) = a5542c5c17ecb1512d1919fd304b611fc21cd835
 SHA1 (patch-lib-src_profile_c) = b4e74a5fc7ab5444dd48dcc6dc231d0382fb7621
 SHA1 (patch-lib-src_sorted-doc_c) = 9965f6a6722c2735dfc609a7a15c669f3df8fae4
 SHA1 (patch-lib-src_yow_c) = 38fb3e70395525ce8bb4816acd1b9e64c20f3735
+SHA1 (patch-lisp_files.el) = c610b562c8f26d2863d87098b6ee3cfd0d8fa842
+SHA1 (patch-lisp_find-gc.el) = 47a14a2f59e803b56389c7fb53afa4aa92979c52
+SHA1 (patch-lisp_ledit.el) = 29477a9f92171baa1fae4dc61422f50b7bd82b0f
+SHA1 (patch-lisp_mailpost.el) = f50b07f54e4a04769605618a6bdc912d2808a864
+SHA1 (patch-lisp_medit.el) = ac079710bf45a6fcafa5a5892ca1fe31872fcfd6
+SHA1 (patch-lisp_mule.el) = 8f4a88103c4f5ac27c4a809a4cebe98bd01e0818
+SHA1 (patch-lisp_subr.el) = e8a835cdf9849019f4af22187b570c1d4b0ca0bb
 SHA1 (patch-src_abbrev_c) = f7f2163d9deffb4618a1ffbec50f02d016b5e54e
 SHA1 (patch-src_alloc_c) = eea9f08ea655b47b7ad0e9287a879642e13e146e
 SHA1 (patch-src_buffer_h) = 50c4b7418be3be78cc779c0468a82cff44a62d39
@@ -91,6 +100,7 @@ SHA1 (patch-src_doc_c) = f8beb91ee577aa4dde3712b49718e24ce8786c85
 SHA1 (patch-src_doprnt_c) = 5532a42eed6e67f35d3fce018b8350a5791f0f58
 SHA1 (patch-src_editfns_c) = 9df4c96763bffecbf4d475f39d60a7c364fc6a80
 SHA1 (patch-src_eval_c) = c20f3fe33002aa2e3cb1b0579cc906412b4bcd35
+SHA1 (patch-src_fileio.c) = 641089faf8052636eab56ef3374c587285e09ec9
 SHA1 (patch-src_frame.h) = 8f9371c2b5ae8ed9236de26b209a2af32ac77b5e
 SHA1 (patch-src_insdel.c) = 42e384033208ad07afff88090934ac2fde3c9745
 SHA1 (patch-src_keyboard.h) = 8fa9207ac30aa21bac7f40035fe39c9568c0db42
