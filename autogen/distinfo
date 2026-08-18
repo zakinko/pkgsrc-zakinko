@@ -7,6 +7,7 @@ SHA1 (patch-ae) = 7249600bfc3cdcafdf55a100db775e9d1a9403f0
 SHA1 (patch-agen5_Makefile.in) = 154fe94b21d5189fa94cffbf5e2543cf90a97cc2
 SHA1 (patch-agen5_fmemopen.c) = 1cc126824f6a07fb9be080f8d143a6f2353bea78
 SHA1 (patch-autoopts_mk-tpl-config.sh) = 9c5b1012efeed5db73a4cade08d6a53f410adae2
+SHA1 (patch-autoopts_save.c) = 0df680503e2d871a5fcd01c0ea9fe0b13eadc2a4
 SHA1 (patch-autoopts_tpl_cmd-doc.tlib) = b582dca5d0495011d924c5f4809c516b6faca7c0
 SHA1 (patch-autoopts_tpl_cmd-doc.tlib-option-format) = 59d6e3b414f6ba4625255e74a5eb9ae3aafa640c
 SHA1 (patch-columns_Makefile.in) = a1da38b3a0a24ac300a4a7baea968642e449efd2
