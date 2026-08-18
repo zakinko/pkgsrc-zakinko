@@ -14,6 +14,12 @@ name: pkgsrc PRs
 #         いる。illumos で当て物のありなしを建て分けて決める。
 #         中身は .github/ci/verify-lua-socket.sh を読むこと。
 #
+#   #164  devel/zls: zig 0.13.0 で壊れている
+#         PR は 0.13.0 用の当て物だが、pkgsrc の lang/zig はもう 0.16.0 で、
+#         zls も 0.16.0 が出ている。package は BROKEN を抱えたままなので
+#         公式のバイナリ集合にも zls は無い。版を合わせて BROKEN を外す。
+#         当て物は overlay/devel/zls に置いた。
+#
 #   #153  uim: PLIST fix
 #         gtk2 を切ると make package が転ける。素の PLIST が PLIST.gtk2 と
 #         PLIST.gtk3 の中身を重ねて持っているためで、切ると組まれていない
@@ -35,6 +41,8 @@ on:
       - '.github/workflows/pkgsrc-prs.yml'
       - '.github/ci/verify-lua-socket.sh'
       - '.github/ci/verify-uim.sh'
+      - '.github/ci/verify-pkg.sh'
+      - 'overlay/devel/zls/**'
       # 建てる土台も入れる。ここを直したのに回らず、前の結果を見て
       # 直っていないと思い込みかけた。
       - '.github/ci/run-in-qemu.sh'
@@ -122,6 +130,42 @@ jobs:
           VERIFY_SCRIPT: verify-uim.sh
           # 公式のバイナリパッケージと版を合わせる。current のままだと依存が
           # 一つも降ってこず、素から組んで 6 時間の上限に当たる。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true
+
+  zls:
+    name: devel/zls on NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      # zig は 0.16.0 が公式のバイナリ集合に在るので bin-install で降りて
+      # くる。LLVM を素から積まずに済む。zls 自身は BROKEN のせいで集合に
+      # 無いので、そこだけ組む。
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: devel/zls
+          VERIFY_SCRIPT: verify-pkg.sh
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
 

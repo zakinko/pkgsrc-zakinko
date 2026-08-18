@@ -25,7 +25,14 @@ PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin:/usr/local/bin
 export PATH
 unset PKG_PATH
 
-DIR=$TREE/zakinko/$PKG
+# 名前だけなら自作カテゴリ、<カテゴリ>/<パッケージ> なら上流のそこを見る。
+# build-on-bsd.sh の OVERLAY_PKGS から呼べなかったのはこの一行のせいだった。
+case $PKG in
+*/*)	DIR=$TREE/$PKG ;;
+*)	DIR=$TREE/zakinko/$PKG ;;
+esac
+# pkg_info や pkg_delete に渡すのはパッケージ名だけ。
+PKGBASE=${PKG##*/}
 
 if [ "$OS" = NetBSD ]; then
 	PKGMAKE=make
@@ -58,7 +65,7 @@ if $PKGMAKE show-vars VARNAMES=PKG_FAIL_REASON 2>/dev/null |
 fi
 
 # 作り直しのときに古いものが残っていると install が拒まれる。
-pkg_delete -f "$PKG" > /dev/null 2>&1 || true
+pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
 
 echo "--- build と install ---"
 if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKG.log 2>&1; then
@@ -73,19 +80,19 @@ fi
 tail -5 /tmp/verify-$PKG.log
 
 echo "--- 入ったものを見る ---"
-pkg_info -e "$PKG" || { echo "FAIL: pkg_info が $PKG を知らない"; exit 1; }
-pkg_info -L "$PKG" | sed -n '1,15p'
+pkg_info -e "$PKGBASE" || { echo "FAIL: pkg_info が $PKGBASE を知らない"; exit 1; }
+pkg_info -L "$PKGBASE" | sed -n '1,15p'
 
 # PLIST に並べたものが実際に置かれたか。pkg_add は並んでいない物を入れない
 # ので、ここで見るのは「並べたのに無い」ほう。
 miss=0
-for f in $(pkg_info -qL "$PKG" 2>/dev/null); do
+for f in $(pkg_info -qL "$PKGBASE" 2>/dev/null); do
 	[ -e "$f" ] || { echo "    無い: $f"; miss=$((miss + 1)); }
 done
 [ $miss -eq 0 ] || { echo "FAIL: $miss 個が置かれていない"; exit 1; }
 
 echo "--- 外せるか ---"
-$PKGMAKE deinstall > /dev/null 2>&1 || pkg_delete "$PKG" > /dev/null 2>&1 || {
+$PKGMAKE deinstall > /dev/null 2>&1 || pkg_delete "$PKGBASE" > /dev/null 2>&1 || {
 	echo "FAIL: $PKG が外せない"; exit 1; }
 
 echo "=== 通った: $PKG on $OS ==="

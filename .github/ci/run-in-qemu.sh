@@ -117,8 +117,31 @@ GUEST
 if [ -n "${UPSTREAM_PKG:-}" ]; then
 	# 上流の package を見る。zakinko カテゴリは要らない。
 	VERIFY_SCRIPT=${VERIFY_SCRIPT:-verify-pkg.sh}
-	echo "=== 検査を送り込む ($UPSTREAM_PKG) ==="
-	tar czf - -C "$TREE" .github/ci | $SSH "tar xzf - -C /tmp"
+	echo "=== 検査と overlay を送り込む ($UPSTREAM_PKG) ==="
+	tar czf - -C "$TREE" .github/ci overlay | $SSH "tar xzf - -C /tmp"
+
+	# overlay/ の当て物を上流のカテゴリへ重ねる。build-on-bsd.sh が
+	# やっているのと同じことで、あちらは自前で書いているが、こちらは
+	# 見たい package の分だけ当たればよい。
+	$SSH sh -s <<'OVER'
+set -e
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
+export PATH
+cd /tmp/overlay || exit 0
+for d in $(find . -mindepth 2 -maxdepth 2 -type d | sed 's|^\./||' | sort); do
+	if [ ! -d "/usr/pkgsrc/$d" ]; then
+		echo "!! overlay: $d が pkgsrc に無い。飛ばす。" >&2
+		continue
+	fi
+	( cd "/tmp/overlay/$d" && tar cf - . ) | ( cd "/usr/pkgsrc/$d" && tar xf - )
+	echo "    overlay: $d"
+	# patch を足したものは distinfo に SHA1 が要る。
+	if [ -d "/tmp/overlay/$d/patches" ]; then
+		( cd "/usr/pkgsrc/$d" && make makepatchsum ) ||
+			echo "!! $d の makepatchsum に失敗" >&2
+	fi
+done
+OVER
 
 	echo "=== 検査を走らせる ==="
 	$SSH "sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
