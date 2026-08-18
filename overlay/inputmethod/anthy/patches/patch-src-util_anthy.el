@@ -11,14 +11,19 @@ anthy-kyuri.el then fail to byte-compile because they (require 'anthy) --
 their .elc files end up missing from what PLIST expects.
 
 process-kill-without-query was obsoleted by set-process-query-on-exit-flag
-in Emacs 22.1 and removed in Emacs 30.  It is called from anthy-check-agent,
-which anthy-do-send-recv-command calls to start anthy-agent.  This one does
-not break the build -- byte compilation only warns about an unknown function
-and every .elc is still produced -- but japanese-anthy fails on the first
-conversion request, that is, as soon as the input method is used at all.
+in Emacs 22.1 and removed in Emacs 27 -- NEWS.27, under "Some functions and
+variables obsolete since Emacs 22 have been removed".  It is called from
+anthy-check-agent, which anthy-do-send-recv-command calls to start
+anthy-agent.  This one does not break the build -- byte compilation only
+warns about an unknown function and every .elc is still produced -- but
+japanese-anthy fails on the first conversion request, that is, as soon as
+the input method is used at all.  This is the earliest of the five, so it,
+not set-face-underline-p, is what makes Emacs 26 the last usable version.
 
 inactivate-input-method was renamed deactivate-input-method in Emacs 24.3
-and the old name was removed in Emacs 30.  It is called from
+and the old name was removed in Emacs 29 -- NEWS.29, under "Some functions
+and variables obsolete since Emacs 24 have been removed", which lists it
+next to set-face-underline-p.  It is called from
 anthy-leim-exit-from-minibuffer, which is put on minibuffer-exit-hook while
 anthy is active in the minibuffer.
 

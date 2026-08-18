@@ -33,10 +33,14 @@
 # いて、番号を据え置くと「もうある」と見なされて建て直されない。実際に
 # 一度それで、中身の違う patch を当てたまま build 0 件の green を出した。
 # patch を触ったら必ず上げること。
+#
+# 8 -> 9 は patch のヘッダを直したぶん。中身の効果は変わらないが、
+# distinfo に入る SHA1 が変わる以上は別物として扱う。8 も Releases に
+# 出ているので同じ理由で据え置けない。
 
 .include	"../../inputmethod/anthy/Makefile.common"
 PKGNAME=	${EMACS_PKGNAME_PREFIX}anthy-elisp-${ANTHY_VERSION}
-PKGREVISION=	8
+PKGREVISION=	9
 CATEGORIES=	inputmethod editors
 
 MAINTAINER=	taya@NetBSD.org

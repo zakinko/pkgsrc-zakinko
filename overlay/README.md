@@ -49,7 +49,7 @@ patch のチェックサム不一致で必ず止まるため。
 | | 何 | 消してよくなる条件 |
 |---|---|---|
 | `sysutils/augeas` | lens 462 本が入らないのを直す、CVE-2025-2588 の NULL 参照修正、`time_t` の書式。PKGREVISION 4 | pkgsrc が同等の変更を入れるか、augeas が 1.14.2 を出して pkgsrc が追随したとき |
-| `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 8 | pkgsrc が同等の変更を入れたとき |
+| `inputmethod/anthy-elisp` | `EMACS_VERSIONS_ACCEPTED` に emacs26〜30 を追加、PKGREVISION 9 | pkgsrc が同等の変更を入れたとき |
 | `inputmethod/anthy` | anthy.el と anthy-dic.el が使う廃止シンボル 5 つを直す patch | 同上 (anthy-elisp と PATCHDIR を共有している) |
 | `devel/libuuid` | DragonFly で util-linux が組めないのを直す。`Makefile.common` に `CONFIGURE_ENV.DragonFly+= ac_cv_type_cpu_set_t=no` 一行 | pkgsrc が同等の変更を入れるか、util-linux が cpu_set_t の判定を直して pkgsrc が追随したとき |
 
