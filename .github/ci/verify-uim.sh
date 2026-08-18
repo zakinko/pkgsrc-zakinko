@@ -63,7 +63,21 @@ OPTS=${UIM_OPTIONS:-"-gtk2 -gtk3 -gtk4 -qt5 -qt6 -xim"}
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin
 export PATH
-unset PKG_PATH
+
+# 依存は公式のバイナリパッケージから引く。
+#
+# uim は toolkit を全部切っても librsvg-c -> cairo -> fontconfig -> glib2 に
+# ruby と anthy が乗る。素から一回で組もうとして 5 時間 30 分かけ、GitHub の
+# 1 job 6 時間の上限で切られた。伸ばす余地はほぼ無い。
+#
+# 公式の四半期集合には uim-1.9.7pre20251027nb5 が、つまりこちらが見たいのと
+# 同じ版がそのまま在る。ツリーを同じ四半期枝に合わせておけば、依存は
+# DEPENDS_TARGET=bin-install で降ってきて、組むのは uim だけになる。
+# PLIST の重複は 2025-11-15 の rev 1.29 からのものなので、四半期枝でも
+# current でも同じように在る。
+PKG_PATH=${PKG_PATH:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2/All}
+export PKG_PATH
+echo "--- 依存の出どころ: $PKG_PATH ---"
 
 # NetBSD でも base の make ではなく bootstrap が入れた bmake を呼ぶ。
 # build-on-bsd.sh は DISTDIR と PACKAGES と WRKOBJDIR を $PREFIX/etc/mk.conf
@@ -85,6 +99,7 @@ fi
 # pkgsrc の優先順位が 環境変数 < mk.conf < コマンドライン だからで、
 # build-on-bsd.sh が書く mk.conf は mule と共有しているため触りたくない。
 MKARGS="$MKARGS LIBRSVG_TYPE=c"
+MKARGS="$MKARGS DEPENDS_TARGET=bin-install"
 
 # X11_TYPE は既定 (native) のまま。netbsd-ci-images のイメージは xbase も
 # xserver も入れてあるので /usr/X11R7 がある。

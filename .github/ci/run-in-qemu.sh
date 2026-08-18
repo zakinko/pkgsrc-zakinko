@@ -69,12 +69,18 @@ trap cleanup EXIT INT TERM
 SSH=$(cat "$WORK/$NAME.ssh")
 
 echo "=== pkgsrc を用意する ==="
-$SSH sh -s <<'GUEST'
+# ツリーの出どころ。既定は current だが、公式のバイナリパッケージと版を
+# 合わせたいときは四半期枝を指す。合わせておくと依存を bin-install で
+# 引けるので、uim のように依存の山が高い相手が現実的な時間で終わる。
+PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz}
+echo "ツリー: $PKGSRC_URL"
+
+$SSH "PKGSRC_URL='$PKGSRC_URL' sh -s" <<'GUEST'
 set -e
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
 export PATH
 if [ ! -d /usr/pkgsrc/mk ]; then
-	ftp -o /tmp/pkgsrc.tar.gz http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
+	ftp -o /tmp/pkgsrc.tar.gz "$PKGSRC_URL"
 	tar xzf /tmp/pkgsrc.tar.gz -C /usr
 	rm -f /tmp/pkgsrc.tar.gz
 fi

@@ -93,7 +93,7 @@ jobs:
   uim:
     name: inputmethod/uim on NetBSD
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
@@ -120,6 +120,9 @@ jobs:
         env:
           UPSTREAM_PKG: inputmethod/uim
           VERIFY_SCRIPT: verify-uim.sh
+          # 公式のバイナリパッケージと版を合わせる。current のままだと依存が
+          # 一つも降ってこず、素から組んで 6 時間の上限に当たる。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
 
       - name: 転けたらコンソールを出す
