@@ -1,6 +1,6 @@
 name: anthy (Linux distros)
 
-# overlay/inputmethod/anthy と anthy-elisp の当て物を、Linux の
+# zakinko/anthy と anthy-elisp の当て物を、Linux の
 # ディストリごとに確かめる。
 #
 # 当て物の中身は .el への patch なので、理屈のうえでは OS に依存しない。
@@ -21,8 +21,8 @@ name: anthy (Linux distros)
 # 何十分も待たされることもない。中は root なので /usr/pkgsrc も /usr/pkg も
 # そのまま使える。
 #
-# overlay だけを見たいので PKGS は空にする。zakinko カテゴリからは何も
-# 組まない (build-on-bsd.sh が ${PKGS-mule} で読む)。
+# 既定の mule は要らないので PKGS は anthy-elisp だけにする
+# (build-on-bsd.sh が ${PKGS-mule} で読む)。anthy は DEPENDS で付いてくる。
 #
 # emacs を依存で引くので長い。手で起動する。押すまで何もしない。
 
@@ -37,7 +37,7 @@ on:
         type: choice
         options: [emacs30nox, emacs29nox, emacs28nox, emacs26nox, emacs21nox]
         default: emacs30nox
-      overlay:
+      patched:
         description: '当て物を当てるか (off は素の pkgsrc で落ちることの確認)'
         type: choice
         options: ['on', 'off']
@@ -45,8 +45,13 @@ on:
 
 env:
   EMACS_TYPE: ${{ inputs.emacs_type || 'emacs30nox' }}
-  PKGS: ''
-  OVERLAY_PKGS: 'inputmethod/anthy-elisp'
+  # on  … zakinko/anthy-elisp (当て物あり) を組む
+  # off … 上流の inputmethod/anthy-elisp をそのまま組む
+  #
+  # 真の側を必ず非空にしてある。${{ A && '' || B }} は '' が偽なので
+  # 常に B になる。空文字を返したい方は偽の側に置くこと。
+  PKGS: ${{ inputs.patched == 'on' && 'anthy-elisp' || '' }}
+  TREE_PKGS: ${{ inputs.patched == 'off' && 'inputmethod/anthy-elisp' || '' }}
 
 jobs:
   distro:
@@ -140,12 +145,6 @@ jobs:
           path: .bsdcache
           key: anthy-${{ matrix.image }}-${{ env.EMACS_TYPE }}-${{ github.run_id }}
           restore-keys: anthy-${{ matrix.image }}-${{ env.EMACS_TYPE }}-
-
-      # 当て物なしで回すときは overlay/ をどけてしまう。build-on-bsd.sh は
-      # overlay/ にあるものを黙って全部重ねるので、ここで消すのが一番早い。
-      - name: 当て物をどける
-        if: inputs.overlay == 'off'
-        run: rm -rf overlay/inputmethod
 
       - name: 選ばれた相手か見る
         id: pick

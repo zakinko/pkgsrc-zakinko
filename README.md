@@ -60,24 +60,40 @@ make makesum
 FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 にあります。
 
-## overlay
+## 上流パッケージの写し
 
-[overlay/](overlay/) は自作パッケージではなく、**上流 pkgsrc への当て物**を
-置くところです。カテゴリの `Makefile` の `SUBDIR` には入れていないので、
-`make` からは見えません。
+上流 pkgsrc の package に手を入れたものは、`zakinko` カテゴリの中に他と同じ
+ように平らに置いています。カテゴリの `Makefile` の `SUBDIR` にも入れてあり、
+`make` から普通に見えます。
 
-```
-overlay/textproc/libxml2/         2.15.1 → 2.15.3 (CVE 5 件)
-overlay/sysutils/augeas/          CVE-2025-2588 の修正
-overlay/inputmethod/anthy-elisp/  emacs26〜30 を受け付けるように
-overlay/devel/libuuid/            DragonFly で util-linux が組めるように
-```
+| ここ | 上流のどこ | 何を直したか |
+| --- | --- | --- |
+| [anthy/](anthy/) | `inputmethod/anthy` | anthy.el が Emacs 27 以降で使えない廃止シンボル、人名と辞書の誤り |
+| [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs26〜30 を受け付けるように |
+| [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
+| [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
+| [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
+| [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
+| [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
+| [zls/](zls/) | `devel/zls` | 0.16.0 へ上げて BROKEN を外す (pkgsrc PR #164) |
 
-[NetBSD-i386](https://github.com/zakinko/NetBSD-i386) の CI と、この repo の
-NetBSD 以外を回す CI ([.github/ci/build-on-bsd.sh](.github/ci/build-on-bsd.sh))
-が、この repo を `zakinko` カテゴリとして重ねたあとに `overlay/` を上流の
-カテゴリへ上書きコピーしてからビルドします。上流 pkgsrc が取り込んだら
-消します。詳しくは [overlay/README.md](overlay/README.md)。
+平らに置くと、どの上流 package の写しなのかがディレクトリ名から読めなく
+なります。**上流へ送るときの当て先はこの表が持ちます。**`CATEGORIES` は
+上流のまま残してあるので (`zakinko/augeas` なら `sysutils`)、そちらからも
+辿れます。ただし写しが在る場所はあくまで `zakinko/` で、`CATEGORIES` が
+ディレクトリを決めるわけではありません。
+
+`PKGNAME` も上流と同じなので、先にこちらを入れておけば依存を満たします。
+ただし入るものが変わらない直しでは、どちらが入っているのか後から分からなく
+なります。`libuuid` を `nb1` にしてあるのはそのためです。
+
+**上流の同名 package を差し替えるわけではありません。** `zakinko/augeas` を
+入れても `sysutils/augeas` は素のままなので、素から建てたときに依存で引かれる
+のは上流の方です。当て物を効かせたい相手には、先にこちらを入れてください。
+
+ここに置くのはあくまで手元をすぐ直すためで、**本筋は pkgsrc 本体に入れる
+こと**です。上流が取り込んだら、ディレクトリごと消します。消し忘れると、
+上流が直したあとも古い写しを使い続けることになります。
 
 ## 対象
 

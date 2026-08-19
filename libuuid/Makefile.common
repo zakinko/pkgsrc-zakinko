@@ -45,12 +45,21 @@
 # 型が無いことにしてしまえば NetBSD や FreeBSD と同じ構成になる。すぐ上の
 # SunOS が ac_cv_header_sys_vfs_h=no でやっているのと同じ手。
 #
-# PKGREVISION は上げていない。DragonFly 以外では入るものが変わらず、
-# DragonFly では今まで一つも建っていない。
+# PKGREVISION を 1 上げる。入るものは DragonFly 以外では変わらないので、
+# 当て物だった頃は上げていなかった。上流 devel/libuuid そのものを
+# 差し替えていたので、同じ PKGNAME で構わなかったためである。
 #
-# pkgsrc か util-linux が直したら overlay/devel/libuuid ごと消すこと。
+# 平らに置いてからは、上流の devel/libuuid が別物として残る。PKGNAME が
+# 同じままだと、どちらが入っているのかを後から見分けられない。
+# build-on-bsd.sh は依存を建てる前にキャッシュの *.tgz を pkg_add -U で
+# 全部入れるので、前の回に上流から建った libuuid が残っていると、それが
+# python313 の libuuid>=2.18 を満たしてしまい、当て物が一度も当たらない
+# まま緑になる。nb1 にしておけば pkg_info で見分けが付く。
+#
+# pkgsrc か util-linux が直したら zakinko/libuuid ごと消すこと。
 
 DISTNAME=	util-linux-2.40.2
+PKGREVISION=	1
 MASTER_SITES=	https://www.kernel.org/pub/linux/utils/util-linux/v${PKGVERSION_NOREV:R}/
 EXTRACT_SUFX=	.tar.xz
 EXTRACT_USING=	bsdtar
@@ -58,8 +67,8 @@ EXTRACT_USING=	bsdtar
 MAINTAINER?=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://github.com/karelzak/util-linux
 
-DISTINFO_FILE=	${.CURDIR}/../../devel/libuuid/distinfo
-PATCHDIR=	${.CURDIR}/../../devel/libuuid/patches
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/libuuid/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/libuuid/patches
 
 USE_GCC_RUNTIME=	yes
 USE_LIBTOOL=		yes

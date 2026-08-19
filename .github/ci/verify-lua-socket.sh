@@ -3,8 +3,8 @@
 #
 #   sh verify-lua-socket.sh <カテゴリ>/<パッケージ>
 #
-# build-on-bsd.sh が OVERLAY_PKGS から名前で引いて呼ぶ。当て物ではない
-# 上流そのままの package を見るので、overlay/ には何も置いていない。
+# build-on-bsd.sh が TREE_PKGS から名前で引いて呼ぶ。当て物ではない
+# 上流そのままの package を見るので、zakinko/ には何も置いていない。
 #
 # 何を見ているか
 # --------------

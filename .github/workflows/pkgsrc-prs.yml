@@ -18,14 +18,14 @@ name: pkgsrc PRs
 #         PR は 0.13.0 用の当て物だが、pkgsrc の lang/zig はもう 0.16.0 で、
 #         zls も 0.16.0 が出ている。package は BROKEN を抱えたままなので
 #         公式のバイナリ集合にも zls は無い。版を合わせて BROKEN を外す。
-#         当て物は overlay/devel/zls に置いた。
+#         当て物は zakinko/zls に置いた。
 #
 #   #175  security/fail2ban: update to 1.1.0
 #         PR は 1.1.0 だがもう 1.1.1 (2026-08-15) が出ている。1.1.0 で
 #         Python 2 対応が落ちたので 2to3 の前処理と python 312 固定を外せる。
 #         あわせて compat/asyncore.py と compat/asynchat.py が同梱された
 #         ので、GitHub issue #174 (asynchat が無い) もこれで閉じる。
-#         当て物は overlay/security/fail2ban に置いた。
+#         当て物は zakinko/fail2ban に置いた。
 #
 #   #153  uim: PLIST fix
 #         gtk2 を切ると make package が転ける。素の PLIST が PLIST.gtk2 と
@@ -49,13 +49,12 @@ on:
       - '.github/ci/verify-lua-socket.sh'
       - '.github/ci/verify-uim.sh'
       - '.github/ci/verify-pkg.sh'
-      - 'overlay/devel/zls/**'
-      - 'overlay/security/fail2ban/**'
+      - 'zls/**'
+      - 'fail2ban/**'
       # 建てる土台も入れる。ここを直したのに回らず、前の結果を見て
       # 直っていないと思い込みかけた。
       - '.github/ci/run-in-qemu.sh'
       - '.github/ci/build-on-bsd.sh'
-      - '.github/ci/apply-overlay.sh'
   workflow_dispatch:
     inputs:
       release:
@@ -173,7 +172,7 @@ jobs:
       # verify-pkg.sh が「並べたのに無い」を並べて出す。
       - name: NetBSD で建てて確かめる
         env:
-          UPSTREAM_PKG: security/fail2ban
+          UPSTREAM_PKG: zakinko/fail2ban
           VERIFY_SCRIPT: verify-pkg.sh
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
@@ -209,7 +208,7 @@ jobs:
       # 無いので、そこだけ組む。
       - name: NetBSD で建てて確かめる
         env:
-          UPSTREAM_PKG: devel/zls
+          UPSTREAM_PKG: zakinko/zls
           VERIFY_SCRIPT: verify-pkg.sh
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'

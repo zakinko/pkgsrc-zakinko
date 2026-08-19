@@ -61,7 +61,7 @@
 # 直したいだけなら上げる必要はない。ゲスト側は同じ PKGBASE で PKGNAME の違う
 # .tgz を消してから建てるので、番号を戻しても建て直される。
 #
-# pkgsrc が取り込んだら overlay/sysutils/augeas ごと消すこと。
+# pkgsrc が取り込んだら zakinko/augeas ごと消すこと。
 
 DISTNAME=	augeas-1.14.1
 PKGREVISION=	2

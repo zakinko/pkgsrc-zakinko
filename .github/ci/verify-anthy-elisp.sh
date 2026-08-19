@@ -1,7 +1,10 @@
 #!/bin/sh
-# overlay/inputmethod/anthy と anthy-elisp の当て物を、その箱で確かめる。
+# zakinko/anthy と anthy-elisp の当て物を、その箱で確かめる。
 #
-#   sh verify-anthy-elisp.sh [inputmethod/anthy-elisp]
+#   sh verify-anthy-elisp.sh [zakinko/anthy-elisp]
+#
+# 素の pkgsrc で落ちることを見るときは inputmethod/anthy-elisp を渡す。
+# anthy 側の patch は引数と同じカテゴリから引くので、どちらでも筋が通る。
 #
 # verify-pkg.sh では足りない。あちらは「組めて、入って、PLIST どおりに
 # 置かれて、外せる」を見るが、この当て物が相手にしている壊れかたは
@@ -28,8 +31,9 @@
 # こちらは逆に mk.conf に勝ちたい。pkgsrc は環境変数 < mk.conf < コマンド
 # ラインの順なので、確実なのはコマンドライン。
 
-PKGPATH=${1:-inputmethod/anthy-elisp}
+PKGPATH=${1:-zakinko/anthy-elisp}
 PKG=$(basename "$PKGPATH")
+ANTHY=$(dirname "$PKGPATH")/anthy
 
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
@@ -58,13 +62,13 @@ cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }
 # 当て物の SHA1 が distinfo に入っているか。build-on-bsd.sh が
 # makepatchsum を回しているが、digest が無くて黙って失敗していると
 # ここから先が全部そのせいになるので、先に見る。
-for p in "$TREE/inputmethod/anthy/patches"/patch-*; do
+for p in "$TREE/$ANTHY/patches"/patch-*; do
 	[ -e "$p" ] || continue
 	b=${p##*/}
-	grep -q "SHA1 ($b)" "$TREE/inputmethod/anthy/distinfo" || {
+	grep -q "SHA1 ($b)" "$TREE/$ANTHY/distinfo" || {
 		echo "FAIL: distinfo に $b の SHA1 が無い"; exit 1; }
 done
-grep 'SHA1 (patch-' "$TREE/inputmethod/anthy/distinfo" | sed 's/^/    /'
+grep 'SHA1 (patch-' "$TREE/$ANTHY/distinfo" | sed 's/^/    /'
 
 pkg_delete -f "$PKG" > /dev/null 2>&1 || true
 

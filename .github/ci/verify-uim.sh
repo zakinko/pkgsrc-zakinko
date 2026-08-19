@@ -4,7 +4,7 @@
 #
 #   sh verify-uim.sh <カテゴリ>/<パッケージ>
 #
-# build-on-bsd.sh が OVERLAY_PKGS から名前で引いて呼ぶ。overlay/ には
+# build-on-bsd.sh が TREE_PKGS から名前で引いて呼ぶ。zakinko/ には
 # 何も置いていない。当て物のありなしを一回の実行で見たいので、直しは
 # この script がその場で当てる。
 #

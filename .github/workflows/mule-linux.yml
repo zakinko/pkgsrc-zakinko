@@ -20,7 +20,7 @@ on:
   push:
     paths:
       - 'mule/**'
-      - 'overlay/**'
+      - 'libuuid/**'
       - '.github/workflows/mule-linux.yml'
       - '.github/ci/**'
   pull_request:

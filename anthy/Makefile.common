@@ -1,0 +1,17 @@
+# $NetBSD: Makefile.common,v 1.13 2025/12/19 11:32:50 nia Exp $
+# used by inputmethod/anthy/Makefile
+# used by inputmethod/anthy-elisp/Makefile
+
+ANTHY_VERSION=	9100h
+DISTNAME=	anthy-${ANTHY_VERSION}
+CATEGORIES=	inputmethod
+MASTER_SITES=	${MASTER_SITE_OSDN:=anthy/37536/}
+DISTFILES=	${DISTNAME}.tar.gz
+
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/anthy/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/anthy/patches
+
+#HOMEPAGE=	https://anthy.osdn.jp/
+LICENSE=	gnu-gpl-v2
+
+CFLAGS.SunOS+=	-Dalloca=__builtin_alloca

@@ -25,7 +25,7 @@
 # anthy-kyuri.elc ができず PLIST と食い違って失敗する。残りは関数の中に
 # あるので建ってしまい、使った瞬間に落ちる。とくに
 # process-kill-without-query (Emacs 30 で削除) は agent の起動経路にあり、
-# 最初の変換で踏む。overlay/inputmethod/anthy/patches で全部直している。
+# 最初の変換で踏む。zakinko/anthy/patches で全部直している。
 #
 # PKGREVISION を上げているのはその patch のぶん。入る .elc が変わる。
 #
@@ -38,7 +38,7 @@
 # distinfo に入る SHA1 が変わる以上は別物として扱う。8 も Releases に
 # 出ているので同じ理由で据え置けない。
 
-.include	"../../inputmethod/anthy/Makefile.common"
+.include	"../../zakinko/anthy/Makefile.common"
 PKGNAME=	${EMACS_PKGNAME_PREFIX}anthy-elisp-${ANTHY_VERSION}
 PKGREVISION=	9
 CATEGORIES=	inputmethod editors
@@ -46,7 +46,7 @@ CATEGORIES=	inputmethod editors
 MAINTAINER=	taya@NetBSD.org
 COMMENT=	Emacs lisp files for inputmethod/anthy
 
-DEPENDS+=	anthy>=${ANTHY_VERSION}:../../inputmethod/anthy
+DEPENDS+=	anthy>=${ANTHY_VERSION}:../../zakinko/anthy
 
 GNU_CONFIGURE=	yes
 CONFIGURE_ENV+=	EMACS=${EMACS_BIN:Q}

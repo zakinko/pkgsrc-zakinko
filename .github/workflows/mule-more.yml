@@ -20,7 +20,7 @@ on:
   push:
     paths:
       - 'mule/**'
-      - 'overlay/**'
+      - 'libuuid/**'
       - '.github/workflows/mule-more.yml'
       - '.github/ci/**'
   workflow_dispatch:

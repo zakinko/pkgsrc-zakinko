@@ -203,7 +203,7 @@ stage "zakinko カテゴリを重ねる"
 # この repo のパッケージをまとめて回せる。
 #
 # :- ではなく - なのは、PKGS='' を「既定に戻せ」ではなく「zakinko からは
-# 何も組むな」と読ませたいため。overlay だけを見たいときにそうする。
+# 何も組むな」と読ませたいため。
 PKGS=${PKGS-mule}
 mkdir -p "$TREE/zakinko"
 {
@@ -217,19 +217,6 @@ for p in $PKGS; do
 	cp -R "$WS/$p/." "$TREE/zakinko/$p/"
 	echo "    $p"
 done
-
-# ------------------------------------------------------------------
-stage "overlay を上流のカテゴリへ重ねる"
-# overlay/ は自作パッケージではなく、上流 pkgsrc の package への当て物。
-# NetBSD 側は NetBSD-i386 の ci/make-pkgsrc-tarball.sh がツリーへ焼き込んで
-# 渡してくるが、こちらはツリーをその場で展開するので、ここで当てる。
-#
-# 当てないと DragonFly は mule に届かない。依存の devel/libuuid が
-# そのままでは組めず、lang/python313 から gtexinfo までが全部止まる。
-#
-# 中身は apply-overlay.sh に寄せた。run-in-qemu.sh も同じものを呼ぶ。
-PKGMAKE="$PREFIX/bin/bmake" sh "$WS/.github/ci/apply-overlay.sh" \
-	"$WS/overlay" "$TREE"
 
 # ------------------------------------------------------------------
 stage "前回作った依存を入れる"
@@ -266,16 +253,16 @@ for p in $PKGS; do
 	fi
 done
 
-# overlay/ は上流 package への当て物なので zakinko カテゴリには現れない。
-# 上で重ねてはいるが、名指ししない限り誰も組まないので当たったかどうかも
-# 分からない。OVERLAY_PKGS に <カテゴリ>/<パッケージ> を並べて確かめる。
+# 上流ツリーのパッケージを名指しで組みたいときの口。TREE_PKGS に
+# <カテゴリ>/<パッケージ> を並べる。zakinko/ の写しではなく素の pkgsrc が
+# どうなるかを見るのに使う (anthy-linux.yml の「当て物なし」がこれ)。
 #
 # 検査は名前で引く。verify-<パッケージ名>.sh があればそれを、無ければ
 # verify-pkg.sh は使えない (あちらは zakinko/ 配下を見る) ので、組めた
 # かどうかだけを見て終わる。
-for p in ${OVERLAY_PKGS:-}; do
+for p in ${TREE_PKGS:-}; do
 	echo
-	echo "########## $p (overlay) ##########"
+	echo "########## $p (上流ツリー) ##########"
 	n=${p##*/}
 	if [ -f "$WS/.github/ci/verify-$n.sh" ]; then
 		sh "$WS/.github/ci/verify-$n.sh" "$p" || rc=1

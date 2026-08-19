@@ -5,11 +5,16 @@
 #   sh run-in-qemu.sh <arch>-<release> "<PKG_OPTIONS.mule>"
 #   例: sh run-in-qemu.sh i386-11.0 "canna wnn4 x11"
 #
-# 上流 pkgsrc の package を見たいときは環境変数で渡す。zakinko カテゴリは
-# 作らず、検査だけを送り込んで走らせる。
+# 一つの package だけを見たいときは環境変数で渡す。mule の一式は作らず、
+# 検査だけを送り込んで走らせる。
 #
 #   UPSTREAM_PKG=inputmethod/uim VERIFY_SCRIPT=verify-uim.sh \
 #       sh run-in-qemu.sh amd64-10.1
+#
+# 上流の package はツリーにあるのでそのまま見る。こちらが手を入れたものは
+# zakinko/<pkg> を渡すと、その一つだけをゲストのツリーへ置いてから見る。
+#
+#   UPSTREAM_PKG=zakinko/fail2ban sh run-in-qemu.sh amd64-10.1
 #
 # ここを使うのは、vmactions の netbsd-vm が GitHub の runner では KVM を
 # 使えず TCG になるため。uim を回したら 4 時間で 8 パッケージしか組めず
@@ -117,14 +122,22 @@ GUEST
 if [ -n "${UPSTREAM_PKG:-}" ]; then
 	# 上流の package を見る。zakinko カテゴリは要らない。
 	VERIFY_SCRIPT=${VERIFY_SCRIPT:-verify-pkg.sh}
-	echo "=== 検査と overlay を送り込む ($UPSTREAM_PKG) ==="
-	tar czf - -C "$TREE" .github/ci overlay | $SSH "tar xzf - -C /tmp"
-
-	# overlay/ の当て物を上流のカテゴリへ重ねる。中身は apply-overlay.sh に
-	# 寄せた。build-on-bsd.sh も同じものを呼ぶ。あちらはゲストの中で直に
-	# 走らせ、こちらは送り込んだものを ssh 越しに走らせる。走る場所が違う
-	# だけで、やることは同じである。
-	$SSH "sh /tmp/.github/ci/apply-overlay.sh /tmp/overlay /usr/pkgsrc"
+	case $UPSTREAM_PKG in
+	zakinko/*)
+		# こちらが手を入れたもの。その package だけを送り、ゲストの
+		# ツリーの zakinko カテゴリに置く。カテゴリの Makefile は要らない。
+		# 名指しで組むだけで、SUBDIR から辿ることはないため。
+		P=${UPSTREAM_PKG#zakinko/}
+		echo "=== 検査と $UPSTREAM_PKG を送り込む ==="
+		tar czf - -C "$TREE" .github/ci "$P" | $SSH "tar xzf - -C /tmp"
+		$SSH "mkdir -p /usr/pkgsrc/zakinko && cp -R /tmp/$P /usr/pkgsrc/zakinko/"
+		;;
+	*)
+		# 素の上流。ツリーに在るものをそのまま見る。
+		echo "=== 検査を送り込む ($UPSTREAM_PKG) ==="
+		tar czf - -C "$TREE" .github/ci | $SSH "tar xzf - -C /tmp"
+		;;
+	esac
 
 	echo "=== 検査を走らせる ==="
 	$SSH "sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"

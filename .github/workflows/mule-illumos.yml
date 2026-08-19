@@ -22,7 +22,7 @@ on:
   push:
     paths:
       - 'mule/**'
-      - 'overlay/**'
+      - 'libuuid/**'
       - '.github/workflows/mule-illumos.yml'
       - '.github/ci/**'
   pull_request:

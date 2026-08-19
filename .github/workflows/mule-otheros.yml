@@ -32,12 +32,12 @@ on:
       - 'mule/**'
       - '.github/workflows/mule-otheros.yml'
       - '.github/ci/**'
-      - 'overlay/**'
+      - 'libuuid/**'
   pull_request:
     paths:
       - 'mule/**'
       - '.github/ci/**'
-      - 'overlay/**'
+      - 'libuuid/**'
   workflow_dispatch:
     inputs:
       options:
