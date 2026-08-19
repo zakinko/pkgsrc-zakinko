@@ -165,6 +165,20 @@ build_install() {
 	done
 }
 
+# DragonFly では上流の devel/libuuid が建たない (util-linux が組めない)。
+# mule は makeinfo を要り、そこから gtexinfo、help2man、gettext-tools、
+# python313 と辿って libuuid に行き当たるので、これが建たないと configure
+# まで届かない。zakinko/libuuid は上流の Makefile.common に
+# CONFIGURE_ENV.DragonFly を一行足しただけの差し替えで、同じ名前の
+# パッケージなので、先に入れてしまえば以降の依存はそれで満たされる。
+#
+# 置き場が overlay/devel/libuuid から zakinko/libuuid へ移った。無い版でも
+# 動くよう、在るときだけ組む。
+if [ "$OS" = DragonFly ] && [ -d "$TREE/zakinko/libuuid" ]; then
+	echo "--- 先に libuuid を差し替える ---"
+	build_install $TREE/zakinko/libuuid || bad "libuuid を組めない"
+fi
+
 echo "--- build と install ---"
 # 同じ版が残っていると install が拒否されるので、作り直す前に外す
 pkg_delete -f mule > /dev/null 2>&1 || true
