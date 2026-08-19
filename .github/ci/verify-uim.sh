@@ -75,9 +75,16 @@ export PATH
 # DEPENDS_TARGET=bin-install で降ってきて、組むのは uim だけになる。
 # PLIST の重複は 2025-11-15 の rev 1.29 からのものなので、四半期枝でも
 # current でも同じように在る。
-PKG_PATH=${PKG_PATH:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2/All}
-export PKG_PATH
-echo "--- 依存の出どころ: $PKG_PATH ---"
+#
+# 出どころは BINPKG_SITES で渡す。PKG_PATH ではない。あれを設定したまま
+# pkgsrc の make を走らせると
+#
+#	ERROR: [bsd.pkg.mk] Please unset PKG_PATH before doing pkgsrc work!
+#
+# で組む前に弾かれる。最初それで転けた。
+BINPKG_SITES=${BINPKG_SITES:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2/All}
+unset PKG_PATH
+echo "--- 依存の出どころ: $BINPKG_SITES ---"
 
 # NetBSD でも base の make ではなく bootstrap が入れた bmake を呼ぶ。
 # build-on-bsd.sh は DISTDIR と PACKAGES と WRKOBJDIR を $PREFIX/etc/mk.conf
@@ -99,7 +106,7 @@ fi
 # pkgsrc の優先順位が 環境変数 < mk.conf < コマンドライン だからで、
 # build-on-bsd.sh が書く mk.conf は mule と共有しているため触りたくない。
 MKARGS="$MKARGS LIBRSVG_TYPE=c"
-MKARGS="$MKARGS DEPENDS_TARGET=bin-install"
+MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 
 # X11_TYPE は既定 (native) のまま。netbsd-ci-images のイメージは xbase も
 # xserver も入れてあるので /usr/X11R7 がある。

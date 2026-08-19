@@ -68,16 +68,16 @@ fi
 pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
 
 echo "--- build と install ---"
-if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKG.log 2>&1; then
-	if grep -qi 'not available for this platform' /tmp/verify-$PKG.log; then
+if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKGBASE.log 2>&1; then
+	if grep -qi 'not available for this platform' /tmp/verify-$PKGBASE.log; then
 		echo "SKIP: $PKG は $OS を相手にしていない (ONLY_FOR_PLATFORM)"
 		exit 0
 	fi
-	tail -30 /tmp/verify-$PKG.log
+	tail -30 /tmp/verify-$PKGBASE.log
 	echo "FAIL: $PKG が入らない"
 	exit 1
 fi
-tail -5 /tmp/verify-$PKG.log
+tail -5 /tmp/verify-$PKGBASE.log
 
 echo "--- 入ったものを見る ---"
 pkg_info -e "$PKGBASE" || { echo "FAIL: pkg_info が $PKGBASE を知らない"; exit 1; }
