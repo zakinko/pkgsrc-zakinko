@@ -77,23 +77,13 @@ jobs:
         if: failure()
         run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true
 
-  xwpe-bsd:
+  # GitHub Actions は uses: に matrix を書けないので、箱ごとに job を割る。
+  # FreeBSD も OpenBSD も clang なので、当て物が要る側に出るはず。
+  xwpe-freebsd:
     if: inputs.target == 'all' || inputs.target == 'xwpe'
-    name: xwpe on ${{ matrix.name }}
+    name: xwpe on FreeBSD
     runs-on: ubuntu-latest
     timeout-minutes: 240
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # FreeBSD と DragonFly は clang、OpenBSD も clang。ここで
-          # 当て物が要ることが出るはず。
-          - name: FreeBSD
-            action: vmactions/freebsd-vm@v1
-            release: '14.4'
-          - name: OpenBSD
-            action: vmactions/openbsd-vm@v1
-            release: '7.9'
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -101,14 +91,31 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .bsdcache
-          key: prs-${{ matrix.name }}-${{ github.run_id }}
-          restore-keys: prs-${{ matrix.name }}-
-      - name: 建てて確かめる
-        uses: ${{ matrix.action }}
+          key: prs-freebsd-${{ github.run_id }}
+          restore-keys: prs-freebsd-
+      - uses: vmactions/freebsd-vm@v1
         with:
-          release: ${{ matrix.release }}
-          run: |
-            PKGS='xwpe' sh .github/ci/build-on-bsd.sh
+          release: '14.4'
+          run: PKGS='xwpe' sh .github/ci/build-on-bsd.sh
+
+  xwpe-openbsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on OpenBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-openbsd-${{ github.run_id }}
+          restore-keys: prs-openbsd-
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          run: PKGS='xwpe' sh .github/ci/build-on-bsd.sh
 
   # ------------------------------------------------------------------
   # fail2ban: 効くのは paths-*.conf の分岐なので Linux と BSD を見る。
