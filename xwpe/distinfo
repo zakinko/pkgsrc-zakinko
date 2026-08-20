@@ -1,0 +1,8 @@
+$NetBSD$
+
+BLAKE2s (xwpe-1.6.9.tar.gz) = e516899d33478e864ef64f8889438e5415f7b94ef978c3642f86fe9e0f9a1e5c
+SHA512 (xwpe-1.6.9.tar.gz) = 9bac04ae59fd084e747be313cddd345b29336b4abb96fafe8664b8cef3749c93f364e4fc7187eee2fa5b2f0aa2a54c211358fafcfc5a158614062a75542c1b43
+Size (xwpe-1.6.9.tar.gz) = 1268565 bytes
+SHA1 (patch-WeXterm.c) = fab44cad6cf41a80adb9a8b5bad5b2bef38f5449
+SHA1 (patch-we__wayland.c) = 891c3e9abc2714ed87a8dfc92d23b9bf2d832de7
+SHA1 (patch-we__xterm.c) = 128c72f0b4270ef1c98e128474474865c3d87fb3

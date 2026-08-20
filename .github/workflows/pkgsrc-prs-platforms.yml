@@ -1,0 +1,181 @@
+name: pkgsrc PRs (platforms)
+
+# pkgsrc-prs.yml が「直っているか」を一箱で見るのに対し、こちらは
+# **同じ直しがプラットフォームをまたいで通るか**を見る。
+#
+# pkgsrc は NetBSD 専用ではない。Linux (glibc と musl)、FreeBSD、OpenBSD、
+# DragonFly、illumos、Darwin で動く。当て物が一箱で通っても、他所で
+# 落ちるなら上流へ出せない。
+#
+# 他ディストリを調べた結果が、どれをどこで見るべきかを決めている。
+#
+#   #173 lua-socket   Gentoo の当て物は makefile と API 公開の 2 本だけで、
+#                     sun_len 系は無い。Linux は UNIX_HAS_SUN_LEN を定義
+#                     しないので踏まない。BSD/SunOS 固有なので illumos で
+#                     見る (済)。他は当て物が無効化されるだけなので回帰確認
+#
+#   #153 uim          Gentoo の当て物 8 本に PLIST 系は無い。portage に静的な
+#                     PLIST が無いためで、これは pkgsrc 固有の壊れ方である。
+#                     NetBSD が本命
+#
+#   #175 fail2ban     Gentoo 10 本も FreeBSD 6 本も設定ファイルだけ。コード
+#                     修正は誰も要らない。効くのは paths-*.conf の分岐なので
+#                     Linux と BSD の両方で見る
+#
+#   #180 xwpe         **Debian 1.6.6-1 は当て物ゼロ** (series が空)。同じ人が
+#                     上流とメンテナを兼ねている。ただし Debian は gcc 既定で
+#                     組み、そこでは警告どまり。clang では error になる。
+#                     だから gcc の箱と clang の箱を両方回して、割れ方を見る。
+#                     割れ方そのものが「なぜ Debian は要らず pkgsrc は要るか」
+#                     の答えになる
+#
+# 手で起動する。長いので押すたびには回さない。
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'どれを回すか'
+        type: choice
+        options: [all, xwpe, fail2ban, zls, lua-socket]
+        default: all
+
+jobs:
+  # ------------------------------------------------------------------
+  # xwpe: 当て物の要否がコンパイラで割れる。gcc と clang の両方を見る。
+  xwpe-netbsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on NetBSD ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        # 9.4 は gcc 10、10.1 は gcc 10、11.0 は gcc 12。NetBSD は版で
+        # base の compiler が動くので、当て物の要否もそこで割れうる。
+        image: ['amd64-9.4', 'amd64-10.1', 'amd64-11.0']
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し"
+      - name: 建てて確かめる
+        env:
+          UPSTREAM_PKG: zakinko/xwpe
+          VERIFY_SCRIPT: verify-xwpe.sh
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true
+
+  xwpe-bsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # FreeBSD と DragonFly は clang、OpenBSD も clang。ここで
+          # 当て物が要ることが出るはず。
+          - name: FreeBSD
+            action: vmactions/freebsd-vm@v1
+            release: '14.4'
+          - name: OpenBSD
+            action: vmactions/openbsd-vm@v1
+            release: '7.9'
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-${{ matrix.name }}-${{ github.run_id }}
+          restore-keys: prs-${{ matrix.name }}-
+      - name: 建てて確かめる
+        uses: ${{ matrix.action }}
+        with:
+          release: ${{ matrix.release }}
+          run: |
+            PKGS='xwpe' sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # fail2ban: 効くのは paths-*.conf の分岐なので Linux と BSD を見る。
+  fail2ban-linux:
+    if: inputs.target == 'all' || inputs.target == 'fail2ban'
+    name: fail2ban on ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'Debian 13', image: 'debian:13' }
+          # musl の箱も見る。python の拡張が libc に触る。
+          - { name: 'Alpine',    image: 'alpine:latest' }
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          if command -v apk > /dev/null; then
+            apk add --no-cache build-base curl git tar gzip perl bash coreutils procps
+          else
+            apt-get update -qq
+            apt-get install -y -qq build-essential curl git tar gzip perl bash
+          fi
+      - name: 建てて確かめる
+        run: |
+          PKGS='fail2ban' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # zls: zig が通る箱。NetBSD は pkgsrc-prs.yml で見ているので Linux を。
+  zls-linux:
+    if: inputs.target == 'all' || inputs.target == 'zls'
+    name: zls on Debian
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash
+      - name: 建てて確かめる
+        run: |
+          PKGS='zls' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # lua-socket: illumos は pkgsrc-prs.yml で済んでいる。当て物が
+  # 無効化される側 (UNIX_HAS_SUN_LEN を定義しない箱) で回帰しないかを見る。
+  lua-socket-linux:
+    if: inputs.target == 'all' || inputs.target == 'lua-socket'
+    name: lua-socket on Debian (回帰確認)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash
+      - name: 建てて確かめる
+        env:
+          UPSTREAM_PKG: net/lua-socket
+          VERIFY_SCRIPT: verify-lua-socket.sh
+        run: |
+          PKGS='' TREE_PKGS='net/lua-socket' PKGSRC_BASE=/tmp \
+            sh .github/ci/build-on-bsd.sh

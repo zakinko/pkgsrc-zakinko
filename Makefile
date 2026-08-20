@@ -16,6 +16,7 @@ SUBDIR+=	mule
 SUBDIR+=	nss_stns
 SUBDIR+=	ntp4
 SUBDIR+=	stnsd
+SUBDIR+=	xwpe
 SUBDIR+=	zls
 
 .include "../mk/misc/category.mk"
