@@ -163,8 +163,18 @@ fi
 # ------------------------------------------------------------------
 echo
 echo "########## 3. 当て物を外して、転けることを見る ##########"
-# PR #173 が報告した形に戻す。当てない patch が distinfo に残っていると
-# checksum の段で止まり、compile まで届かないので distinfo からも落とす。
+# ここは箱によって答えが割れる。
+#
+# Makefile が -DUNIX_HAS_SUN_LEN を渡すのは Darwin と FreeBSD と NetBSD と
+# SunOS だけである。Linux では渡らないので、当て物のある枝に入らない。
+# つまり Linux で「当て物なしでも組める」のは正しい結果であって、失敗では
+# ない。最初それを rc=1 にしていて、Debian の job を落としていた。
+case $OS in
+Darwin|FreeBSD|NetBSD|SunOS)	EXPECT_FAIL=yes ;;
+*)				EXPECT_FAIL=no ;;
+esac
+echo "--- この箱で -DUNIX_HAS_SUN_LEN は渡るか: $EXPECT_FAIL ---"
+
 cp distinfo /tmp/distinfo.orig
 cp patches/patch-src_unixdgram.c /tmp/ 2>/dev/null || true
 cp patches/patch-src_unixstream.c /tmp/ 2>/dev/null || true
@@ -177,12 +187,22 @@ sed -e '/patch-src_unixdgram.c/d' -e '/patch-src_unixstream.c/d' \
 ls patches
 
 if $PKGMAKE $MKARGS build > /tmp/ls-plain.log 2>&1; then
-	echo 'RESULT 当て物なし: 通った'
-	echo '!! 読みが外れている。当て物が無くても組めるなら、'
-	echo '!! この箱では PR #173 の問題は起きていないことになる。'
-	rc=1
+	if [ "$EXPECT_FAIL" = yes ]; then
+		echo 'RESULT 当て物なし: 通った'
+		echo '!! 読みが外れている。この箱は -DUNIX_HAS_SUN_LEN を渡すので、'
+		echo '!! 当て物が無ければ sun_len で落ちるはずだった。'
+		rc=1
+	else
+		echo "RESULT 当て物なし: 通った ($OS は -DUNIX_HAS_SUN_LEN を渡さないので当然)"
+	fi
 else
-	echo 'RESULT 当て物なし: 落ちた (PR #173 が言うとおり)'
+	if [ "$EXPECT_FAIL" = yes ]; then
+		echo 'RESULT 当て物なし: 落ちた (PR #173 が言うとおり)'
+	else
+		echo "RESULT 当て物なし: 落ちた ($OS では当て物と関係なく落ちている)"
+		tail -30 /tmp/ls-plain.log
+		rc=1
+	fi
 fi
 echo '--- sun_len に触れている行 ---'
 grep -n 'sun_len' /tmp/ls-plain.log | head -20

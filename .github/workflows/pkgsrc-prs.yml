@@ -118,6 +118,13 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
           df -h /
 
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
       - name: qemu を入れて KVM を通す
         run: |
           sudo apt-get update -qq
@@ -157,6 +164,13 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
           df -h /
 
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
       - name: qemu を入れて KVM を通す
         run: |
           sudo apt-get update -qq
@@ -184,7 +198,7 @@ jobs:
   zls:
     name: devel/zls on NetBSD
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
 
@@ -192,6 +206,13 @@ jobs:
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
           df -h /
+
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
 
       - name: qemu を入れて KVM を通す
         run: |

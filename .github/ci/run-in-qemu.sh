@@ -80,14 +80,36 @@ echo "=== pkgsrc を用意する ==="
 PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz}
 echo "ツリー: $PKGSRC_URL"
 
+# ツリーはホスト側で落としてから流し込む。
+#
+# ゲストの ftp に取りに行かせていたら、そこだけで 2 時間近く消えた。
+# zls の job は 17:00:28 に「pkgsrc を用意する」と出したきり、18:56:27 の
+# timeout まで何も出さずに終わっている。98MB を qemu の user-mode NAT
+# 越しに引くのが遅く、しかも ftp も tar も無言なので、待っているのか
+# 止まっているのかも分からなかった。
+#
+# ホスト側は runner の素の回線なので速い。落としたものは actions/cache に
+# 載るので、二度目からは download すら要らない。
+TARBALL=$WORK/$(echo "$PKGSRC_URL" | sed 's|.*/||')
+if [ ! -s "$TARBALL" ]; then
+	echo "--- $PKGSRC_URL を落とす ---"
+	curl -fsSL -o "$TARBALL" "$PKGSRC_URL"
+fi
+echo "--- ツリー $(ls -lh "$TARBALL" | awk '{print $5}') をゲストへ送る ---"
+
+$SSH "test -d /usr/pkgsrc/mk" 2>/dev/null ||
+	$SSH "cat > /tmp/pkgsrc.tar.gz" < "$TARBALL"
+
 $SSH "PKGSRC_URL='$PKGSRC_URL' sh -s" <<'GUEST'
 set -e
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
 export PATH
 if [ ! -d /usr/pkgsrc/mk ]; then
-	ftp -o /tmp/pkgsrc.tar.gz "$PKGSRC_URL"
+	# 無言で 1.3GB を展開すると、止まっているのか進んでいるのか分からない。
+	echo "--- ツリーを展開する ---"
 	tar xzf /tmp/pkgsrc.tar.gz -C /usr
 	rm -f /tmp/pkgsrc.tar.gz
+	echo "--- 展開できた: $(ls /usr/pkgsrc | wc -l) カテゴリ ---"
 fi
 mkdir -p /usr/pkgsrc/distfiles
 
