@@ -43,7 +43,18 @@
 # 3 が箱によって割れるのが、この検査の見どころである。割れ方そのものが
 # 「なぜ Debian は要らず pkgsrc は要るのか」の答えになる。
 
-PKG=${1:-zakinko/xwpe}
+# 呼ばれ方が二通りある。
+#
+#   run-in-qemu.sh   UPSTREAM_PKG をそのまま第一引数で渡す (zakinko/xwpe)
+#   build-on-bsd.sh  PKGS 経由だと第一引数は PKG_OPTIONS.mule である
+#                    (verify-mule.sh がそれを受ける規約のため)
+#
+# 後者をパッケージ名と読んで /usr/pkgsrc/-canna -wnn4 -x11 を探しに行った。
+# ツリーに在る名前だったときだけ受け取り、そうでなければ既定に落とす。
+PKG=zakinko/xwpe
+if [ -n "${1:-}" ] && [ -d "${TREE:-/usr/pkgsrc}/$1" ]; then
+	PKG=$1
+fi
 
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
