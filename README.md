@@ -407,8 +407,13 @@ patch、emacs21 は tree の patch-xx)。enriched は emacs20 には脆弱なコ
 
 etags の方は mule より穴が広い。mule では file-name を回すループが optind を
 argc まで進めた後で回るので死んでいますが、20.7 と 21.4 は `argbuffer[]` を
-`current_arg` で回すので生きています。`sort %s -o %s` の方 (mule と同じ) と
-合わせて、両方の呼び口を `shell_quote()` で塞ぎました。
+`current_arg` で回すので生きています。加えて 21.4 の etags は圧縮ファイルを
+展開するとき、そのファイル名を無引用で `gzip -d -c <名前>` に渡して `popen`
+します。`etags *` が `a;cmd.gz` のような名前のファイルに当たると `cmd` が
+走ります。`sort %s -o %s` (mule と同じ) と file-name と、この圧縮経路の三つを
+`shell_quote()` で塞ぎました (20.7 の etags には圧縮経路が無く、二箇所)。
+`etags 'a;touch GOTCHA;.gz'` が当てる前は `GOTCHA` を作り、当てた後は作らず、
+普通の `.gz` は中身を読めることを確かめました。
 
 NetBSD 11.0/amd64 で、当てる前は
 
