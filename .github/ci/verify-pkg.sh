@@ -86,7 +86,13 @@ fi
 pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
 
 echo "--- build と install ---"
-if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKGBASE.log 2>&1; then
+# 出力を握り潰さない。ここは何時間もかかることがあり、握り潰すと
+# 「build と install」と出したきり timeout まで何も残らない。zls で二度
+# それをやって、依存が降りているのかどうかも分からないまま四時間を捨てた。
+# tee で流しつつファイルにも残す。$? はパイプの右端になるので別に取る。
+{ $PKGMAKE $MKARGS install 2>&1; echo $? > /tmp/verify-rc; } |
+	tee /tmp/verify-$PKGBASE.log
+if [ "$(cat /tmp/verify-rc)" -ne 0 ]; then
 	if grep -qi 'not available for this platform' /tmp/verify-$PKGBASE.log; then
 		echo "SKIP: $PKG は $OS を相手にしていない (ONLY_FOR_PLATFORM)"
 		exit 0
