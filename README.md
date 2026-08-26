@@ -141,21 +141,48 @@ pkgsrc の `inputmethod/anthy` / `inputmethod/anthy-elisp` に倣って二つに
 割ってあります。C 側は `EMACS=no` で建て、elisp 側だけが `EMACS_TYPE` に
 依存します。
 
-`anthy-unicode.el` には当て物が要りません。こちらが 9100h に当てている廃止
-シンボル六つも、旧式 backquote も、向こうで直っています。
+こちらが 9100h に当てている廃止シンボル六つも旧式 backquote も、向こうでは
+直っています。代わりに**逆向きの当て物**が要ります
+(`anthy-unicode/patches/patch-src-util_anthy-unicode.el`)。9100h が emacs29 で
+落ちるのと鏡像で、向こうが改名で直した名前が emacs20 と emacs21 にはまだ
+無いためです。
 
-NetBSD 11.0/amd64 で emacs26 28 29 30 31 の五つで建て、`nihongo` が `日本語`
+| 名前 | 入ったのは | emacs20/21 での姿 |
+| --- | --- | --- |
+| `set-face-underline` | Emacs 22.1 | 20 は `set-face-underline-p` だけ。top level なので load が止まり `.elc` が二本落ちる |
+| `mapc` | Emacs 21 | 9100h は同じ行で `mapcar` を使っていた |
+| `set-process-query-on-exit-flag` | Emacs 22.1 | 20/21 は `process-kill-without-query`。最初の変換で死ぬ |
+| `deactivate-current-input-method-function` / `deactivate-input-method` | Emacs 24.3 で改名 | 20/21 は `inactivate-*`。入力メソッドから抜けられない |
+
+上のコメントアウトされた三行も当て物で埋めてあります。agent との pipe に
+`utf-8` を明示しないと、Emacs 21 で Japanese language environment のときに
+既定の euc-jp で decode され、変換結果が文字化けして返るためです。
+
+NetBSD 11.0/amd64 で emacs20 21 26 28 29 30 31 で建て、`nihongo` が `日本語`
 になり、`deactivate-input-method` のあと `input-method-function` が nil に
 戻って続けて打った `abc` がそのまま入ることを確かめました。
 
-emacs20 には載りません。agent が UTF-8 で話すのに Emacs 20 には `utf-8` と
-いう coding system が無いためです (`(coding-system-p 'utf-8)` が nil)。
-Emacs 21 には在ります。当時それを足していたのが `editors/mule-ucs` で、
-Mule → Mule-UCS と anthy → anthy-unicode は同じ形の移り変わりです。
+**emacs20 と emacs21 には `editors/mule-ucs` が要ります。** agent は UTF-8 で
+しか話しません (`src-util/input.c` が `ANTHY_UTF8_ENCODING` を無条件に設定
+する。`--eucjp` は `--egg` の道にしか効かず、elisp はその道を使わない)。
+ところが Emacs 20 に `utf-8` という coding system は無く、Emacs 21 の
+`mule-utf-8` は CJK を落とせません。mule-unicode-* は U+0100〜U+33FF と
+U+E000〜U+FFFF しか覆わず、U+4E00〜U+9FFF がどこにも入らないためで
+(`utf-translate-cjk` は Emacs 22 から)、`日本語` の 9 バイトが eight-bit の
+まま素通しします。同じ理由で 21 の byte-compiler が書いた `.elc` も読み戻せ
+ません。mule-unicode の内部表現 (先頭 `0x9C` の 4 バイト) をそのまま書き出す
+ためです。Mule-UCS の `utf-8` は CJK を japanese-jisx0208 に落とすので、
+これで両方とも通ります。Makefile は `EMACS_VERSION_MAJOR < 22` のとき
+Mule-UCS を `DEPENDS` に入れ、byte compile にも `-l un-define` を先に
+食わせます。
+
+Mule → Mule-UCS と anthy → anthy-unicode は同じ形の移り変わりで、しかも
+前者が無いと後者は古い Emacs に載りません。
 
 FreeBSD は `japanese/anthy` を削除して `japanese/anthy-unicode` だけに、
 Debian は `anthy` のソースパッケージ自体を anthy-unicode 1.0.0 に差し替えて
-います。pkgsrc と Gentoo は 9100h のままです。
+います。Gentoo は `app-i18n/anthy` (9100h-r3) と `app-i18n/anthy-unicode` の
+両方を持っています。9100h だけなのは pkgsrc と OpenBSD です。
 
 ## mozc-elisp226 の依存が両方向に狂っている
 
