@@ -47,7 +47,22 @@ OS=$(uname -s)
 ARCH=$(uname -m)
 # 依存を建てる回数が多いので並列にする。並列で壊れる package は pkgsrc 側が
 # MAKE_JOBS_SAFE=no で除いてくれるので、こちらは台数を渡すだけでよい。
+#
+# ただしコア数をそのまま使うと、メモリの少ない箱で落ちる。cmake や re2c の
+# C++ は 1 本あたり 1 GB 近く要ることがあり、CI のイメージは no_swap=YES で
+# 焼いてあって swap が無いので、足りなければその場で殺される (実際
+# "Killed signal terminated program cc1plus" で転けた)。1 本あたり 1 GB を
+# 見て、コア数と少ないほうを採る。
 JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 1)
+_mb=$(sysctl -n hw.physmem64 2>/dev/null || sysctl -n hw.physmem 2>/dev/null || echo 0)
+_mb=$((_mb / 1048576))
+if [ "$_mb" -gt 0 ]; then
+	_bymem=$((_mb / 1024))
+	[ "$_bymem" -lt 1 ] && _bymem=1
+	[ "$_bymem" -lt "$JOBS" ] && JOBS=$_bymem
+fi
+echo "    資源: ${JOBS} 並列 (CPU $(sysctl -n hw.ncpu 2>/dev/null || echo ?), メモリ ${_mb} MB)"
+df -h / /tmp 2>/dev/null | sed 's/^/    /'
 REL=$(uname -r | sed -e 's/_.*//')
 echo "=== ${OS} ${REL} / ${ARCH} / PKG_OPTIONS.mule=\"${OPTS}\" ==="
 # NetBSD は gcc、FreeBSD と OpenBSD は clang。どちらでも cc で当たる。
