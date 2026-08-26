@@ -47,10 +47,17 @@ japanese-jisx0208 and fixes both, so it is loaded when emacs-major-version is
 below 22.  The require is wrapped in condition-case, so nothing changes where
 Mule-UCS is not installed, and nothing at all happens on Emacs 22 and later.
 
+From Emacs 21 on, the byte compiler warns that the value from mapcar is
+unused and suggests mapc or dolist.  The same warning is already raised twice
+in this package -- anthy-unicode-azik.el:226 and anthy-unicode-conf.el:108
+call mapcar the same way -- so this adds a third of a warning that is already
+there, which is the price of keeping Emacs 20 in the accepted list.  Guarding
+the one call with fboundp would cost more lines than the warning is worth.
+
 Measured on NetBSD 11.0/amd64 with emacs 20.7, 21.4 and 30.2: with this patch
-and Mule-UCS, all three build 6 of 6 .elc, convert nihongo to the kanji, and
-deactivate the input method cleanly.  Without it, Emacs 20 stops at load and
-Emacs 21 at the first conversion.
+and Mule-UCS, all three byte-compile the six files, convert nihongo to the
+kanji, and deactivate the input method cleanly.  Without it, Emacs 20 stops
+at load and Emacs 21 at the first conversion.
 
 --- src-util/anthy-unicode.el.orig
 +++ src-util/anthy-unicode.el
