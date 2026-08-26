@@ -54,6 +54,7 @@ make makesum
 | [emacs27](emacs27/) / [emacs27-nox11](emacs27-nox11/) | GNU Emacs 27.2。本家では 2026 年 8 月に削除済み |
 | [emacs28](emacs28/) / [emacs28-nox11](emacs28-nox11/) | GNU Emacs 28.2。本家では 2026 年 8 月に削除済み |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
+| [mozc-server333](mozc-server333/) / [mozc-elisp333](mozc-elisp333/) / [mozc-tool333](mozc-tool333/) | mozc 3.33.6089 を gyp で建てる。gyp を積んだ最後の版で、本家 pkgsrc は 2.26 系と 2.29 系しか持たない |
 | [mule](mule/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
 | [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
 | [stnsd](stnsd/) | 小さな STNS API サーバ |
