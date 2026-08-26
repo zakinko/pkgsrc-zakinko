@@ -76,7 +76,8 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
-| [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない |
+| [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない。積み残しの CVE 二本も当てる |
+| [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
 | [mozc-elisp226/](mozc-elisp226/) | `inputmethod/mozc-elisp226` | 要らない GUI 依存を外し、要る mozc-server を足す。emacs29〜31 |
@@ -382,6 +383,47 @@ Symbol's function definition is void: nil
 
 emacs20 は `zakinko/emacs20` (nb27) が要ります。本家の nb26 では LP64 の
 切り詰めで `set-language-environment "Japanese"` の時点で落ちるためです。
+
+## emacs20 と emacs21 に積み残しの CVE を当てる
+
+`zakinko/mule` が三本の CVE を当てているのと同じ理由で、`editors/emacs20` と
+`editors/emacs21` にも積み残しがあります。mule は Mule 2.3 / Emacs 19.28
+ベースで、20.7 と 21.4 は同じ古い lib-src と src を引きずっているので、mule に
+当てた当て物のうち二本がそのまま該当します。`pkg_admin audit` は emacs21 を
+三件で挙げますが (下記)、emacs20 は一件も挙げません。DB に emacs20 の項目が
+無いだけで、コードは同じように穴が開いています。
+
+| CVE | 何 | emacs20 | emacs21 |
+| --- | --- | --- | --- |
+| CVE-2022-45939 / 48337 | etags が `-o` の引数などを無引用で `system(3)` に渡す | 当てる | 当てる |
+| CVE-2017-1000383 | copy-file が `creat(...,0666)` の後で `chmod`。一瞬 world-readable、setuid も継承 | 当てる | 当てる |
+| CVE-2008-1694 | vcdiff が `/tmp/geta$$` に `>` で書く | 済 (mktemp) | 済 (mktemp) |
+| CVE-2017-14482 | enriched の `x-display` で任意 Lisp 実行 | 非該当 | 済 (tree) |
+
+vcdiff は両版とも既に `mktemp` に直っています (emacs20 は dholland の jumbo
+patch、emacs21 は tree の patch-xx)。enriched は emacs20 には脆弱なコードが
+無く、emacs21 は tree が `patch-CVE-2017-14482` で当てています。残る二本を
+`zakinko/mule` と同じ形で当てました。
+
+etags の方は mule より穴が広い。mule では file-name を回すループが optind を
+argc まで進めた後で回るので死んでいますが、20.7 と 21.4 は `argbuffer[]` を
+`current_arg` で回すので生きています。`sort %s -o %s` の方 (mule と同じ) と
+合わせて、両方の呼び口を `shell_quote()` で塞ぎました。
+
+NetBSD 11.0/amd64 で、当てる前は
+
+```
+$ ctags -u -o 'tags;touch /tmp/pwned' file.c
+```
+
+が `/tmp/pwned` を作りました。当てた後は `tags;touch /tmp/pwned` という名前の
+ファイルが出来るだけで何も走りません。普通の `-o out.tags` は変わらず効きます。
+copy-file は、04755 のファイルを `(copy-file "src" "dst" t)` で写すと、当てる
+前は 04755 (setuid) の写しが出来、当てた後は 0755 になって setuid が落ちます。
+どちらも emacs20.7 と emacs21.4 を自前で建てて確かめました。
+
+本家 pkgsrc にも send-pr で出します。mule と違ってこの二つは今も配られている
+版なので、fork に留めず tree に戻すのが筋です。
 
 ## emacs20 の宣言もれ
 
