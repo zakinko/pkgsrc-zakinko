@@ -81,6 +81,8 @@ BUILDLINK_TRANSFORM+=	rm:-Werror=char-subscripts
 # GUI を建てないときは gyp にもそう言う。言わないと
 #   CRITICAL: Qt is required to build GUI Tool. Specify --noqt to skip
 # で configure が止まる。
+MOZC_GYP_ARGS=	--gypdir=${LOCALBASE}/bin
+
 .if defined(MOZC_NO_GUI)
 MOZC_GYP_ARGS+=	--noqt
 SUBST_CLASSES+=		nogtk
@@ -94,7 +96,7 @@ do-configure:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHONBIN} build_mozc.py \
 		gyp \
-		--gypdir=${LOCALBASE}/bin ${MOZC_GYP_ARGS}
+		${MOZC_GYP_ARGS}
 
 # mozc_emacs_helper が link しているのは base の libc/libstdc++/libm/
 # libpthread だけで、glib2 も zinnia も curl も使っていない (ldd で確認)。
@@ -106,11 +108,9 @@ do-configure:
 #.include "../../devel/gmock/buildlink3.mk"
 .include "../../inputmethod/zinnia/buildlink3.mk"
 .include "../../www/curl/buildlink3.mk"
-.endif
 # mozc-elisp226 が入れるのは mozc_emacs_helper と mozc.el(.elc) の三つだけで
 # GUI は要らない。MOZC_NO_GUI=yes なら gtk2 と qt5 を引かない。引くと X11 が
 # 要るので、X を入れていない箱ではそもそも建たない。
-.if !defined(MOZC_NO_GUI)
 .include "../../x11/gtk2/buildlink3.mk"
 .include "../../x11/qt5-qtbase/buildlink3.mk"
 .endif
