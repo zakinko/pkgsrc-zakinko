@@ -21,6 +21,7 @@ SUBDIR+=	emacs28-nox11
 SUBDIR+=	fail2ban
 SUBDIR+=	libuuid
 SUBDIR+=	meibo
+SUBDIR+=	mozc-elisp226
 SUBDIR+=	mule
 SUBDIR+=	nss_stns
 SUBDIR+=	ntp4

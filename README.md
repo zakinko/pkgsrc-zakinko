@@ -79,6 +79,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
+| [mozc-elisp226/](mozc-elisp226/) | `inputmethod/mozc-elisp226` | 要らない GUI 依存を外し、要る mozc-server を足す。emacs29〜31 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
 | [xwpe/](xwpe/) | `editors/xwpe` | 1.6.9 へ上げ、当て物を 9 本から 3 本に減らす (pkgsrc PR #180) |
 | [zls/](zls/) | `devel/zls` | 0.16.0 へ上げて BROKEN を外す (pkgsrc PR #164) |
@@ -155,6 +156,87 @@ Mule → Mule-UCS と anthy → anthy-unicode は同じ形の移り変わりで�
 FreeBSD は `japanese/anthy` を削除して `japanese/anthy-unicode` だけに、
 Debian は `anthy` のソースパッケージ自体を anthy-unicode 1.0.0 に差し替えて
 います。pkgsrc と Gentoo は 9100h のままです。
+
+## mozc-elisp226 の依存が両方向に狂っている
+
+`inputmethod/mozc-elisp226` が入れるのは三つだけです。
+
+```
+bin/mozc_emacs_helper
+share/emacs/site-lisp/mozc.el
+share/emacs/site-lisp/mozc.elc
+```
+
+0.85MB の package です。それが **GTK2 と Qt5 と glib2 と zinnia と curl を
+引きます**。gtk2 が X11 を要求するので、X を入れていない箱では
+
+```
+ERROR: [bsd.pkg.mk] mozc-elisp-2.26.4282.100nb46 uses X11, but /usr/X11R7 not found
+```
+
+で fetch にも進めません。ところが `ldd` を取ると、
+
+```
+/usr/pkg/bin/mozc_emacs_helper   -lstdc++ -lm -lc -lgcc_s -lpthread
+/usr/pkg/libexec/mozc_server     -lstdc++ -lm -lc -lgcc_s -lpthread
+```
+
+**どちらも base の共有ライブラリしか使っていません。** GUI を引いているのは
+`inputmethod/mozc-server226/Makefile.common` が無条件に buildlink している
+だけで、`mozc-tool226` (Qt の設定 GUI) と `mozc-renderer226` (GTK の候補窓)
+のためのものです。
+
+逆に、**本当に要る `mozc-server` への依存がありません**。`mozc.el` は
+`mozc_emacs_helper` を起動するだけで、変換は helper が `mozc_server` に
+投げます。server が無いと
+
+```
+(1 CreateSession) → ((emacs-event-id . 1)(emacs-session-id . 1)(output . ()))
+(2 SendKey 1 97)  → ((error . session-error)(message . "Session failed"))
+```
+
+と、セッションは作れるのに最初の一打で落ちます。**helper だけ入れても動かない**、
+という形です。
+
+ここではその両方を直しました。
+
+| | 上流 nb46 | ここ nb47 |
+| --- | --- | --- |
+| 依存 | emacs30, curl, glib2, gtk2+, qt5-qtbase, zinnia | **emacs30, mozc-server** |
+| X11 | 要る | **要らない** |
+| `EMACS_VERSIONS_ACCEPTED` | emacs26〜30 | emacs29〜31 |
+
+GUI を切るには三箇所要りました。
+
+1. `Makefile.common` の buildlink を `.if !defined(MOZC_NO_GUI)` で囲う
+2. `build_mozc.py gyp` に `--noqt` を渡す。渡さないと
+   `CRITICAL: Qt is required to build GUI Tool. Specify --noqt to skip` で止まる
+3. `gyp/defines.gypi` の `'enable_gtk_renderer%': '1'` を `'0'` に落とす。
+   `renderer.gyp` が gyp を走らせた時点で `pkg-config gtk+-2.0` を呼ぶため。
+   NetBSD でその枝に入るのは pkgsrc の `patch-renderer_renderer.gyp` が
+   `target_platform=="NetBSD"` を足しているから。`build_mozc.py` は任意の
+   `-D` を素通ししないので、既定値の側を落とすしかない
+
+`renderer.gyp` を消す手は使えません。`gui.gyp` `gyp/tests.gyp` `mac.gyp`
+`unix/ibus/ibus.gyp` が `dependencies` で参照していて、gyp が not found で
+死にます。
+
+NetBSD 11.0/amd64 (X11 無し) で建て、`mozc-server` を入れたうえで helper に
+protocol を直に投げて確かめました。
+
+```
+a → あ
+i → あい      候補: 愛
+u → あいう    候補: あいうえお / アイウェア / 相打ち
+```
+
+残っているものが一つあります。**`japanese-mozc` が自動で登録されません。**
+`mozc.el` は `emacs-startup-hook` で自分を登録しますが、そもそも読み込まれる
+きっかけがありません。`leim-list.el` に相当するものを pkgsrc は入れていない
+ので、`(setq default-input-method "japanese-mozc")` だけでは効かず、
+`(require 'mozc)` が要ります。FreeBSD は `files/leim-list.el` を自前で持ち、
+Gentoo は `50mozc-gentoo.el` で autoload を張り、Debian は emacsen-common で
+面倒を見ています。ここはまだ直していません。
 
 ## 引き取った emacs26 / emacs27 / emacs28
 
