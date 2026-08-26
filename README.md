@@ -75,6 +75,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
+| [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
@@ -131,6 +132,52 @@ _EMACS_PKGDIR_MAP+= \
 
 版ごとの `_EMACS_FLAVOR` や `_EMACS_REQD` は各パッケージの `version.mk` が
 持っているので、書き戻すのはこの二つだけで足ります。
+
+## emacs20 の宣言もれ
+
+`zakinko/emacs20` が上流と違うのは当て物 2 本だけです。amd64 のような LP64 で
+
+```
+Wrong type argument: stringp, 8510432
+```
+
+が出て、`set-language-environment "Japanese"` が通らなくなるのを直します。
+中国語と韓国語も同じで、Greek や Latin-1 は通ります。anthy を読み込む前に
+落ちるので、日本語入力そのものが立ち上がりません。i386 では起きません。
+
+`Lisp_Object` を返す関数がどこにも宣言されておらず、暗黙の int 戻り値で
+64bit が 32bit に切り詰められて、型タグ (bit 60-62) が落ちています。
+
+```
+call   code_convert_string_norecord
+movslq %eax,%r8            ← ここ
+```
+
+多くの呼び手は結果をすぐ `XSTRING()` に渡し、そこでタグを外すので偶然
+動きます。`openp` だけは `Ffind_file_name_handler` に渡すので、`CHECK_STRING`
+がタグ無しのポインタを整数として見て落ちます。`openp` に `ENCODE_FILE` を
+入れているのは pkgsrc が当てている Mule 4.1b の配布パッチです。
+
+`prefer-coding-system` が `default-file-name-coding-system` を立てた瞬間から
+**相対 `load` が全部落ちます**。`(load "subr")` すら通りません。Greek が無事
+なのは `features` を持たず追加の読み込みが起きないからでした。
+
+同じ切り詰めが `Fcurrent_message` `Fcurrent_time` `Fset_buffer_multibyte`
+`Fwindow_end` にもあります。`Fcurrent_message` は `read_char` の入力メソッド
+経路にあるので、これも日本語入力に効きます。
+
+直しは自分で考えたものではありません。**Emacs 21 が 5 本とも宣言しています。**
+
+	2000-06-05  Dave Love  <fx@gnu.org>
+		* coding.h: Declare code_convert_string_norecord.
+
+20.7 の公開は 2000-06-13 で、8 日後です。emacs-20 の枝には来ませんでした。
+`lisp.h` の節の並びが 20.7 と 21.1 でほとんど同じなので、行も置き場所も
+Emacs 21 のまま写してあります。
+
+NetBSD 11.0/amd64 で、当て物ありの emacs20-20.7nb27 は Japanese,
+Chinese-GB, Korean, Greek, Latin-1, English のすべてが通り、anthy で
+`nihongo` が `日本語` になります。当て物なしの nb26 は Japanese で落ちます。
 
 ## 対象
 

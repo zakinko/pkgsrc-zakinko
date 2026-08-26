@@ -9,6 +9,7 @@ SUBDIR+=	anthy
 SUBDIR+=	anthy-elisp
 SUBDIR+=	augeas
 SUBDIR+=	autogen
+SUBDIR+=	emacs20
 SUBDIR+=	emacs26
 SUBDIR+=	emacs26-nox11
 SUBDIR+=	emacs27
