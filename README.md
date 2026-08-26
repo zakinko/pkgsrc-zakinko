@@ -227,13 +227,29 @@ ERROR: [bsd.pkg.mk] mozc-elisp-2.26.4282.100nb46 uses X11, but /usr/X11R7 not fo
 と、セッションは作れるのに最初の一打で落ちます。**helper だけ入れても動かない**、
 という形です。
 
+**この応答は二つの原因で出ます。** server が無いときと、**root で動かした
+とき**です。mozc は root を拒みます。`base/run_level.cc:268` に
+
+```c
+if (::geteuid() == 0) {
+  // This process is started by root, or the executable is setuid to root.
+  return RunLevel::DENY;
+}
+```
+
+があるためで、server が正しく入っていても root から叩けば一字一句同じ
+`Session failed` が返ります。**出力だけでは区別がつきません。** 依存を直した
+かどうかを確かめるときに root で試すと、直っていないと読んでしまいます。
+CI の VM は中が root なので、実際にここで一度落ちました。一般ユーザを
+作って測る必要があります。
+
 ここではその両方を直しました。
 
 | | 上流 nb46 | ここ nb47 |
 | --- | --- | --- |
 | 依存 | emacs30, curl, glib2, gtk2+, qt5-qtbase, zinnia | **emacs30, mozc-server** |
 | X11 | 要る | **要らない** |
-| `EMACS_VERSIONS_ACCEPTED` | emacs26〜30 | emacs29〜31 |
+| `EMACS_VERSIONS_ACCEPTED` | emacs29〜31 (rev 1.25 で追いついた) | emacs29〜31 |
 
 GUI を切るには三箇所要りました。
 
@@ -250,8 +266,50 @@ GUI を切るには三箇所要りました。
 `unix/ibus/ibus.gyp` が `dependencies` で参照していて、gyp が not found で
 死にます。
 
-NetBSD 11.0/amd64 (X11 無し) で建て、`mozc-server` を入れたうえで helper に
-protocol を直に投げて確かめました。
+### 測ったもの
+
+手元の箱では測りきれません。emacs は `bin/ctags` などが衝突して複数版を同時に
+入れられず、`mozc-server` も 2.26 と 2.29 が PKGBASE を共有していて同居
+できないからです。三版で測るには入れ替えを繰り返すことになり、同じ箱で
+動いている他の作業を巻き込みます。job ごとに別の VM なら、その全部が
+起きません。`NetBSD-i386` の `ci/netbsd-mozc226.sh` と
+`.github/workflows/mozc226.yml` がそれで、`amd64-11.0` の image を使うので
+送る PR の `>Environment` 行とも揃います。
+
+出来た binary package そのものが証拠になります。
+
+```
+mozc-server-2.26.4282.100nb46.tgz
+  中身      libexec/mozc_server ただ一つ
+  ldd       -lstdc++ -lm -lc -lgcc_s -lpthread
+  @pkgdep   0 本                      ← 実行時依存なし
+  @blddep   digest py-gyp py-six ninja-build python313
+            mktools gmake pkgconf cwrappers
+```
+
+上流の同じ package は `curl` `glib2` `gtk2+` `qt5-qtbase` `zinnia` の五本を
+実行時依存として記録します。`buildlink3.mk` が `BUILD_DEPENDS` ではなく
+`DEPENDS` に入れるので、`pkg_add` でも付いてきます。
+
+`MOZC_NO_GUI` を書かない側が本当に何も変わらないことも測りました。この
+`Makefile.common` を読む写しと本家側とを `make show-all` にかけ、package の
+path を揃えて突き合わせると一行も動きません。
+
+```
+ibus-mozc226      3738 行中 差 0 行
+mozc-renderer226  3716 行中 差 0 行
+mozc-tool226      3722 行中 差 0 行
+uim-mozc226       3788 行中 差 0 行
+```
+
+展開後の `do-configure` も `WRKDIR` の path を除いて同一で、gyp の呼び出しは
+両方とも `build_mozc.py gyp --gypdir=/usr/pkg/bin` になります。`--noqt` は
+付きません。この `Makefile.common` を読むのは六つだけで、`fcitx5-mozc226` は
+存在せず、2.29 の `fcitx5-mozc` と `uim-mozc` は自前の `Makefile.common` を
+持っていて入れ子にもしていません。
+
+変換は `mozc-server` を入れたうえで helper に protocol を直に投げて
+確かめました (root ではなく一般ユーザで)。
 
 ```
 a → あ
