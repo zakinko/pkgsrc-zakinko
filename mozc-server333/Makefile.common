@@ -1,0 +1,120 @@
+# $NetBSD$
+
+# used by zakinko/mozc-elisp333/Makefile
+# used by zakinko/mozc-renderer333/Makefile
+# used by zakinko/mozc-server333/Makefile
+# used by zakinko/mozc-tool333/Makefile
+
+# 3.33.6089 は GYP を積んだ最後の mozc である。次のタグ 3.33.6133 では
+# src/build_mozc.py も src/gyp/ も無い (2026-03-11 の "Remove files for GYP
+# build.")。ここは GYP がどこまで動くかを見るための一式なので bazel 経路を
+# 持たない。3.33 は WORKSPACE.bazel をやめて MODULE.bazel へ移っており、tree
+# の mozc-server が --distdir に tarball を並べてやっている形は当たらない。
+
+DISTNAME=	mozc-3.33.6089
+CATEGORIES=	inputmethod
+MASTER_SITES=	${MASTER_SITE_GITHUB:=google/}
+GITHUB_PROJECT=	mozc
+GITHUB_TAG=	${PKGVERSION_NOREV}
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/google/mozc/
+COMMENT=	Japanese inputmethod Mozc engine
+LICENSE=	modified-bsd
+
+GITHUB_SUBMODULES+=	google breakpad 216cea7bca53fa441a3ee0d0f5fd339a3a894224 third_party/breakpad
+GITHUB_SUBMODULES+=	google googletest 52eb8108c5bdec04579160ae17225d66034bd723 third_party/gtest
+GITHUB_SUBMODULES+=	chromium gyp 9ecf45e37677743503342ee4c6a76eaee80e4a7f third_party/gyp
+GITHUB_SUBMODULES+=	hiroyuki-komatsu japanese-usage-dictionary e5b3425575734c323e1d947009dd74709437b684 third_party/japanese_usage_dictionary
+GITHUB_SUBMODULES+=	protocolbuffers protobuf 4fbd1111a292d04746c732573025e3251de0bb9c third_party/protobuf
+GITHUB_SUBMODULES+=	abseil abseil-cpp 987c57f325f7fa8472fa84e1f885f7534d391b0d third_party/abseil-cpp
+GITHUB_SUBMODULES+=	microsoft wil fc5dbf55989fe20351c71d038a8d12de4b397a6d third_party/wil
+
+DISTFILES+=	${DEFAULT_DISTFILES}
+
+EXTRACT_ONLY=	${DEFAULT_DISTFILES} ${_GITHUB_DEFAULT_DISTFILES}
+
+MOZC_DISTS+=	dictionary.png
+SITES.dictionary.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/chrome_reader_mode/materialiconsoutlined/48dp/1x/outline_chrome_reader_mode_black_48dp.png
+
+MOZC_DISTS+=	dictionary.svg
+SITES.dictionary.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/chrome_reader_mode/materialiconsoutlined/24px.svg
+
+MOZC_DISTS+=	properties.png
+SITES.properties.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/settings/materialiconsround/48dp/1x/round_settings_black_48dp.png
+
+MOZC_DISTS+=	properties.svg
+SITES.properties.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/settings/materialiconsround/24px.svg
+
+MOZC_DISTS+=	tool.png
+SITES.tool.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/build/materialicons/48dp/1x/baseline_build_black_48dp.png
+
+MOZC_DISTS+=	tool.svg
+SITES.tool.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/build/materialicons/24px.svg
+
+MOZC_DISTS+=	ken_all.zip
+SITES.ken_all.zip=	https://www.post.japanpost.jp/zipcode/dl/kogaki/zip/
+
+MOZC_DISTS+=	jigyosyo.zip
+SITES.jigyosyo.zip=	https://www.post.japanpost.jp/zipcode/dl/jigyosyo/zip/
+
+.for d in ${MOZC_DISTS}
+DISTFILES+=	${d}
+.endfor
+
+WRKSRC=		${WRKDIR}/${DISTNAME}/src
+
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/mozc-server333/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server333/patches
+
+PYTHON_VERSIONS_INCOMPATIBLE+=	27
+
+TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
+TOOL_DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
+TOOL_DEPENDS+=	ninja-build-[0-9]*:../../devel/ninja-build
+
+USE_LANGUAGES=	c c++
+USE_TOOLS+=	pkg-config unzip
+
+USE_CXX_FEATURES+=	c++20
+
+SUBST_CLASSES+=		prefix
+SUBST_STAGE.prefix=	pre-configure
+SUBST_MESSAGE.prefix=	Setting PREFIX
+SUBST_FILES.prefix+=	base/process.cc
+SUBST_FILES.prefix+=	base/system_util.cc
+SUBST_VARS.prefix+=	PREFIX
+SUBST_VARS.prefix+=	X11BASE
+
+.include "../../mk/bsd.prefs.mk"
+
+OPSYSVARS+=	OSDEST
+OSDEST.Linux=	linux
+OSDEST.NetBSD=	bsd
+
+MOZC_BUILD_MODE?=	Release
+
+do-configure:
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${PYTHONBIN} build_mozc.py gyp \
+			--gypdir=${LOCALBASE}/bin \
+			${MOZC_GYP_ARGS}
+
+CHECK_PIE_SUPPORTED=	no
+pre-configure:
+	${MKDIR} ${WRKSRC}/dist
+.for d in ${MOZC_DISTS}
+	${LN} -s ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
+.endfor
+	${RM} -r ${WRKDIR}/.cwrapper
+
+# server と elisp は Qt にも GL にも触らない。無条件に buildlink すると
+# qt6-qtbase が実行時依存として記録され、USE_X11 が立って X の無い箱では
+# fetch にも進めなくなる。renderer と tool だけが要る。
+.if !empty(PKGPATH:M*/mozc-renderer333) || !empty(PKGPATH:M*/mozc-tool333)
+.include "../../graphics/MesaLib/buildlink3.mk"
+.include "../../x11/qt6-qtbase/buildlink3.mk"
+.endif
+
+.include "../../lang/python/tool.mk"
+.include "../../mk/atomic64.mk"
