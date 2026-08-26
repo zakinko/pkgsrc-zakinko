@@ -54,11 +54,9 @@ EMACS_MODULES+=	base leim
 
 EMACS_VERSIONS_ACCEPTED=	emacs21 emacs21nox emacs20
 EMACS_VERSIONS_ACCEPTED+=	xemacs215 xemacs215nox xemacs214 xemacs214nox
-EMACS_VERSIONS_ACCEPTED+=	emacs26 emacs26nox
-EMACS_VERSIONS_ACCEPTED+=	emacs27 emacs27nox
-EMACS_VERSIONS_ACCEPTED+=	emacs28 emacs28nox
 EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
 EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
+EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 
 .include "../../editors/emacs/modules.mk"
 

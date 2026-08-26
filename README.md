@@ -72,7 +72,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | ここ | 上流のどこ | 何を直したか |
 | --- | --- | --- |
 | [anthy/](anthy/) | `inputmethod/anthy` | anthy.el が Emacs 27 以降で使えない廃止シンボル、人名と辞書の誤り |
-| [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs26〜30 を受け付けるように |
+| [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
