@@ -179,6 +179,19 @@ NetBSD 11.0/amd64 で、当て物ありの emacs20-20.7nb27 は Japanese,
 Chinese-GB, Korean, Greek, Latin-1, English のすべてが通り、anthy で
 `nihongo` が `日本語` になります。当て物なしの nb26 は Japanese で落ちます。
 
+i386 では何も変わりません。NetBSD 10.1/i386 で建てて確かめました。ILP32 では
+`int` も `Lisp_Object` も 32bit なので、戻り値が `%eax` のまま素通りします。
+
+```
+i386   mov    %eax,-0x10c(%ebp)      ← 切り詰めが起きない
+amd64  movslq %eax,%r8               ← ここで 32bit になる
+```
+
+当て物ありの nb27 と、公式バイナリの nb26 とで、`openp` (264 命令)、
+`Ffind_file_name_handler` (91)、`read_char` (1862)、`Fset_window_buffer` (151)、
+`Fset_buffer_multibyte` (279) の機械語が完全に一致します。素の nb26 も 6 つの
+言語環境がすべて通るので、i386 にはそもそもこの壊れ方がありません。
+
 ## 対象
 
 NetBSD で動かすことを前提にしています。
