@@ -69,9 +69,22 @@ PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server333/patches
 
 PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
+.include "../../mk/bsd.prefs.mk"
+
+.if empty(PKG_OPTIONS:Mgyp)
+# 3.33 の .bazeliskrc は USE_BAZEL_VERSION=8.4.1 を指している。pkgsrc の
+# devel/bazel は 6.4.0 なので、この依存はいまの木では満たせない。黙って
+# 古い bazel で落ちるより、満たせないことが依存の段で見える方がよい。
+TOOL_DEPENDS+=	bazel>=8.4.1:../../devel/bazel
+# 3.33 は WORKSPACE.bazel をやめて MODULE.bazel へ移った。bzlmod は依存を
+# 建てる最中に取りにいくので、2.29 のように --distdir へ tarball を並べて
+# おく形では閉じない。
+ALLOW_NETWORK_ACCESS=	yes
+.else
 TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
 TOOL_DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
 TOOL_DEPENDS+=	ninja-build-[0-9]*:../../devel/ninja-build
+.endif
 
 USE_LANGUAGES=	c c++
 USE_TOOLS+=	pkg-config unzip
@@ -86,9 +99,11 @@ SUBST_FILES.prefix+=	base/system_util.cc
 SUBST_VARS.prefix+=	PREFIX
 SUBST_VARS.prefix+=	X11BASE
 
-.include "../../mk/bsd.prefs.mk"
-
 OPSYSVARS+=	OSDEST
+.if empty(PKG_OPTIONS:Mgyp)
+OSDEST.Linux=	linux-opt
+OSDEST.NetBSD=	netbsd-opt
+.else
 OSDEST.Linux=	linux
 OSDEST.NetBSD=	bsd
 
@@ -99,6 +114,7 @@ do-configure:
 		${PYTHONBIN} build_mozc.py gyp \
 			--gypdir=${LOCALBASE}/bin \
 			${MOZC_GYP_ARGS}
+.endif
 
 CHECK_PIE_SUPPORTED=	no
 pre-configure:

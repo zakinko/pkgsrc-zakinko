@@ -26,6 +26,7 @@ SUBDIR+=	meibo
 SUBDIR+=	mozc-elisp
 SUBDIR+=	mozc-elisp226
 SUBDIR+=	mozc-elisp333
+SUBDIR+=	mozc-renderer333
 SUBDIR+=	mozc-server226
 SUBDIR+=	mozc-server333
 SUBDIR+=	mozc-tool333
