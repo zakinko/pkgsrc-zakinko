@@ -19,7 +19,7 @@ DEPENDS+=	mozc-server-${MOZC_VER}{,nb*}:../../zakinko/mozc-server226
 EMACS_MODULES=	base leim
 
 # Package Requires >= 24.3 for cl-lib etc.
-EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox
 EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
 EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 
