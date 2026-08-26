@@ -7,6 +7,8 @@ COMMENT=	Local packages maintained by zakinko
 
 SUBDIR+=	anthy
 SUBDIR+=	anthy-elisp
+SUBDIR+=	anthy-unicode
+SUBDIR+=	anthy-unicode-elisp
 SUBDIR+=	augeas
 SUBDIR+=	autogen
 SUBDIR+=	emacs20

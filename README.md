@@ -49,6 +49,7 @@ make makesum
 
 | パッケージ | 内容 |
 | --- | --- |
+| [anthy-unicode](anthy-unicode/) / [anthy-unicode-elisp](anthy-unicode-elisp/) | anthy の Unicode 版 fork。本家 pkgsrc にはまだ無い |
 | [emacs26](emacs26/) / [emacs26-nox11](emacs26-nox11/) | GNU Emacs 26.3。本家では 2026 年 8 月に削除済み |
 | [emacs27](emacs27/) / [emacs27-nox11](emacs27-nox11/) | GNU Emacs 27.2。本家では 2026 年 8 月に削除済み |
 | [emacs28](emacs28/) / [emacs28-nox11](emacs28-nox11/) | GNU Emacs 28.2。本家では 2026 年 8 月に削除済み |
@@ -99,6 +100,61 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 ここに置くのはあくまで手元をすぐ直すためで、**本筋は pkgsrc 本体に入れる
 こと**です。上流が取り込んだら、ディレクトリごと消します。消し忘れると、
 上流が直したあとも古い写しを使い続けることになります。
+
+## anthy-unicode
+
+anthy 9100h は 2009 年で止まっています。`anthy-unicode` は Takao Fujiwara
+さんが引き継いだ fork で、今も出ています (`1.0.0.20260213`)。名前のとおり
+内部の符号化を EUC-JP から UTF-8 に移したものです。
+
+```elisp
+;; anthy 9100h  anthy.el:750 — agent とのパイプを EUC-JP に固定する
+(if (coding-system-p (find-coding-system 'euc-japan))
+    (set-process-coding-system proc 'euc-japan 'euc-japan))
+
+;; anthy-unicode  anthy-unicode.el:757 — 同じところが丸ごとコメントアウト
+;;	    (if (coding-system-p (find-coding-system 'euc-japan))
+;;		(set-process-coding-system proc 'euc-japan 'euc-japan))
+```
+
+入るものは全部 `-unicode` 付きなので、**anthy と同時に入れられます**。
+
+| anthy 9100h | anthy-unicode |
+| --- | --- |
+| `bin/anthy-agent` | `bin/anthy-agent-unicode` |
+| `lib/libanthy.so` | `lib/libanthy-unicode.so` |
+| `share/emacs/site-lisp/anthy/anthy.el` | `.../anthy-unicode/anthy-unicode.el` |
+| 入力メソッド `japanese-anthy` | `japanese-anthy-unicode` |
+
+agent に直に投げると符号化の差が見えます。
+
+```
+$ printf 'nihongo\n' | anthy-agent-unicode
+(2 ((UL) "にほんご" -1 -1) cursor)
+
+$ printf 'nihongo\n' | anthy-agent | od -c
+( 2   ( ( U L )   " 244 313 244 333 244 363 244 264 " ...   ← EUC-JP
+```
+
+pkgsrc の `inputmethod/anthy` / `inputmethod/anthy-elisp` に倣って二つに
+割ってあります。C 側は `EMACS=no` で建て、elisp 側だけが `EMACS_TYPE` に
+依存します。
+
+`anthy-unicode.el` には当て物が要りません。こちらが 9100h に当てている廃止
+シンボル六つも、旧式 backquote も、向こうで直っています。
+
+NetBSD 11.0/amd64 で emacs26 28 29 30 31 の五つで建て、`nihongo` が `日本語`
+になり、`deactivate-input-method` のあと `input-method-function` が nil に
+戻って続けて打った `abc` がそのまま入ることを確かめました。
+
+emacs20 には載りません。agent が UTF-8 で話すのに Emacs 20 には `utf-8` と
+いう coding system が無いためです (`(coding-system-p 'utf-8)` が nil)。
+Emacs 21 には在ります。当時それを足していたのが `editors/mule-ucs` で、
+Mule → Mule-UCS と anthy → anthy-unicode は同じ形の移り変わりです。
+
+FreeBSD は `japanese/anthy` を削除して `japanese/anthy-unicode` だけに、
+Debian は `anthy` のソースパッケージ自体を anthy-unicode 1.0.0 に差し替えて
+います。pkgsrc と Gentoo は 9100h のままです。
 
 ## 引き取った emacs26 / emacs27 / emacs28
 
