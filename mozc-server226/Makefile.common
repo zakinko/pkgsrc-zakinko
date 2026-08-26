@@ -83,6 +83,11 @@ BUILDLINK_TRANSFORM+=	rm:-Werror=char-subscripts
 # で configure が止まる。
 .if defined(MOZC_NO_GUI)
 MOZC_GYP_ARGS+=	--noqt
+SUBST_CLASSES+=		nogtk
+SUBST_STAGE.nogtk=	pre-configure
+SUBST_MESSAGE.nogtk=	Disabling the GTK renderer
+SUBST_FILES.nogtk=	gyp/defines.gypi
+SUBST_SED.nogtk=	-e "s/'enable_gtk_renderer%': '1'/'enable_gtk_renderer%': '0'/"
 .endif
 
 do-configure:

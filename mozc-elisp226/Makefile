@@ -10,12 +10,12 @@ MOZC_NO_GUI=	yes
 # mozc_server に投げる。server が無いと CreateSession は通るのに
 # 最初の SendKey が session-error になる。上流はこの依存を書いて
 # いないので、helper だけ入れて動かない、という形になる。
-DEPENDS+=	mozc-server>=${MOZC_VER}:../../inputmethod/mozc-server226
+DEPENDS+=	mozc-server>=${MOZC_VER}:../../zakinko/mozc-server226
 
 EMACS_MODULES=	base leim
 
 # Package Requires >= 24.3 for cl-lib etc.
-EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox
+EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
 EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
 EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 
@@ -25,14 +25,6 @@ INSTALLATION_DIRS=	${EMACS_LISPPREFIX} bin
 
 pre-configure:
 	${RM} ${WRKSRC}/unix/uim/uim.gyp
-# renderer.gyp が gyp の時点で pkg-config gtk+-2.0 を呼ぶのを止める。
-# 呼ぶのは (target_platform=="Linux" or ...=="NetBSD") and
-# enable_gtk_renderer==1 の枝で、NetBSD を足したのは pkgsrc の
-# patch-renderer_renderer.gyp である。mozc_emacs_helper には要らない。
-# build_mozc.py は任意の -D を素通ししないので、既定値の側を落とす。
-	${SED} -e "s/'enable_gtk_renderer%': '1'/'enable_gtk_renderer%': '0'/" \
-		${WRKSRC}/gyp/defines.gypi > ${WRKSRC}/gyp/defines.gypi.new
-	${MV} ${WRKSRC}/gyp/defines.gypi.new ${WRKSRC}/gyp/defines.gypi
 
 
 do-build:
@@ -51,5 +43,5 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/unix/emacs/mozc.elc \
 		${DESTDIR}${EMACS_LISPPREFIX}
 
-.include "../../zakinko/mozc-elisp226/Makefile.common"
+.include "../../zakinko/mozc-server226/Makefile.common"
 .include "../../mk/bsd.pkg.mk"

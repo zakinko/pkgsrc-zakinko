@@ -25,6 +25,7 @@ SUBDIR+=	libuuid
 SUBDIR+=	meibo
 SUBDIR+=	mozc-elisp
 SUBDIR+=	mozc-elisp226
+SUBDIR+=	mozc-server226
 SUBDIR+=	mule
 SUBDIR+=	nss_stns
 SUBDIR+=	ntp4
