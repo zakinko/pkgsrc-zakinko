@@ -381,7 +381,7 @@ Symbol's function definition is void: nil
 になります。ビルドを止める `set-face-underline-p` だけ直すと必ずここに来ます。
 境界はちょうど Emacs 29 で、26 27 28 では起きません。
 
-emacs20 は `zakinko/emacs20` (nb27) が要ります。本家の nb26 では LP64 の
+emacs20 は `zakinko/emacs20` (nb28) が要ります。本家の nb26 では LP64 の
 切り詰めで `set-language-environment "Japanese"` の時点で落ちるためです。
 
 ## emacs20 と emacs21 に積み残しの CVE を当てる
@@ -483,6 +483,10 @@ amd64  movslq %eax,%r8               ← ここで 32bit になる
 `Ffind_file_name_handler` (91)、`read_char` (1862)、`Fset_window_buffer` (151)、
 `Fset_buffer_multibyte` (279) の機械語が完全に一致します。素の nb26 も 6 つの
 言語環境がすべて通るので、i386 にはそもそもこの壊れ方がありません。
+
+上の測定はいずれも nb27 で採ったものです。nb28 は CVE の当て物二本を足した
+だけで、LP64 の当て物 (`patch-src_coding.h` と `patch-bj`) には触れていないので、
+結果はそのまま通ります。
 
 ## 対象
 
