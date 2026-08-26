@@ -43,6 +43,24 @@ else
 	MKARGS="DEPENDS_TARGET=package-install"
 fi
 
+# 依存は在ればバイナリで引く。
+#
+# これが無くて zls が LLVM を素から組み始めた。lang/zig -> lang/clang ->
+# lang/llvm と辿って llvm-project-21.1.8 を建て、当然のように時間切れに
+# なる。見たいのは zls が組めるかであって、LLVM が組めるかではない。
+#
+# BINPKG_SITES を渡すと bin-install が公式の集合から降ろす。PKG_PATH では
+# ない。あれを設定したまま pkgsrc の make を走らせると
+#
+#	ERROR: [bsd.pkg.mk] Please unset PKG_PATH before doing pkgsrc work!
+#
+# で組む前に弾かれる。ツリーを四半期枝に合わせてあるときだけ版が噛み合う
+# ので、PKGSRC_URL を current にしている相手には渡さない。
+if [ -n "${BINPKG_SITES:-}" ]; then
+	MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
+	echo "--- 依存の出どころ: $BINPKG_SITES ---"
+fi
+
 echo "--- $PKG ($OS $(uname -r) / $(uname -m)) ---"
 cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }
 

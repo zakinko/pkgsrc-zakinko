@@ -188,6 +188,7 @@ jobs:
         env:
           UPSTREAM_PKG: zakinko/fail2ban
           VERIFY_SCRIPT: verify-pkg.sh
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2/All
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
 
@@ -231,6 +232,7 @@ jobs:
         env:
           UPSTREAM_PKG: zakinko/zls
           VERIFY_SCRIPT: verify-pkg.sh
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2/All
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
 

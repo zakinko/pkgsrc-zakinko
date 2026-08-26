@@ -162,7 +162,11 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 	esac
 
 	echo "=== 検査を走らせる ==="
-	$SSH "sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
+	# 検査はゲストの中で走るので、ホスト側の環境変数は自分では見えない。
+	# 渡すものだけを明示して持っていく。BINPKG_SITES を渡し忘れていて、
+	# zls が LLVM を素から組み始めたことがある。
+	$SSH "BINPKG_SITES='${BINPKG_SITES:-}' UIM_OPTIONS='${UIM_OPTIONS:-}' \
+		sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
 	exit $?
 fi
 
