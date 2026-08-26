@@ -257,13 +257,26 @@ i → あい      候補: 愛
 u → あいう    候補: あいうえお / アイウェア / 相打ち
 ```
 
-残っているものが一つあります。**`japanese-mozc` が自動で登録されません。**
-`mozc.el` は `emacs-startup-hook` で自分を登録しますが、そもそも読み込まれる
-きっかけがありません。`leim-list.el` に相当するものを pkgsrc は入れていない
-ので、`(setq default-input-method "japanese-mozc")` だけでは効かず、
-`(require 'mozc)` が要ります。FreeBSD は `files/leim-list.el` を自前で持ち、
-Gentoo は `50mozc-gentoo.el` で autoload を張り、Debian は emacsen-common で
-面倒を見ています。ここはまだ直していません。
+`(require 'mozc)` は要ります。`(setq default-input-method "japanese-mozc")`
+だけでは効きません。ただしこれは欠陥ではなく、pkgsrc の `MESSAGE` が
+
+```elisp
+(set-language-environment "Japanese")
+(require 'mozc)
+(setq default-input-method "japanese-mozc")
+```
+
+と案内しているとおりです。上流の `mozc.el` も、読み込まれた時点で
+`mozc-leim-register-input-method` をその場で呼ぶ作りになっています
+(`emacs-startup-hook` に足すのと両方)。この三行だけで `nihongo` が `日本語`
+になるところまで確かめました。
+
+FreeBSD は `japanese/mozc-server/files/leim-list.el` を自前で持ち、`mozc.el`
+に当て物をして `mozc-leim-activate` を名前付き関数に変えることで、
+`(require 'mozc)` を書かずに済むようにしています。Gentoo は
+`50mozc-gentoo.el` で autoload を張り、Debian は emacsen-common で見ています。
+pkgsrc に同じ便宜を持ち込むかどうかは、直しというより方針の話なので、ここでは
+手を付けていません。
 
 ## 引き取った emacs26 / emacs27 / emacs28
 
