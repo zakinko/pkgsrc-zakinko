@@ -10,7 +10,11 @@ MOZC_NO_GUI=	yes
 # mozc_server に投げる。server が無いと CreateSession は通るのに
 # 最初の SendKey が session-error になる。上流はこの依存を書いて
 # いないので、helper だけ入れて動かない、という形になる。
-DEPENDS+=	mozc-server>=${MOZC_VER}:../../zakinko/mozc-server226
+#
+# 版は固定する。client は server の版が違うと拒み、再起動を試して
+# それでも合わなければ CheckVersionOrRestartServer() failed で終わる。
+# >= だと 2.29 の mozc-server でも満たされてしまい、入るのに動かない。
+DEPENDS+=	mozc-server-${MOZC_VER}{,nb*}:../../zakinko/mozc-server226
 
 EMACS_MODULES=	base leim
 
