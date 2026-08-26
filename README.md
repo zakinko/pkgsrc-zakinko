@@ -49,6 +49,9 @@ make makesum
 
 | パッケージ | 内容 |
 | --- | --- |
+| [emacs26](emacs26/) / [emacs26-nox11](emacs26-nox11/) | GNU Emacs 26.3。本家では 2026 年 8 月に削除済み |
+| [emacs27](emacs27/) / [emacs27-nox11](emacs27-nox11/) | GNU Emacs 27.2。本家では 2026 年 8 月に削除済み |
+| [emacs28](emacs28/) / [emacs28-nox11](emacs28-nox11/) | GNU Emacs 28.2。本家では 2026 年 8 月に削除済み |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
 | [mule](mule/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
 | [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
@@ -95,6 +98,39 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 ここに置くのはあくまで手元をすぐ直すためで、**本筋は pkgsrc 本体に入れる
 こと**です。上流が取り込んだら、ディレクトリごと消します。消し忘れると、
 上流が直したあとも古い写しを使い続けることになります。
+
+## 引き取った emacs26 / emacs27 / emacs28
+
+2026 年 8 月 25 日に、本家 pkgsrc から `editors/emacs26` `emacs27` `emacs28` と
+それぞれの `-nox11` が消えました。ここにあるのは削除直前の版です。相対パスだけ
+`../../editors/emacsNN` から `../../zakinko/emacsNN` に振り替えてあります。
+
+そのままビルドして入れられます。
+
+```sh
+cd /usr/pkgsrc/zakinko/emacs28-nox11
+make install
+```
+
+ただし `EMACS_TYPE=emacs28nox` を選べるようにはなりません。どの Emacs を使うかを
+決めているのは `editors/emacs/modules.mk` の二つの表で、削除と同時にそこからも
+落ちているためです。カテゴリの外にある `.mk` なので、こちらから足せません。
+手元で選びたい場合は本家側に書き戻してください。
+
+```make
+_EMACS_VERSIONS_ALL+=	emacs26 emacs26nox emacs27 emacs27nox emacs28 emacs28nox
+
+_EMACS_PKGDIR_MAP+= \
+	emacs26@../../zakinko/emacs26 \
+	emacs26nox@../../zakinko/emacs26-nox11 \
+	emacs27@../../zakinko/emacs27 \
+	emacs27nox@../../zakinko/emacs27-nox11 \
+	emacs28@../../zakinko/emacs28 \
+	emacs28nox@../../zakinko/emacs28-nox11
+```
+
+版ごとの `_EMACS_FLAVOR` や `_EMACS_REQD` は各パッケージの `version.mk` が
+持っているので、書き戻すのはこの二つだけで足ります。
 
 ## 対象
 
