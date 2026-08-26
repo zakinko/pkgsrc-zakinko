@@ -1,0 +1,30 @@
+# $NetBSD: Makefile,v 1.100 2026/05/14 16:41:20 ryoon Exp $
+
+PKGNAME=	${DISTNAME:S/mozc-/mozc-tool-/}
+PKGREVISION=	14
+
+INSTALLATION_DIRS+=	libexec
+
+do-build:
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${PREFIX}/bin/bazel \
+			--output_user_root=${WRKDIR}/bazel \
+			--client_debug \
+			build \
+			gui/tool:mozc_tool \
+			--distdir=${WRKSRC}/dist \
+			--jobs=${MAKE_JOBS:U1} \
+			--subcommands \
+			--host_action_env=PATH=${PATH} \
+			--action_env=PATH=${PATH} \
+			--sandbox_debug \
+			--verbose_failures \
+			${BAZEL_ARGS} \
+			--config oss_linux --compilation_mode opt
+
+do-install:
+	${INSTALL_PROGRAM} ${WRKSRC}/bazel-out/${OSDEST}//bin/gui/tool/mozc_tool \
+		${DESTDIR}${PREFIX}/libexec
+
+.include "../../zakinko/mozc-server/Makefile.common"
+.include "../../mk/bsd.pkg.mk"
