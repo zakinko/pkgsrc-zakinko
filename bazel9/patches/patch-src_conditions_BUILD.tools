@@ -1,0 +1,17 @@
+$NetBSD$
+
+--- src/conditions/BUILD.tools.orig
++++ src/conditions/BUILD.tools
+@@ -5,6 +5,12 @@
+ )
+ 
+ config_setting(
++    name = "netbsd",
++    constraint_values = ["@platforms//os:netbsd"],
++    visibility = ["//visibility:public"],
++)
++
++config_setting(
+     name = "openbsd",
+     constraint_values = ["@platforms//os:openbsd"],
+     visibility = ["//visibility:public"],

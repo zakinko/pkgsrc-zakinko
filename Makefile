@@ -11,6 +11,7 @@ SUBDIR+=	anthy-unicode
 SUBDIR+=	anthy-unicode-elisp
 SUBDIR+=	augeas
 SUBDIR+=	autogen
+SUBDIR+=	bazel9
 SUBDIR+=	emacs20
 SUBDIR+=	emacs21
 SUBDIR+=	emacs21-nox11

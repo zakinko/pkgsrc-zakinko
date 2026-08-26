@@ -1,0 +1,12 @@
+$NetBSD$
+
+--- tools/jdk/BUILD.tools.orig
++++ tools/jdk/BUILD.tools
+@@ -164,6 +164,7 @@
+     "jni_md_header-darwin",
+     "jni_md_header-freebsd",
+     "jni_md_header-linux",
++    "jni_md_header-netbsd",
+     "jni_md_header-openbsd",
+     "jni_md_header-windows",
+     "platformclasspath",

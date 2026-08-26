@@ -1,0 +1,33 @@
+$NetBSD$
+
+BLAKE2s (bazel-9.2.0-dist.zip) = 89db603e4ccb211e1cb4d2e72d231de3d2a0bcb3e2cc7ee730686b66edc51225
+SHA512 (bazel-9.2.0-dist.zip) = 40af06a2ca95ddf6dc92099a17c72ed330168284051d8ebc29a652d5d308edd0fc049a5c0c0aeaa7b285e86db0563bf2f52a27651255580254c8b097f1647fe9
+Size (bazel-9.2.0-dist.zip) = 221376908 bytes
+SHA1 (patch-MODULE.bazel) = b34b1f2ce0486941061f6a8f4331f349cafef73a
+SHA1 (patch-scripts_bootstrap_buildenv.sh) = 132132e6bfc8d4fd7f464ee3eb456be9b138e9a8
+SHA1 (patch-scripts_packages_BUILD) = 143295abdf50584fd974030fc3e6a7f8a8b95e52
+SHA1 (patch-scripts_packages_template__bin.sh) = d5b89ecc3222893aeb718f53fcccd30636454f59
+SHA1 (patch-src_BUILD) = ea2059b97efa6d91773acc8c8f31dadc27e1b9b6
+SHA1 (patch-src_conditions_BUILD) = 9dd607ef97a2247aff870d1693a492f8d793d742
+SHA1 (patch-src_conditions_BUILD.tools) = 5f00d64c53d41b8c3c383be28ce0569f8c2e4e88
+SHA1 (patch-src_main_cpp_BUILD) = cb610be0d88fba1893e59f1242786fe36b2cf111
+SHA1 (patch-src_main_cpp_blaze__util__bsd.cc) = fbd192d41b3552f569684e4425cab9f3ae38b094
+SHA1 (patch-src_main_cpp_option__processor.cc) = db5a77debf496f5d90724c38c072e669b4b68867
+SHA1 (patch-src_main_cpp_util_md5.h) = 5527f618aa9ab724dd545fa6b6b8da24aa8eb77f
+SHA1 (patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java) = 44276b7796b21f00cff1ec08095cc9cf39b7fe88
+SHA1 (patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java) = 6ba24d0a65047fc752467e91eabcb424917ace87
+SHA1 (patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java) = 43c62c5f26318f279883426b075ab8f68bc086c5
+SHA1 (patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java) = 22509228895b9eeb9a97b7e5bb6fe82e9c9892d6
+SHA1 (patch-src_main_java_com_google_devtools_build_lib_util_OS.java) = d143498841aab507c324af6cc8579535b1e5f2e0
+SHA1 (patch-src_main_native_BUILD) = f04dbd4506eab527b37dc659cc49b2791af60b37
+SHA1 (patch-src_main_native_unix__jni.h) = 9aad822026cc35f4953158a1dbc760ff8e6d76e7
+SHA1 (patch-src_main_native_unix__jni__bsd.cc) = 34b4c6aa59acc06bd09a33ab985ff433a09891c2
+SHA1 (patch-src_main_tools_BUILD) = 2d6969b995a844062e3f17491008229966f5a669
+SHA1 (patch-src_main_tools_process-tools-darwin.cc) = 8e27c42e1adad2b527734815266343df403cad90
+SHA1 (patch-src_tools_singlejar_BUILD) = f1c0a3255b049a1c47403350ba0108bec74947ff
+SHA1 (patch-src_tools_singlejar_diag.h) = 1c48f155eed73f24bb8b76b2350bfafe5e709d61
+SHA1 (patch-src_tools_singlejar_mapped__file__posix.inc) = a247544d52c833ebf385729a26d89b73d60f7de8
+SHA1 (patch-src_tools_singlejar_port.h) = 2528abd3e613964632b7b5936d48549fbf940c26
+SHA1 (patch-src_tools_singlejar_zip__headers.h) = 91b8f896e13938d79c045650eab3f07c0803efd8
+SHA1 (patch-third__party_BUILD) = eb93608fc9cebec9749beef0a12ee33c9d311d4b
+SHA1 (patch-tools_jdk_BUILD.tools) = e6fcc3e4d6ffbd0c56eb095a225bf4ecc09853b4

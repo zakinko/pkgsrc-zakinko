@@ -1,0 +1,33 @@
+$NetBSD$
+
+--- src/main/cpp/BUILD.orig
++++ src/main/cpp/BUILD
+@@ -29,6 +29,10 @@
+             "blaze_util_bsd.cc",
+             "blaze_util_posix.cc",
+         ],
++        "//src/conditions:netbsd": [
++            "blaze_util_bsd.cc",
++            "blaze_util_posix.cc",
++        ],
+         "//src/conditions:openbsd": [
+             "blaze_util_bsd.cc",
+             "blaze_util_posix.cc",
+@@ -52,6 +56,8 @@
+         ],
+         "//src/conditions:freebsd": [
+         ],
++        "//src/conditions:netbsd": [
++        ],
+         "//src/conditions:openbsd": [
+         ],
+         "//src/conditions:windows": WIN_LINK_OPTS,
+@@ -116,6 +122,8 @@
+             "-lprocstat",
+             "-lm",
+         ],
++        "//src/conditions:netbsd": [
++        ],
+         "//src/conditions:openbsd": [
+         ],
+         "//src/conditions:windows": [

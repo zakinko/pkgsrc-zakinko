@@ -1,0 +1,12 @@
+$NetBSD$
+
+--- scripts/packages/BUILD.orig
++++ scripts/packages/BUILD
+@@ -24,6 +24,7 @@
+             ":zip-bazel-exe_nojdk",
+         ],
+         "//src/conditions:freebsd": [],
++        "//src/conditions:netbsd": [],
+         "//src/conditions:openbsd": [],
+         "//src/conditions:darwin": [
+             ":generate-package-info",
