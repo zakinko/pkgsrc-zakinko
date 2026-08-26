@@ -113,10 +113,38 @@ cd /usr/pkgsrc/zakinko/emacs28-nox11
 make install
 ```
 
-ただし `EMACS_TYPE=emacs28nox` を選べるようにはなりません。どの Emacs を使うかを
-決めているのは `editors/emacs/modules.mk` の二つの表で、削除と同時にそこからも
-落ちているためです。カテゴリの外にある `.mk` なので、こちらから足せません。
-手元で選びたい場合は本家側に書き戻してください。
+`EMACS_TYPE=emacs28nox` として他のパッケージから使うこともできますが、
+そのままでは通りません。どの Emacs を使うかを決めているのは
+`editors/emacs/modules.mk` の二つの表で、削除と同時にそこからも落ちたためです。
+
+```
+ERROR: Accepted versions are: emacs21 emacs21nox emacs20 xemacs215 ...
+ERROR: No valid Emacs version installed found
+```
+
+カテゴリの外にある `.mk` なので、こちらから書き足すことはできません。ただし
+`_EMACS_PKGDIR` は make の引数で上書きできるので、`.mk` を触らずに済みます。
+
+```sh
+cd /usr/pkgsrc/zakinko/anthy-elisp
+make EMACS_TYPE=emacs26nox \
+     EMACS_VERSIONS_ACCEPTED=emacs26nox \
+     _EMACS_PKGDIR=../../zakinko/emacs26-nox11 \
+     package-install
+```
+
+コマンドラインの変数は makefile の代入に勝つので、`modules.mk` の中の
+`_EMACS_PKGDIR=` より後に効きます。版ごとの `_EMACS_FLAVOR` `_EMACS_REQD`
+`EMACS_VERSION_MAJOR` は指した先の `version.mk` が持つので、これで足ります。
+`EMACS_VERSIONS_ACCEPTED` も一緒に渡すのは、パッケージ側の一覧が
+`modules.mk` の現状に合わせて emacs29 以降になっているためです。
+
+NetBSD 11.0/amd64 で、この形で `anthy-elisp` を emacs26 emacs27 emacs28 の
+三つとも建てて動かしました。Emacs 自体は本家の binary package をそのまま
+使えます (`emacs26-nox11-26.3nb1` など、11.0/amd64 のセットに在ります)。
+
+恒久的に選べるようにしたい場合は、本家の `modules.mk` に二行書き戻す方が
+早いです。
 
 ```make
 _EMACS_VERSIONS_ALL+=	emacs26 emacs26nox emacs27 emacs27nox emacs28 emacs28nox
@@ -130,8 +158,52 @@ _EMACS_PKGDIR_MAP+= \
 	emacs28nox@../../zakinko/emacs28-nox11
 ```
 
-版ごとの `_EMACS_FLAVOR` や `_EMACS_REQD` は各パッケージの `version.mk` が
-持っているので、書き戻すのはこの二つだけで足ります。
+## anthy-elisp をどの Emacs で確かめたか
+
+`zakinko/anthy-elisp` を `EMACS_TYPE` ごとに実際に建てて入れ、変換して、
+入力メソッドから抜けるところまで見ています。NetBSD 11.0/amd64 です。
+
+| EMACS_TYPE | 版 | `.elc` | 変換 | 抜ける |
+| --- | --- | --- | --- | --- |
+| emacs20 | 20.7.1 | 7 | 日本語 | ○ |
+| emacs21nox | 21.4.1 | 7 | 日本語 | ○ |
+| emacs26nox | 26.3 | 6 | 日本語 | ○ |
+| emacs27nox | 27.2 | 6 | 日本語 | ○ |
+| emacs28nox | 28.2 | 6 | 日本語 | ○ |
+| emacs29nox | 29.4 | 6 | 日本語 | ○ |
+| emacs30nox | 30.2 | 6 | 日本語 | ○ |
+| emacs31nox | 31.1 | 6 | 日本語 | ○ |
+
+`.elc` が 20 と 21 だけ 7 本なのは `leim-list.elc` の分です。`modules.mk` の
+
+```make
+FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
+```
+
+で 23 以降は PLIST から外れます。どの版でも PLIST と一致しました。
+
+「抜ける」は `activate-input-method "japanese-anthy"` で入り、変換・確定して
+から `deactivate-input-method` し、`current-input-method` と
+`input-method-function` と anthy 側の `anthy-leim-active-p` が三つとも nil に
+戻り、続けて打った `abc` がそのままバッファに入ることを見ています。
+
+ここを見るのは、当て物が相手にしている壊れかたの一つが**変換はできるのに
+入力メソッドを切れない**という形だからです。`anthy.el` の 867 行が
+`inactivate-current-input-method-function` に代入していますが、この変数は
+Emacs 24.3 で改名され、旧名の alias は 29 で消えました。29 以降は代入が
+どこにも届かず、`deactivate-input-method` が
+
+```
+Symbol's function definition is void: nil
+  nil()
+  deactivate-input-method()
+```
+
+になります。ビルドを止める `set-face-underline-p` だけ直すと必ずここに来ます。
+境界はちょうど Emacs 29 で、26 27 28 では起きません。
+
+emacs20 は `zakinko/emacs20` (nb27) が要ります。本家の nb26 では LP64 の
+切り詰めで `set-language-environment "Japanese"` の時点で落ちるためです。
 
 ## emacs20 の宣言もれ
 
