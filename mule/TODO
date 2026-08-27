@@ -1,0 +1,5 @@
+(1) Support canna
+   - tweak src/mconfig.h definitions per options?
+
+(2) Add Chinese and Korean configuration
+   - edit files/site-init.el per options?

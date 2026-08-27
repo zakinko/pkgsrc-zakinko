@@ -45,6 +45,7 @@ SUBDIR+=	mozc-server333
 SUBDIR+=	mozc-server334
 SUBDIR+=	mozc-tool
 SUBDIR+=	mozc-tool333
+SUBDIR+=	mule
 SUBDIR+=	mule2
 SUBDIR+=	nss_stns
 SUBDIR+=	ntp4

@@ -1,0 +1,8 @@
+$NetBSD$
+
+BLAKE2s (mule1.1-netbsd-20260622.tar.gz) = e2295508f1f45536934af16e1c0afe8d96986333609847af060ae98cc047f78f
+SHA512 (mule1.1-netbsd-20260622.tar.gz) = 340422d8eebf8ce1cc3ebb99d9f78c71bd69cad75ffdc25e1c3e60b910a362e4eaa12b615cf3a145be5aaa45b698df03e8bccdbd2c39964502925fa14310ca11
+Size (mule1.1-netbsd-20260622.tar.gz) = 4250055 bytes
+SHA1 (patch-Makefile) = 6e5e66911cee8f8cb151b5cc6116d4400fae8788
+SHA1 (patch-src_mconfig.h-netbsd) = d78493b9dbe106c1a03124a02d95160164727d00
+SHA1 (patch-src_paths.h-dist) = e8e4eff9b44d3703ccf35348ba3e8495007fc741
