@@ -48,6 +48,7 @@ Size (tool.png) = 360 bytes
 BLAKE2s (tool.svg) = 008797301692abef03d44d24f9ae8a82ab791af3cc2ac6c0be4704aae80c976d
 SHA512 (tool.svg) = 471ae428ca8312b4ecc8ab3f7348f89b2778e853a3106e21b5027b5fa23d8ea2eb301a18d64203af52e4ca8bfe51f184966e01670c514dc019a649c5f557e08a
 Size (tool.svg) = 326 bytes
+SHA1 (patch-MODULE.bazel) = 2a8cc39951b26a44cd4b3bb259f8f308daf6d900
 SHA1 (patch-base_cpu__stats.cc) = a3fc053aa6dcba648cd29c06a5fbd4f0efa20371
 SHA1 (patch-base_file_recursive.cc) = c143f8c6dc66f387850ff5667da9b360a2b41c01
 SHA1 (patch-base_password__manager.cc) = 7f59c0117b2dcea111ca222a2324a48db289ded6

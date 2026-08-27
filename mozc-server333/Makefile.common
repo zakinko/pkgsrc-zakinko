@@ -72,10 +72,17 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 .include "../../mk/bsd.prefs.mk"
 
 .if empty(PKG_OPTIONS:Mgyp)
-# 3.33 の .bazeliskrc は USE_BAZEL_VERSION=8.4.1 を指している。pkgsrc の
-# devel/bazel は 6.4.0 なので、この依存はいまの木では満たせない。黙って
-# 古い bazel で落ちるより、満たせないことが依存の段で見える方がよい。
-TOOL_DEPENDS+=	bazel>=8.4.1:../../devel/bazel
+# 3.33's .bazeliskrc pins USE_BAZEL_VERSION=8.4.1, but carrying a second
+# bazel just for this package costs more than moving the dependencies
+# forward.  zakinko/bazel9 is the 9.2.0 that mozc 3.34 needs anyway, so both
+# versions build with the one tool.
+#
+# The rules_cc 0.2.2 that 3.33 pins reads the CcInfo, DebugPackageInfo and
+# CcSharedLibraryInfo globals bazel 9 removed, which stops the build in the
+# loading phase; patch-MODULE.bazel raises it to 0.2.17 and adds what
+# upstream added in 3.34 for bazel 9.  Measured on NetBSD 11.0/amd64:
+# server:mozc_server builds, 2125 actions, no errors.
+TOOL_DEPENDS+=	bazel>=9.0.0:../../zakinko/bazel9
 # 3.33 は WORKSPACE.bazel をやめて MODULE.bazel へ移った。bzlmod は依存を
 # 建てる最中に取りにいくので、2.29 のように --distdir へ tarball を並べて
 # おく形では閉じない。
