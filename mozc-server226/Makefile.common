@@ -27,8 +27,8 @@ SITES.${UIM_MOZC}.tar.xz=	${MASTER_SITE_SOURCEFORGE:=pnsft-aur/}
 EXTRACT_USING=	bsdtar
 WRKSRC=		${WRKDIR}/${DISTNAME}/src
 
-DISTINFO_FILE=	${.CURDIR}/../../inputmethod/mozc-server226/distinfo
-PATCHDIR=	${.CURDIR}/../../inputmethod/mozc-server226/patches
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/mozc-server226/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server226/patches
 
 PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
