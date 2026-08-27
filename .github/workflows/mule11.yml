@@ -1,0 +1,108 @@
+name: mule11
+
+# mule (Mule 1.1) を NetBSD の各版で組んで、日本語が編集できるところまで
+# 確かめる。2.3 は別物で、そちらは mule.yml (表示名 mule2) が見る。
+#
+# 中身は run-in-qemu.sh の UPSTREAM_PKG 経路にそのまま乗せている。
+# zakinko/<pkg> を渡すとその package だけをゲストのツリーへ置いて、
+# VERIFY_SCRIPT で名指しした検査を走らせる仕掛けが既にあるので、
+# mule2 側の道 (run-in-qemu.sh の末尾にある既定の経路) には触らない。
+#
+# 配布物はゲストが GitHub から取る。4.2 MB なので、pkgsrc のツリー
+# (98 MB) で問題になった user-mode NAT の遅さは効かない。ホスト側で
+# 取って流し込む段は、そのために設けない。
+#
+# 軸は canna と wnn4 の有無だけにしてある。1.1 には x11 option が無く、
+# Makefile が x11.buildlink3.mk を無条件に読むので、どの構成でも X 版が
+# 建つ。X の検査は毎回走る。
+#
+# 時間の見積もりは mule2 の実測を借りている (x11 が 89 分から 230 分)。
+# 1.1 は info を建てず依存も浅いので、もっと短く済むはず。実測が
+# 溜まったら詰める。
+
+on:
+  push:
+    paths:
+      - 'mule/**'
+      - '.github/workflows/mule11.yml'
+      - '.github/ci/verify-mule11.sh'
+      - '.github/ci/run-in-qemu.sh'
+  pull_request:
+    paths:
+      - 'mule/**'
+      - '.github/ci/verify-mule11.sh'
+  workflow_dispatch:
+    inputs:
+      images:
+        description: '対象イメージ (例 "i386-11.0 amd64-10.1")。空なら既定'
+        required: false
+      options:
+        description: 'PKG_OPTIONS.mule (例 "canna wnn4"、"-canna -wnn4")'
+        required: false
+
+# 同じ枝を続けて押したときに、古いほうを走らせ続けない。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.q.outputs.images }}
+    steps:
+      - id: q
+        env:
+          I: ${{ inputs.images }}
+        run: |
+          set -e
+          [ -n "$I" ] || I="i386-11.0 i386-10.1 i386-9.4 amd64-11.0 amd64-10.1 amd64-9.4"
+          printf 'images=%s\n' "$(printf '%s\n' $I | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  pkgsrc:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      # 二つの軸を両方 matrix に書く。include に image を持たないものを
+      # 並べると全ての組み合わせにマージされ、端末構成が消える (mule2 側で
+      # 踏んだもの)。
+      matrix:
+        image: ${{ fromJSON(needs.plan.outputs.images) }}
+        config:
+          - options: '-canna -wnn4'
+            label: plain
+          - options: 'canna wnn4'
+            label: im
+    name: ${{ matrix.image }} ${{ matrix.config.label }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      - name: 組んで確かめる
+        env:
+          UPSTREAM_PKG: zakinko/mule
+          VERIFY_SCRIPT: verify-mule11.sh
+          VERIFY_OPTS: ${{ inputs.options || matrix.config.options }}
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true

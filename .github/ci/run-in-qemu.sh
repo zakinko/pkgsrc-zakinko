@@ -165,7 +165,11 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 	# 検査はゲストの中で走るので、ホスト側の環境変数は自分では見えない。
 	# 渡すものだけを明示して持っていく。BINPKG_SITES を渡し忘れていて、
 	# zls が LLVM を素から組み始めたことがある。
+	# VERIFY_OPTS は検査ごとの追加の指定。verify-mule11.sh が
+	# PKG_OPTIONS.mule として読む。渡さなければ空で、見ない検査には
+	# 何も起きない。
 	$SSH "BINPKG_SITES='${BINPKG_SITES:-}' UIM_OPTIONS='${UIM_OPTIONS:-}' \
+		VERIFY_OPTS='${VERIFY_OPTS:-}' \
 		sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
 	exit $?
 fi
