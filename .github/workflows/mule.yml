@@ -1,6 +1,12 @@
-name: mule
+name: mule2
 
-# mule を NetBSD の各版で組んで、日本語が編集できるところまで確かめる。
+# mule2 (Mule 2.3) を NetBSD の各版で組んで、日本語が編集できるところまで
+# 確かめる。Mule 1.1 は別物で、そちらを検査するなら mule11.yml を作る。
+#
+# ファイル名が mule.yml のままなのは、GitHub が workflow の同一性をファイル名で
+# 持つため。改名すると UI では別の workflow になり、これまでの実測 (x11 が
+# 89 分から 230 分の範囲に散ること) が旧名の側に取り残されて並べて見られなく
+# なる。表示名だけ mule2 にして、履歴は繋いでおく。
 #
 # イメージは netbsd-ci-images の release から取る。runner は x86_64 の
 # Linux で KVM が使えるので、i386 と amd64 のゲストはほぼ実速で動く。
@@ -18,12 +24,12 @@ name: mule
 on:
   push:
     paths:
-      - 'mule/**'
+      - 'mule2/**'
       - '.github/workflows/mule.yml'
       - '.github/ci/**'
   pull_request:
     paths:
-      - 'mule/**'
+      - 'mule2/**'
       - '.github/ci/**'
   workflow_dispatch:
     inputs:

@@ -2,7 +2,7 @@
 # pkgsrc の載った BSD の中で走る。mule を組んで、実際に日本語が編集できる
 # ところまで確かめる。
 #
-#   $1  PKG_OPTIONS.mule に渡す文字列
+#   $1  PKG_OPTIONS.mule2 に渡す文字列
 #
 # NetBSD からは run-in-qemu.sh が、それ以外の BSD からは build-on-bsd.sh が
 # 呼ぶ。違うのは依存の入れ方だけで、検査は同じものを通す。
@@ -64,7 +64,7 @@ fi
 echo "    資源: ${JOBS} 並列 (CPU $(sysctl -n hw.ncpu 2>/dev/null || echo ?), メモリ ${_mb} MB)"
 df -h / /tmp 2>/dev/null | sed 's/^/    /'
 REL=$(uname -r | sed -e 's/_.*//')
-echo "=== ${OS} ${REL} / ${ARCH} / PKG_OPTIONS.mule=\"${OPTS}\" ==="
+echo "=== ${OS} ${REL} / ${ARCH} / PKG_OPTIONS.mule2=\"${OPTS}\" ==="
 # NetBSD は gcc、FreeBSD と OpenBSD は clang。どちらでも cc で当たる。
 cc --version 2>/dev/null | head -1
 
@@ -196,8 +196,8 @@ fi
 
 echo "--- build と install ---"
 # 同じ版が残っていると install が拒否されるので、作り直す前に外す
-pkg_delete -f mule > /dev/null 2>&1 || true
-build_install $TREE/zakinko/mule PKG_OPTIONS.mule="$OPTS" || {
+pkg_delete -f mule2 > /dev/null 2>&1 || true
+build_install $TREE/zakinko/mule2 PKG_OPTIONS.mule2="$OPTS" || {
 	echo "FAIL: mule を組めない"
 	exit 1
 }
