@@ -16,7 +16,7 @@ COMMENT=		Classical Mule (MULtilingual Enhancement of GNU Emacs), based on 18.59
 #unexelf.c is pulled from emacs22
 LICENSE=		gnu-gpl-v1 AND gnu-gpl-v2
 
-CONFLICTS=		emacs19-[0-9]* emacs2[0-9]-[0-9]* mule2-[0-9]*
+CONFLICTS=		mule2-[0-9]*
 
 MAKE_JOBS_SAFE=		no
 
@@ -72,7 +72,7 @@ SUBST_FILES.x11=	src/s-netbsd.h
 REPLACE_PERL=		etc/faq2texi.perl
 
 # build PATH in the dumped emacs may not be a problem
-CHECK_WRKREF_SKIP+=     bin/mule
+CHECK_WRKREF_SKIP+=	bin/mule
 
 INSTALLATION_DIRS+=	bin ${PKGMANDIR}/man1 share/mule/${EMACSVERSION}
 MAKE_DIRS+=		${VARBASE}/lock ${VARBASE}/lock/mule
