@@ -15,7 +15,7 @@ LICENSE=	gnu-gpl-v2
 
 MAKE_JOBS_SAFE=		no
 
-CONFLICTS=	emacs-[0-9]* mule-[0-9]*
+CONFLICTS=	emacs-[0-9]* emacs-nox11-[0-9]* emacs[0-9]*-[0-9]* mule-[0-9]*
 
 # build PATH in the dumped mule is not a problem
 CHECK_WRKREF_SKIP+=	bin/mule
