@@ -5,11 +5,10 @@
 # used by zakinko/mozc-server333/Makefile
 # used by zakinko/mozc-tool333/Makefile
 
-# 3.33.6089 は GYP を積んだ最後の mozc である。次のタグ 3.33.6133 では
-# src/build_mozc.py も src/gyp/ も無い (2026-03-11 の "Remove files for GYP
-# build.")。ここは GYP がどこまで動くかを見るための一式なので bazel 経路を
-# 持たない。3.33 は WORKSPACE.bazel をやめて MODULE.bazel へ移っており、tree
-# の mozc-server が --distdir に tarball を並べてやっている形は当たらない。
+# 3.33.6089 is the last mozc that carries GYP.  The next tag, 3.33.6133, has
+# neither src/build_mozc.py nor src/gyp/ -- they were removed on 2026-03-11
+# ("Remove files for GYP build.").  So this is the newest mozc that can be
+# built where bazel cannot run, and that will not change.
 
 DISTNAME=	mozc-3.33.6089
 CATEGORIES=	inputmethod
@@ -74,8 +73,8 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 .if empty(PKG_OPTIONS:Mgyp)
 # 3.33's .bazeliskrc pins USE_BAZEL_VERSION=8.4.1, but carrying a second
 # bazel just for this package costs more than moving the dependencies
-# forward.  zakinko/bazel9 is the 9.2.0 that mozc 3.34 needs anyway, so both
-# versions build with the one tool.
+# forward.  zakinko/bazel9 is the 9.2.0 that mozc 3.34 needs anyway, so
+# both versions build with the one tool.
 #
 # The rules_cc 0.2.2 that 3.33 pins reads the CcInfo, DebugPackageInfo and
 # CcSharedLibraryInfo globals bazel 9 removed, which stops the build in the
@@ -83,9 +82,9 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 # upstream added in 3.34 for bazel 9.  Measured on NetBSD 11.0/amd64:
 # server:mozc_server builds, 2125 actions, no errors.
 TOOL_DEPENDS+=	bazel>=9.0.0:../../zakinko/bazel9
-# 3.33 は WORKSPACE.bazel をやめて MODULE.bazel へ移った。bzlmod は依存を
-# 建てる最中に取りにいくので、2.29 のように --distdir へ tarball を並べて
-# おく形では閉じない。
+# 3.33 replaced WORKSPACE.bazel with MODULE.bazel.  bzlmod resolves its
+# dependencies while building, so lining up tarballs under --distdir the way
+# the 2.29 packages do does not close the build.
 ALLOW_NETWORK_ACCESS=	yes
 .else
 TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
@@ -131,9 +130,10 @@ pre-configure:
 .endfor
 	${RM} -r ${WRKDIR}/.cwrapper
 
-# server と elisp は Qt にも GL にも触らない。無条件に buildlink すると
-# qt6-qtbase が実行時依存として記録され、USE_X11 が立って X の無い箱では
-# fetch にも進めなくなる。renderer と tool だけが要る。
+# mozc-server and mozc-elisp link neither Qt nor GL.  Including these
+# unconditionally records qt6-qtbase as a run-time dependency and sets
+# USE_X11, and a machine without X11 then cannot even fetch the package.
+# Only mozc-renderer and mozc-tool need them.
 .if !empty(PKGPATH:M*/mozc-renderer333) || !empty(PKGPATH:M*/mozc-tool333)
 .include "../../graphics/MesaLib/buildlink3.mk"
 .include "../../x11/qt6-qtbase/buildlink3.mk"

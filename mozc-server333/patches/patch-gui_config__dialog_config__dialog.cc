@@ -1,5 +1,8 @@
 $NetBSD: patch-gui_config__dialog_config__dialog.cc,v 1.8 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
 --- gui/config_dialog/config_dialog.cc.orig
 +++ gui/config_dialog/config_dialog.cc
 @@ -104,7 +104,7 @@

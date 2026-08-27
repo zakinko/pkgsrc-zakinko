@@ -1,5 +1,7 @@
 $NetBSD$
 
+Add IsNetBSD(), which build_mozc.py needs to pick the target platform.
+
 --- build_tools/util.py.orig
 +++ build_tools/util.py
 @@ -103,6 +103,11 @@

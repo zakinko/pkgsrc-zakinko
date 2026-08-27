@@ -1,5 +1,8 @@
 $NetBSD: patch-config_stats__config__util__test.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
 --- config/stats_config_util_test.cc.orig
 +++ config/stats_config_util_test.cc
 @@ -686,7 +686,7 @@

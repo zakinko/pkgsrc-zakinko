@@ -6,7 +6,7 @@ INSTALLATION_DIRS+=	libexec
 
 .include "../../zakinko/mozc-server333/options.mk"
 
-# GUI を建てないので Qt は要らない。
+# No GUI is built here, so Qt is not needed.
 MOZC_GYP_ARGS=	--noqt
 
 post-configure:
@@ -40,6 +40,7 @@ do-install:
 do-build:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHONBIN} build_mozc.py build -c ${MOZC_BUILD_MODE} \
+			--jobs=${MAKE_JOBS:U1} \
 			server/server.gyp:mozc_server
 
 do-install:

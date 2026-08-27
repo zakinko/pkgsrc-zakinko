@@ -1,5 +1,8 @@
 $NetBSD: patch-base_password__manager.cc,v 1.6 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
 --- base/password_manager.cc.orig
 +++ base/password_manager.cc
 @@ -269,7 +269,7 @@

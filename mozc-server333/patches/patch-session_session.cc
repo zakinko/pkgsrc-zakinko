@@ -1,5 +1,10 @@
 $NetBSD: patch-session_session.cc,v 1.7 2024/02/10 01:17:28 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
+This disables the cascading candidate window, which needs a renderer.
+
 --- session/session.cc.orig
 +++ session/session.cc
 @@ -238,7 +238,7 @@

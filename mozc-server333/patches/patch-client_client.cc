@@ -1,5 +1,8 @@
 $NetBSD: patch-client_client.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
 --- client/client.cc.orig
 +++ client/client.cc
 @@ -888,7 +888,7 @@

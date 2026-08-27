@@ -1,5 +1,15 @@
 $NetBSD$
 
+Teach the build driver about NetBSD, and let it pass -j through to ninja.
+
+BuildWithNinja() invoked ninja with no -j, so ninja used its own default
+of CPU count + 2 and MAKE_JOBS never reached the compiler.  On a machine
+with little memory that is the difference between building and being
+killed: on a 3 GB i386 guest with 4 CPUs, cc1plus was OOM killed while
+compiling protobuf's descriptor.cc.
+
+The --jobs option is not NetBSD specific and would be useful upstream.
+
 --- build_mozc.py.orig
 +++ build_mozc.py
 @@ -55,6 +55,7 @@
@@ -38,7 +48,16 @@ $NetBSD$
      default_target = 'Linux'
    elif IsWindows():
      default_target = 'Windows'
-@@ -495,7 +499,7 @@
+@@ -313,6 +317,8 @@
+   AddCommonOptions(parser)
+   parser.add_option('--configuration', '-c', dest='configuration',
+                     default='Debug', help='specify the build configuration.')
++  parser.add_option('--jobs', '-j', dest='jobs', type='int', default=None,
++                    metavar='N', help='run N compile jobs in parallel.')
+ 
+   (options, args) = parser.parse_args(args)
+ 
+@@ -495,7 +501,7 @@
      gyp_options.extend(['-D', 'use_qt=NO'])
    else:
      gyp_options.extend(['-D', 'use_qt=YES'])
@@ -47,3 +66,16 @@ $NetBSD$
        if PkgExists('Qt6Core', 'Qt6Gui', 'Qt6Widgets'):
          qt_ver = 6
        elif PkgExists('Qt5Core', 'Qt5Gui', 'Qt5Widgets'):
+@@ -634,7 +640,11 @@
+ 
+   for target in targets:
+     (_, target_name) = target.split(':')
+-    RunOrDie([ninja, '-C', build_arg, target_name])
++    ninja_args = [ninja, '-C', build_arg]
++    if options.jobs:
++      ninja_args.extend(['-j', str(options.jobs)])
++    ninja_args.append(target_name)
++    RunOrDie(ninja_args)
+ 
+ 
+ def BuildOnWindows(targets):

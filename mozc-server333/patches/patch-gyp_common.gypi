@@ -1,5 +1,10 @@
 $NetBSD$
 
+Add an OS=="netbsd" block to the GYP defaults.
+
+Without it protoc fails to link with an undefined reference to
+pthread_getschedparam, because ldflags carries no -pthread.
+
 --- gyp/common.gypi.orig
 +++ gyp/common.gypi
 @@ -74,6 +74,14 @@

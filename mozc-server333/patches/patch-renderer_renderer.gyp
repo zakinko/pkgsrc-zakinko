@@ -1,0 +1,91 @@
+$NetBSD$
+
+Add a mozc_renderer target for Unix.
+
+renderer.gyp defines mozc_renderer only inside OS=="win" and OS=="mac",
+so a GYP build produces no renderer on Unix at all -- running gyp with Qt
+enabled emits no such ninja target.  The sources are all present in
+renderer/qt/ and renderer/qt/BUILD.bazel builds them; only the GYP target
+definition is missing.
+
+The dependencies here are read out of renderer/qt/BUILD.bazel and
+translated to GYP target names.  moc is handled by gui/qt_moc.gypi, which
+gui.gyp already uses the same way.
+
+inputmethod/mozc-server226 carries the same kind of patch for the GTK
+renderer, which upstream dropped; the Qt one took its place.
+
+--- renderer/renderer.gyp.orig
++++ renderer/renderer.gyp
+@@ -215,6 +215,71 @@
+     },
+   ],
+   'conditions': [
++    ['use_qt=="YES" and (target_platform=="Linux" or target_platform=="NetBSD")', {
++      'targets': [
++        {
++          'target_name': 'gen_qt_renderer_files',
++          'type': 'none',
++          'variables': {
++            'subdir': 'qt',
++          },
++          'sources': [
++            'qt/qt_ipc_thread.h',
++            'qt/qt_server.h',
++          ],
++          'includes': [
++            '../gui/qt_moc.gypi',
++          ],
++        },
++        {
++          'target_name': 'qt_renderer_lib',
++          'type': 'static_library',
++          'sources': [
++            'qt/qt_ipc_server.cc',
++            'qt/qt_ipc_thread.cc',
++            'qt/qt_server.cc',
++            'qt/qt_window_manager.cc',
++            '<(gen_out_dir)/qt/moc_qt_ipc_thread.cc',
++            '<(gen_out_dir)/qt/moc_qt_server.cc',
++          ],
++          'dependencies': [
++            '<(mozc_oss_src_dir)/base/absl.gyp:absl_strings',
++            '<(mozc_oss_src_dir)/base/absl.gyp:absl_time',
++            '<(mozc_oss_src_dir)/base/base.gyp:base',
++            '<(mozc_oss_src_dir)/client/client.gyp:client',
++            '<(mozc_oss_src_dir)/config/config.gyp:config_handler',
++            '<(mozc_oss_src_dir)/ipc/ipc.gyp:ipc',
++            '<(mozc_oss_src_dir)/protocol/protocol.gyp:candidate_window_proto',
++            '<(mozc_oss_src_dir)/protocol/protocol.gyp:commands_proto',
++            '<(mozc_oss_src_dir)/protocol/protocol.gyp:config_proto',
++            '<(mozc_oss_src_dir)/protocol/protocol.gyp:renderer_proto',
++            'gen_qt_renderer_files',
++            'renderer_style_handler',
++            'window_util',
++          ],
++          'includes': [
++            '../gui/qt_libraries.gypi',
++          ],
++        },
++        {
++          'target_name': 'mozc_renderer',
++          'type': 'executable',
++          'sources': [
++            'qt/qt_renderer_main.cc',
++          ],
++          'defines': [
++            'ENABLE_QT_RENDERER',
++          ],
++          'dependencies': [
++            'init_mozc_renderer',
++            'qt_renderer_lib',
++          ],
++          'includes': [
++            '../gui/qt_libraries.gypi',
++          ],
++        },
++      ],
++    }],
+     ['OS=="win"', {
+       'targets': [
+         {

@@ -3,8 +3,9 @@
 PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/mozc-/mozc-elisp-/}
 CATEGORIES=	inputmethod editors
 
-# helper は自分では変換せず /usr/pkg/libexec/mozc_server に話しかけるだけで、
-# client は server の版が違えば拒む (client.cc の CheckVersionOrRestartServer)。
+# The helper does no conversion of its own; it talks to mozc_server, and the
+# client refuses a server whose version string differs (client.cc,
+# CheckVersionOrRestartServer).  So pin the version, not just the package.
 DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server333
 
 .include "../../zakinko/mozc-server333/options.mk"
@@ -49,6 +50,7 @@ do-install:
 do-build:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHONBIN} build_mozc.py build -c ${MOZC_BUILD_MODE} \
+			--jobs=${MAKE_JOBS:U1} \
 			unix/emacs/emacs.gyp:mozc_emacs_helper && \
 		${EMACS_BIN} --no-init-file --no-site-file -batch \
 			-f batch-byte-compile ${WRKSRC}/unix/emacs/mozc.el

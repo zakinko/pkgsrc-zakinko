@@ -10,21 +10,30 @@ PKG_SUPPORTED_OPTIONS=	gyp
 # release that carries gyp at all: the next tag, 3.33.6133, has neither
 # src/build_mozc.py nor src/gyp/.
 #
-# The two builds do not produce the same set of programs.  gyp can build
-# mozc_server, mozc_emacs_helper and mozc_tool, but not mozc_renderer --
-# renderer.gyp only defines that target under OS=="win" and OS=="mac".  So
-# inputmethod/mozc-renderer has no gyp path and does not include this file.
+# Both builds produce all four programs here.  GYP has no mozc_renderer
+# target for Unix upstream -- renderer.gyp defines it only under OS=="win"
+# and OS=="mac" -- but the sources are present and
+# patch-renderer_renderer.gyp adds the target, so the gyp path is not
+# missing anything the bazel path has.
 #
-# devel/bazel does not build on 32-bit platforms -- its Makefile carries
-# BROKEN_ON_PLATFORM= ${LP32PLATFORMS} -- and there is no bazel binary
-# package for any of them; on the NetBSD 11.0 binary sets bazel exists for
-# x86_64 and aarch64 only.  Default to the gyp build everywhere else, so that
-# the Emacs input method can be built at all on those platforms.
-.for _mozc_platform_ in ${LP32PLATFORMS}
-.  if !empty(MACHINE_PLATFORM:M${_mozc_platform_})
+# The bazel path needs a JVM, and mk/java-vm.mk offers openjdk21 on NetBSD
+# only for x86_64, i386 and aarch64 (_ONLY_FOR_PLATFORMS.openjdk21).  Of
+# those, bazel's own singlejar refuses 32-bit outright:
+#
+#	src/tools/singlejar/port.h
+#	#error This code for 64 bit Unix.
+#
+# So bazel exists on x86_64 and aarch64 and nowhere else, and everywhere
+# else the gyp build -- which needs only python and ninja -- is the only
+# one that can run.  Default to it there.
+#
+# Note that only x86_64 has been measured.  aarch64 is included because the
+# JDK and the 64-bit requirement are both satisfied, not because anyone has
+# built it: zakinko/bazel9 carries no aarch64 branch and was built on amd64.
+.if ${OPSYS} != "NetBSD" || \
+    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
 PKG_SUGGESTED_OPTIONS+=	gyp
-.  endif
-.endfor
+.endif
 
 .include "../../mk/bsd.options.mk"
 

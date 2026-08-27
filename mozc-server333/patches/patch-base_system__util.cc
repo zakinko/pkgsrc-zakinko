@@ -1,5 +1,12 @@
 $NetBSD$
 
+Portability fixes for NetBSD, and point the server directory at PREFIX.
+
+MOZC_SERVER_DIR defaults to /usr/lib/mozc, which is where a Linux
+distribution installs it.  pkgsrc installs mozc_server under
+PREFIX/libexec, and the client refuses to start a server it cannot find
+there.
+
 --- base/system_util.cc.orig
 +++ base/system_util.cc
 @@ -279,7 +279,7 @@

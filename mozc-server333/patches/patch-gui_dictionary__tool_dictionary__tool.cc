@@ -1,5 +1,8 @@
 $NetBSD: patch-gui_dictionary__tool_dictionary__tool.cc,v 1.7 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
 --- gui/dictionary_tool/dictionary_tool.cc.orig
 +++ gui/dictionary_tool/dictionary_tool.cc
 @@ -353,7 +353,7 @@

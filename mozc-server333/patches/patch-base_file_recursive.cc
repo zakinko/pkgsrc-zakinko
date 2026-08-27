@@ -1,5 +1,10 @@
 $NetBSD: patch-base_file_recursive.cc,v 1.1 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
+NetBSD has the fts(3) interface this code uses.
+
 --- base/file/recursive.cc.orig
 +++ base/file/recursive.cc
 @@ -106,7 +106,8 @@

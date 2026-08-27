@@ -1,5 +1,11 @@
 $NetBSD$
 
+Let the Qt cflags and libraries apply on NetBSD.
+
+The pkg-config lookup is guarded by target_platform=="Linux", so a
+NetBSD build gets no Qt flags and mozc_tool and mozc_renderer fail to
+compile.
+
 --- gui/qt_libraries.gypi.orig
 +++ gui/qt_libraries.gypi
 @@ -108,7 +108,7 @@

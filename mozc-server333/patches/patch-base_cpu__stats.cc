@@ -1,5 +1,10 @@
 $NetBSD: patch-base_cpu__stats.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
+sysconf(_SC_NPROCESSORS_CONF) and /proc based CPU accounting work the same way.
+
 --- base/cpu_stats.cc.orig
 +++ base/cpu_stats.cc
 @@ -116,7 +116,7 @@

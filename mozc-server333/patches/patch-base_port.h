@@ -1,5 +1,11 @@
 $NetBSD: patch-base_port.h,v 1.6 2024/02/10 01:17:27 ryoon Exp $
 
+Add NetBSD to the PlatformType enum.
+
+kTargetPlatform is chosen by a chain of #elif over the known platforms and
+ends in #error "Unsupported target platform.", so NetBSD does not compile
+without an entry here.
+
 --- base/port.h.orig
 +++ base/port.h
 @@ -45,6 +45,7 @@

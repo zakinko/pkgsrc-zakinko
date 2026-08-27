@@ -1,5 +1,10 @@
 $NetBSD: patch-base_process.cc,v 1.7 2024/02/10 01:17:27 ryoon Exp $
 
+Treat NetBSD like Linux here.  Upstream supports Linux, macOS, Windows,
+Android and WASM only, so every POSIX path is spelled __linux__.
+
+xdg-open lives under PREFIX in pkgsrc, not in /usr/bin.
+
 --- base/process.cc.orig
 +++ base/process.cc
 @@ -101,12 +101,12 @@
