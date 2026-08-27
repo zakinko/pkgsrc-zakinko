@@ -37,6 +37,18 @@ PKG_SUGGESTED_OPTIONS+=	gyp
 
 .include "../../mk/bsd.options.mk"
 
+# The default above only chooses; it does not stop anyone from asking for the
+# bazel build on a platform where bazel cannot exist.  Without this the build
+# fails while resolving TOOL_DEPENDS, and the message names zakinko/bazel9
+# rather than mozc, which reads as a missing package rather than as a wrong
+# choice.
+.if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
+    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
+PKG_FAIL_REASON+=	"The bazel build needs zakinko/bazel9, which builds"	\
+			"only on NetBSD x86_64 and aarch64."			\
+			"Set PKG_OPTIONS.mozc=gyp to build mozc here."
+.endif
+
 # Both builds produce the same version string, so packages built either way
 # are interchangeable at run time; see patch-build__tools_mozc__version.py
 # for why that needs saying.
