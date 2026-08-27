@@ -1,0 +1,5 @@
+GNU Emacs 23.4 built without X11 support.
+
+This is a copy of editors/emacs23-nox11 as it stood in pkgsrc before the
+package was removed, kept here so that elisp packages can be measured
+against this Emacs version.

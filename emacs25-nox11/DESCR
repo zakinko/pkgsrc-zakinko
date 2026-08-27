@@ -1,0 +1,5 @@
+GNU Emacs 25.3 built without X11 support.
+
+This is a copy of editors/emacs25-nox11 as it stood in pkgsrc before the
+package was removed, kept here so that elisp packages can be measured
+against this Emacs version.
