@@ -173,14 +173,16 @@ fi
 $SSH sh -s <<'GUEST'
 set -e
 mkdir -p /usr/pkgsrc/zakinko
-printf '# $NetBSD$\nCOMMENT=\tLocal\nSUBDIR+=\tmule\n.include "../mk/misc/category.mk"\n' \
+printf '# $NetBSD$\nCOMMENT=\tLocal\nSUBDIR+=\tmule2\n.include "../mk/misc/category.mk"\n' \
 	> /usr/pkgsrc/zakinko/Makefile
 GUEST
 
 echo "=== パッケージと検査を送り込む ==="
-tar czf - -C "$TREE" mule .github/ci | $SSH "tar xzf - -C /tmp && \
-	mkdir -p /usr/pkgsrc/zakinko/mule && \
-	cp -R /tmp/mule/. /usr/pkgsrc/zakinko/mule/"
+# 送るのは mule2 (Mule 2.3)。8d71ae8 で mule という名前は Mule 1.1 に
+# 移ったので、そのまま送るとゲストで別物を建てることになる。
+tar czf - -C "$TREE" mule2 .github/ci | $SSH "tar xzf - -C /tmp && \
+	mkdir -p /usr/pkgsrc/zakinko/mule2 && \
+	cp -R /tmp/mule2/. /usr/pkgsrc/zakinko/mule2/"
 if [ -s "$TREE/distfiles/mule-2.3.tar.gz" ]; then
 	$SSH "cat > /usr/pkgsrc/distfiles/mule-2.3.tar.gz" < "$TREE/distfiles/mule-2.3.tar.gz"
 fi
