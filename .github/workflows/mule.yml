@@ -49,7 +49,13 @@ jobs:
   pkgsrc:
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # 180 では足りない。current のツリーと release の四半期枝バイナリの
+    # 版ずれで依存を建て直す量が決まるので、古い版ほど長くなる。実測で
+    # 11.0 の x11 が 126 分、10.1 が 160 分、9.4 と 10.1 の i386 は 180 分に
+    # 届かず切られた。CPU を 4 に増やしてもこの傾向は変わらない。
+    #
+    # GitHub の上限は 360 分。250 分あたりに収まると見て 300 を置く。
+    timeout-minutes: 300
     strategy:
       fail-fast: false
       max-parallel: 4
