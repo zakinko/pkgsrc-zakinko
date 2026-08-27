@@ -314,7 +314,8 @@ if want canna; then
 	chown -R daemon:daemon /var/dict/canna
 	chmod 775 /var/dict/canna /var/dict/canna/canna /var/dict/canna/group
 	# 既に動いていることがある。二重起動は失敗するので確かめてから。
-	pgrep -q cannaserver || $PREFIX/sbin/cannaserver -u daemon || true
+	# NetBSD 9.4 の pgrep には -q が無い (10.0 から)。出力を捨てて数だけ見る。
+	pgrep cannaserver > /dev/null 2>&1 || $PREFIX/sbin/cannaserver -u daemon || true
 	sleep 2
 	if [ ! -S /tmp/.iroha_unix/IROHA ]; then
 		bad "cannaserver が起動していない"
@@ -341,7 +342,7 @@ fi
 
 if want wnn4; then
 	echo "--- 4. wnn: 読みから漢字まで ---"
-	pgrep -q jserver || $PREFIX/sbin/jserver || true
+	pgrep jserver > /dev/null 2>&1 || $PREFIX/sbin/jserver || true
 	sleep 2
 	if [ ! -f $PREFIX/lib/mule/19.28/lisp/eggrc ]; then
 		bad "eggrc が入っていない (egg が辞書を登録できない)"
@@ -376,6 +377,26 @@ EL
 fi
 
 if want x11; then
+# X 版が落ちたとき、どこで落ちたかを VM の中で取る。core を持ち出さずに
+# 済むよう gdb に走らせて bt だけ読む。9.4/amd64 でここが SIGSEGV になる。
+# 2017 年に tsutsui が「-nw は動くが Xt 版は core を吐く」と XXX で残したのと
+# 同じ形なら、宣言の漏れた関数が bt に出る。Xt は XtPointer 越しに
+# Lisp_Object を往復させる経路が多く、宣言が無いと暗黙の int に落ちて
+# LP64 で上位 32bit が消える。
+xbt_l() {
+	command -v gdb > /dev/null 2>&1 || { note "gdb が無いので bt は取れない"; return; }
+	note "elisp を読ませた側で落ちた場所を見る"
+	DISPLAY=:99 gdb -batch -ex run -ex bt --args "$MULE" -q -l "$CI_DIR/x.el" 2>&1 |
+		grep -vE '^\[New |^\[Thread |^Reading symbols' | head -30 | sed 's/^/      /'
+}
+
+xbt() {
+	command -v gdb > /dev/null 2>&1 || { note "gdb が無いので bt は取れない"; return; }
+	note "落ちた場所を gdb で見る"
+	DISPLAY=:99 gdb -batch -ex run -ex bt --args "$MULE" -q 2>&1 |
+		grep -vE '^\[New |^\[Thread |^Reading symbols' | head -30 | sed 's/^/      /'
+}
+
 	echo "--- 5. X11: フレームが開いて日本語が扱えるか ---"
 	# 判定は shell 側で行う。Emacs 19.28 の run-at-time は lib-src/timer の
 	# 別プロセスに依存していて、この構成では発火しない。elisp のタイマーで
@@ -396,6 +417,7 @@ if want x11; then
 		sleep 15
 		if ! kill -0 $M 2>/dev/null; then
 			bad "mule が X 上で終了した"; sed -n '1,5p' $CI_DIR/xrun.log
+			xbt
 		else
 			DISPLAY=:99 xwininfo -root -tree > $CI_DIR/xwin.txt 2>/dev/null
 			if grep -qi emacs $CI_DIR/xwin.txt; then
@@ -436,6 +458,8 @@ EL
 		if [ ! -s $CI_DIR/x.txt ]; then
 			bad "X 版が結果を書かずに終わった (exit=$xrc)"
 			sed -n '1,10p' $CI_DIR/xl.log
+			# 139 は SIGSEGV (128 + 11)。落ちたなら場所を見る。
+			[ "$xrc" -ge 128 ] && xbt_l
 		else
 			W=$(sed -n 's/^ws=//p' $CI_DIR/x.txt)
 			[ "$W" = x ] && note "window-system = x" \
