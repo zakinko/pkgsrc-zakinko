@@ -31,7 +31,7 @@ COMMENT=	GNU editing macros (editor)
 # configure: error: Emacs hasn't been ported to `x86_64-apple-darwin17' systems.
 BROKEN_ON_PLATFORM=	Darwin-*-* DragonFly-*-*
 
-CONFLICTS=	mule-[0-9]*
+CONFLICTS=	mule-[0-9]* mule2-[0-9]*
 
 GNU_CONFIGURE=		yes
 USE_TOOLS+=		gmake

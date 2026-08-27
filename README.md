@@ -42,7 +42,7 @@ make makesum
 ```
 
 第三者のソフトウェアを引き取ったものは例外で、`distinfo` を追跡しています。
-配布物の版が固定されていますし、`mule` のようにパッチが 100 個を超えるものは
+配布物の版が固定されていますし、`mule2` のようにパッチが 100 個を超えるものは
 そのチェックサムこそが中身の保証になるためです。
 
 ## 収録パッケージ
@@ -55,7 +55,7 @@ make makesum
 | [emacs28](emacs28/) / [emacs28-nox11](emacs28-nox11/) | GNU Emacs 28.2。本家では 2026 年 8 月に削除済み |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
 | [mozc-server333](mozc-server333/) / [mozc-elisp333](mozc-elisp333/) / [mozc-tool333](mozc-tool333/) | mozc 3.33.6089 を gyp で建てる。gyp を積んだ最後の版で、本家 pkgsrc は 2.26 系と 2.29 系しか持たない |
-| [mule](mule/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
+| [mule2](mule2/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
 | [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
 | [stnsd](stnsd/) | 小さな STNS API サーバ |
 
@@ -445,9 +445,9 @@ emacs20 は `zakinko/emacs20` (nb28) が要ります。本家の nb26 では LP6
 
 ## emacs20 と emacs21 に積み残しの CVE を当てる
 
-`zakinko/mule` が三本の CVE を当てているのと同じ理由で、`editors/emacs20` と
-`editors/emacs21` にも積み残しがあります。mule は Mule 2.3 / Emacs 19.28
-ベースで、20.7 と 21.4 は同じ古い lib-src と src を引きずっているので、mule に
+`zakinko/mule2` が三本の CVE を当てているのと同じ理由で、`editors/emacs20` と
+`editors/emacs21` にも積み残しがあります。mule2 は Mule 2.3 / Emacs 19.28
+ベースで、20.7 と 21.4 は同じ古い lib-src と src を引きずっているので、mule2 に
 当てた当て物のうち二本がそのまま該当します。`pkg_admin audit` は emacs21 を
 三件で挙げますが (下記)、emacs20 は一件も挙げません。DB に emacs20 の項目が
 無いだけで、コードは同じように穴が開いています。
@@ -462,14 +462,14 @@ emacs20 は `zakinko/emacs20` (nb28) が要ります。本家の nb26 では LP6
 vcdiff は両版とも既に `mktemp` に直っています (emacs20 は dholland の jumbo
 patch、emacs21 は tree の patch-xx)。enriched は emacs20 には脆弱なコードが
 無く、emacs21 は tree が `patch-CVE-2017-14482` で当てています。残る二本を
-`zakinko/mule` と同じ形で当てました。
+`zakinko/mule2` と同じ形で当てました。
 
-etags の方は mule より穴が広い。mule では file-name を回すループが optind を
+etags の方は mule2 より穴が広い。mule2 では file-name を回すループが optind を
 argc まで進めた後で回るので死んでいますが、20.7 と 21.4 は `argbuffer[]` を
 `current_arg` で回すので生きています。加えて 21.4 の etags は圧縮ファイルを
 展開するとき、そのファイル名を無引用で `gzip -d -c <名前>` に渡して `popen`
 します。`etags *` が `a;cmd.gz` のような名前のファイルに当たると `cmd` が
-走ります。`sort %s -o %s` (mule と同じ) と file-name と、この圧縮経路の三つを
+走ります。`sort %s -o %s` (mule2 と同じ) と file-name と、この圧縮経路の三つを
 `shell_quote()` で塞ぎました (20.7 の etags には圧縮経路が無く、二箇所)。
 `etags 'a;touch GOTCHA;.gz'` が当てる前は `GOTCHA` を作り、当てた後は作らず、
 普通の `.gz` は中身を読めることを確かめました。
@@ -486,7 +486,7 @@ copy-file は、04755 のファイルを `(copy-file "src" "dst" t)` で写す�
 前は 04755 (setuid) の写しが出来、当てた後は 0755 になって setuid が落ちます。
 どちらも emacs20.7 と emacs21.4 を自前で建てて確かめました。
 
-本家 pkgsrc にも send-pr で出します。mule と違ってこの二つは今も配られている
+本家 pkgsrc にも send-pr で出します。mule2 と違ってこの二つは今も配られている
 版なので、fork に留めず tree に戻すのが筋です。
 
 ## emacs20 の宣言もれ
@@ -563,7 +563,7 @@ nss_stns は pkgsrc が FreeBSD と DragonFly にも bootstrap できること�
 `OPSYS` からモジュール名 (`nss_stns.so.0` / `nss_stns.so.1`) を決めるので、
 同じパッケージディレクトリで三者に通ります。
 
-mule だけは自作ではなく、本家から引き取ったものです。NetBSD 9.4/i386 (gcc 7.5)
+mule2 だけは自作ではなく、本家から引き取ったものです。NetBSD 9.4/i386 (gcc 7.5)
 と NetBSD 11.0/amd64 (gcc 12.5) の両方で、端末のみの構成と X11 (Lucid) の構成が
 ビルドでき、ダンプまで通って動きます。canna と wnn4 も両アーキテクチャで実際に
 変換するところまで確認しました。ローマ字 `nihongo` が `日本語` に、読み
@@ -596,7 +596,7 @@ rc.d スクリプトは二重に持たず、upstream の `rc.d/stnsd.in` から 
 `stnsd_enable` と違うので、パスと一緒に変数名も差し替わります。おかげで
 どちらのパッケージにも `files/` ディレクトリが要りません。
 
-## mule が PIE と RELRO を切っている理由
+## mule2 が PIE と RELRO を切っている理由
 
 `temacs` は起動に必要な Lisp を読み込んだ状態で `unexec()` を呼び、走っている
 自分自身の ELF イメージを書き換えて実行ファイルとして吐き出します。初期化済み
@@ -650,10 +650,10 @@ Wnn 側は `egg` が起動ファイルを探しますが、上流は候補であ
 バイナリで済ませたい場合は `BUILDLINK_API_DEPENDS.Canna-lib` を緩めるか、
 バイナリ集合と同じ枝の pkgsrc を使ってください。
 
-## mule を NetBSD 以外の BSD で
+## mule2 を NetBSD 以外の BSD で
 
 pkgsrc は FreeBSD にも OpenBSD にも DragonFly にも bootstrap できるので、
-mule もそこで通るのかを CI で見ています
+mule2 もそこで通るのかを CI で見ています
 ([mule-otherbsd.yml](.github/workflows/mule-otherbsd.yml))。NetBSD 側と違って
 pkgsrc そのものを組むところから始まり、バイナリパッケージも無いので依存は
 全部その場で作ります。検査は NetBSD と同じ

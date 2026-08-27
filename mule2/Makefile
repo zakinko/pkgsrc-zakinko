@@ -1,6 +1,7 @@
 # $NetBSD$
 
 DISTNAME=	mule-2.3
+PKGNAME=	${DISTNAME:S/mule/mule2/}
 PKGREVISION=	11
 CATEGORIES=	zakinko editors
 # ftp.m17n.org is gone; the KAIST archive still has a byte-identical copy.
@@ -14,7 +15,7 @@ LICENSE=	gnu-gpl-v2
 
 MAKE_JOBS_SAFE=		no
 
-CONFLICTS=	emacs-[0-9]*
+CONFLICTS=	emacs-[0-9]* mule-[0-9]*
 
 # build PATH in the dumped mule is not a problem
 CHECK_WRKREF_SKIP+=	bin/mule
