@@ -1,132 +1,259 @@
 $NetBSD$
 
-Make anthy-unicode.el work on the older Emacs versions pkgsrc still carries,
-not only on a current one.
+Fix the coding system on the pipe to the agent, keep each buffer's saved undo
+list to itself, and let the file work on the older Emacs versions pkgsrc
+still carries.
 
-anthy-unicode inherited anthy 9100h's elisp and modernised the names it uses.
-That is the mirror image of what 9100h now does on a current Emacs: where
-9100h calls names Emacs has since removed, anthy-unicode calls names Emacs 20
-and 21 do not have yet.
+The first two are not about old Emacs at all.  anthy-agent-unicode speaks
+UTF-8 and nothing else, but nothing sets the coding system on the pipe, so
+Emacs uses default-process-coding-system, which follows the user's locale.
+Under a ja_JP.eucJP or ja_JP.SJIS locale the conversion comes back as
+mojibake on Emacs 22.3 through 31.1 alike.  utf-8-unix is set explicitly;
+the -unix matters, because plain utf-8 leaves the end-of-line undecided and
+the decoding side settles on utf-8-dos.
 
-  set-face-underline              new in Emacs 22.1; Emacs 20 has
-                                  set-face-underline-p only.  The call is at
-                                  top level, so on Emacs 20 loading the file
-                                  signals an error, and anthy-unicode-isearch
-                                  and anthy-unicode-kyuri then fail to
-                                  byte-compile because they require it --
-                                  5 of the 7 .elc files get built.
-  mapc                            new in Emacs 21.  9100h used mapcar in this
-                                  same line, which every Emacs and XEmacs has.
-  set-process-query-on-exit-flag  new in Emacs 22.1; Emacs 20 and 21 have
-                                  process-kill-without-query.  It is called
-                                  from anthy-check-agent, which starts the
-                                  agent, so on Emacs 21 the package builds
-                                  cleanly and dies on the first conversion.
-  deactivate-current-input-method-function,
-  deactivate-input-method         renamed from inactivate-* in Emacs 24.3.
-                                  Emacs 20 and 21 know the old names only, so
-                                  the input method cannot be switched off.
+anthy stops undo while a preedit is open and puts the buffer's undo list
+aside until the text is committed.  The flag saying it did so is
+anthy-deflocalvar, that is per buffer, but the list itself was an undeclared
+global shared by every buffer, so opening a preedit in a second buffer
+overwrote what the first one had put aside, and the first buffer got the
+second one's undo history when it committed.
 
-The coding system of the pipe to the agent is set explicitly as well.
-anthy-agent-unicode speaks UTF-8 -- src-util/input.c sets
-ANTHY_UTF8_ENCODING unconditionally, and --eucjp only reaches the --egg
-protocol, which the elisp does not use.  9100h's anthy.el set euc-japan on
-the pipe for exactly this reason; anthy-unicode commented that out and left
-the Emacs default in charge, which is utf-8 only on a current Emacs.  On
-Emacs 21 with the Japanese language environment the default decodes the
-agent's replies as euc-jp, and the conversion result arrives as mojibake.
+anthy-restore-undo-list is dead: the two places that set the variable it
+reads and its one call site are all commented out, as they already were in
+anthy 9100h.  It is commented out too rather than deleted, the same way its
+callers are, so that taking the semicolons off brings it back.
 
-Emacs 20 has no utf-8 coding system at all, and Emacs 21's mule-utf-8 cannot
-represent CJK ideographs: it decodes into the mule-unicode-* charsets, which
-cover U+0100-U+33FF and U+E000-U+FFFF but not U+4E00-U+9FFF, and
-utf-translate-cjk does not exist before Emacs 22.  So the kanji come back as
-eight-bit characters, and a .elc compiled from these UTF-8 sources cannot be
-read back either, because the compiler writes the mule-unicode internal form
-straight into the .elc.  Mule-UCS supplies a utf-8 that maps CJK onto
-japanese-jisx0208 and fixes both, so it is loaded when emacs-major-version is
-below 22.  The require is wrapped in condition-case, so nothing changes where
-Mule-UCS is not installed, and nothing at all happens on Emacs 22 and later.
+The rest is the older Emacs versions.  Each name is picked once at load time
+and called through a variable:
 
-From Emacs 21 on, the byte compiler warns that the value from mapcar is
-unused and suggests mapc or dolist.  The same warning is already raised twice
-in this package -- anthy-unicode-azik.el:226 and anthy-unicode-conf.el:108
-call mapcar the same way -- so this adds a third of a warning that is already
-there, which is the price of keeping Emacs 20 in the accepted list.  Guarding
-the one call with fboundp would cost more lines than the warning is worth.
+  set-face-underline              Emacs 20 has only set-face-underline-p, and
+                                  until 24.3 that is the current spelling.
+                                  The call is at top level, so on Emacs 20 the
+                                  file does not load and only 4 of the 6 .elc
+                                  files get built.
+  set-process-query-on-exit-flag  new in 22.1.  It is called from
+                                  anthy-check-agent, so Emacs 21 and XEmacs
+                                  build and load and then die at the first
+                                  conversion.
+  deactivate-input-method,
+  deactivate-current-input-method-function
+                                  renamed from inactivate-* in 24.3.  Emacs 22
+                                  and 23 convert and then cannot leave the
+                                  input method: void-function nil, because the
+                                  variable they read stays nil.
+  mapc                            new in Emacs 21; 9100h used mapcar here.
 
-Measured on NetBSD 11.0/amd64 with emacs 20.7, 21.4 and 30.2: with this patch
-and Mule-UCS, all three byte-compile the six files, convert nihongo to the
-kanji, and deactivate the input method cleanly.  Without it, Emacs 20 stops
-at load and Emacs 21 at the first conversion.
+Writing the old name in an else branch would work, but a current Emacs then
+reports it as not known to be defined, so this goes through a variable.  The
+XEmacs-only names in anthy-last-command-char get the same treatment, and a
+lexical-binding cookie is added, which together take Emacs 24 and later from
+nine byte-compile warnings to none.
+
+Emacs 20, 21 and XEmacs 21.4 have no utf-8 coding system that covers CJK, so
+Mule-UCS is required there, inside condition-case so that nothing happens
+where it is not installed and nothing at all happens from Emacs 22 on.
+XEmacs takes a coding system object rather than a symbol, so the value goes
+through find-coding-system there.
+
+Measured on NetBSD 11.0/amd64 with Emacs 20.7, 21.4, 22.3, 23.4, 24.5, 25.3,
+26.3, 27.2, 28.2, 29.4, 30.2, 31.1 and XEmacs 21.4.25, typing nihongo,
+converting, committing and switching the input method off again.
+
+Sent upstream as fujiwarat/anthy-unicode#21; this can be dropped once a
+release includes it.
 
 --- src-util/anthy-unicode.el.orig
 +++ src-util/anthy-unicode.el
-@@ -70,12 +70,23 @@
+@@ -1,4 +1,4 @@
+-;;; anthy-unicode.el -- Anthy
++;;; anthy-unicode.el -- Anthy  -*- lexical-binding: nil -*-
+ 
+ ;; Copyright (C) 2001 - 2007 KMC(Kyoto University Micro Computer Club)
+ ;; Copyright (C) 2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+@@ -70,12 +70,73 @@
  (defvar anthy-agent-unicode-command-list '("anthy-agent-unicode")
    "anthy-agent-unicodeのPATH 名")
  
++;; XEmacs にしか無い名前。anthy-xemacs が真のときしか呼ばないが、直接書くと
++;; GNU Emacs の byte compiler が "not known to be defined" と言う。
++(defvar anthy-event-matches-key-specifier-p-function
++  'event-matches-key-specifier-p)
++(defvar anthy-event-to-character-function 'event-to-character)
++(defvar anthy-char-to-int-function 'char-to-int)
++
++;; Emacs 22.1 から。Emacs 20/21 と XEmacs は process-kill-without-query。
++;; どちらも第二引数 nil で「終了時に問い合わせない」の意味になる。
++(defvar anthy-set-process-no-query-function
++  (if (fboundp 'set-process-query-on-exit-flag)
++      'set-process-query-on-exit-flag
++    'process-kill-without-query))
++
++;; Emacs 24.3 で inactivate-* から改名された。Emacs 20 から 23 と XEmacs は
++;; 旧名しか持たない。
++(defvar anthy-deactivate-input-method-function
++  (if (fboundp 'deactivate-input-method)
++      'deactivate-input-method
++    'inactivate-input-method))
++(defvar anthy-deactivate-current-input-method-variable
++  (if (boundp 'deactivate-current-input-method-function)
++      'deactivate-current-input-method-function
++    'inactivate-current-input-method-function))
++
++;; Emacs 21 から。Emacs 20 と XEmacs は set-face-underline-p のみ。24.3 までは
++;; -p の方が正で、こちらが obsolete。ここは top level なので、無い版では load
++;; そのものが失敗する。
++(defvar anthy-set-face-underline-function
++  (if (fboundp 'set-face-underline)
++      'set-face-underline
++    'set-face-underline-p))
++
++;; Emacs 21 から。Emacs 20 には無く、anthy 9100h はこの行で mapcar だった。
++;; 返り値は捨てるので、どちらでも同じ。
++(defvar anthy-mapc-function
++  (if (fboundp 'mapc)
++      'mapc
++    'mapcar))
++
 +;; Emacs 20 と 21 の utf-8 は CJK を含まない (20 には utf-8 そのものが無い)。
-+;; anthy-agent-unicode は UTF-8 で話すので、Mule-UCS があれば載せる。
-+(if (and (not (featurep 'xemacs))
-+	 (< emacs-major-version 22)
++;; XEmacs 21.4 にも utf-8 が無い。agent は UTF-8 でしか話さないので、
++;; Mule-UCS があれば載せる。
++(if (and (or (featurep 'xemacs)
++	     (< emacs-major-version 22))
 +	 (not (featurep 'un-define)))
 +    (condition-case nil
 +	(require 'un-define)
 +      (error nil)))
 +
++;; XEmacs の coding-system-p は symbol ではなく coding system オブジェクトを
++;; 取るので、find-coding-system を通す。
++(defvar anthy-agent-coding-system
++  (if (featurep 'xemacs)
++      (and (fboundp 'find-coding-system)
++	   (find-coding-system 'utf-8-unix))
++    (and (coding-system-p 'utf-8-unix)
++	 'utf-8-unix)))
++
  ;; face
  (defvar anthy-highlight-face nil)
  (defvar anthy-underline-face nil)
  (copy-face 'highlight 'anthy-highlight-face)
++;(if (not (featurep 'xemacs))
++;    (set-face-underline 'anthy-highlight-face t))
  (if (not (featurep 'xemacs))
 -    (set-face-underline 'anthy-highlight-face t))
-+    (if (fboundp 'set-face-underline)
-+	(set-face-underline 'anthy-highlight-face t)
-+      (set-face-underline-p 'anthy-highlight-face t)))
++    (funcall anthy-set-face-underline-function 'anthy-highlight-face t))
  (copy-face 'underline 'anthy-underline-face)
  
  ;;
-@@ -250,7 +261,7 @@
+@@ -202,6 +263,9 @@
+ (anthy-deflocalvar anthy-current-rkmap "hiragana")
+ ; undo
+ (anthy-deflocalvar anthy-buffer-undo-list-saved nil)
++;; 待避した undo list そのもの。旗だけ buffer local で中身が global だったので、
++;; buffer を二つ使うと片方の履歴がもう片方のもので上書きされていた。
++(anthy-deflocalvar anthy-buffer-undo-list nil)
+ 
+ ;;
+ (defvar anthy-wide-space "　" "スペースを押した時に出て来る文字")
+@@ -250,7 +314,8 @@
  	(delete-region start (+ start len))
  	(goto-char start)))
    (setq anthy-preedit "")
 -  (mapc 'delete-overlay anthy-preedit-overlays)
-+  (mapcar 'delete-overlay anthy-preedit-overlays)
++;  (mapc 'delete-overlay anthy-preedit-overlays)
++  (funcall anthy-mapc-function 'delete-overlay anthy-preedit-overlays)
    (setq anthy-preedit-overlays nil))
  
  (defun anthy-select-face-by-attr (attr)
-@@ -752,7 +763,11 @@
+@@ -546,14 +611,17 @@
+ 	  (char-to-string ch)
+ 	nil))))
+ 
+-(defun anthy-restore-undo-list (commit-str)
+-  (let* ((len (length commit-str))
+-	 (beginning (point))
+-	 (end (+ beginning len)))
+-    (setq buffer-undo-list
+-	  (cons (cons beginning end)
+-		(cons nil anthy-saved-buffer-undo-list)))
+-	 ))
++;; 呼び出し側も、anthy-saved-buffer-undo-list を設定する二箇所も、元から
++;; コメントアウトされている。この関数だけが生きていて、呼べば void-variable に
++;; なる。同じように閉じておく。
++;(defun anthy-restore-undo-list (commit-str)
++;  (let* ((len (length commit-str))
++;	 (beginning (point))
++;	 (end (+ beginning len)))
++;    (setq buffer-undo-list
++;	  (cons (cons beginning end)
++;		(cons nil anthy-saved-buffer-undo-list)))
++;	 ))
+ 
+ (defun anthy-proc-agent-reply (repl)
+   (let*
+@@ -752,7 +820,13 @@
  	(if anthy-agent-unicode-process
  	    (kill-process anthy-agent-unicode-process))
  	(setq anthy-agent-unicode-process proc)
 -	(set-process-query-on-exit-flag proc nil)
-+	(if (fboundp 'set-process-query-on-exit-flag)
-+	    (set-process-query-on-exit-flag proc nil)
-+	  (process-kill-without-query proc))
-+	(if (coding-system-p 'utf-8)
-+	    (set-process-coding-system proc 'utf-8 'utf-8))
++;	(set-process-query-on-exit-flag proc nil)
++	(funcall anthy-set-process-no-query-function proc nil)
++;	(if (coding-system-p 'utf-8-unix)
++;	    (set-process-coding-system proc 'utf-8-unix 'utf-8-unix))
++	(if anthy-agent-coding-system
++	    (set-process-coding-system proc anthy-agent-coding-system
++				       anthy-agent-coding-system))
  ;;	(if anthy-xemacs
  ;;	    (if (coding-system-p (find-coding-system 'euc-japan))
  ;;		(set-process-coding-system proc 'euc-japan 'euc-japan))
-@@ -871,7 +886,9 @@
+@@ -871,7 +945,9 @@
  ;; leim の activate
  ;;
  (defun anthy-unicode-leim-activate (&optional name)
 -  (setq deactivate-current-input-method-function 'anthy-unicode-leim-inactivate)
-+  (if (boundp 'deactivate-current-input-method-function)
-+      (setq deactivate-current-input-method-function 'anthy-unicode-leim-inactivate)
-+    (setq inactivate-current-input-method-function 'anthy-unicode-leim-inactivate))
++;  (setq deactivate-current-input-method-function 'anthy-unicode-leim-inactivate)
++  (set anthy-deactivate-current-input-method-variable
++       'anthy-unicode-leim-inactivate)
    (setq anthy-leim-active-p t)
    (anthy-update-mode)
    (when (eq (selected-window) (minibuffer-window))
-@@ -881,7 +898,9 @@
+@@ -881,7 +957,8 @@
  ;; emacsのバグ避けらしいです
  ;;
  (defun anthy-unicode-leim-exit-from-minibuffer ()
 -  (deactivate-input-method)
-+  (if (fboundp 'deactivate-input-method)
-+      (deactivate-input-method)
-+    (inactivate-input-method))
++;  (deactivate-input-method)
++  (funcall anthy-deactivate-input-method-function)
    (when (<= (minibuffer-depth) 1)
      (remove-hook 'minibuffer-exit-hook 'anthy-unicode-leim-exit-from-minibuffer)))
  
+@@ -891,14 +968,24 @@
+ ;;
+ (defun anthy-last-command-char ()
+   "最後の入力イベントを返す。XEmacs では int に変換する"
++;  (if anthy-xemacs
++;      (let ((event last-command-event))
++;	(cond
++;	 ((event-matches-key-specifier-p event 'left)      2)
++;	 ((event-matches-key-specifier-p event 'right)     6)
++;	 ((event-matches-key-specifier-p event 'backspace) 8)
++;	 (t
++;	  (char-to-int (event-to-character event)))))
++;    last-command-event))
+   (if anthy-xemacs
+       (let ((event last-command-event))
+ 	(cond
+-	 ((event-matches-key-specifier-p event 'left)      2)
+-	 ((event-matches-key-specifier-p event 'right)     6)
+-	 ((event-matches-key-specifier-p event 'backspace) 8)
++	 ((funcall anthy-event-matches-key-specifier-p-function event 'left)      2)
++	 ((funcall anthy-event-matches-key-specifier-p-function event 'right)     6)
++	 ((funcall anthy-event-matches-key-specifier-p-function event 'backspace) 8)
+ 	 (t
+-	  (char-to-int (event-to-character event)))))
++	  (funcall anthy-char-to-int-function
++		   (funcall anthy-event-to-character-function event)))))
+     last-command-event))
+ 
+ ;;
