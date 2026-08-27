@@ -1,5 +1,12 @@
 $NetBSD$
 
+Define the config_setting the select()s in this package refer to.
+
+The other patches switch on //src/conditions:netbsd; this is where that
+name comes from.  It matches on the @platforms//os:netbsd constraint,
+which platforms already defines and which the host detection patched into
+that module now reports.
+
 --- src/conditions/BUILD.orig
 +++ src/conditions/BUILD
 @@ -160,6 +160,12 @@

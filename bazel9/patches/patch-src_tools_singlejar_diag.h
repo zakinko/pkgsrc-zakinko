@@ -1,5 +1,10 @@
 $NetBSD$
 
+Use err(3) rather than the fallback.
+
+The list is of systems that have <err.h>; NetBSD is one of them, and the
+replacement below it exists only for the systems that are not.
+
 --- src/tools/singlejar/diag.h.orig
 +++ src/tools/singlejar/diag.h
 @@ -20,7 +20,7 @@

@@ -1,5 +1,11 @@
 $NetBSD$
 
+Define //src/conditions:netbsd for the embedded tools too.
+
+BUILD.tools is the copy that ships inside the bazel binary and is used
+when building the tools that come with it, so it needs the same setting as
+src/conditions/BUILD.
+
 --- src/conditions/BUILD.tools.orig
 +++ src/conditions/BUILD.tools
 @@ -5,6 +5,12 @@

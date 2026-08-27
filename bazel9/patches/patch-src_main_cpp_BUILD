@@ -1,5 +1,12 @@
 $NetBSD$
 
+Build the client from the BSD sources.
+
+blaze_util_bsd.cc is what FreeBSD and OpenBSD use and it is the right file
+here as well.  The link options stay empty: -lprocstat in the FreeBSD arm
+is for libprocstat, which NetBSD does not have, and nothing else in that
+arm is needed.
+
 --- src/main/cpp/BUILD.orig
 +++ src/main/cpp/BUILD
 @@ -29,6 +29,10 @@

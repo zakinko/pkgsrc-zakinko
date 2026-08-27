@@ -1,5 +1,13 @@
 $NetBSD$
 
+Ask NetBSD's kernel for a process group the way it expects.
+
+NetBSD declares struct kinfo_proc for kernel use only.  Userland uses
+KERN_PROC2 and gets struct kinfo_proc2, which carries the pid in p_pid
+rather than in the nested kp_proc.p_pid the Darwin layout has.  The mib is
+longer as well: KERN_PROC2 takes the record size and the record count as
+two further elements, so it is six ints where KERN_PROC is four.
+
 --- src/main/tools/process-tools-darwin.cc.orig
 +++ src/main/tools/process-tools-darwin.cc
 @@ -24,6 +24,12 @@

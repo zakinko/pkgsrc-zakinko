@@ -1,5 +1,11 @@
 $NetBSD$
 
+Build the JNI library from the BSD sources.
+
+unix_jni_bsd.cc is shared with FreeBSD and OpenBSD.  The jni_md.h comes
+from rules_java, which needed a NetBSD entry of its own; see the
+//toolchain_local patch named in MODULE.bazel.
+
 --- src/main/native/BUILD.orig
 +++ src/main/native/BUILD
 @@ -6,6 +6,7 @@

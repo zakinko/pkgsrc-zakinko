@@ -1,5 +1,9 @@
 $NetBSD$
 
+Add the NetBSD arm of a select() that has one arm per system.
+
+Without an entry the default arm is taken, which is the Linux one.
+
 --- third_party/BUILD.orig
 +++ third_party/BUILD
 @@ -520,6 +520,7 @@

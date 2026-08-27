@@ -1,5 +1,13 @@
 $NetBSD$
 
+Make the BSD client source build on NetBSD.
+
+Three things differ.  The JDK lives under a different prefix.  statfs(2)
+was removed in NetBSD 10; statvfs(2) carries the f_fstypename this code
+wants, so use it.  And there is no way for a process to learn the path to
+its own executable that is available this early, which is the same
+situation OpenBSD is in, so share that arm.
+
 --- src/main/cpp/blaze_util_bsd.cc.orig
 +++ src/main/cpp/blaze_util_bsd.cc
 @@ -15,6 +15,8 @@
@@ -7,7 +15,7 @@ $NetBSD$
  # define HAVE_PROCSTAT
  # define STANDARD_JAVABASE "/usr/local/openjdk8"
 +#elif defined(__NetBSD__)
-+# define STANDARD_JAVABASE "/usr/pkg/java/openjdk21"
++# define STANDARD_JAVABASE "@PKG_JAVA_HOME@"
  #elif defined(__OpenBSD__)
  # define STANDARD_JAVABASE "/usr/local/jdk-17"
  #else

@@ -1,5 +1,9 @@
 $NetBSD$
 
+Get the byte-order macros from <sys/endian.h>.
+
+Same reason as src/main/cpp/util/md5.h: <endian.h> is glibc's spelling.
+
 --- src/tools/singlejar/zip_headers.h.orig
 +++ src/tools/singlejar/zip_headers.h
 @@ -27,7 +27,7 @@

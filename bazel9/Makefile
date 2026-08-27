@@ -62,7 +62,7 @@ PKG_JVMS_ACCEPTED=	openjdk21
 # needed at build time.
 TOOL_DEPENDS+=	go-[0-9]*:../../lang/go
 
-CHECK_PIE_SUPPORTED=	no
+CHECK_PIE_SUPPORTED=		no
 CHECK_PORTABILITY_SKIP+=	*
 
 INSTALLATION_DIRS+=	bin
@@ -75,8 +75,24 @@ post-extract:
 	${CP} ${FILESDIR}/md5_netbsd.sh ${WRKSRC}/src/md5_netbsd.sh
 	${CHMOD} +x ${WRKSRC}/src/md5_netbsd.sh
 
+# The patches above name the JDK and bash by placeholder rather than by
+# path, because pkglint rejects a patch that writes ${PREFIX} into the
+# source and because LOCALBASE is not always /usr/pkg.  Both are paths to
+# other packages, so they follow LOCALBASE, and the JDK is whichever one
+# java-vm.mk settled on.
+SUBST_CLASSES+=		paths
+SUBST_STAGE.paths=	pre-build
+SUBST_MESSAGE.paths=	Setting the paths to the JDK and to bash
+SUBST_FILES.paths+=	scripts/bootstrap/buildenv.sh
+SUBST_FILES.paths+=	scripts/packages/template_bin.sh
+SUBST_FILES.paths+=	src/BUILD
+SUBST_FILES.paths+=	src/main/cpp/blaze_util_bsd.cc
+SUBST_FILES.paths+=	src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java
+SUBST_VARS.paths+=	LOCALBASE
+SUBST_VARS.paths+=	PKG_JAVA_HOME
+
 SUBST_CLASSES+=		python
-SUBST_STAGE.python=	pre-patch
+SUBST_STAGE.python=	pre-build
 SUBST_MESSAGE.python=	Pointing the python toolchain at ${PYTHONBIN}
 SUBST_FILES.python+=	toolchain_local/BUILD
 SUBST_VARS.python+=	PYTHONBIN

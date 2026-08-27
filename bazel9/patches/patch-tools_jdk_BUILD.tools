@@ -1,5 +1,9 @@
 $NetBSD$
 
+Add the NetBSD arm of a select() that has one arm per system.
+
+Without an entry the default arm is taken, which is the Linux one.
+
 --- tools/jdk/BUILD.tools.orig
 +++ tools/jdk/BUILD.tools
 @@ -164,6 +164,7 @@

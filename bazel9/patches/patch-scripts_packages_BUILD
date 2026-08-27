@@ -1,5 +1,11 @@
 $NetBSD$
 
+Add the NetBSD arm of a select() that has one arm per system.
+
+Every other BSD is listed with an empty list; without an entry of its own
+NetBSD takes the default arm, which builds the Debian and RPM packaging
+targets that make no sense here.
+
 --- scripts/packages/BUILD.orig
 +++ scripts/packages/BUILD
 @@ -24,6 +24,7 @@

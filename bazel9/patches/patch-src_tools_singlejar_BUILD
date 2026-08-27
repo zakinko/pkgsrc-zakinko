@@ -1,5 +1,10 @@
 $NetBSD$
 
+Link singlejar against libm.
+
+The maths functions are in a separate library on every BSD.  FreeBSD and
+OpenBSD already say so here.
+
 --- src/tools/singlejar/BUILD.orig
 +++ src/tools/singlejar/BUILD
 @@ -87,6 +87,7 @@

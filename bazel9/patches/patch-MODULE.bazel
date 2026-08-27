@@ -1,5 +1,14 @@
 $NetBSD$
 
+Teach the module graph about NetBSD.
+
+None of platforms, rules_java or rules_go knows this system.  platforms
+returns no @platforms//os value for it, so every select() on
+//src/conditions:netbsd would fall through to the default; rules_java has
+no jni_md.h to offer; and rules_go goes looking for a Go SDK that is not
+published for NetBSD.  Patch the three where they are fetched, and use the
+Go that is already installed.
+
 --- MODULE.bazel.orig
 +++ MODULE.bazel
 @@ -59,7 +59,7 @@

@@ -1,5 +1,10 @@
 $NetBSD$
 
+Get the byte-order macros from where NetBSD keeps them.
+
+<endian.h> is a glibc header.  The BSDs put htole32 and friends in
+<sys/endian.h>, and NetBSD belongs with them.
+
 --- src/main/cpp/util/md5.h.orig
 +++ src/main/cpp/util/md5.h
 @@ -26,7 +26,7 @@

@@ -1,5 +1,12 @@
 $NetBSD$
 
+Build the sandbox stub and the sysctl flavour of process-tools.
+
+There is no Linux-style sandbox here, so dummy-sandbox.c is the right
+source, as it is on the other BSDs.  process-tools-darwin.cc is the
+version that waits on a process group through sysctl(3) and kqueue rather
+than cgroups; despite the name it is what OpenBSD uses too.
+
 --- src/main/tools/BUILD.orig
 +++ src/main/tools/BUILD
 @@ -22,6 +22,7 @@

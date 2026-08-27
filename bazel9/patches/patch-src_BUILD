@@ -1,5 +1,12 @@
 $NetBSD$
 
+Use an md5 command that exists, and a bash that exists.
+
+NetBSD's md5(1) prints only the digest, with no "MD5 (file) = " prefix and
+no -r flag, so neither md5_darwin_freebsd.sh nor md5_openbsd.sh parses its
+output; files/md5_netbsd.sh is added for it.  The packaging script is
+rewritten to run the bash pkgsrc installs, because there is none in base.
+
 --- src/BUILD.orig
 +++ src/BUILD
 @@ -21,6 +21,7 @@
@@ -14,7 +21,7 @@ $NetBSD$
      outs = ["package-bazel-on-host-platform.sh"],
      cmd = select({
          "//src/conditions:freebsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/local/bin/bash@' > $@",
-+        "//src/conditions:netbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/pkg/bin/bash@' > $@",
++        "//src/conditions:netbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!@LOCALBASE@/bin/bash@' > $@",
          "//src/conditions:openbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/local/bin/bash@' > $@",
          "//conditions:default": "cp $(SRCS) $@",
      }),

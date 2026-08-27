@@ -1,5 +1,10 @@
 $NetBSD$
 
+Use plain stat, not stat64.
+
+The large-file variants are a glibc transition artefact.  Every BSD, this
+one included, has had a 64-bit off_t in struct stat all along.
+
 --- src/main/native/unix_jni.h.orig
 +++ src/main/native/unix_jni.h
 @@ -26,7 +26,8 @@

@@ -1,5 +1,12 @@
 $NetBSD$
 
+Add NetBSD to the systems bazel knows.
+
+OS.getCurrent() maps the JVM's os.name onto this enum, and everything that
+switches on the operating system reads it.  Without an entry NetBSD is
+UNKNOWN, which is not POSIX-compatible as far as the rest of the code is
+concerned, and the client refuses to run.
+
 --- src/main/java/com/google/devtools/build/lib/util/OS.java.orig
 +++ src/main/java/com/google/devtools/build/lib/util/OS.java
 @@ -21,12 +21,13 @@

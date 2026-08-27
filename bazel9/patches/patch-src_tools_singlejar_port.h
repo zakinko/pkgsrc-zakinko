@@ -1,5 +1,9 @@
 $NetBSD$
 
+Take the same off64_t definition as the other BSDs.
+
+off_t is already 64 bits here, so the typedef is the whole of it.
+
 --- src/tools/singlejar/port.h.orig
 +++ src/tools/singlejar/port.h
 @@ -32,7 +32,7 @@
