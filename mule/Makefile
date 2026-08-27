@@ -105,6 +105,5 @@ do-install:
 
 .include "options.mk"
 
-.include "../../inputmethod/ja-freewnn-lib/buildlink3.mk"
 .include "../../mk/x11.buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"

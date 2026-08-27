@@ -40,6 +40,7 @@ pkgsrc-wip の [mule11](https://github.com/NetBSD/pkgsrc-wip/tree/master/mule11)
   `mule2` という並びにしている。wip も 2015 年 10 月までは `mule` だった
 - PIE と RELRO と FORTIFY を切る
 - 効いていなかった `exclusive` option を直す
+- `canna` と `wnn4` の option を足し、batch で日本語入力が落ちる穴を塞ぐ
 
 ## ダンプが壊れる
 
@@ -74,6 +75,40 @@ pkgsrc-wip の [mule11](https://github.com/NetBSD/pkgsrc-wip/tree/master/mule11)
 `mule2-[0-9]*` だけを残してある。1.x と 2.3 は option によらず `bin/mule` と
 `bin/m2ps` と man を同じ名前で入れるため。
 
+## 日本語入力
+
+1.x は canna に対応していない、と wip の TODO には書かれていた。実際には
+**木の側は最初から出来ている** — `src/canna.c` も `lisp/canna.el` も在り、
+`src/mconfig.h-netbsd` は `#define WNN4` が有効、`/* #define CANNA */` が
+コメントアウトという状態で置かれているだけだった。tsutsui の
+`patch-src_mconfig.h-netbsd` は wnn だけでなく canna 側のパスも `@PREFIX@` に
+直してある。
+
+そこで option からその二行を振ることにした。`canna` を立てれば `#define CANNA`
+と `#define CANNA3_7` (Canna 3.7 以降の API。pkgsrc は 3.8) が起き、
+`wnn4` を落とせば `#define WNN4` がコメントに戻る。既定は両方入り。
+
+### batch で y-or-n-p を通ると落ちる
+
+wnn を batch で試すと、変換に入る前に SIGSEGV で落ちた。
+
+	#0 echo_dash ()  keyboard.c:389   echoptr[0] = '-';
+	#2 Fy_or_n_p ()  fns.c:998
+	#3 yes_or_no ()  wnn4fns.c:1425
+	#4 jl_dic_add_e ()  libwnn
+	#5 Fwnn_dict_add ()  wnn4fns.c:450
+
+Wnn が「利用者辞書が無いが作るか」と C 側から `y-or-n-p` を呼んだところである。
+`static char *echoptr;` は NULL のまま置かれ、`echobuf` を指させるのは
+`cancel_echoing()` — それを呼ぶのは command loop なので、`-batch` では誰も
+呼ばない。`echo_dash()` の番人は `!immediate_echo && echoptr == echobuf` で、
+NULL はここをすり抜けて NULL 番地に書きに行く。
+
+対話では command loop が先に `echoptr` を入れるので踏まない。**batch から
+C 側の `y-or-n-p` を通ったときだけ**の穴で、三十年見つからなかったのは
+1.x を batch で入力まで試した人が居なかったからだと思う
+(`patch-src_keyboard.c`)。
+
 ## 動くと分かっている範囲
 
 NetBSD 11.0/amd64 で建てて `pkg_add` し、実際に動かした。1994 年の Emacs 18
@@ -89,13 +124,19 @@ NetBSD 11.0/amd64 で建てて `pkg_add` し、実際に動かした。1994 年�
 | JUNET (ISO-2022-JP) で書き出し | `ESC $ B F| K\ 8l ESC ( B` |
 | 日本語入りの byte-compile | `.elc` から読み直して長さもバイト列も一致 |
 | 五回起動して同じ結果か | 一致 |
+| X11 のフレーム | Xvfb 上に窓が出て `window-system` が `x`。core も吐かない |
+| canna でかな漢字変換 | `nihongo` → `日本語` (EUC で `c6fc cbdc b8ec`) |
+| wnn でかな漢字変換 | `にほんごのへんかん` → `日本語の 変換` |
 
 判定に stderr は使っていない。結果ファイルの中身と、書き出させた符号化済み
 ファイルの実バイトだけで見ている。
 
 ## 残っているもの
 
-wip の TODO から引き継いだもの。
+wip の TODO から引き継いだもの。canna は片付いた。
 
-- canna に対応していない (`src/mconfig.h` の定義を option で振る)
 - 中国語と韓国語の設定 (`site-init.el` を option で振る)
+
+wnn は利用者辞書が無いと最初の一回で「作るか」と訊いてくる。batch で回すなら
+`yes y |` で食わせること。答えを使い切って標準入力が EOF になると、Emacs 18 は
+そこで黙って終了する (終了コードは 0 のまま) ので、途中で止まったように見える。
