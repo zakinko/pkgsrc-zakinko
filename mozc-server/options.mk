@@ -11,17 +11,23 @@ PKG_SUPPORTED_OPTIONS=	gyp
 # candidate window from it, so only inputmethod/mozc-server and
 # inputmethod/mozc-elisp include this file.
 #
-# devel/bazel does not build on 32-bit platforms -- its Makefile carries
-# BROKEN_ON_PLATFORM= ${LP32PLATFORMS} -- and there is no bazel binary
-# package for any of them; on the NetBSD 11.0 binary sets bazel exists for
-# x86_64 and aarch64 only.  Default to the gyp build everywhere else, so that
-# the Emacs input method can be built at all on those platforms.
-.for _mozc_platform_ in ${LP32PLATFORMS}
-.  if !empty(MACHINE_PLATFORM:M${_mozc_platform_})
+# devel/bazel does not build on the 32-bit platforms, and there is no bazel
+# binary package for any of them either: on the NetBSD 11.0 sets bazel exists
+# for x86_64 and aarch64 only.  Its Makefile means to say the first part with
+# BROKEN_ON_PLATFORM= ${LP32PLATFORMS}, but a second assignment further down
+# overwrites that line, so at present nothing stops a 32-bit build from being
+# attempted.  Default to the gyp build everywhere else, so that the Emacs
+# input method can be built at all on those platforms.
+.for mozc_lp32 in ${LP32PLATFORMS}
+.  if !empty(MACHINE_PLATFORM:M${mozc_lp32})
 PKG_SUGGESTED_OPTIONS+=	gyp
 .  endif
 .endfor
 
+# The option is acted on in Makefile.common rather than here, because
+# inputmethod/mozc-tool, inputmethod/mozc-renderer and inputmethod/ibus-mozc
+# share that file without including this one, and they have no gyp build to
+# choose.  Keeping the .if there lets them take the bazel branch unchanged.
 .include "../../mk/bsd.options.mk"
 
 # Both builds produce the same version string, so packages built either way

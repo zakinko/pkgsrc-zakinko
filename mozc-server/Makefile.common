@@ -141,16 +141,16 @@ SUBST_VARS.prefix+=	X11BASE
 #
 # 落ちるのは protoc で、bazel はこれを exec configuration
 # (bazel-out/netbsd-opt-exec-...) で建てるので --copt だけでは効かない。
-BAZEL_ARGS+=	--host_copt=-Wno-error=deprecated-builtins
-BAZEL_ARGS+=	--copt=-Wno-error=deprecated-builtins
+BAZEL_ARGS+=		--host_copt=-Wno-error=deprecated-builtins
+BAZEL_ARGS+=		--copt=-Wno-error=deprecated-builtins
 
-OPSYSVARS+=	OSDEST
+OPSYSVARS+=		OSDEST
 .if empty(PKG_OPTIONS:Mgyp)
-OSDEST.Linux=	linux-opt
-OSDEST.NetBSD=	netbsd-opt
+OSDEST.Linux=		linux-opt
+OSDEST.NetBSD=		netbsd-opt
 .else
-OSDEST.Linux=	linux
-OSDEST.NetBSD=	bsd
+OSDEST.Linux=		linux
+OSDEST.NetBSD=		bsd
 MOZC_BUILD_MODE?=	Release
 
 do-configure:
