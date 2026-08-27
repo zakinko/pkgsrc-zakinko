@@ -188,4 +188,4 @@ if [ -s "$TREE/distfiles/mule-2.3.tar.gz" ]; then
 fi
 
 echo "=== 検査を走らせる ==="
-$SSH "sh /tmp/.github/ci/verify-mule.sh '$OPTS'"
+$SSH "sh /tmp/.github/ci/verify-mule2.sh '$OPTS'"

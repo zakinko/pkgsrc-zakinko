@@ -4,6 +4,11 @@
 #
 #   $1  PKG_OPTIONS.mule2 に渡す文字列
 #
+# 名前が verify-mule2.sh なのは、検査する対象が zakinko/mule2 (Mule 2.3) だから。
+# zakinko/mule は Mule 1.1 で別物。build-on-bsd.sh は verify-<pkg>.sh を名前で
+# 探して、無ければ汎用の verify-pkg.sh に落ちるので、ここの名前が合っていないと
+# 日本語が編集できるところまで踏む検査が黙って「組めて入る」だけに薄くなる。
+#
 # NetBSD からは run-in-qemu.sh が、それ以外の BSD からは build-on-bsd.sh が
 # 呼ぶ。違うのは依存の入れ方だけで、検査は同じものを通す。
 #
