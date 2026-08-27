@@ -1,0 +1,161 @@
+# $NetBSD$
+
+# used by zakinko/mozc-elisp334/Makefile
+# used by zakinko/mozc-renderer334/Makefile
+# used by zakinko/mozc-server334/Makefile
+# used by zakinko/mozc-tool334/Makefile
+
+# 3.34.6239 には GYP が無い。src/build_mozc.py も src/gyp/ も .gyp も .gypi も
+# 一本も入っておらず、建て方は bazel だけである。消えたのは 3.34 ではなく
+# 3.33.6133 で、その一つ前の 3.33.6089 が GYP を積んだ最後のタグになる。
+#
+# bazel は 32bit の platform で建たないので、i386 に mozc を届けるには GYP が
+# 要る。そこで 3.33.6089 の tarball をもう一本取り、そこから GYP の足場だけを
+# 3.34.6239 の木へ流し込む。
+#
+# 足場と 3.34 の木のずれは小さい。GYP が名指ししている 602 本のうち 3.34 で
+# 消えたのは 6 本だけで、逆に増えた .cc は実質 2 本しかない。patches/ に入って
+# いる .gyp の当て物がその差である。
+
+DISTNAME=	mozc-3.34.6239
+CATEGORIES=	inputmethod
+MASTER_SITES=	${MASTER_SITE_GITHUB:=google/}
+GITHUB_PROJECT=	mozc
+GITHUB_TAG=	${PKGVERSION_NOREV}
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/google/mozc/
+COMMENT=	Japanese inputmethod Mozc engine
+LICENSE=	modified-bsd
+
+# 3.34 は .gitmodules ごと消して、依存を MODULE.bazel で数えるようにした。
+# GYP は third_party/ に実物が置いてあることを前提にしているので、bzlmod が
+# 指している版をここで並べ直す。abseil と protobuf は 3.33.6089 より新しい。
+GITHUB_SUBMODULES+=	google breakpad 216cea7bca53fa441a3ee0d0f5fd339a3a894224 third_party/breakpad
+GITHUB_SUBMODULES+=	google googletest 52eb8108c5bdec04579160ae17225d66034bd723 third_party/gtest
+GITHUB_SUBMODULES+=	chromium gyp 9ecf45e37677743503342ee4c6a76eaee80e4a7f third_party/gyp
+GITHUB_SUBMODULES+=	hiroyuki-komatsu japanese-usage-dictionary e5b3425575734c323e1d947009dd74709437b684 third_party/japanese_usage_dictionary
+GITHUB_SUBMODULES+=	protocolbuffers protobuf 4b0c3aacf0657fbf38253b38918d3358dd4319ec third_party/protobuf
+GITHUB_SUBMODULES+=	abseil abseil-cpp 255c84dadd029fd8ad25c5efb5933e47beaa00c7 third_party/abseil-cpp
+GITHUB_SUBMODULES+=	microsoft wil fc5dbf55989fe20351c71d038a8d12de4b397a6d third_party/wil
+
+DISTFILES+=	${DEFAULT_DISTFILES}
+
+# GYP の足場を取り出すためだけの二本目。木としては使わない。
+MOZC_GYP_VERSION=	3.33.6089
+MOZC_GYP_DISTFILE=	mozc-${MOZC_GYP_VERSION}.tar.gz
+SITES.${MOZC_GYP_DISTFILE}=	-https://github.com/google/mozc/archive/${MOZC_GYP_VERSION}.tar.gz
+DISTFILES+=	${MOZC_GYP_DISTFILE}
+
+EXTRACT_ONLY=	${DEFAULT_DISTFILES} ${_GITHUB_DEFAULT_DISTFILES} ${MOZC_GYP_DISTFILE}
+
+MOZC_DISTS+=	dictionary.png
+SITES.dictionary.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/chrome_reader_mode/materialiconsoutlined/48dp/1x/outline_chrome_reader_mode_black_48dp.png
+
+MOZC_DISTS+=	dictionary.svg
+SITES.dictionary.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/chrome_reader_mode/materialiconsoutlined/24px.svg
+
+MOZC_DISTS+=	properties.png
+SITES.properties.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/settings/materialiconsround/48dp/1x/round_settings_black_48dp.png
+
+MOZC_DISTS+=	properties.svg
+SITES.properties.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/settings/materialiconsround/24px.svg
+
+MOZC_DISTS+=	tool.png
+SITES.tool.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/build/materialicons/48dp/1x/baseline_build_black_48dp.png
+
+MOZC_DISTS+=	tool.svg
+SITES.tool.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/build/materialicons/24px.svg
+
+MOZC_DISTS+=	ken_all.zip
+SITES.ken_all.zip=	https://www.post.japanpost.jp/zipcode/dl/kogaki/zip/
+
+MOZC_DISTS+=	jigyosyo.zip
+SITES.jigyosyo.zip=	https://www.post.japanpost.jp/zipcode/dl/jigyosyo/zip/
+
+.for d in ${MOZC_DISTS}
+DISTFILES+=	${d}
+.endfor
+
+WRKSRC=		${WRKDIR}/${DISTNAME}/src
+MOZC_GYP_SRC=	${WRKDIR}/mozc-${MOZC_GYP_VERSION}/src
+
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/mozc-server334/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server334/patches
+
+PYTHON_VERSIONS_INCOMPATIBLE+=	27
+
+.include "../../mk/bsd.prefs.mk"
+
+.if empty(PKG_OPTIONS:Mgyp)
+# 3.34 の .bazeliskrc は bazel 9 を指す。pkgsrc の devel/bazel は 6.4.0 なので
+# 満たせない。zakinko/bazel9 が 9.2.0 を NetBSD で建てられるようにしたもの。
+TOOL_DEPENDS+=	bazel>=9.0:../../zakinko/bazel9
+# bzlmod は依存を建てる最中に取りにいく。
+ALLOW_NETWORK_ACCESS=	yes
+.else
+TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
+TOOL_DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
+TOOL_DEPENDS+=	ninja-build-[0-9]*:../../devel/ninja-build
+.endif
+
+USE_LANGUAGES=	c c++
+USE_TOOLS+=	pkg-config unzip
+
+USE_CXX_FEATURES+=	c++20
+
+SUBST_CLASSES+=		prefix
+SUBST_STAGE.prefix=	pre-configure
+SUBST_MESSAGE.prefix=	Setting PREFIX
+SUBST_FILES.prefix+=	base/process.cc
+SUBST_FILES.prefix+=	base/system_util.cc
+SUBST_VARS.prefix+=	PREFIX
+SUBST_VARS.prefix+=	X11BASE
+
+# 3.33.6089 から GYP の足場を被せる。3.34 に同じ名前のファイルがあるときは
+# 3.34 を残す — 持ってきたいのは建て方であって、中身ではない。build_tools は
+# 共有のものが 3.34 側で直っているので、この向きでないと古いものが勝つ。
+post-extract:
+	cd ${MOZC_GYP_SRC} && ${FIND} . -type f -print | while read f; do		\
+		case "$$f" in							\
+		*.gyp|*.gypi|./gyp/*|./protobuf/*|./build_mozc.py|./build_tools/*) ;; \
+		*)	continue ;;						\
+		esac;								\
+		[ -e "${WRKSRC}/$$f" ] && continue;				\
+		${MKDIR} "${WRKSRC}/`dirname $$f`";				\
+		${CP} -p "$$f" "${WRKSRC}/$$f";					\
+	done
+
+OPSYSVARS+=	OSDEST
+.if empty(PKG_OPTIONS:Mgyp)
+OSDEST.Linux=	linux-opt
+OSDEST.NetBSD=	netbsd-opt
+.else
+OSDEST.Linux=	linux
+OSDEST.NetBSD=	bsd
+
+MOZC_BUILD_MODE?=	Release
+
+do-configure:
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${PYTHONBIN} build_mozc.py gyp \
+			--gypdir=${LOCALBASE}/bin \
+			${MOZC_GYP_ARGS}
+.endif
+
+CHECK_PIE_SUPPORTED=	no
+pre-configure:
+	${MKDIR} ${WRKSRC}/dist
+.for d in ${MOZC_DISTS}
+	${LN} -s ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
+.endfor
+	${RM} -r ${WRKDIR}/.cwrapper
+
+# server と elisp は Qt にも GL にも触らない。renderer と tool だけが要る。
+.if !empty(PKGPATH:M*/mozc-renderer334) || !empty(PKGPATH:M*/mozc-tool334)
+.include "../../graphics/MesaLib/buildlink3.mk"
+.include "../../x11/qt6-qtbase/buildlink3.mk"
+.endif
+
+.include "../../lang/python/tool.mk"
+.include "../../mk/atomic64.mk"
