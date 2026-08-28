@@ -1,0 +1,70 @@
+name: mule (Fedora)
+
+# Mule 1.1 と 2.3 を Fedora 44 のコンテナで組む。
+#
+# mule-linux.yml (Debian / Ubuntu / AlmaLinux / Rocky / CentOS Stream) とは
+# 別に置いている。あちらは持ち主が別で、いま直しを抱えているため。こちらは
+# Fedora だけを見る。
+#
+# 二つ並べる意味は、1.1 と 2.3 で glibc と gcc の当たり方が違うのを見ること。
+# NetBSD では 1.1 が clang/gcc 14 のエラー五種類で 0 件、2.3 が 1474 件ある。
+# Fedora 44 の gcc は 15 なので、2.3 は暗黙宣言の段で止まる公算が高い。
+# 止まる場所が同じかどうかを見る。
+#
+# X は native にする。1.1 の Makefile は x11.buildlink3.mk を無条件に読むので、
+# modular にすると X を素から建てて何時間もかかる。Fedora の devel を入れて
+# X11BASE=/usr で当てる。2.3 は -x11 で外せるが、条件を揃えるため同じにする。
+#
+# 見込みは薄い。pkgsrc の Linux 対応は動くが、1995 年の tree が Fedora 44 の
+# glibc とヘッダで通るかは別の話で、configure の機種判定か、暗黙宣言か、
+# 可変長引数のどこかで止まると思う。止まった場所そのものが結果になる。
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: '組むもの (mule / mule2 / "mule mule2")'
+        required: false
+        default: 'mule mule2'
+      options:
+        description: 'PKG_OPTIONS (既定は端末のみ)'
+        required: false
+        default: '-canna -wnn4 -x11'
+
+jobs:
+  fedora:
+    name: Fedora 44 / ${{ matrix.pkg }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [mule, mule2]
+    container:
+      image: fedora:44
+    steps:
+      - name: 道具を入れる
+        run: |
+          set -e
+          dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+            perl patch tar gzip xz git diffutils findutils which sudo \
+            libX11-devel libXt-devel libXaw-devel libXmu-devel libXext-devel \
+            libXpm-devel xorg-x11-proto-devel ncurses-devel
+          cc --version | head -1
+          ldd --version | head -1
+          cat /etc/fedora-release
+
+      - uses: actions/checkout@v4
+
+      - name: 組む
+        env:
+          PKGS: ${{ matrix.pkg }}
+          VERIFY: basic
+          X11_TYPE: native
+          X11BASE: /usr
+        run: sh .github/ci/build-on-bsd.sh '${{ inputs.options || ''-canna -wnn4 -x11'' }}'
+
+      - name: 止まった場所を出す
+        if: failure()
+        run: |
+          tail -60 /tmp/build.log 2>/dev/null || true
