@@ -3,6 +3,12 @@ name: mule11
 # mule (Mule 1.1) を NetBSD の各版で組んで、日本語が編集できるところまで
 # 確かめる。2.3 は別物で、そちらは mule.yml (表示名 mule2) が見る。
 #
+# 検査は .github/ci/verify-mule.sh。名前が workflow と揃っていないのは、
+# 検査の側が verify-<package のディレクトリ名>.sh で探されるためで、
+# package のディレクトリ名は mule (中身は 1.1) である。workflow の側は
+# mule.yml が 2.3 に取られている (GitHub が workflow の同一性をファイル名で
+# 持つので、あちらは名前を変えられない)。
+#
 # 中身は run-in-qemu.sh の UPSTREAM_PKG 経路にそのまま乗せている。
 # zakinko/<pkg> を渡すとその package だけをゲストのツリーへ置いて、
 # VERIFY_SCRIPT で名指しした検査を走らせる仕掛けが既にあるので、
@@ -25,12 +31,12 @@ on:
     paths:
       - 'mule/**'
       - '.github/workflows/mule11.yml'
-      - '.github/ci/verify-mule11.sh'
+      - '.github/ci/verify-mule.sh'
       - '.github/ci/run-in-qemu.sh'
   pull_request:
     paths:
       - 'mule/**'
-      - '.github/ci/verify-mule11.sh'
+      - '.github/ci/verify-mule.sh'
   workflow_dispatch:
     inputs:
       images:
@@ -99,7 +105,7 @@ jobs:
       - name: 組んで確かめる
         env:
           UPSTREAM_PKG: zakinko/mule
-          VERIFY_SCRIPT: verify-mule11.sh
+          VERIFY_SCRIPT: verify-mule.sh
           VERIFY_OPTS: ${{ inputs.options || matrix.config.options }}
         run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
 

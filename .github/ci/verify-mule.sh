@@ -5,6 +5,15 @@
 #   VERIFY_OPTS  PKG_OPTIONS.mule に渡す文字列。空なら package の既定
 #   $1           run-in-qemu.sh が渡す package 名 (zakinko/mule)。使わない
 #
+# 名前は build-on-bsd.sh の探し方に合わせてある。verify-<package の
+# ディレクトリ名>.sh で、zakinko/mule (1.1) はこの名前、zakinko/mule2 (2.3)
+# は verify-mule2.sh。例外を作ると、表を読まないと何が呼ばれるか分からなく
+# なり、しかも表の更新漏れは黙って汎用の verify-pkg.sh に落ちる形で出る。
+#
+# ややこしいのは履歴の側で、この名前は 2026 年 8 月 28 日まで Mule 2.3 の
+# 検査だった。8d71ae8 で mule という名前が 1.1 を指すようになり、2.3 側は
+# verify-mule2.sh へ移ったので、規則どおりこの名前が 1.1 の検査になった。
+#
 # verify-mule2.sh (Mule 2.3) と対になる。踏む項目は同じだが、1.1 は別物で、
 # 検査の書き方が変わるところがいくつかある。
 #
