@@ -73,6 +73,21 @@ echo "=== ${OS} ${REL} / ${ARCH} / PKG_OPTIONS.mule2=\"${OPTS}\" ==="
 # NetBSD は gcc、FreeBSD と OpenBSD は clang。どちらでも cc で当たる。
 cc --version 2>/dev/null | head -1
 
+# X 側の素性。9.4/amd64 の x11 だけが起動時に SIGSEGV で落ちるので、
+# 10.1 や 11.0 と何が違うのかを後から比べられるようにしておく。base の X の
+# 版が違えば、こちらの宣言が同じでも返ってくる値の形が変わって初めて露見する、
+# という筋が立つ。ldd の成否だけ見ていると、そこが記録に残らない。
+case " $OPTS " in *" x11 "*)
+	echo "--- X の素性 ---"
+	uname -a | sed 's/^/    /'
+	for l in libX11 libXt libXaw libXmu; do
+		set -- /usr/X11R7/lib/$l.so.[0-9]*
+		[ -e "$1" ] && printf '    %s\n' "${1##*/}"
+	done
+	Xvfb -version 2>&1 | head -1 | sed 's/^/    Xvfb /'
+	;;
+esac
+
 fail=0
 note() { echo "    $*"; }
 bad()  { echo "    FAIL: $*"; fail=1; }
