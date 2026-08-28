@@ -41,7 +41,24 @@ jobs:
           set -e
           dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
             perl patch tar gzip xz git diffutils findutils which sudo \
-            ncurses-devel gawk
+            ncurses-devel gawk hostname
+          # hostname は Fedora の image に入っていないが、pkgsrc は要求する。
+          # mk/tools/replace.mk の _TOOLS.coreutils に hostname が並んでいて、
+          # mk/tools/tools.Linux.mk は /bin などに実体があるときだけ
+          # TOOLS_PLATFORM.hostname を立てる。無いと _TOOLS_USE_PKGSRC.hostname
+          # になり、
+          #
+          #	TOOLS_DEPENDS.hostname?= coreutils>=5.2.1:../../sysutils/coreutils
+          #
+          # が付く。bootstrap の最中に coreutils を要求すると、digest も
+          # mktools も cwrappers もまだ無いので
+          #
+          #	libnbcompat -> digest -> mktools -> cwrappers -> libnbcompat
+          #
+          # の輪が閉じて Circular dependency detected で止まる。実際 eeacd75 の
+          # 回は七版とも二分でそこで落ちた。coreutils が無いのではなく、native
+          # の hostname が見つからないので coreutils package を引こうとする、
+          # という話である。mule-fedora が 1565e2c で入れたのと同じ手当て。
           cc --version | head -1
           ldd --version | head -1
           cat /etc/fedora-release
