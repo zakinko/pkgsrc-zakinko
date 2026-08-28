@@ -17,11 +17,18 @@ PLIST_VARS+=	exclusive
 .if !empty(PKG_OPTIONS:Mwnn4)
 .include "../../inputmethod/ja-freewnn-lib/buildlink3.mk"
 .else
+# EGG has to go with it.  lisp/loadup.el, which builds the dumped image,
+# says: if EGG is defined then WNN4 or SJ3 must be too, and errors out
+# otherwise -- the dump dies with "You should define WNN4 or SJ3 in
+# mconfig.h."  CANNA is asked for separately on the line below that, so it
+# is unaffected.  ymakefile has carried a MULE_OBJ arm for the no-EGG case
+# since 1992.
 SUBST_CLASSES+=		wnn4
 SUBST_STAGE.wnn4=	pre-configure
-SUBST_MESSAGE.wnn4=	Turning Wnn support off
+SUBST_MESSAGE.wnn4=	Turning Wnn and Egg support off
 SUBST_FILES.wnn4=	src/mconfig.h-netbsd
 SUBST_SED.wnn4=		-e 's,^\#define WNN4$$,/* \#define WNN4 */,'
+SUBST_SED.wnn4+=	-e 's,^\#define EGG$$,/* \#define EGG */,'
 .endif
 
 # CANNA3_7 enables the APIs Canna grew in 3.7; pkgsrc ships 3.8.
