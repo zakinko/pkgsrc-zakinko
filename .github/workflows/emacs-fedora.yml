@@ -1,0 +1,66 @@
+name: emacs22-28 (Fedora)
+
+# 引き取った emacs22 から emacs28 を Fedora 44 のコンテナで組む。
+#
+# emacs.yml は NetBSD の各版を QEMU で見るもので、こちらは pkgsrc を
+# bootstrap するところから始めて Linux で通るかを見る。見たいのは二つ。
+#
+#   1. pkgsrc を bootstrap した先で、この七つが組めるか
+#   2. どこで止まるか
+#
+# 2 のほうが本題になると思う。emacs22 は 2008 年、emacs23 は 2011 年の
+# tree で、Fedora 44 の gcc は 15 である。暗黙宣言はとうに error で、
+# K&R の関数定義も通らない。NetBSD で組めているのは base の clang と
+# pkgsrc の当て物がその世代を相手にしているからで、glibc とヘッダが
+# 変われば当たり方も変わる。止まった場所そのものが結果になる。
+#
+# nox11 のほうを組む。X を入れないぶん依存が浅く、見たいのは Emacs 本体が
+# 通るかどうかなので、X の有無は関係がない。
+#
+# 押すまで何もしない。七つ並べると長いので、要らないものは UI から個別に
+# 止められるよう fail-fast は切ってある。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fedora:
+    name: Fedora 44 / emacs${{ matrix.v }}-nox11
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        v: [28, 27, 26, 25, 24, 23, 22]
+    container:
+      image: fedora:44
+    steps:
+      - name: 道具を入れる
+        run: |
+          set -e
+          dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+            perl patch tar gzip xz git diffutils findutils which sudo \
+            ncurses-devel gawk
+          cc --version | head -1
+          ldd --version | head -1
+          cat /etc/fedora-release
+
+      - uses: actions/checkout@v4
+
+      - name: 組む
+        env:
+          # emacsNN-nox11 は emacsNN の Makefile.common と PLIST を読み、
+          # さらに zakinko/emacs の modules.mk を読む。build-on-bsd.sh は
+          # PKGS に並べたものを zakinko カテゴリへ置くので、連れも並べる。
+          PKGS: emacs${{ matrix.v }}-nox11
+          # emacsNN-nox11 は emacsNN の Makefile.common と PLIST と patches を
+          # 読む。あちら (X 版) は建てないので CARRY で連れていくだけにする。
+          CARRY: emacs${{ matrix.v }}
+          VERIFY: basic
+        run: sh .github/ci/build-on-bsd.sh
+
+      - name: 止まった場所を出す
+        if: failure()
+        run: |
+          tail -80 /tmp/build.log 2>/dev/null || true

@@ -205,13 +205,17 @@ stage "zakinko カテゴリを重ねる"
 # :- ではなく - なのは、PKGS='' を「既定に戻せ」ではなく「zakinko からは
 # 何も組むな」と読ませたいため。
 PKGS=${PKGS-mule}
+# 建てずに連れていくだけのもの。emacs28-nox11 は emacs28 の Makefile.common と
+# PLIST と patches と files を読むが、emacs28 そのもの (X 版) を建てる必要は
+# ない。PKGS に並べると建ててしまうので、口を分ける。SUBDIR にも入れない。
+CARRY=${CARRY-}
 mkdir -p "$TREE/zakinko"
 {
 	printf '# $NetBSD$\nCOMMENT=\tLocal\n'
 	for p in $PKGS; do printf 'SUBDIR+=\t%s\n' "$p"; done
 	printf '.include "../mk/misc/category.mk"\n'
 } > "$TREE/zakinko/Makefile"
-for p in $PKGS; do
+for p in $PKGS $CARRY; do
 	[ -d "$WS/$p" ] || { echo "!! $p が repo に無い" >&2; continue; }
 	mkdir -p "$TREE/zakinko/$p"
 	cp -R "$WS/$p/." "$TREE/zakinko/$p/"
