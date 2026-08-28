@@ -56,11 +56,15 @@ EMACS_MODULES+=	base leim
 
 EMACS_VERSIONS_ACCEPTED=	emacs21 emacs21nox emacs20
 EMACS_VERSIONS_ACCEPTED+=	xemacs215 xemacs215nox xemacs214 xemacs214nox
+EMACS_VERSIONS_ACCEPTED+=	emacs22 emacs22nox emacs23 emacs23nox
+EMACS_VERSIONS_ACCEPTED+=	emacs24 emacs24nox emacs25 emacs25nox
+EMACS_VERSIONS_ACCEPTED+=	emacs26 emacs26nox emacs27 emacs27nox
+EMACS_VERSIONS_ACCEPTED+=	emacs28 emacs28nox
 EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
 EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
 EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 
-.include "../../editors/emacs/modules.mk"
+.include "../../zakinko/emacs/modules.mk"
 
 do-build:
 	cd ${WRKSRC}/src-util && ${MAKE} elc-stamp
