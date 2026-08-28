@@ -111,6 +111,56 @@ $SSH "PKGSRC_URL='$PKGSRC_URL' sh -s" <<'GUEST'
 set -e
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
 export PATH
+
+# ゲストの IPv6 を落とす。
+#
+# qemu の user-mode NAT は既定で RA を出すので、ゲストは fec0::/64 と
+# IPv6 の default route を持つ。ところが GitHub の runner に IPv6 の経路は
+# 無い。AAAA を持つ相手には必ず先に IPv6 で繋ぎに行き、一つあたり 75 秒
+# 待たされる。
+#
+#	ftp: Can't connect to `2a02:6ea0:e200::37:443': No route to host
+#
+# cdn.netbsd.org は AAAA を三つ返すので 3 * 75 = 225 秒。bin-install が
+# どれも判で押したように 3 分 45 秒かかっていたのはこれで、依存が二十個
+# あればそれだけで 75 分が消える。uim の job が 2 時間かけて依存の半分も
+# 入らずに終わったのはこれである。
+#
+# KVM の有無ではない。同じ run の fail2ban は「KVM あり」で走りながら、
+# やはり一つ 3 分 46 秒だった。
+#
+# しかも待たされた末に諦めるので、集合に在るものまで
+#
+#	=> No binary package found for librsvg-[0-9]*; installing from source.
+#
+# と出て素から組み始める。librsvg-2.40.21nb30 も glib2-introspection-2.88.1nb1
+# も x11-links-1.37 も 10.0_2026Q2/All に在るのに、三つとも素から組んでいた。
+#
+# 三段で塞ぐ。dhcpcd は RA を受け直すたびに経路を戻すので、今ある経路と
+# 住所を消すだけでは十分ではなく、設定の側と、dhcpcd が触らない経路の
+# 両方が要る。2000::/3 は default より細かいので、あとから ::/0 が生えても
+# こちらが勝つ。-reject なので connect は待たずに失敗する。
+echo "--- IPv6 を落とす ---"
+if ! grep -q '^noipv6$' /etc/dhcpcd.conf 2>/dev/null; then
+	printf '\n# runner に IPv6 の経路が無い\nnoipv6\nnoipv6rs\n' >> /etc/dhcpcd.conf
+	dhcpcd -n > /dev/null 2>&1 || true
+fi
+sysctl -w net.inet6.ip6.accept_rtadv=0 > /dev/null 2>&1 || true
+route -qn add -inet6 2000::/3 ::1 -reject > /dev/null 2>&1 || true
+route -qn delete -inet6 default > /dev/null 2>&1 || true
+for i in $(ifconfig -l); do
+	ifconfig "$i" inet6 2>/dev/null | awk '$1 == "inet6" { print $2 }' |
+	while read -r a; do
+		case $a in
+		fe80:*|::1)	continue ;;
+		esac
+		ifconfig "$i" inet6 "$a" delete > /dev/null 2>&1 || true
+	done
+done
+# 効いたかどうかは次の run の log で見たい。黙らせない。
+ifconfig -a | grep inet6 | sed 's/^/    /' || true
+route -n get -inet6 2a04:4e42:68::262 2>&1 | sed 's/^/    /' || true
+
 if [ ! -d /usr/pkgsrc/mk ]; then
 	# 無言で 1.3GB を展開すると、止まっているのか進んでいるのか分からない。
 	echo "--- ツリーを展開する ---"
