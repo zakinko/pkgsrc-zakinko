@@ -78,10 +78,13 @@ jobs:
         env:
           UPSTREAM_PKG: zakinko/xwpe
           VERIFY_SCRIPT: verify-xwpe.sh
-          # MASTER_SITE_CODEBERG は 2026-07-22 に pkgsrc へ入った変数で、
-          # 2026Q2 の枝には無い。Q2 を引くと展開が空になり、
-          # MASTER_SITE_BACKUP だけが残って 404 になる。ここは current。
-          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
+          # 四半期枝に留める。current を引くと公式のバイナリ集合と版が
+          # 合わず、perl から全部素で組むことになる。実際それで
+          # perl-5.44.0 の Errno_pm.PL が NetBSD 10.1 の <sys/cdefs_elf.h>
+          # を前処理できずに落ちた。MASTER_SITE_CODEBERG が四半期枝に
+          # 無い件は run-in-qemu.sh がゲスト側で補う。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
         run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
       - name: 転けたらコンソールを出す
         if: failure()

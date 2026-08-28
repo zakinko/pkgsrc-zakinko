@@ -146,6 +146,26 @@ if [ -f "$FC" ] && ! grep -q -- '-cd ${BUILDLINK_X11_DIR}' "$FC" &&
 		mv "$FC.new" "$FC"
 	echo "fontconfig: pre-configure の - を戻した (上流 rev 1.143 と同じ)"
 fi
+
+# MASTER_SITE_CODEBERG は 2026-07-22 に pkgsrc へ入った (mk/fetch: Add
+# codeberg.org project support)。四半期枝にはまだ無いので、そこを引くと
+# 展開が空になり、MASTER_SITE_BACKUP だけが残って 404 になる。
+#
+# editors/xwpe の 1.6.x がそれを使う。上流の current には在るので package の
+# 側は正しく、足りないのは古いスナップショットの方である。だから package に
+# 直書きするのではなく、ここで補う。
+#
+# 補わずに current を引く手もあるが、そうすると今度は公式のバイナリ集合と
+# 版が合わず、perl から全部素で組むことになる。実際それで perl-5.44.0 の
+# Errno_pm.PL が NetBSD 10.1 の <sys/cdefs_elf.h> を前処理できずに落ちた。
+# 四半期枝に留まって、足りない一行だけを足す方が筋がよい。
+#
+# 追いついたら grep が当たって何もしない。
+SITES=/usr/pkgsrc/mk/fetch/sites.mk
+if [ -f "$SITES" ] && ! grep -q MASTER_SITE_CODEBERG "$SITES"; then
+	printf '\nMASTER_SITE_CODEBERG+=\t\\\n\thttps://codeberg.org/\n' >> "$SITES"
+	echo "sites.mk: MASTER_SITE_CODEBERG を足した (上流 2026-07-22 と同じ)"
+fi
 GUEST
 
 if [ -n "${UPSTREAM_PKG:-}" ]; then
