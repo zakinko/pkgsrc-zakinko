@@ -176,10 +176,16 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 		# こちらが手を入れたもの。その package だけを送り、ゲストの
 		# ツリーの zakinko カテゴリに置く。カテゴリの Makefile は要らない。
 		# 名指しで組むだけで、SUBDIR から辿ることはないため。
-		P=${UPSTREAM_PKG#zakinko/}
+		#
+		# 空白で区切って並べれば複数を持っていく。zakinko/emacs28-nox11
+		# は zakinko/emacs28 の Makefile.common と PLIST を読み、さらに
+		# zakinko/emacs の modules.mk を読むので、一つでは足りない。
+		# 先頭が検査の主対象で、残りは連れていくだけ。
+		P=
+		for u in $UPSTREAM_PKG; do P="$P ${u#zakinko/}"; done
 		echo "=== 検査と $UPSTREAM_PKG を送り込む ==="
-		tar czf - -C "$TREE" .github/ci "$P" | $SSH "tar xzf - -C /tmp"
-		$SSH "mkdir -p /usr/pkgsrc/zakinko && cp -R /tmp/$P /usr/pkgsrc/zakinko/"
+		tar czf - -C "$TREE" .github/ci $P | $SSH "tar xzf - -C /tmp"
+		$SSH "mkdir -p /usr/pkgsrc/zakinko && for p in $P; do cp -R /tmp/\$p /usr/pkgsrc/zakinko/; done"
 		;;
 	*)
 		# 素の上流。ツリーに在るものをそのまま見る。
@@ -197,6 +203,7 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 	# 何も起きない。
 	$SSH "BINPKG_SITES='${BINPKG_SITES:-}' UIM_OPTIONS='${UIM_OPTIONS:-}' \
 		VERIFY_OPTS='${VERIFY_OPTS:-}' \
+		EMACS_COEXIST_CHECK='${EMACS_COEXIST_CHECK:-}' \
 		sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
 	exit $?
 fi

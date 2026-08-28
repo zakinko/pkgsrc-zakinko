@@ -72,6 +72,16 @@ grep 'SHA1 (patch-' "$TREE/$ANTHY/distinfo" | sed 's/^/    /'
 
 pkg_delete -f "$PKG" > /dev/null 2>&1 || true
 
+# EMACS_TYPE を変えても PKGNAME は変わらない。anthy-elisp-9100hnb10 という
+# 名前は emacs30nox で組んでも emacs28nox で組んでも同じなので、前に別の
+# Emacs で組んだ work と binary package がそのまま使われる。実際、emacs30nox
+# で組んだものが emacs28nox の検査で入り、依存の emacs30-nox11 が無いと言って
+# 落ちた。落ちたから気づけたが、依存が両方入っている箱なら黙って通り、
+# 「emacs28 で変換できた」という緑が emacs30 の結果になる。毎回捨てる。
+$PKGMAKE $MKARGS clean > /dev/null 2>&1 || true
+PKGFILE=$($PKGMAKE $MKARGS show-var VARNAME=PKGFILE 2>/dev/null || true)
+[ -n "$PKGFILE" ] && rm -f "$PKGFILE"
+
 echo "--- 1. build と install ---"
 # emacs を依存で引くので長い。
 if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKG.log 2>&1; then
