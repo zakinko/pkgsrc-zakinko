@@ -216,6 +216,38 @@ if [ -f "$SITES" ] && ! grep -q MASTER_SITE_CODEBERG "$SITES"; then
 	printf '\nMASTER_SITE_CODEBERG+=\t\\\n\thttps://codeberg.org/\n' >> "$SITES"
 	echo "sites.mk: MASTER_SITE_CODEBERG を足した (上流 2026-07-22 と同じ)"
 fi
+
+# lang/zig/application.mk の zig-vendor-packages は、package の
+# ディレクトリに居たまま zig fetch を呼ぶ。
+#
+#	post-extract: zig-vendor-packages
+#	zig-vendor-packages:
+#	.for pkg in ${ZIG_PACKAGE_DEPENDS}
+#		${RUN} ${PREFIX}/bin/zig fetch --global-cache-dir ... ${pkg}
+#	.endfor
+#
+# zig 0.16.0 の fetch は build.zig を持つ根を先に探すようになったので、
+# そこでは URL を見る前に
+#
+#	info: initialize build.zig template file with 'zig init'
+#	error: no build.zig file found, in the current directory or any
+#	parent directories
+#
+# で止まる。zls の job が ===> Extracting の直後に、まだ一つも取りに
+# 行かないうちに落ちていたのはこれである。手元の 0.16.0 で、空の
+# ディレクトリと展開した zls-0.16.0 の両方で確かめた。前者だけが落ちる。
+#
+# WRKSRC へ降りれば通る。application.mk rev 1.11 (2024-10-13) からこの形
+# なので、0.15 までは URL を渡すだけで足りていた。上流の直しは同じ一語に
+# なるはずで、入れば grep が当たって何もしない。
+ZIGAPP=/usr/pkgsrc/lang/zig/application.mk
+if [ -f "$ZIGAPP" ] &&
+   ! grep -qF 'cd ${WRKSRC} && ${PREFIX}/bin/zig fetch' "$ZIGAPP" &&
+   grep -qF '${RUN} ${PREFIX}/bin/zig fetch' "$ZIGAPP"; then
+	sed 's|${RUN} ${PREFIX}/bin/zig fetch|${RUN} cd ${WRKSRC} \&\& ${PREFIX}/bin/zig fetch|' \
+		"$ZIGAPP" > "$ZIGAPP.new" && mv "$ZIGAPP.new" "$ZIGAPP"
+	echo "zig: zig fetch を WRKSRC で呼ぶようにした (0.16.0 は build.zig を探す)"
+fi
 GUEST
 
 if [ -n "${UPSTREAM_PKG:-}" ]; then

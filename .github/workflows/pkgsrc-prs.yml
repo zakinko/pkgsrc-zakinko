@@ -20,6 +20,12 @@ name: pkgsrc PRs
 #         公式のバイナリ集合にも zls は無い。版を合わせて BROKEN を外す。
 #         当て物は zakinko/zls に置いた。
 #
+#         zls だけでは足りない。lang/zig/application.mk の
+#         zig-vendor-packages が package のディレクトリのまま zig fetch を
+#         呼ぶので、build.zig を探すようになった 0.16.0 では post-extract が
+#         必ず落ちる。zig の package はどれも通らないはずで、直しは
+#         run-in-qemu.sh がツリーへ当てている。上流へはそちらも要る。
+#
 #   #175  security/fail2ban: update to 1.1.0
 #         PR は 1.1.0 だがもう 1.1.1 (2026-08-15) が出ている。1.1.0 で
 #         Python 2 対応が落ちたので 2to3 の前処理と python 312 固定を外せる。
