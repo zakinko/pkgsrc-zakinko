@@ -161,6 +161,22 @@ done
 ifconfig -a | grep inet6 | sed 's/^/    /' || true
 route -n get -inet6 2a04:4e42:68::262 2>&1 | sed 's/^/    /' || true
 
+# pkgsrc の側にも言っておく。上の三段はゲストの経路を塞ぐだけなので、
+# distfile を引く ftp(1) は AAAA を引いてから捨てる形になる。
+# mk/fetch/fetch.mk は FETCH_USE_IPV4_ONLY が定義されていれば ftp と fetch に
+# -4 を、wget に --inet4-only を、curl に --ipv4 を渡す。名前解決の段で
+# 諦めさせる方が筋がよい。値は :D で見ているので中身は何でもよいが、
+# mk/defaults/mk.conf の書き方に合わせて yes と書く。
+#
+# ただしこれで bin-install が速くなるわけではない。あちらは
+# mk/install/bin-install.mk:107 が PKG_PATH を付けて pkg_add を呼ぶだけで、
+# libfetch に -4 は渡らない。225 秒を消しているのは上の経路の方である。
+MKCONF=/etc/mk.conf
+if ! grep -q '^FETCH_USE_IPV4_ONLY' "$MKCONF" 2>/dev/null; then
+	printf 'FETCH_USE_IPV4_ONLY=\tyes\n' >> "$MKCONF"
+	echo "mk.conf: FETCH_USE_IPV4_ONLY=yes を足した"
+fi
+
 if [ ! -d /usr/pkgsrc/mk ]; then
 	# 無言で 1.3GB を展開すると、止まっているのか進んでいるのか分からない。
 	echo "--- ツリーを展開する ---"

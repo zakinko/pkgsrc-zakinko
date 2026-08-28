@@ -189,6 +189,9 @@ cat >> "$MKCONF" <<EOF
 DISTDIR=	$CACHE/distfiles
 PACKAGES=	$CACHE/packages
 WRKOBJDIR=	$REAL/obj
+# runner に IPv6 の経路が無い。AAAA を先に引きに行くと一つ 75 秒待たされる。
+# mk/fetch/fetch.mk が ftp に -4 を、curl に --ipv4 を渡す。
+FETCH_USE_IPV4_ONLY=	yes
 EOF
 cat "$MKCONF"
 
