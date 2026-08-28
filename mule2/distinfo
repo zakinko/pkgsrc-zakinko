@@ -126,3 +126,4 @@ SHA1 (patch-src_window.c) = c0d1a4dae22d70ff06c7ab571161afe74e273ac5
 SHA1 (patch-src_xdisp_c) = 32171440531db8ab9fa2af36648f5123149e1f3f
 SHA1 (patch-src_xfaces_c) = c07e1068b4eebc9185d8246756179899148a8f97
 SHA1 (patch-src_xmenu_c) = ebd9a100bc1403e0df0bd760a93805dc10cc5e3c
+SHA1 (patch-src_xrdb.c) = 6901b0196a41e3389bc0380e2784cb7d8416d9e9
