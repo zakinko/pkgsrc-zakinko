@@ -1,0 +1,38 @@
+name: distinfo
+
+# 当て物と distinfo の SHA1 が合っているかだけを見る。
+#
+# 合っていないと pkgsrc はその当て物を読み飛ばし、patch 段で止まる。困る
+# のはそこへ辿り着くまでが遠いことで、VM を起こして bootstrap して依存を
+# 組んだあとにようやく出る。2026-08-24 の run は xwpe/distinfo が古い値を
+# 三つ持っていたせいで NetBSD 9.4 / 10.1 / 11.0 と FreeBSD と OpenBSD を
+# 落とし、合わせて 8 時間を使った。
+#
+# 同じことは shasum で数秒で分かる。VM を起こす前にここで止める。
+
+on:
+  push:
+    paths:
+      - '*/distinfo'
+      - '*/patches/**'
+      - '.github/ci/check-distinfo.sh'
+      - '.github/workflows/distinfo.yml'
+  pull_request:
+    paths:
+      - '*/distinfo'
+      - '*/patches/**'
+      - '.github/ci/check-distinfo.sh'
+      - '.github/workflows/distinfo.yml'
+  workflow_dispatch:
+
+# concurrency はこの repo の他の workflow に合わせて置かない。理由は
+# mule11.yml が書いている。数秒で終わるのでどちらでも変わらない。
+
+jobs:
+  check:
+    name: 当て物の checksum
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: distinfo と突き合わせる
+        run: sh .github/ci/check-distinfo.sh
