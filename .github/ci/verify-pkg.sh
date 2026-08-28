@@ -49,8 +49,17 @@ fi
 # lang/llvm と辿って llvm-project-21.1.8 を建て、当然のように時間切れに
 # なる。見たいのは zls が組めるかであって、LLVM が組めるかではない。
 #
-# BINPKG_SITES を渡すと bin-install が公式の集合から降ろす。PKG_PATH では
-# ない。あれを設定したまま pkgsrc の make を走らせると
+# BINPKG_SITES を渡すと bin-install が公式の集合から降ろす。**末尾に /All を
+# 付けないこと。** mk/install/bin-install.mk が
+#
+#	for i in "$@"; do pkg_path="$pkg_path;$i/All"; done
+#
+# と自分で足すので、付けると .../All/All を引きに行く。しかも見つからな
+# かったときは do-bin-install-from-source が黙ってソースビルドへ落ちる
+# ので、失敗として出ない。それで zls が perl と curl と libunistring を
+# 素から組み、四時間かけて timeout に当たっていた。
+#
+# PKG_PATH ではない。あれを設定したまま pkgsrc の make を走らせると
 #
 #	ERROR: [bsd.pkg.mk] Please unset PKG_PATH before doing pkgsrc work!
 #

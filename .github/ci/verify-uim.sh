@@ -82,7 +82,7 @@ export PATH
 #	ERROR: [bsd.pkg.mk] Please unset PKG_PATH before doing pkgsrc work!
 #
 # で組む前に弾かれる。最初それで転けた。
-BINPKG_SITES=${BINPKG_SITES:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2/All}
+BINPKG_SITES=${BINPKG_SITES:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2}
 unset PKG_PATH
 echo "--- 依存の出どころ: $BINPKG_SITES ---"
 
