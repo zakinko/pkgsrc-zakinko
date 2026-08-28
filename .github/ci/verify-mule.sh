@@ -148,11 +148,32 @@ done
 if want canna; then
 	echo "=== 3. canna: ローマ字から漢字まで ==="
 	# サーバと辞書は mule の依存ではない (options.mk が読むのは canna-lib の
-	# buildlink3.mk だけ) ので、ここで名指しで組ませる。lib と同じ tree から
-	# 作られるので版が揃う。
-	for d in canna-server canna-dict; do
-		build_install "$TREE/inputmethod/$d" || bad "$d を組めない"
-	done
+	# buildlink3.mk だけ) ので、ここで入れる。
+	#
+	# まずバイナリを試す。run-in-qemu.sh の既定のツリーが四半期枝になった
+	# ので、公式バイナリと版が揃うようになった。
+	#
+	# 組むほうを先にすると、素のイメージでは転ぶ。canna-server は
+	# PKG_GROUPS/PKG_USERS で自分の group を要求するが、それが作られるのは
+	# install の段で、pkg_create はその前に走る。名前の無い gid を持つ
+	# ファイルを詰めようとして
+	#
+	#	pkg_create: unknown group name for gid 125
+	#
+	# で止まる。techne のように既に canna が入っている箱では group が在る
+	# ので気づけない。
+	PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/" \
+		pkg_add -U Canna-server Canna-dict > /dev/null 2>&1 || true
+	if [ ! -x $PREFIX/sbin/cannaserver ]; then
+		# バイナリが無ければ組む。その前に group と user を作っておく。
+		CG=$(cd $TREE/inputmethod/canna-server && make show-var VARNAME=CANNA_GROUP 2>/dev/null)
+		CU=$(cd $TREE/inputmethod/canna-server && make show-var VARNAME=CANNA_USER 2>/dev/null)
+		[ -n "$CG" ] && { grep -q "^$CG:" /etc/group  || groupadd "$CG" || true; }
+		[ -n "$CU" ] && { grep -q "^$CU:" /etc/passwd || useradd -g "$CG" -d /nonexistent -s /sbin/nologin "$CU" || true; }
+		for d in canna-server canna-dict; do
+			build_install "$TREE/inputmethod/$d" || bad "$d を組めない"
+		done
+	fi
 	# 辞書は libdata に入るが cannaserver が読むのは /var/dict/canna/canna
 	mkdir -p /var/dict/canna/canna /var/dict/canna/group
 	cp $PREFIX/libdata/canna/* /var/dict/canna/canna/ 2>/dev/null
