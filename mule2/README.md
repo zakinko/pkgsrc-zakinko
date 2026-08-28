@@ -131,13 +131,20 @@ Wnn 側は `egg` が起動ファイルを探すが、上流は候補である `e
 
 ## 当て物の一覧
 
-113 本ある。名前 (`patch-aa` … `patch-cc`) からは中身が分からないので、一つずつ
+124 本ある。名前 (`patch-aa` … `patch-cc`) からは中身が分からないので、一つずつ
 表にした。
 
 **確認**は、その当て物について私が何をしたかを表す。
 
 - **実証** — 当てる前と後の両方を動かして違いを見た (8 本)
 - **読了** — 差分を読み、直している対象を原典で確かめた (105 本)
+
+下の表はまだ 114 本ぶんしかない。`464bc7d` で入った十本 —
+`patch-lib-src_emacsclient.c` `patch-lib-src_emacsserver.c`
+`patch-lisp_files.el` `patch-lisp_find-gc.el` `patch-lisp_ledit.el`
+`patch-lisp_mailpost.el` `patch-lisp_medit.el` `patch-lisp_mule.el`
+`patch-lisp_subr.el` `patch-src_fileio.c` — が抜けている。確認の度合いは
+当てた本人にしか書けないので、埋めるのはその手に残してある。
 
 読了の中身は一様ではない。標準ヘッダを足す三十六本は、足したヘッダが宣言する
 関数をそのファイルが実際に使っているかまで確かめた。機種依存の二本
@@ -163,7 +170,7 @@ Wnn 側は `egg` が起動ファイルを探すが、上流は候補である `e
 | `patch-ac` | `lib-src/Makefile.in.in` | INSTALL_PROGRAM ではデータに合わない | 読了 | 20.1 の時点で無い | 構成が異なる |
 | `patch-configure` | `configure` | 機種と OS の追加 + cpp の検査を直す | 読了 | 24.1 で `autogen/configure` へ移動 | 24.1 で autogen/configure へ (生成物になる) |
 | `patch-ae` | `src/m/powerpc.h` | PowerPC の機種記述を追加。**上流由来ではなく pkgsrc の editors/emacs 由来** | 読了 | 20.1 の時点で無い | 上流に src/m/powerpc.h は存在しない (macppc.h と powerpcle.h はある) |
-| `patch-src_lisp.h` | `src/lisp.h` | Lisp_Object を返す関数 77 個を宣言 | 読了 | 30.1 まで現存 | `get_local_map` は **22.1 で型付き宣言に** |
+| `patch-src_lisp.h` | `src/lisp.h` | Lisp_Object を返す関数 79 個を宣言。うち二つ (`Fkeymapp` `Fset_text_properties`) は DEFUN で定義されるため、関数定義の形で探すと見落とす | 読了 | 30.1 まで現存 | `get_local_map` は **22.1 で型付き宣言に** |
 | `patch-ag` | `src/coding.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-ah` | `src/fileio.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-ai` | `src/floatfns.c` | extern int errno を落とす | 読了 | 30.1 まで現存 | 手書き宣言は現存せず |
@@ -268,6 +275,7 @@ Wnn 側は `egg` が起動ファイルを探すが、上流は候補である `e
 | `patch-src_xdisp_c` | `src/xdisp.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_xfaces_c` | `src/xfaces.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
 | `patch-src_xmenu_c` | `src/xmenu.c` | 標準ヘッダを足す | 読了 | 30.1 まで現存 | 上流も標準ヘッダを使う |
+| `patch-src_xrdb.c` | `src/xrdb.c` | malloc を xmalloc に差し替えながら宣言していないのを直す。LP64 で X リソースデータベースのポインタが上位 32 bit を失う | 実証 | 30.1 まで現存 | **20.1 で ANSI 宣言に**。#define の直後で `extern void *malloc ()` と書く形は残っている |
 
 名前が中身を表さないものは、中身に手を入れた折に改名した。`patch-ad` は
 `patch-configure` へ、`patch-af` は `patch-src_lisp.h` へ、`patch-ca` は
