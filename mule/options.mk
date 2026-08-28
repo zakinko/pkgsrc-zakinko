@@ -37,7 +37,12 @@ SUBST_SED.wnn4+=	-e 's,^\#define EGG$$,/* \#define EGG */,'
 # always fails there), so an unconditional X means building modular X from
 # source before the editor is even reached.
 .if !empty(PKG_OPTIONS:Mx11)
-.include "../../mk/x11.buildlink3.mk"
+# libX11 だけでよい。18.59 の X 対応は素の Xlib で、Xt も Xaw も使わない
+# (2.3 は Lucid の toolkit を積むので libXaw を読む)。mk/x11.buildlink3.mk は
+# 読んではいけない。X11_TYPE が native 以外だと pkgsrc が
+#   Do not include x11.buildlink3.mk for X11_TYPE != "native".
+# で止める。
+.include "../../x11/libX11/buildlink3.mk"
 .else
 # The class is not called x11: the Makefile already has one by that
 # name, for rewriting /usr/X11R7 to ${X11BASE}.

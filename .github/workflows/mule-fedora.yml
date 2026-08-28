@@ -66,6 +66,11 @@ jobs:
         env:
           PKGS: ${{ matrix.pkg }}
           VERIFY: basic
+          # VERIFY=basic は verify-pkg.sh を呼ぶ。あちらは PKG_OPTIONS を
+          # 渡さないので、OPTS だけでは option が package に届かない。
+          # PKG_DEFAULT_OPTIONS は環境変数として bmake が拾うので、こちらで
+          # 全 package に効かせる。
+          PKG_DEFAULT_OPTIONS: ${{ inputs.options || '-canna -wnn4 -x11' }}
           # native をやめた。can-be-built-here.mk の検査が
           #   /usr: X11_TYPE=native but xbase set is not installed
           #   (missing: digest install-info makeinfo patch)
