@@ -62,7 +62,8 @@ jobs:
           VERIFY: basic
           X11_TYPE: native
           X11BASE: /usr
-        run: sh .github/ci/build-on-bsd.sh '${{ inputs.options || ''-canna -wnn4 -x11'' }}'
+          OPTS: ${{ inputs.options || '-canna -wnn4 -x11' }}
+        run: sh .github/ci/build-on-bsd.sh "$OPTS"
 
       - name: 止まった場所を出す
         if: failure()
