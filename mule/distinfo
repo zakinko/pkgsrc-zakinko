@@ -8,3 +8,4 @@ SHA1 (patch-src_keyboard.c) = 6ba0acb14363d26a1b6be09d04fdb73097dfa587
 SHA1 (patch-src_mconfig.h-netbsd) = d78493b9dbe106c1a03124a02d95160164727d00
 SHA1 (patch-src_paths.h-dist) = e8e4eff9b44d3703ccf35348ba3e8495007fc741
 SHA1 (patch-src_sysdep.c) = ca99d59030cabcb134ef3f50d521feb639417582
+SHA1 (patch-src_wnn4fns.c) = d211975e83878c974eb619a28d1c9e4707872bfa
