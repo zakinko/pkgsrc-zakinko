@@ -46,11 +46,12 @@ on:
         description: 'PKG_OPTIONS.mule (例 "canna wnn4"、"-canna -wnn4")'
         required: false
 
-# 同じ枝を続けて押したときに、古いほうを走らせ続けない。
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
+# concurrency は置かない。~/.claude/CLAUDE.md は cancel-in-progress を
+# 付けろと言っているが、あれは private repo で分数が課金される話で、
+# pkgsrc-zakinko は public なので分数は無制限である。9.4 の依存の建て直しは
+# 長いので、走っている最中に main へ push が入るたびに取り消されるほうが
+# 害が大きい。実際これで三回消した。
+#
 jobs:
   plan:
     runs-on: ubuntu-latest
