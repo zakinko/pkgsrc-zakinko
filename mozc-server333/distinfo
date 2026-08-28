@@ -54,6 +54,7 @@ SHA1 (patch-base_file_recursive.cc) = e9d092cc1e1351132e29178d408afb196e7c9dcd
 SHA1 (patch-base_password__manager.cc) = f276ddd952d74bb4a53ba0acf45cb715754e4edd
 SHA1 (patch-base_port.h) = 3917c484851394f11d259231dee95f7fee5280b8
 SHA1 (patch-base_process.cc) = e29c90f8e3b3f0d8a62266d2705206e8d73c6cdf
+SHA1 (patch-base_singleton.cc) = da99509755b24107d5a47c9c31e3090aab709112
 SHA1 (patch-base_system__util.cc) = e6db57d83cb3def0448ed13646ad02bc7934b8a3
 SHA1 (patch-base_system__util__test.cc) = 8de736c1a3a8bd69bf1fb7587ddc13eb8e418394
 SHA1 (patch-build__mozc.py) = 4a3d08bb9bac9d8183193c0f7dd99cbca409990e
