@@ -9,7 +9,9 @@
 #
 # 2 -> 3 は辞書と C の直しを足したぶん。elisp だけだった 2 と違って、
 # 入る辞書の中身と共有ライブラリが変わる。
-PKGREVISION=	3
+#
+# 3 -> 4 は elisp の当て物を書き直したぶん。入る .elc が変わる。
+PKGREVISION=	4
 EXTRACT_ONLY=	${DISTNAME}.tar.gz
 
 MAINTAINER=	taya@NetBSD.org

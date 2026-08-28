@@ -37,10 +37,12 @@
 # 8 -> 9 は patch のヘッダを直したぶん。中身の効果は変わらないが、
 # distinfo に入る SHA1 が変わる以上は別物として扱う。8 も Releases に
 # 出ているので同じ理由で据え置けない。
+#
+# 9 -> 10 は当て物を書き直したぶん。入る .elc の中身が変わる。
 
 .include	"../../zakinko/anthy/Makefile.common"
 PKGNAME=	${EMACS_PKGNAME_PREFIX}anthy-elisp-${ANTHY_VERSION}
-PKGREVISION=	9
+PKGREVISION=	10
 CATEGORIES=	inputmethod editors
 
 MAINTAINER=	taya@NetBSD.org
