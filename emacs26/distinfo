@@ -8,5 +8,6 @@ SHA1 (patch-configure.ac) = 232c4466c7de759881169c7016b07537043a6d54
 SHA1 (patch-lib-src_etags.c) = bbb11fe041d7b6c73fb93966cdcb14ec3b8361fe
 SHA1 (patch-lisp_htmlfontify.el) = 4ea670a2eb6520f578004e333027ed4f6c8f43a3
 SHA1 (patch-src_inotify.c) = 1fdc6566ed57e8418f1ddc85bb03518d7d9d6bb3
+SHA1 (patch-src_process.c) = e4335aa94a84b0b302062bfcad8f8bd831df8d1f
 SHA1 (patch-src_unexmacosx.c) = 528b243253f5673ad4621c3998a191880b885e47
 SHA1 (patch-src_xdisp.c) = 088b2ae85d77f015abc97efe1a46b2586f881484

@@ -10,4 +10,5 @@ SHA1 (patch-lisp_htmlfontify.el) = 102f01c32e6376129f77cd261c81a8ea84f6290a
 SHA1 (patch-src_editfns.c) = 9cb6458e58749780e06d90f111368421212a2987
 SHA1 (patch-src_inotify.c) = 1fdc6566ed57e8418f1ddc85bb03518d7d9d6bb3
 SHA1 (patch-src_lread.c) = a1edaea258b00ba10c176a8ad27711dcac1af7c1
+SHA1 (patch-src_process.c) = 868e9c3e9e998fcb233e43ca5f87c2aaa8ed1c52
 SHA1 (patch-src_xdisp.c) = 7c3edf47a1f00e29184a13f97a5c8cbbafbfd4d5
