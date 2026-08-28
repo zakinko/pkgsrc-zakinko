@@ -233,9 +233,9 @@ EL
 		*) bad "wnn の結果に 変換 が無い: ${H:-<出力なし>}" ;; esac
 fi
 
-# X は option ではない。1.1 の Makefile は x11.buildlink3.mk を無条件に
-# 読むので、どの構成でも X 版が建つ。だから want では囲まない。
-if [ -x /usr/X11R7/bin/Xvfb ] || command -v Xvfb > /dev/null 2>&1; then
+# x11 option を足したので、外した構成では X 版が建たない。Xvfb が無い箱
+# (Linux のコンテナなど) でも飛ばす。
+if want x11 && { [ -x /usr/X11R7/bin/Xvfb ] || command -v Xvfb > /dev/null 2>&1; }; then
 	echo "=== 5. X11: フレームが開くか ==="
 	pkill Xvfb 2>/dev/null || true
 	rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 2>/dev/null || true

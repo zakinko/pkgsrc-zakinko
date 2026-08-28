@@ -1,8 +1,8 @@
 # $NetBSD: options.mk,v 1.1 2015/04/07 04:53:22 makoto Exp $
 
 PKG_OPTIONS_VAR=	PKG_OPTIONS.mule
-PKG_SUPPORTED_OPTIONS=	canna exclusive wnn4
-PKG_SUGGESTED_OPTIONS=	canna wnn4
+PKG_SUPPORTED_OPTIONS=	canna exclusive wnn4 x11
+PKG_SUGGESTED_OPTIONS=	canna wnn4 x11
 
 .include "../../mk/bsd.options.mk"
 
@@ -29,6 +29,23 @@ SUBST_MESSAGE.wnn4=	Turning Wnn and Egg support off
 SUBST_FILES.wnn4=	src/mconfig.h-netbsd
 SUBST_SED.wnn4=		-e 's,^\#define WNN4$$,/* \#define WNN4 */,'
 SUBST_SED.wnn4+=	-e 's,^\#define EGG$$,/* \#define EGG */,'
+.endif
+
+# X is on in src/config.h-netbsd; turn it off from the option rather than
+# leaving x11.buildlink3.mk unconditional in the Makefile.  Linux has no
+# native X for pkgsrc (X11_TYPE=native checks for a NetBSD xbase set and
+# always fails there), so an unconditional X means building modular X from
+# source before the editor is even reached.
+.if !empty(PKG_OPTIONS:Mx11)
+.include "../../mk/x11.buildlink3.mk"
+.else
+# The class is not called x11: the Makefile already has one by that
+# name, for rewriting /usr/X11R7 to ${X11BASE}.
+SUBST_CLASSES+=		nox11
+SUBST_STAGE.nox11=	pre-configure
+SUBST_MESSAGE.nox11=	Turning X support off
+SUBST_FILES.nox11=	src/config.h-netbsd
+SUBST_SED.nox11=	-e 's,^\#define HAVE_X_WINDOWS$$,/* \#define HAVE_X_WINDOWS */,'
 .endif
 
 # CANNA3_7 enables the APIs Canna grew in 3.7; pkgsrc ships 3.8.
