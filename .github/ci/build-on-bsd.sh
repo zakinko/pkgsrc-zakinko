@@ -233,9 +233,19 @@ stage "前回作った依存を入れる"
 if [ -d "$CACHE/packages/All" ]; then
 	PKG_PATH="$CACHE/packages/All"
 	export PKG_PATH
+	# 検査する当人は戻さない。組み直したものと取り違えるため。名前を
+	# 直書きすると 8d71ae8 のような改名で網から漏れる (2.3 が mule2-*.tgz に
+	# なった時点で */mule-[0-9]* には当たらなくなった)。しかもその漏れは
+	# その場で転ばず、緑のまま古いものを検査する形で出る。PKGS から組み立てる。
 	for f in "$CACHE"/packages/All/*.tgz; do
 		[ -f "$f" ] || continue
-		case $f in */mule-[0-9]*) continue ;; esac
+		skip=no
+		for p in $PKGS; do
+			case $(basename "$f") in
+			"$p"-[0-9]*) skip=yes ;;
+			esac
+		done
+		[ "$skip" = yes ] && continue
 		$PREFIX/sbin/pkg_add -U "$f" > /dev/null 2>&1 || true
 	done
 	unset PKG_PATH
