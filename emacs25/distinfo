@@ -1,10 +1,13 @@
-$NetBSD: distinfo,v 1.11 2021/10/26 10:21:27 nia Exp $
+$NetBSD$
 
 BLAKE2s (emacs-25.3.tar.gz) = 2c9cb854978884dff89bdbeb55aab6003e094f44e2d96e525761db573560f6ec
 SHA512 (emacs-25.3.tar.gz) = cd3f51ee5f6c95481f22cd48abfe1d4df1407207ed4b046c9563b24d524f85aa80f15900755091d532c31ea9bd9f6978300128c480d74d28b6b937f96846b1bb
 Size (emacs-25.3.tar.gz) = 62988771 bytes
 SHA1 (patch-configure) = ceb64518bd90b9c6dbd46174ad19e540b5ea96ed
 SHA1 (patch-configure.ac) = 232c4466c7de759881169c7016b07537043a6d54
+SHA1 (patch-lib-src_etags.c) = f102bceb849537e7371aaea7157e451b050cb102
+SHA1 (patch-lisp_htmlfontify.el) = 102f01c32e6376129f77cd261c81a8ea84f6290a
 SHA1 (patch-src_editfns.c) = 9cb6458e58749780e06d90f111368421212a2987
 SHA1 (patch-src_inotify.c) = 1fdc6566ed57e8418f1ddc85bb03518d7d9d6bb3
 SHA1 (patch-src_lread.c) = a1edaea258b00ba10c176a8ad27711dcac1af7c1
+SHA1 (patch-src_xdisp.c) = 7c3edf47a1f00e29184a13f97a5c8cbbafbfd4d5

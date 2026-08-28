@@ -1,4 +1,4 @@
-$NetBSD: patch-src_inotify.c,v 1.1 2018/06/20 11:04:19 mef Exp $
+$NetBSD$
 
 need sys/filio.h for FIONREAD on SunOS
 

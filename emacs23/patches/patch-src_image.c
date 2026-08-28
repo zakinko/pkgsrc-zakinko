@@ -1,4 +1,4 @@
-$NetBSD: patch-src_image.c,v 1.2 2014/05/16 14:12:29 tron Exp $
+$NetBSD$
 
 * Fix build with giflib 5.1.
 

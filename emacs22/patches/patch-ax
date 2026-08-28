@@ -1,4 +1,4 @@
-$NetBSD: patch-ax,v 1.1 2009/09/21 10:10:58 jun Exp $
+$NetBSD$
 
 --- src/m/mips.h.orig	2008-01-08 13:04:32.000000000 +0900
 +++ src/m/mips.h

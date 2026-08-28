@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.4 2020/04/25 05:56:36 dsainty Exp $
+# $NetBSD$
 
 PKGNAME=	${DISTNAME:S/emacs/emacs26/:S/-/-nox11-/}
 CONFLICTS+=	emacs26-[0-9]*
@@ -10,7 +10,7 @@ DISTINFO_FILE=	${.CURDIR}/../../zakinko/emacs26/distinfo
 
 .include "../../zakinko/emacs26/Makefile.common"
 
-PKGREVISION=	1
+PKGREVISION=	2
 
 CONFIGURE_ARGS+=	--without-dbus
 CONFIGURE_ARGS+=	--without-xml2

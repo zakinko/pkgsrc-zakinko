@@ -1,4 +1,4 @@
-$NetBSD: patch-src_Makefile.in,v 1.1 2021/09/12 08:28:34 tnn Exp $
+$NetBSD$
 
 Fix crash during build on aarch64-apple-darwin*
 https://github.com/emacs-mirror/emacs/commit/a88f63500e475f842e5fbdd9abba4ce122cdb082.patch

@@ -1,4 +1,4 @@
-$NetBSD: patch-src_gmalloc.c,v 1.1 2016/12/31 06:11:21 dholland Exp $
+$NetBSD$
 
 Work around bug in gcc 5.x that makes calloc into a call to itself,
 resulting in an infinite loop.

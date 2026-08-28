@@ -1,4 +1,4 @@
-# $NetBSD: options.mk,v 1.13 2020/10/19 14:37:17 mef Exp $
+# $NetBSD$
 
 ### Set options
 PKG_OPTIONS_VAR=			PKG_OPTIONS.emacs

@@ -1,4 +1,4 @@
-$NetBSD: patch-af,v 1.4 2014/05/23 22:29:33 dholland Exp $
+$NetBSD$
 
 * Build fix for newer versions of "libpng".
 * Build fix for 5.0 version of giflib.

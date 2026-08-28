@@ -1,5 +1,6 @@
 # $NetBSD$
 
+PKGREVISION=	4
 PKGNAME=	${DISTNAME:S/emacs/emacs23/:S/-/-nox11-/}
 CONFLICTS+=	emacs23-[0-9]*
 

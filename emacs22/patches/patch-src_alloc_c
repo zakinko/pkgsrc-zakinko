@@ -1,4 +1,4 @@
-$NetBSD: patch-src_alloc_c,v 1.1 2012/01/09 06:30:20 skrll Exp $
+$NetBSD$
 
 - use standard headers
 - add an empty asm() destroying memory that prevents gcc from

@@ -1,4 +1,4 @@
-$NetBSD: patch-src_lread.c,v 1.1 2018/03/21 08:48:15 maya Exp $
+$NetBSD$
 
 Handle NAN not existing (VAX)
 

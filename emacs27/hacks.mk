@@ -1,4 +1,4 @@
-# $NetBSD: hacks.mk,v 1.1 2020/08/12 14:14:48 ryoon Exp $
+# $NetBSD$
 
 .if !defined(EMACS_HACKS_MK)
 EMACS_HACKS_MK=	defined

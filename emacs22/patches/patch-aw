@@ -1,4 +1,4 @@
-$NetBSD: patch-aw,v 1.2 2009/09/13 01:26:34 jun Exp $
+$NetBSD$
 
 --- configure.in.orig	2009-09-13 10:00:15.000000000 +0900
 +++ configure.in

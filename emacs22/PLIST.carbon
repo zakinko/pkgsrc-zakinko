@@ -1,4 +1,4 @@
-@comment $NetBSD: PLIST.carbon,v 1.1.1.1 2009/08/05 10:30:29 minskim Exp $
+@comment $NetBSD$
 Applications/Emacs.app/Contents/Info.plist
 Applications/Emacs.app/Contents/MacOS/Emacs
 Applications/Emacs.app/Contents/PkgInfo

@@ -1,4 +1,4 @@
-$NetBSD: patch-lib-src_emacsclient.c,v 1.2 2020/09/20 15:44:33 wiz Exp $
+$NetBSD$
 
 Workaround for:
 On NetBSD, fstat on a socket returns zero instead of the user id.

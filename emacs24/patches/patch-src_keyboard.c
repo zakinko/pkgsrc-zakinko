@@ -1,4 +1,4 @@
-$NetBSD: patch-src_keyboard.c,v 1.1 2016/03/05 15:31:45 gson Exp $
+$NetBSD$
 
 Don't call printf from a signal handler.  Fixes emacs bug#22790.
 Changes back-ported from emacs-25.0.92.

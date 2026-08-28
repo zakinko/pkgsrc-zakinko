@@ -1,4 +1,4 @@
-# $NetBSD: options.mk,v 1.4 2014/05/31 15:56:26 wiz Exp $
+# $NetBSD$
 
 PKG_OPTIONS_VAR=		PKG_OPTIONS.emacs
 PKG_SUPPORTED_OPTIONS=		x11

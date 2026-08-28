@@ -1,4 +1,4 @@
-# $NetBSD: version.mk,v 1.1 2020/08/12 14:17:52 ryoon Exp $
+# $NetBSD$
 
 _EMACS_FLAVOR=	emacs
 _EMACS_REQD=	emacs27-nox11>=27.1<28

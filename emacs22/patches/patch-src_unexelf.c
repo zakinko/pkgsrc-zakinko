@@ -1,4 +1,4 @@
-$NetBSD: patch-src_unexelf.c,v 1.1 2016/12/31 06:11:21 dholland Exp $
+$NetBSD$
 
 - Set ELFSIZE correctly (from exec_elf.h)
 

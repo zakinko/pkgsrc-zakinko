@@ -1,4 +1,4 @@
-$NetBSD: patch-ap,v 1.1.1.1 2009/08/05 10:30:29 minskim Exp $
+$NetBSD$
 
 --- src/buffer.c.orig	2008-10-10 10:35:49.000000000 +0900
 +++ src/buffer.c

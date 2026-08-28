@@ -1,4 +1,4 @@
-$NetBSD: patch-src_xgselect.c,v 1.1 2013/02/17 04:59:43 dholland Exp $
+$NetBSD$
 
 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=10631
 

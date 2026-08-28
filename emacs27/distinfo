@@ -1,8 +1,17 @@
-$NetBSD: distinfo,v 1.7 2021/10/26 10:21:28 nia Exp $
+$NetBSD$
 
 BLAKE2s (emacs-27.2.tar.gz) = ddafb23169121aa156d5e45e3a5ebd02b138a1a036c5eb8b4814df03222136f8
 SHA512 (emacs-27.2.tar.gz) = dddba2794df136a52a9f65b81acd765dcca01148b65bf37b249d620d3b143ecc94be25ea9efe96c0884a2deeb16e3fc63bbb42c690e86ac6d5faef43b8b8c4e3
 Size (emacs-27.2.tar.gz) = 67153050 bytes
 SHA1 (patch-lib-src_emacsclient.c) = c329314da221df5cc60cc3da2424589843ef8dc9
+SHA1 (patch-lib-src_etags.c) = 07e3e0adc208648cc1df4038a480c918de884a21
+SHA1 (patch-lisp_files.el) = 07e9244b5f3decdeb4718f197fd640e73e278216
+SHA1 (patch-lisp_gnus_mm-view.el) = b7a29f79bbd8e80c15aa2b48040765a451519648
+SHA1 (patch-lisp_htmlfontify.el) = b1e512f1e0bec84b62e3be9646d5c55cf48690a3
+SHA1 (patch-lisp_org_ol.el) = de888b5a0148ee8937c2f6d1446f4b3fb9cafda8
+SHA1 (patch-lisp_org_org.el) = fd635076463c03657255a878a64329052ce9ff5d
+SHA1 (patch-lisp_progmodes_ruby-mode.el) = b570855451d62688bb2824b531571ff0a29c0980
 SHA1 (patch-src_Makefile.in) = d9d9d66dec68ea2aa1a7406b94dfa055fbee70ed
+SHA1 (patch-src_editfns.c) = f0562e3a256ee51f16b853714f215e1688c2ff2f
 SHA1 (patch-src_inotify.c) = 1fdc6566ed57e8418f1ddc85bb03518d7d9d6bb3
+SHA1 (patch-src_xdisp.c) = 32fb4d770448b2b468ecf894ee32ddb9e404a47a

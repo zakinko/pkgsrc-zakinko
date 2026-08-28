@@ -1,4 +1,4 @@
-# $NetBSD: options.mk,v 1.8 2016/05/31 09:56:46 jperkin Exp $
+# $NetBSD$
 
 PKG_OPTIONS_VAR=	PKG_OPTIONS.emacs
 PKG_SUPPORTED_OPTIONS=	dbus xft2 svg xml gnutls

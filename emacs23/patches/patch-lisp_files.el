@@ -1,4 +1,4 @@
-$NetBSD: patch-lisp_files.el,v 1.1 2013/02/17 04:59:43 dholland Exp $
+$NetBSD$
 
 CVE-2012-3479:
 When the Emacs user option `enable-local-variables' is set to `:safe'

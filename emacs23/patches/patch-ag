@@ -1,4 +1,4 @@
-$NetBSD: patch-ag,v 1.1 2013/02/17 04:59:42 dholland Exp $
+$NetBSD$
 
 When running terminfo but compiled for termcap, we cannot assume
 that we actually have anything useable in termcap_term_buffer so just

@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.56 2017/02/12 06:25:15 ryoon Exp $
+# $NetBSD$
 
 PKGREVISION=	46
 

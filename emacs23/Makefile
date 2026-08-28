@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.33 2017/09/18 09:53:20 maya Exp $
+# $NetBSD$
 
 CONFLICTS+=	emacs23-nox11-[0-9]*
 

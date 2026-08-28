@@ -1,4 +1,4 @@
-$NetBSD: patch-src_unexmacosx.c,v 1.1 2020/04/25 05:56:36 dsainty Exp $
+$NetBSD$
 
 Pull in patch from upstream to fix a build failure under MacOS X.
 

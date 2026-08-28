@@ -1,4 +1,4 @@
-$NetBSD: patch-ad,v 1.1 2013/02/17 04:59:42 dholland Exp $
+$NetBSD$
 
 --- lisp/cus-dep.el.orig	2010-04-03 22:26:07.000000000 +0000
 +++ lisp/cus-dep.el

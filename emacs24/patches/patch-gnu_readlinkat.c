@@ -1,4 +1,4 @@
-$NetBSD: patch-gnu_readlinkat.c,v 1.1 2015/01/10 16:15:30 gdt Exp $
+$NetBSD$
 
 * workaround for NetBSD-5.x, readlink is defined as a macro.
 

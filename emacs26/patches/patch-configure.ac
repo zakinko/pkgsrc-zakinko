@@ -1,4 +1,4 @@
-$NetBSD: patch-configure.ac,v 1.1 2018/10/27 20:58:39 leot Exp $
+$NetBSD$
 
 Do not inject X11 LDFLAGS, pkgsrc handles that.
 Fixes PR pkg/53688.

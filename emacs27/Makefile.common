@@ -1,7 +1,29 @@
-# $NetBSD: Makefile.common,v 1.4 2021/11/14 12:51:09 nia Exp $
+# $NetBSD$
 #
-# used by editors/emacs27/Makefile
-# used by editors/emacs27-nox11/Makefile
+# editors/emacs27 が pkgsrc から消えたので、消される直前の版をここへ引き取った。
+#
+#	CVS	pkgsrc/editors/emacs27  Makefile,v 1.64
+#	削除	2026-08-25 17:33:14 UTC  wiz  commitid UIVD8ABupUq3M2TG  (rev 1.65, state dead)
+#
+# PKGREVISION は CVS の最終値 58 に +1 した 59 で固定する。ここに手を入れても
+# 動かさない。上流の値より大きければ pkgin が入れ替えるので、それ以上に
+# 上げる意味が無い。同じ番号で入れ直すときは make replace を使う。
+#
+# emacs27-nox11 の側は 1 になる。上流のあちらは別に PKGREVISION を持って
+# いて、その最終値 0 に +1 したもの。番号が揃わないのは、もとの二つが
+# 揃っていなかったためである。
+#
+# 上流と違うところ:
+#
+#   - MAINTAINER をこちらへ移した。上流に居ないものを pkgsrc-users 宛のまま
+#     置いておくと、報告先が無い
+#   - $NetBSD$ は潰した。ここは CVS ではないので、あの番号は更新されない
+#   - EMACS_COEXIST を足した
+#   - 脆弱性の当て物を足した。何を当てたかは patches/ の各ヘッダにある
+#
+# used by zakinko/emacs27/Makefile
+# used by zakinko/emacs27-nox11/Makefile
+
 
 .include "../../mk/bsd.prefs.mk"
 
@@ -10,7 +32,7 @@ PKGNAME?=	${DISTNAME:S/emacs/emacs27/}
 CATEGORIES=	zakinko editors
 MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
 
-MAINTAINER=	pkgsrc-users@NetBSD.org
+MAINTAINER=	zakinko@snowrabbit.org
 HOMEPAGE=	https://www.gnu.org/software/emacs/
 COMMENT=	GNU editing macros (editor)
 LICENSE=	gnu-gpl-v3
@@ -38,6 +60,65 @@ BUILD_DEFS+=		GAMEDATAMODE
 PLIST_SRC+=		../../zakinko/emacs27/PLIST
 
 .include "../../zakinko/emacs27/version.mk"
+
+#
+# EMACS_COEXIST
+#	yes にすると無印の bin/emacs を入れず、bin/emacs27 のように版付きの
+#	名前だけを置く。zakinko の emacs22 から emacs28 を並べて入れられる。
+#
+#	その代わり、この版に対して elisp パッケージは建たなくなる。
+#	emacs/modules.mk が EMACS_BIN を ${PREFIX}/bin/emacs と版によらず
+#	決め打ちしているためで、無印を置かない以上どうにもならない。日本語
+#	入力の検査のように elisp を建てる用途は既定の no 側で行う。
+#
+#	既定は no。そのときは上流とまったく同じものが入る。PKG_OPTIONS には
+#	しない。PKG_OPTIONS_VAR が全 emacs 版で共有の PKG_OPTIONS.emacs な
+#	ので、そこに知らない名前が入ると bsd.options.mk の PKG_FAIL_REASON で
+#	上流の emacs30 などが建たなくなる。
+#
+#	info はいずれも無印なので、共存時は --infodir ごと
+#	${PKGINFODIR}/emacs27 へ振る。desktop や icons のように版で分ける
+#	すべが無いものは、共存時は入れない。
+#
+EMACS_COEXIST?=		no
+BUILD_DEFS+=		EMACS_COEXIST
+
+PLIST_VARS+=		plain coexist
+.if ${EMACS_COEXIST} == "yes"
+PLIST.coexist=		yes
+EMACS_INFOSUB=		emacs27/
+# CONFIGURE_ARGS には足さない。pkgsrc が gnu-configure.mk で
+# --infodir=${GNU_CONFIGURE_INFODIR} を後ろに足すので、そちらが勝つ。
+GNU_CONFIGURE_INFODIR=	${PREFIX}/${PKGINFODIR}/emacs27
+
+post-install: coexist-names
+
+.PHONY: coexist-names
+coexist-names:
+	cd ${DESTDIR}${PREFIX}/bin && \
+		${MV} ctags emacs27-ctags && \
+		${MV} ebrowse emacs27-ebrowse && \
+		${MV} emacs-${PKGVERSION_NOREV} emacs27 && \
+		${MV} emacsclient emacsclient27 && \
+		${MV} etags emacs27-etags
+	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
+		${MV} ctags.1 emacs27-ctags.1 && \
+		${MV} ebrowse.1 emacs27-ebrowse.1 && \
+		${MV} emacs.1 emacs27.1 && \
+		${MV} emacsclient.1 emacsclient27.1 && \
+		${MV} etags.1 emacs27-etags.1
+	${RM} -rf ${DESTDIR}${PREFIX}/lib/systemd
+	${RM} -rf ${DESTDIR}${PREFIX}/share/applications
+	${RM} -rf ${DESTDIR}${PREFIX}/share/icons
+	${RM} -rf ${DESTDIR}${PREFIX}/share/metainfo
+	${RM} -f  ${DESTDIR}${PREFIX}/bin/emacs
+	${RM} -f  ${DESTDIR}${PREFIX}/include/emacs-module.h
+	${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
+.else
+PLIST.plain=		yes
+EMACS_INFOSUB=		# 無印のまま
+.endif
+PLIST_SUBST+=		EMACS_INFOSUB=${EMACS_INFOSUB:Q}
 
 BUILD_TARGET=		bootstrap
 EMACS_VERSION=		${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}

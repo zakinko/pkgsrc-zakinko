@@ -1,4 +1,4 @@
-$NetBSD: patch-src_editfns.c,v 1.1 2018/04/08 03:03:48 dholland Exp $
+$NetBSD$
 
 Fixes for tzalloc issues on -6 from uwe@ and Paul Eggert
 https://debbugs.gnu.org/cgi/bugreport.cgi?bug=30738

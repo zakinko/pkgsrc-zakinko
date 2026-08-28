@@ -1,4 +1,4 @@
-@comment $NetBSD: PLIST.gnustep,v 1.1 2022/04/06 22:40:38 wiz Exp $
+@comment $NetBSD$
 share/GNUstep/Local/Applications/Emacs.app/Emacs
 share/GNUstep/Local/Applications/Emacs.app/Resources/Emacs.desktop
 share/GNUstep/Local/Applications/Emacs.app/Resources/Info-gnustep.plist

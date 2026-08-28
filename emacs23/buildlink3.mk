@@ -1,4 +1,4 @@
-# $NetBSD: buildlink3.mk,v 1.1 2013/02/17 04:59:42 dholland Exp $
+# $NetBSD$
 
 BUILDLINK_TREE+=	emacs
 

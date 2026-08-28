@@ -1,4 +1,4 @@
-@comment $NetBSD: PLIST.cocoa,v 1.2 2020/10/20 13:34:41 wiz Exp $
+@comment $NetBSD$
 Applications/Emacs.app/Contents/Info.plist
 Applications/Emacs.app/Contents/MacOS/Emacs
 Applications/Emacs.app/Contents/MacOS/Emacs.pdmp

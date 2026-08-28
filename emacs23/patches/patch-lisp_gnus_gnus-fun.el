@@ -1,4 +1,4 @@
-$NetBSD: patch-lisp_gnus_gnus-fun.el,v 1.1 2014/07/09 03:18:44 taca Exp $
+$NetBSD$
 
 Fix for CVE-2014-3421.
 

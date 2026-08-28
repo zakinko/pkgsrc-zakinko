@@ -1,4 +1,4 @@
-# $NetBSD: version.mk,v 1.4 2013/02/17 00:39:53 dholland Exp $
+# $NetBSD$
 
 _EMACS_FLAVOR=	emacs
 _EMACS_REQD=	emacs22>=22.3<23
