@@ -8,7 +8,7 @@ sizeof(int) == sizeof(Lisp_Object), but on an LP64 host built with
 LONG_LISP_OBJECT the implicit int return truncates the object to 32
 bits, which is what makes a dumped mule fault on garbage pointers.
 
---- src/lisp.h.orig	1995-07-21 06:12:16.000000000 +0000
+--- src/lisp.h.orig	1994-10-21 04:20:28.000000000 +0000
 +++ src/lisp.h
 @@ -30,6 +30,10 @@
  /* 93.1.15  modified for Mule Ver.0.9.7.1 by Y.Akiba <akiba@cbs.canon.co.jp>
@@ -21,7 +21,7 @@ bits, which is what makes a dumped mule fault on garbage pointers.
  /* Define the fundamental Lisp data structures */
  
  /* Define an integer type with the same size as Lisp_Object.
-@@ -1550,3 +1554,112 @@
+@@ -1550,3 +1554,119 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
@@ -126,6 +126,13 @@ bits, which is what makes a dumped mule fault on garbage pointers.
 +
 +/* defined in search.c, and called from the DEFUNs above its definition. */
 +extern Lisp_Object skip_chars ();
++
++/* defined in keymap.c, and called from intervals.c, where the value
++   decides whether a local-map text property beats the buffer's keymap. */
++extern Lisp_Object Fkeymapp ();
++
++/* defined in textprop.c, and called from lread.c */
++extern Lisp_Object Fset_text_properties ();
 +
 +#ifdef HAVE_X_WINDOWS
 +/* defined in xfns.c */
