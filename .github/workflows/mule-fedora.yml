@@ -50,7 +50,7 @@ jobs:
             perl patch tar gzip xz git diffutils findutils which sudo \
             libX11-devel libXt-devel libXaw-devel libXmu-devel libXext-devel \
             libXpm-devel xorg-x11-proto-devel ncurses-devel \
-            hostname procps-ng iproute
+            hostname procps-ng iproute texinfo
           # hostname は pkgsrc の native X の検査が見ている。無いと
           #   /usr: X11_TYPE=native but xbase set is not installed
           #   (missing: hostname)
@@ -66,8 +66,18 @@ jobs:
         env:
           PKGS: ${{ matrix.pkg }}
           VERIFY: basic
-          X11_TYPE: native
-          X11BASE: /usr
+          # native をやめた。can-be-built-here.mk の検査が
+          #   /usr: X11_TYPE=native but xbase set is not installed
+          #   (missing: digest install-info makeinfo patch)
+          # と言って止める。挙がっているのは X ではなく pkgsrc の道具で、
+          # native X を選ぶと NetBSD の base set が在る前提の検査に入って
+          # しまうためらしい。modular なら pkgsrc が自分で用意する。
+          #
+          # 2.3 は -x11 なので X は要らず、modular でも何も建たない。1.1 は
+          # x11.buildlink3.mk を無条件に読むので、ここで X を素から建てる
+          # ことになる。時間はかかるが、それも含めて「Fedora で建つか」の
+          # 答えになる。
+          X11_TYPE: modular
           OPTS: ${{ inputs.options || '-canna -wnn4 -x11' }}
         run: sh .github/ci/build-on-bsd.sh "$OPTS"
 
