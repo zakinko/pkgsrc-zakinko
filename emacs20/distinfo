@@ -56,6 +56,7 @@ SHA1 (patch-cd) = 22b29708e0730275984dc2d8e7a304932d6b66fb
 SHA1 (patch-ce) = df4d2a5639a72d2c719662496f17db35686f4ac2
 SHA1 (patch-cf) = 1b5b83eb02872414fd7ca29c344c0560feaf1b7e
 SHA1 (patch-cg) = b2bd4cbff399922e44ad54459255ffb1d61e1bd4
+SHA1 (patch-lisp_browse-url.el) = 5bb89c42f2b7945927cec27151a198b8766938c1
 SHA1 (patch-src_coding.h) = 25e759b5484fdf21076807fb47ebfacb6906d97c
 SHA1 (patch-src_m_aarch64.h) = 861757ce6568303ea55cb9c9f290abc6100d3dc2
 SHA1 (patch-src_xrdb.c) = 34b87fca7d84f286a283a6defea62954eafca2d0

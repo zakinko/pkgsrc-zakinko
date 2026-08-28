@@ -35,6 +35,7 @@ SHA1 (patch-az) = 43753accb1b9ffc2c63e638c31236b8e4880080b
 SHA1 (patch-ba) = ae05985ce8cabffdfbfb84905e1d6b0de7690b25
 SHA1 (patch-bb) = bf748292c57459b1240da01f9d3df16e4dc40fa2
 SHA1 (patch-cf) = 1b5b83eb02872414fd7ca29c344c0560feaf1b7e
+SHA1 (patch-lisp_net_browse-url.el) = e4d2e9d7f00afeb4b495e4720150869bcea16542
 SHA1 (patch-src_Makefile.in) = cecef2516c4b9a4171926080a32826fad92ea077
 SHA1 (patch-src_alloc_c) = c9d2c7832b8b48835b81789f938540e3827f7cd8
 SHA1 (patch-src_gmalloc.c) = 3d10e1ae9f9d98495a8da47e6051a51ac18aed10
