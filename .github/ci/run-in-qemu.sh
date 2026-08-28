@@ -77,7 +77,14 @@ echo "=== pkgsrc を用意する ==="
 # ツリーの出どころ。既定は current だが、公式のバイナリパッケージと版を
 # 合わせたいときは四半期枝を指す。合わせておくと依存を bin-install で
 # 引けるので、uim のように依存の山が高い相手が現実的な時間で終わる。
-PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz}
+# 既定は四半期枝。公式のバイナリと版が揃うので、依存の大半が pkg_add で
+# 入り、素から建てるのは mule2 だけになる。current だと版がずれて pkgsrc が
+# 「別の版が入っている」と拒み、perl も cmake も python も建て直しになって
+# x11 構成で 200 分を超えていた。
+#
+# current で通ることは別に確かめる。そちらが本来の目的なので捨てはしないが、
+# 毎回やる必要は無い。PKGSRC_URL を渡せば切り替わる。
+PKGSRC_URL=${PKGSRC_URL:-http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz}
 echo "ツリー: $PKGSRC_URL"
 
 # ツリーはホスト側で落としてから流し込む。

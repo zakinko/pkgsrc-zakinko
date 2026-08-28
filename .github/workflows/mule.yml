@@ -36,6 +36,15 @@ on:
       images:
         description: '対象イメージ (例 "i386-11.0 amd64-10.1")。空なら既定'
         required: false
+      pkgsrc_url:
+        description: 'pkgsrc の出どころ。空なら四半期枝 (2026Q2)'
+        required: false
+
+  # current は週に一度だけ見る。日常は四半期枝で回すが、上流は動くので
+  # 「今の current でも建つ」を放っておくと、気づくのは次に誰かが触った
+  # ときになる。土曜の 18:00 UTC (日曜 3:00 JST)。
+  schedule:
+    - cron: '0 18 * * 6'
 
 jobs:
   plan:
@@ -113,6 +122,14 @@ jobs:
             | sha512sum -c -
 
       - name: 組んで確かめる
+        # 手で回すときは pkgsrc_url で出どころを差し替えられる。schedule の
+        # 回だけは current を見る。日常は run-in-qemu.sh の既定 (四半期枝)。
+        env:
+          PKGSRC_URL: >-
+            ${{ github.event.inputs.pkgsrc_url
+                || (github.event_name == 'schedule'
+                    && 'http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz')
+                || '' }}
         run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}' '${{ matrix.config.options }}'
 
       - name: 転けたらコンソールを出す
