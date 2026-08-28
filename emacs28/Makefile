@@ -1,8 +1,10 @@
-# $NetBSD: Makefile,v 1.53 2026/06/23 09:36:56 wiz Exp $
+# $NetBSD$
 
 CONFLICTS+=	emacs28-nox11-[0-9]*
 
-PKGREVISION= 46
+# CVS の最終値 47 に +1。Makefile.common の頭に書いたとおり、ここは動かさない。
+PKGREVISION=	48
+
 .include "../../zakinko/emacs28/Makefile.common"
 
 .include "options.mk"

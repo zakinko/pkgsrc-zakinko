@@ -1,5 +1,18 @@
-$NetBSD: distinfo,v 1.2 2022/09/13 23:36:13 wiz Exp $
+$NetBSD$
 
 BLAKE2s (emacs-28.2.tar.xz) = aa9ff1134cdabf7890231a4f9c9d4839603a9cae9ec9d252414b364d14064012
 SHA512 (emacs-28.2.tar.xz) = a7cec7e3e82367815a1442f69af54102dbfc434069810a9dec5938a6660cb8b076e6f1fb0bfff9695b15603dbbe05eb9c7dfd92e90cf40fc4d1e5746bce83bd8
 Size (emacs-28.2.tar.xz) = 47722600 bytes
+SHA1 (patch-etc_emacsclient-mail.desktop) = 0fcce5c62d1b1441caac64eeebea66ab9d185bc0
+SHA1 (patch-lib-src_etags.c) = d804ab67b0057ff2c7987bc8bdb0dadcf9fc2d3f
+SHA1 (patch-lisp_files.el) = 1b202e572ae23678b078384ff1eda4a7cea81683
+SHA1 (patch-lisp_gnus_mm-view.el) = 0edd3598147f79997873176c2e02f84d4eabb860
+SHA1 (patch-lisp_htmlfontify.el) = f580883d927ed090c08864aa88e3efd63ddfa840
+SHA1 (patch-lisp_org_ol.el) = f129ca1603414403cab498a27770ca7b953e4c7a
+SHA1 (patch-lisp_org_org-macro.el) = 4bc521223fb400b4aff006d4d71a2405ddd63db3
+SHA1 (patch-lisp_org_org.el) = e3d9fbf86498abda4c34ee772b9349ed88e4326e
+SHA1 (patch-lisp_progmodes_elisp-mode.el) = 5288e167575691e7172e7e9936523c3109520ac5
+SHA1 (patch-lisp_progmodes_ruby-mode.el) = 1fce6b51d8f8853c99a036d9dd473b5d4b8f534b
+SHA1 (patch-src_editfns.c) = a807873b369f84a19e0b75be936f3fa192687835
+SHA1 (patch-src_emacs.c) = f65298962f421ef3538cd373d9b24add26c57dd8
+SHA1 (patch-src_xdisp.c) = 3fd694a521c32fa4143d89bd074a09b8480a2771

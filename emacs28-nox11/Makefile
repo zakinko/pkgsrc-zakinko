@@ -1,7 +1,12 @@
-# $NetBSD: Makefile,v 1.3 2023/12/11 15:46:10 gdt Exp $
+# $NetBSD$
 
 PKGNAME=	${DISTNAME:S/emacs/emacs28/:S/-/-nox11-/}
 CONFLICTS+=	emacs28-[0-9]*
+
+# 上流の editors/emacs28-nox11 は PKGREVISION を持たなかった (0)。その +1。
+# emacs28 側が 48 なのは上流が 47 だったからで、揃わないのはもとの二つが
+# 揃っていなかったため。どちらも上流より大きければ pkgin は入れ替える。
+PKGREVISION=	1
 
 FILESDIR=	${.CURDIR}/../../zakinko/emacs28/files
 PATCHDIR=	${.CURDIR}/../../zakinko/emacs28/patches

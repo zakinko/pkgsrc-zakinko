@@ -1,4 +1,4 @@
-# $NetBSD: version.mk,v 1.2 2022/09/13 23:36:13 wiz Exp $
+# $NetBSD$
 
 _EMACS_FLAVOR=	emacs
 _EMACS_REQD=	emacs28>=28.1<29
