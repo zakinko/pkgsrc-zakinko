@@ -24,6 +24,19 @@ PATCHFILES+=		emacs20-jumbo-patch-20170723.gz
 SITES.emacs20-jumbo-patch-20170723.gz= \
 			http://www.NetBSD.org/~dholland/patchkits/emacs20/
 
+# All three name the top directory, so one level has to come off:
+#
+#	--- emacs-20.7/src/lread.c		(mule)
+#	--- emacs-20.7.orig/src/xfns.c		(xim)
+#	--- a/lib-src/emacsclient.c		(jumbo)
+#
+# Say so rather than relying on the default, which is not the same on every
+# branch: pkgsrc-current has -p1 and pkgsrc-2026Q2 has -p0.  With -p0 patch
+# looks for emacs-20.7/src/lread.c under WRKSRC, does not find it, and asks
+# "File to patch:".  Nothing closes its stdin, so it asks again, forever --
+# a build that never ends and never says why.
+PATCH_DIST_STRIP=	-p1
+
 MAINTAINER=	dholland@NetBSD.org
 HOMEPAGE=	https://www.gnu.org/software/emacs/emacs.html
 COMMENT=	GNU editing macros (editor)
