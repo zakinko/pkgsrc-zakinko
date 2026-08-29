@@ -1,5 +1,12 @@
 $NetBSD$
 
+"." as a font-lock cache directory means a cache file is written beside the
+file being visited, and read from there.  In a directory several people can
+write to, that is someone else's cache being loaded as Lisp.  Drop "." from the
+default and say so in the docstring; patch-lisp_loaddefs.el marks the variable
+risky so a file-local value cannot put it back.  Same class as CVE-2008-1694 in
+XEmacs, which was answered the same way.
+
 --- lisp/fast-lock.el.orig	2001-07-16 04:15:34.000000000 +1200
 +++ lisp/fast-lock.el
 @@ -278,7 +278,7 @@ for buffers in Rmail mode, and size is i

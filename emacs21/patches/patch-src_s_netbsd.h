@@ -1,5 +1,15 @@
 $NetBSD$
 
+Two things.
+
+Link temacs against crti.o and crtn.o where NetBSD has them.  Without them the
+init and fini sections have no prologue and epilogue, and the dumped emacs does
+not start.  Whether they exist is decided by configure -- see
+patch-src_config.in for the two #undef lines that carry the answer.
+
+Use sigprocmask and its family rather than sigblock, which the manual has
+called obsolete for a long time.
+
 --- src/s/netbsd.h.orig	2002-05-31 12:29:02.000000000 -0400
 +++ src/s/netbsd.h	2015-02-16 18:13:17.000000000 -0500
 @@ -60,9 +60,17 @@

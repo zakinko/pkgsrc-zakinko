@@ -1,5 +1,19 @@
 $NetBSD$
 
+Three things in the install rules.
+
+Drop info* from the glob that copies the info files, and drop the loop that
+registers them in the dir file.  pkgsrc runs install-info itself, from the
+PLIST, so doing it here would put the entries in twice; and info/info is not
+installed at all, for the reason in patch-man_Makefile.in.
+
+Install the manual pages under emacs- names -- emacs-etags.1, emacs-ctags.1,
+emacs-gfdl.1 -- to match the programs, which patch-lib-src_Makefile.in renames
+the same way.  emacs.1 keeps its name.
+
+Drop the chmod a+r lines that follow each INSTALL_DATA.  INSTALL_DATA already
+sets the mode, and running chmod on the unprefixed path defeated the rename.
+
 --- Makefile.in.orig	Sat Oct 19 10:21:01 2002
 +++ Makefile.in
 @@ -430,28 +430,24 @@

@@ -1,5 +1,17 @@
 $NetBSD$
 
+Replace smtpmail.el with the one from emacs 22.  The version in 21.4 cannot
+authenticate to a submission server and cannot start TLS, so it can only reach
+an SMTP server that accepts unauthenticated mail on port 25 -- which by the
+time this was written meant almost none.  The newer file brings AUTH (LOGIN,
+PLAIN and CRAM-MD5) and STARTTLS, and its queue handling.
+
+STARTTLS needs the external starttls program; the file autoloads it and does
+not require it, so nothing breaks without it.
+
+This is a whole-file replacement rather than a fix, so it also carries emacs
+22's copyright years.  The rest of lisp/mail is untouched.
+
 --- lisp/mail/smtpmail.el.orig	2006-09-02 00:23:45.000000000 +0300
 +++ lisp/mail/smtpmail.el
 @@ -1,12 +1,15 @@

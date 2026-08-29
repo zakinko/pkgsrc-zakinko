@@ -1,5 +1,13 @@
 $NetBSD$
 
+Do not build info/info, the Info reader's own manual.  pkgsrc does not install
+it -- the PLIST has the other manuals and not this one -- and the top-level
+makefile patch drops it from the install glob for the same reason.  Why it is
+left out is not recorded; editors/emacs20 carries the same change.
+
+Also make "all" build the info files, which upstream leaves to a separate
+"make info".
+
 --- man/Makefile.in.orig	2001-12-21 08:15:45.000000000 +0000
 +++ man/Makefile.in
 @@ -34,7 +34,7 @@ VPATH=@srcdir@

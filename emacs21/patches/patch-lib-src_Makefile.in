@@ -1,5 +1,18 @@
 $NetBSD$
 
+Install the helper programs under emacs- names -- emacs-etags, emacs-ctags,
+emacs-b2m and so on -- because the base system has programs of the same name in
+the same bindir.  emacsclient keeps its name; nothing else claims it.
+patch-Makefile.in renames the manual pages to match.
+
+Use INSTALL_SCRIPT for the shell scripts rather than INSTALL_PROGRAM.  The
+latter strips, which turns a script into an empty file on some systems, and
+pkgsrc passes -s through it.  The variable was not defined here at all, so it
+is added at the top.
+
+The chmod a+rx lines go with the rename: the install already sets the mode, and
+the chmod was still naming the unprefixed path.
+
 --- lib-src/Makefile.in.orig	Fri Oct 19 02:31:27 2001
 +++ lib-src/Makefile.in	Thu May  2 20:53:52 2002
 @@ -85,6 +85,7 @@
