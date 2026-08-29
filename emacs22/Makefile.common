@@ -112,7 +112,7 @@ post-extract:
 
 # These dirs are installed by tar-copy and can sometimes come out mode
 # 754, which if PKG_DEVELOPER is set causes the build to fail.
-post-install: coexist-rename
+post-install:
 .for file in leim leim/ja-dic leim/quail
 	${CHMOD} 755 ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/${file}
 .endfor
@@ -132,21 +132,6 @@ post-build:
 	cd ${WRKSRC}/lisp/international && ${WRKSRC}/src/emacs -batch -q \
 		--no-site-file -f batch-byte-compile titdic-cnv.el
 
-# COEXIST: emacs22 から emacs28 を同時に入れられるようにする。PLIST の四千行の
-# うち版で分かれていないのは bin/emacs bin/emacsclient man/man1/emacs.1
-# man/man1/emacsclient.1 と share/emacs/site-lisp/subdirs.el の五つだけなので、
-# 前四つを版付きに改名し、最後の一つは版ごとの share/emacs/${PKGVERSION}/
-# site-lisp/subdirs.el が別に在るので落とす。
-coexist-rename:
-	cd ${DESTDIR}${PREFIX}/bin && \
-		${MV} emacs emacs-${PKGVERSION_NOREV} 2>/dev/null || ${TRUE}
-	cd ${DESTDIR}${PREFIX}/bin && \
-		${MV} emacsclient emacsclient-${PKGVERSION_NOREV} 2>/dev/null || ${TRUE}
-	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
-		${MV} emacs.1 emacs-${PKGVERSION_NOREV}.1 2>/dev/null || ${TRUE}
-	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
-		${MV} emacsclient.1 emacsclient-${PKGVERSION_NOREV}.1 2>/dev/null || ${TRUE}
-	${RM} -f ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
 
 #
 # EMACS_COEXIST
