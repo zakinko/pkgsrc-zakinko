@@ -1,0 +1,22 @@
+$NetBSD$
+
+Make the NetBSD paxctl step a real recipe line.
+
+The line is indented with spaces, so make cannot parse it and stops with
+
+	lib/CompileJvm.gmk:175: *** missing separator
+	  (did you mean TAB instead of 8 spaces?)
+
+before anything is linked.  The block is guarded by bsd.netbsd, so Linux,
+FreeBSD and OpenBSD never generate it and never see this; NetBSD cannot
+build JDK 23 or later at all without this change.
+
+--- make/common/native/Link.gmk.orig
++++ make/common/native/Link.gmk
+@@ -195,7 +195,7 @@
+         endif
+ 
+         ifeq ($(OPENJDK_TARGET_OS_ENV), bsd.netbsd)
+-          /usr/sbin/paxctl +m $$@
++	  /usr/sbin/paxctl +m $$@
+         endif
