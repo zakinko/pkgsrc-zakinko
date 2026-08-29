@@ -126,7 +126,7 @@ CHECK_PIE_SUPPORTED=	no
 pre-configure:
 	${MKDIR} ${WRKSRC}/dist
 .for d in ${MOZC_DISTS}
-	${LN} -s ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
+	${LN} -sf ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
 .endfor
 	${RM} -r ${WRKDIR}/.cwrapper
 
