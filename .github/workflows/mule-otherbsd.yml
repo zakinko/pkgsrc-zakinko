@@ -54,19 +54,19 @@ name: mule (other BSD)
 on:
   push:
     paths:
-      - 'mule/**'
+      - 'mule2/**'
       - '.github/workflows/mule-otherbsd.yml'
       - '.github/ci/**'
       - 'libuuid/**'
   pull_request:
     paths:
-      - 'mule/**'
+      - 'mule2/**'
       - '.github/ci/**'
       - 'libuuid/**'
   workflow_dispatch:
     inputs:
       options:
-        description: 'PKG_OPTIONS.mule (既定は端末のみ)'
+        description: 'PKG_OPTIONS.mule2 (既定は端末のみ)'
         required: false
         default: '-canna -wnn4 -x11'
 

@@ -19,14 +19,14 @@ name: mule (more platforms)
 on:
   push:
     paths:
-      - 'mule/**'
+      - 'mule2/**'
       - 'libuuid/**'
       - '.github/workflows/mule-more.yml'
       - '.github/ci/**'
   workflow_dispatch:
     inputs:
       options:
-        description: 'PKG_OPTIONS.mule (既定は端末のみ)'
+        description: 'PKG_OPTIONS.mule2 (既定は端末のみ)'
         required: false
         default: '-canna -wnn4 -x11'
 
