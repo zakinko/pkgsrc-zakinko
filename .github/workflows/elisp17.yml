@@ -1,0 +1,112 @@
+name: 上流の 17 個
+
+# 上流 pkgsrc から引き取った 17 個 (emacs20/21 でしか建たない elisp の層) を、
+# 実際に建てる。pkglint と Emacs の reader は手元で通せるが、建つかどうかは
+# emacs20 か emacs21 が入った箱でしか分からない。
+#
+#	ERROR: Accepted versions are: emacs21 emacs21nox emacs20
+#	ERROR: No valid Emacs version installed found
+#
+# techne は EMACS_TYPE=emacs30nox で、入れ替えると elisp を建てている他の
+# セッションが全部止まる。実際に一度止めた。だから使い捨ての VM で建てる。
+#
+# Vultr に箱を立てる案もあったが、netbsd-ci-images に i386 のイメージが
+# 6.1.5 から 11.0 まで揃っていて、鍵も課金も要らずに済む。
+#
+# job の上限は 350 分。emacs 本体を建てるだけで一時間近くかかるので、
+# emacs20 の側と emacs21 の側を別の job に分ける。
+
+on:
+  push:
+    paths:
+      - 'leim2[01]/**'
+      - 'mule-ucs/**'
+      - 'tamago/**'
+      - 'iiimecf/**'
+      - 'calc/**'
+      - 'nxml-mode/**'
+      - 'pcl-cvs/**'
+      - 'emacs-ilisp/**'
+      - 'jde/**'
+      - 'w3/**'
+      - 'xemacs*/**'
+      - '.github/workflows/elisp17.yml'
+      - '.github/ci/verify-elisp17.sh'
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: '対象の Emacs (例 "20")。空なら 20 と 21'
+        required: false
+      image:
+        description: 'イメージ。空なら i386-9.4'
+        required: false
+
+concurrency:
+  group: elisp17
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.q.outputs.versions }}
+      image: ${{ steps.q.outputs.image }}
+    steps:
+      - id: q
+        env:
+          IN_V: ${{ inputs.versions }}
+          IN_I: ${{ inputs.image }}
+        run: |
+          set -e
+          [ -n "$IN_V" ] && V="$IN_V" || V="20 21"
+          [ -n "$IN_I" ] && I="$IN_I" || I="i386-9.4"
+          printf 'versions=%s\n' "$(printf '%s\n' $V | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          printf 'image=%s\n' "$I" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  build:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        version: ${{ fromJSON(needs.plan.outputs.versions) }}
+    name: emacs${{ matrix.version }} の 17 個
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      - name: 建てる
+        env:
+          # 主対象と、それが読むものを連れていく。emacs20/21 の側は
+          # Makefile.common と PLIST と modules.mk を読むので一つでは足りない。
+          UPSTREAM_PKG: >-
+            zakinko/emacs${{ matrix.version }}
+            zakinko/emacs${{ matrix.version }}-nox11
+            zakinko/emacs
+            zakinko/leim20 zakinko/leim21 zakinko/mule-ucs zakinko/tamago
+            zakinko/iiimecf zakinko/calc zakinko/nxml-mode zakinko/pcl-cvs
+            zakinko/emacs-ilisp zakinko/jde zakinko/w3
+          VERIFY_SCRIPT: verify-elisp17.sh
+          VERIFY_OPTS: ${{ matrix.version }}
+        run: sh .github/ci/run-in-qemu.sh '${{ needs.plan.outputs.image }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ needs.plan.outputs.image }}.console.log 2>/dev/null || true
