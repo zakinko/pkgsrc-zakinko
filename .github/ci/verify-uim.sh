@@ -45,20 +45,23 @@ OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
 
-# toolkit を全部切る。
+# gtk2 だけを切る。報告されたのがその形である。
 #
-# 最初は gtk2 だけ切って gtk3 を残す形にしていた。報告されたのがその形
-# だからだが、vmactions の NetBSD には X11 のセットが入っておらず
+# 一度は toolkit も xim も全部切る形にしていた。依存を軽くするためだったが、
+# xim を切ると別のバグを踏む。
 #
-#	ERROR: [bsd.pkg.mk] uim-... uses X11, but /usr/X11R7 not found
+#	ERROR: [subst.mk:xim] The filename pattern "configure" has no effect.
 #
-# で configure まで届かなかった。gtk3 を残すと X11 が要り、X11_TYPE=modular
-# にすれば通るが modular X を素から積むことになる。
+# options.mk は xim を切ると configure に SUBST を掛ける作りだが、uim は
+# Makefile.common の pre-configure が autogen.sh を走らせて configure を
+# 生成する。SUBST の時点ではまだ無い。pkgsrc の subst.mk は効かない
+# パターンを今はエラーにするので、そこで止まる。#153 とは別の、同じ
+# options.mk の二つ目のバグである。踏むと #153 の再現にならない。
 #
-# 全部切っても #153 の再現になる。素の PLIST は PLIST.gtk2 と PLIST.gtk3 の
-# 両方を重ねて持っているので、切った側が全部「組まれていないのに PLIST が
-# 主張するもの」になる。むしろ 18 行ぶん全部が一度に出る。
-OPTS=${UIM_OPTIONS:-"-gtk2 -gtk3 -gtk4 -qt5 -qt6 -xim"}
+# gtk3 と xim は残す。依存が公式のバイナリで降りるようになったので、
+# gtk3 の山を積んでも現実的な時間で終わる。gtk4 と qt5 と qt6 は #153 と
+# 関係がないので落とす。
+OPTS=${UIM_OPTIONS:-"-gtk2 -gtk4 -qt5 -qt6"}
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin
