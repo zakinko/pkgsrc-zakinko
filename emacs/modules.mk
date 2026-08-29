@@ -411,7 +411,16 @@ _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
 _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
 _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
 
-_EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
+# 上流はここを >22 と書いている。22 以下なら .elc が出来る、という仮定だが、
+# 実際に走らせると境目は一つ手前だった。no-byte-compile の cookie を
+# batch-byte-compile が尊重するようになったのが Emacs 22 からである。
+#
+#	e20  leim-list.elc 出来る    e22  出来ない
+#	e21  出来る                  e23  出来ない
+#
+# 上流に emacs22 は無い (2017 削除) のであちらでは当たらないが、こちらは
+# 引き取ったので当たる。anthy-elisp が emacs22 で PLIST と食い違って落ちた。
+_EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>21:?@comment :}"
 
 PLIST_SUBST+=		${_EMACS_PLIST_SUBST}
 
