@@ -1,5 +1,9 @@
 $NetBSD: patch-bh,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
 
+The "nothing" member is there to give the union a size when neither X nor w32
+is compiled in.  int is too small on LP64, so the union came out shorter than
+a pointer and the frame structure did not line up.
+
 --- ./src/frame.h.orig	Sat Apr 25 16:17:34 1998
 +++ ./src/frame.h	Tue Sep 26 09:38:18 2000
 @@ -186,7 +186,7 @@

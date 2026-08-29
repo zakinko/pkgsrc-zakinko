@@ -1,5 +1,8 @@
 $NetBSD: patch-ba,v 1.1 2008/04/05 21:29:14 kristerw Exp $
 
+Same as patch-bs: the XtVaSetValues list ends with a null pointer, not the
+integer 0.
+
 --- src/widget.c.orig	2008-04-02 22:40:30.000000000 +0200
 +++ src/widget.c	2008-04-04 21:13:56.000000000 +0200
 @@ -464,7 +464,7 @@

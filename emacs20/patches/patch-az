@@ -1,5 +1,11 @@
 $NetBSD: patch-az,v 1.2 2016/11/26 03:50:16 dholland Exp $
 
+NetBSD's <sys/exec_elf.h> wants ELFSIZE set before it is included, and defines
+the Elf_* names rather than the SHT_*/PT_* ones the code uses.  Include it
+first, pick the size from the machine (64 on alpha and sparc64), and map the
+remaining name that was missing.  Without this unexec cannot write the dumped
+image out on NetBSD.
+
 --- src/unexelf.c.orig	2000-05-15 08:14:02.000000000 +0000
 +++ src/unexelf.c
 @@ -470,15 +470,18 @@ typedef struct {

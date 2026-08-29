@@ -1,5 +1,9 @@
 $NetBSD: patch-bl,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
 
+64-bit SPARC.  Emacs 20 tags Lisp objects with bits inside a word, so the width
+of EMACS_INT and the position of the mark bit have to be stated for the ABI.
+Without this the LP64 build gets the 32-bit layout and truncates every pointer.
+
 --- ./src/m/sparc.h.orig	Sat Sep  6 11:51:04 1997
 +++ ./src/m/sparc.h	Tue Sep 26 12:36:05 2000
 @@ -117,3 +117,35 @@

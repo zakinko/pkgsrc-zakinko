@@ -1,5 +1,22 @@
 $NetBSD: patch-af,v 1.5 2017/07/23 05:11:42 dholland Exp $
 
+Four things in the src makefile.
+
+Link -lXpm with Xaw.  The Athena build uses Xpm for the toolbar icons and did
+not say so, which only worked while something else pulled it in.
+
+LINKER is $(CC) -nostdlib, which drops the standard libraries as well as the
+startup files.  -nostartfiles is what was meant.
+
+Drop the "bytecomp" step from all.  It ran the freshly dumped emacs to compile
+five lisp files, and those .elc files are already in the distribution.
+
+Disable ASLR on temacs and on the dumped emacs.  unexec writes the running
+image out as an executable, so the addresses have to be the same next time;
+with security.pax.aslr.global on, which is the default, they are not, and the
+result crashes at random points.  || true keeps this working where paxctl is
+not present.
+
 --- src/Makefile.in.orig	2016-11-26 06:25:26.875919180 +0000
 +++ src/Makefile.in
 @@ -329,7 +329,7 @@ LIBXMENU=

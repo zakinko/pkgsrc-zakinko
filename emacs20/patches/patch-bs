@@ -1,5 +1,9 @@
 $NetBSD: patch-bs,v 1.3 2012/12/11 04:54:47 dholland Exp $
 
+The varargs list of XtVaSetValues is terminated by a null pointer, not by the
+integer 0.  On LP64 those are different widths, so the callee kept reading past
+the end of the list.
+
 --- src/xmenu.c.orig	1998-12-28 23:15:47.000000000 +0100
 +++ src/xmenu.c	2008-04-02 22:40:18.000000000 +0200
 @@ -1500,7 +1501,7 @@

@@ -1,5 +1,9 @@
 $NetBSD: patch-ce,v 1.1 2008/07/13 17:28:34 dholland Exp $
 
+/tmp/geta$$ is a name an attacker can guess and create first, as a symlink to
+somewhere else.  vcdiff runs as the user, so the redirection then writes
+through it.  mktemp picks an unpredictable name and creates the file itself.
+
 --- lib-src/vcdiff.orig	1997-01-01 00:33:42.000000000 -0500
 +++ lib-src/vcdiff	2008-07-13 13:31:27.000000000 -0400
 @@ -66,14 +66,14 @@

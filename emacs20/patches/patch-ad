@@ -1,5 +1,9 @@
 $NetBSD: patch-ad,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
 
+etags is installed as emacs-etags, so that it does not collide with the etags
+in the base system.  etc/ctags.1 is a .so link to the etags manual page and has
+to follow the rename, or man ctags finds nothing.
+
 --- etc/ctags.1.orig	Fri Jul 17 18:58:29 1992
 +++ etc/ctags.1	Sat Feb 21 20:59:45 1998
 @@ -1 +1 @@

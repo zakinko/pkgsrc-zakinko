@@ -1,5 +1,9 @@
 $NetBSD: patch-bt,v 1.1 2004/03/25 22:13:34 kristerw Exp $
 
+Declare the relocating allocator before it is used.  With no prototype in
+scope the compiler assumes r_alloc returns int, which loses the top half of
+the pointer on LP64, and modern compilers reject the call outright.
+
 --- src/buffer.h.orig	1998-10-08 08:44:42.000000000 +0200
 +++ src/buffer.h	2004-03-25 22:51:09.000000000 +0100
 @@ -762,6 +762,9 @@

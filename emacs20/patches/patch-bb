@@ -1,5 +1,7 @@
 $NetBSD: patch-bb,v 1.1 2008/04/05 21:29:14 kristerw Exp $
 
+Same as patch-bs, in the Athena part of lwlib.
+
 --- lwlib/lwlib-Xaw.c.orig	1996-01-15 10:17:38.000000000 +0100
 +++ lwlib/lwlib-Xaw.c	2008-04-04 21:35:59.000000000 +0200
 @@ -84,7 +84,7 @@

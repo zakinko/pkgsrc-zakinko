@@ -1,5 +1,9 @@
 $NetBSD: patch-aa,v 1.1.1.1 2003/04/11 00:31:44 uebayasi Exp $
 
+Do not build or install info/info.  It is the Info reader's own manual, and
+textproc/texinfo installs the same file; two packages cannot own it.  Also make
+"all" build the info files, which upstream leaves to a separate "make info".
+
 --- man/Makefile.in.orig	Sat Dec  5 08:33:16 1998
 +++ man/Makefile.in	Fri Aug  6 08:34:06 1999
 @@ -14,7 +14,7 @@

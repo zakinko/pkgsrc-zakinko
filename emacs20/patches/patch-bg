@@ -1,5 +1,10 @@
 $NetBSD: patch-bg,v 1.4 2021/12/29 03:40:23 dholland Exp $
 
+The NetBSD half of configure.  Add --with-ipv6 and the getaddrinfo test that
+patch-aj and patch-ag need, and fill in the machine names that were missing or
+wrong for NetBSD: hppa, mipsel, mipsev.  powerpc-apple-netbsd goes because
+NetBSD/macppc is powerpc-*-netbsd, not powerpc-apple-*.
+
 --- configure.in.orig	2000-06-05 15:42:49.000000000 +0000
 +++ configure.in
 @@ -66,6 +66,8 @@ Currently, \`yes', \`athena' and \`lucid

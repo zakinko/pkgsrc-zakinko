@@ -1,5 +1,11 @@
 $NetBSD: patch-ay,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
 
+pmax (DECstation) on NetBSD and OpenBSD is ELF, so unexelf works and there is
+no reason to give up dumping.  The old settings came from a.out days: they
+named /usr/lib/crt0.o and then set CANNOT_DUMP, which makes a much slower
+emacs that reloads all of lisp at every start.  Also stop overriding LINKER
+on NetBSD, for the same reason as patch-ax.
+
 --- src/m/pmax.h.orig	Sun Sep  7 01:23:09 1997
 +++ src/m/pmax.h	Fri Feb 18 18:45:03 2000
 @@ -30,9 +30,8 @@

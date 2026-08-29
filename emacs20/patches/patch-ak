@@ -1,5 +1,12 @@
 $NetBSD: patch-ak,v 1.2 2010/02/04 06:40:19 dholland Exp $
 
+Two things.  Honour DESTDIR in the install rules, which predate staged
+installs.  And install the helper programs under emacs- names -- emacs-etags,
+emacs-ctags, emacs-b2m and so on -- because the base system has programs of the
+same name in the same bindir.  emacsclient keeps its name; nothing else claims
+it.  The chmod a+rx lines go with them: INSTALL_PROGRAM already sets the mode,
+and running chmod on the unprefixed path defeated the rename.
+
 --- lib-src/Makefile.in.orig	1999-11-13 22:41:47.000000000 +0000
 +++ lib-src/Makefile.in
 @@ -254,7 +254,7 @@ blessmail:

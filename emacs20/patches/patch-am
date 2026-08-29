@@ -1,5 +1,7 @@
 $NetBSD: patch-am,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
 
+Same as patch-al, for the other file that calls index() on Solaris.
+
 --- src/xfns.c.orig	Thu Jul  1 02:09:39 1999
 +++ src/xfns.c	Sun Sep  1 15:36:55 2002
 @@ -22,6 +22,10 @@
