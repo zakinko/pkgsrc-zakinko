@@ -40,6 +40,8 @@ PATCH_DIST_STRIP=	-p1
 MAINTAINER=	dholland@NetBSD.org
 HOMEPAGE=	https://www.gnu.org/software/emacs/emacs.html
 COMMENT=	GNU editing macros (editor)
+# etc/COPYING in the 20.7 tarball is the GNU GPL, "Version 2, June 1991".
+LICENSE=	gnu-gpl-v2
 
 # configure: error: Emacs hasn't been ported to `x86_64-apple-darwin17' systems.
 BROKEN_ON_PLATFORM=	Darwin-*-* DragonFly-*-*
