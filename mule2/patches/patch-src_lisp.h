@@ -29,7 +29,7 @@ a separate patch, because it means changing the definitions.
  /* Define the fundamental Lisp data structures */
  
  /* Define an integer type with the same size as Lisp_Object.
-@@ -1550,3 +1554,692 @@
+@@ -1550,3 +1554,705 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
@@ -715,6 +715,19 @@ a separate patch, because it means changing the definitions.
 +extern int x_wm_set_size_hint ();
 +extern int x_wm_set_window_state ();
 +
++
++/* The last of them: functions of this tree that were still being reached
++   through an implicit declaration after the two generated groups above.  */
++
++extern int fatal ();
++extern int init_syntax_once ();
++extern int insert_with_specified_function ();
++extern void safe_bcopy ();
++extern int describe_syntax_2 ();
++extern int insert_character_description ();
++extern int string_width ();
++extern char *r_alloc ();
++extern char *r_re_alloc ();
 +#ifdef HAVE_X_WINDOWS
 +/* defined in xfns.c */
 +extern Lisp_Object Fx_close_current_connection (), x_get_focus_frame ();
