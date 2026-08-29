@@ -141,3 +141,27 @@ pre-configure:
 
 .include "../../lang/python/tool.mk"
 .include "../../mk/atomic64.mk"
+
+# NetBSD 10.x and older ship a base gcc that does not satisfy
+# USE_CXX_FEATURES= c++20, so pkgsrc pulls in lang/gcc12.  The LDFLAGS
+# pkgsrc hands to the build then contain -L/usr/lib, and that is searched
+# before the gcc12 driver's own directories, so -lstdc++ resolves to the
+# base libstdc++ instead of gcc12's:
+#
+#   /usr/lib/libstdc++.so.9        (gcc 10.5)  no  __throw_bad_array_new_length
+#   gcc12/<gnu>/lib/libstdc++.so.7             yes
+#
+#   undefined reference to `std::__throw_bad_array_new_length()'
+#
+# Every object gcc12 compiled that needs a symbol newer than the base
+# libstdc++ then fails to link.  NetBSD 11.0 has gcc 12 as its base
+# compiler, so nothing happens there.
+#
+# gcc12-libs installs the runtime under ${MACHINE_GNU_PLATFORM}, which is
+# neither _GCC_ARCHDIR nor ${_GCC_PREFIX}lib, so mk/compiler/gcc.mk never
+# names it.  := rather than += so that it lands ahead of -L/usr/lib.
+.if exists(${LOCALBASE}/gcc12/${MACHINE_GNU_PLATFORM}/lib)
+LDFLAGS:=	-L${LOCALBASE}/gcc12/${MACHINE_GNU_PLATFORM}/lib		\
+		${COMPILER_RPATH_FLAG}${LOCALBASE}/gcc12/${MACHINE_GNU_PLATFORM}/lib \
+		${LDFLAGS}
+.endif
