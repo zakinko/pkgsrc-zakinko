@@ -98,6 +98,15 @@ if ! $PKGMAKE $MKARGS install > /tmp/verify-$PKG.log 2>&1; then
 fi
 tail -3 /tmp/verify-$PKG.log
 
+# 依存をバイナリで降ろせたのか、その場で組んだのかを出す。build のログは
+# 上のリダイレクトに入って外から見えないので、数えて出さないと「緑になった」
+# 以上のことが分からない。emacs.yml で BINPKG_SITES の arch を取り違えて
+# いたときは、一件も降ろせないまま amd64 の倍の時間がかかっていたのに、
+# ログからは気づけなかった。
+_bin=$(grep -c "Installing binary package of" /tmp/verify-$PKG.log 2>/dev/null || true)
+_src=$(grep -c "^===> Building for" /tmp/verify-$PKG.log 2>/dev/null || true)
+echo "    依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件"
+
 LISP=$($PKGMAKE $MKARGS show-var VARNAME=EMACS_LISPPREFIX)/anthy
 EMACS=$($PKGMAKE $MKARGS show-var VARNAME=EMACS_BIN)
 

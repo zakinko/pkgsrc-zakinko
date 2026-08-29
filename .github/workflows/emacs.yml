@@ -15,6 +15,11 @@ name: emacs22-28
 # イメージは mule2 と同じ netbsd-ci-images の release から取る。runner が
 # x86_64 の Linux で KVM が使えるので i386 も amd64 もほぼ実速で動く。
 
+# concurrency は置かない。この repo の 15 本のうち置いていたのはここだけで、
+# cancel-in-progress: true にしていたため main へ押すたび走行中の job が切られ
+# ていた。VM は一版あたり 40 分から 70 分かかるので、連続で押した二回目に
+# 一回目の結果が消える。積むほうを選ぶ。
+
 on:
   push:
     paths:
@@ -37,10 +42,6 @@ on:
         description: 'EMACS_COEXIST=yes でも組み直して名前を見るか'
         type: boolean
         default: false
-
-concurrency:
-  group: emacs-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   plan:

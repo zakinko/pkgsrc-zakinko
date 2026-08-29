@@ -87,7 +87,21 @@ echo
 echo "########## 1. 当て物ありで建てる ##########"
 ls patches
 pkg_delete -f lua-socket > /dev/null 2>&1 || true
+# 依存の出どころを書いておく。Linux の container で回す経路には公式の
+# バイナリ集合が無いので、ここは常に「その場で組む」になる。何も出ないと
+# 「降ろせているのか組んでいるのか」が外から分からず、遅いときに理由を
+# 探すところから始めることになる。
+if [ -n "${BINPKG_SITES:-}" ]; then
+	MKARGS="$MKARGS BINPKG_SITES=$BINPKG_SITES"
+	echo "--- 依存の出どころ: $BINPKG_SITES ---"
+else
+	echo "--- 依存の出どころ: 無し。全部その場で組む ---"
+fi
+
 if $PKGMAKE $MKARGS install > /tmp/ls-patched.log 2>&1; then
+	_bin=$(grep -c "Installing binary package of" /tmp/ls-patched.log 2>/dev/null || true)
+	_src=$(grep -c "^===> Building for" /tmp/ls-patched.log 2>/dev/null || true)
+	echo "--- 依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件 ---"
 	echo 'RESULT 当て物あり: 通った'
 else
 	echo 'RESULT 当て物あり: 落ちた'

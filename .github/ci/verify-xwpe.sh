@@ -68,6 +68,17 @@ unset PKG_PATH
 if [ -x "$PREFIX/bin/bmake" ]; then
 	PKGMAKE=$PREFIX/bin/bmake
 	MKARGS="DEPENDS_TARGET=bin-install"
+	# BINPKG_SITES は呼ぶ側が環境に置く。それでも効いてはいて、NetBSD
+	# amd64-11.0 の run 32790708281 ではバイナリ 49 件、その場で組んだの
+	# 47 件だった。ただし pkgsrc の変数の強さは 環境 < mk.conf < コマンド
+	# ラインなので、mk.conf に BINPKG_SITES があると環境のほうが負ける。
+	# 明示して渡す。
+	if [ -n "${BINPKG_SITES:-}" ]; then
+		MKARGS="$MKARGS BINPKG_SITES=$BINPKG_SITES"
+		echo "--- 依存の出どころ: $BINPKG_SITES ---"
+	else
+		echo "--- 依存の出どころ: 無し。全部その場で組む ---"
+	fi
 elif [ "$OS" = NetBSD ]; then
 	PKGMAKE=make
 	MKARGS=
@@ -90,6 +101,12 @@ echo "########## 1. 当て物ありで建てる ##########"
 ls patches 2>/dev/null
 pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
 { $PKGMAKE $MKARGS install 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-patched.log
+_bin=$(grep -c "Installing binary package of" /tmp/xwpe-patched.log 2>/dev/null || true)
+_src=$(grep -c "^===> Building for" /tmp/xwpe-patched.log 2>/dev/null || true)
+echo "--- 依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件 ---"
+if [ -n "${BINPKG_SITES:-}" ] && [ "${_bin:-0}" = 0 ]; then
+	echo "::warning::BINPKG_SITES を渡したのに一つも降ろせていない"
+fi
 if [ "$(cat /tmp/xwpe-rc)" -eq 0 ]; then
 	echo 'RESULT 当て物あり: 通った'
 else
