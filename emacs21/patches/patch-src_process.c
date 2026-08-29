@@ -1,5 +1,8 @@
 $NetBSD: patch-at,v 1.1 2007/06/11 13:38:41 markd Exp $
 
+Same as patch-aj: drop the hand-written "extern int errno".  errno is a macro
+over a per-thread location on any modern system, and the declaration hides it.
+
 --- src/process.c.orig	2005-12-29 13:33:52.000000000 +0000
 +++ src/process.c
 @@ -147,9 +147,6 @@ Lisp_Object Qlast_nonmenu_event;

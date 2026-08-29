@@ -1,5 +1,8 @@
 $NetBSD: patch-ac,v 1.1 2007/06/11 13:38:34 markd Exp $
 
+NetBSD/hppa with GCC has __builtin_alloca, so use it rather than falling
+through to the C alloca that the hpux part of this file arranges for.
+
 --- src/m/hp800.h.orig	1996-01-15 01:15:02.000000000 -0800
 +++ src/m/hp800.h	2005-10-04 10:49:46.000000000 -0700
 @@ -181,3 +181,11 @@

@@ -3,4 +3,4 @@ $NetBSD: distinfo,v 1.6 2021/10/26 10:17:59 nia Exp $
 BLAKE2s (pcl-cvs-2.9.9.tar.gz) = f4d0be14b05bf090cfe6532ecc6e75f3115ba921a615e249ba3927781be3419f
 SHA512 (pcl-cvs-2.9.9.tar.gz) = ef5b7691b7c556a57836d4cb263038ad996c36dbf6ad8f65e6324805f3698131e2ba4bafde24d5e28c4805dfebba0d5297a3b5b6706bd2167ee800895b0e89a5
 Size (pcl-cvs-2.9.9.tar.gz) = 140016 bytes
-SHA1 (patch-aa) = a002198171933bb171e3b9e220af5441d086e237
+SHA1 (patch-Makefile) = a002198171933bb171e3b9e220af5441d086e237

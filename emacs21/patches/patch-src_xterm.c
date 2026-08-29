@@ -1,5 +1,7 @@
 $NetBSD: patch-am,v 1.1 2007/06/11 13:38:36 markd Exp $
 
+Same as patch-aj, in xterm.c.
+
 --- src/xterm.c.orig	2005-12-29 13:24:55.000000000 +0000
 +++ src/xterm.c
 @@ -370,8 +370,6 @@ extern Lisp_Object Vx_no_window_manager;

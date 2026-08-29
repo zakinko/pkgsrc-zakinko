@@ -1,5 +1,7 @@
 $NetBSD: patch-ar,v 1.1 2007/06/11 13:38:38 markd Exp $
 
+Same as patch-aj, in floatfns.c.
+
 --- src/floatfns.c.orig	2005-12-29 13:31:17.000000000 +0000
 +++ src/floatfns.c
 @@ -107,9 +107,6 @@ extern double logb ();

@@ -3,5 +3,5 @@ $NetBSD: distinfo,v 1.8 2021/10/26 10:21:34 nia Exp $
 BLAKE2s (Mule-UCS-0.84.tar.gz) = ff6ee7e0bc4979c5195d181fde2e2620c5c5d671c434438ab61d35966eb85235
 SHA512 (Mule-UCS-0.84.tar.gz) = 38289b60041c79e3c3ff15939386c14a1501c5c4497c511827ac66c6bede08b2d377158bdae4eb31ebf8776f92d18f1aa7656eaa76438692a70467221aa0b1f5
 Size (Mule-UCS-0.84.tar.gz) = 565222 bytes
-SHA1 (patch-aa) = 636a2b805401ee6c5772f6f332b9da5551dff471
-SHA1 (patch-ab) = d40551036633277d7b9f9825d2bc3dcd4c5ef2a1
+SHA1 (patch-lisp_mucs-ccl.el) = d40551036633277d7b9f9825d2bc3dcd4c5ef2a1
+SHA1 (patch-lisp_un-define.el) = 636a2b805401ee6c5772f6f332b9da5551dff471

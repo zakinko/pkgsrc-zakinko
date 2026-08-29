@@ -1,5 +1,8 @@
 $NetBSD: patch-as,v 1.1 2007/06/11 13:38:40 markd Exp $
 
+Same as patch-aj: drop the hand-written "extern int errno".  errno is a macro
+over a per-thread location on any modern system, and the declaration hides it.
+
 --- src/lread.c.orig	2005-12-29 13:32:39.000000000 +0000
 +++ src/lread.c
 @@ -72,10 +72,6 @@ Boston, MA 02111-1307, USA.  */

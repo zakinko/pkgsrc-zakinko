@@ -1,5 +1,8 @@
 $NetBSD: patch-ao,v 1.1 2007/06/11 13:38:36 markd Exp $
 
+Same as patch-aj: drop the hand-written "extern int errno".  errno is a macro
+over a per-thread location on any modern system, and the declaration hides it.
+
 --- src/keyboard.c.orig	2005-12-29 13:28:32.000000000 +0000
 +++ src/keyboard.c
 @@ -77,10 +77,6 @@ Boston, MA 02111-1307, USA.  */

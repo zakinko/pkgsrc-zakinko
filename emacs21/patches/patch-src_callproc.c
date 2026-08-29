@@ -1,5 +1,8 @@
 $NetBSD: patch-au,v 1.1 2007/06/11 13:38:42 markd Exp $
 
+Same as patch-aj: drop the hand-written "extern int errno".  errno is a macro
+over a per-thread location on any modern system, and the declaration hides it.
+
 --- src/callproc.c.orig	2005-12-29 13:34:29.000000000 +0000
 +++ src/callproc.c
 @@ -25,10 +25,6 @@ Boston, MA 02111-1307, USA.  */

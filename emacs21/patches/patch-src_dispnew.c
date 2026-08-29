@@ -1,5 +1,10 @@
 $NetBSD: patch-av,v 1.2 2016/05/03 09:41:20 wiz Exp $
 
+Two things.  copy_row_except_pointers is used only in this file, so make it
+static -- without that, INLINE leaves an external definition in every object
+that includes the header and the link fails on duplicate symbols.  And drop the
+"extern int errno" as in patch-aj.
+
 --- src/dispnew.c.orig	2002-03-31 17:08:22.000000000 +0000
 +++ src/dispnew.c
 @@ -1256,7 +1256,7 @@ swap_glyph_pointers (a, b)
