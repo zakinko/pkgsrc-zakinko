@@ -2,9 +2,14 @@ $NetBSD: patch-lib-src_bdf_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- lib-src/bdf.c~	1995-06-15 08:12:59.000000000 +0000
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+--- lib-src/bdf.c.orig
 +++ lib-src/bdf.c
-@@ -50,6 +50,7 @@ the Free Software Foundation, 675 Mass A
+@@ -50,11 +50,19 @@
  	In bdf_load_font(), fontp->extra->fs should not be set in emacs. */
  
  #include <stdio.h>
@@ -12,3 +17,15 @@ $NetBSD: patch-lib-src_bdf_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <sys/param.h>
  #include <sys/types.h>
  #include <fcntl.h>
+ #include <sys/file.h>
+ #include "mulelib.h"
++
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++extern int fatal1 ();
++extern int warning2 ();
++extern int warning3 ();
+ #ifdef USG
+ #include <string.h>
+ #else

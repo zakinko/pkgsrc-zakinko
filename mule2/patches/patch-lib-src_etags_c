@@ -2,9 +2,14 @@ $NetBSD: patch-lib-src_etags_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- lib-src/etags.c~	1994-07-08 10:24:10.000000000 +0000
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+--- lib-src/etags.c.orig
 +++ lib-src/etags.c
-@@ -44,6 +44,8 @@ char pot_etags_version[] = "@(#) pot rev
+@@ -44,6 +44,8 @@
  #endif
  
  #include <stdio.h>
@@ -13,3 +18,17 @@ $NetBSD: patch-lib-src_etags_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <ctype.h>
  #include <sys/types.h>
  #include <sys/stat.h>
+@@ -54,6 +56,13 @@
+ 
+ #include "getopt.h"
+ 
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++extern int prestr ();
++extern int string_numeric_p ();
++extern int substr ();
++
+ extern char *getenv ();
+ 
+ /* Define CTAGS to make the program "ctags" compatible with the usual one.

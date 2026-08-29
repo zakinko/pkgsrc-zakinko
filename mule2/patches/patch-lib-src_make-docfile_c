@@ -2,14 +2,27 @@ $NetBSD: patch-lib-src_make-docfile_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- lib-src/make-docfile.c~	1994-05-19 21:04:35.000000000 +0000
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+--- lib-src/make-docfile.c.orig
 +++ lib-src/make-docfile.c
-@@ -32,6 +32,8 @@ the Free Software Foundation, 675 Mass A
+@@ -32,6 +32,16 @@
   */
  
  #include <stdio.h>
 +#include <stdlib.h>
 +#include <string.h>
++
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++#include <unistd.h>
++extern int scan_c_file ();
++extern int scan_file ();
++extern int scan_lisp_file ();
  #ifdef MSDOS
  #include <fcntl.h>
  #endif /* MSDOS */

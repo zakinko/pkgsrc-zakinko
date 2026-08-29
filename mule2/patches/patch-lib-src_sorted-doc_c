@@ -3,9 +3,14 @@ $NetBSD: patch-lib-src_sorted-doc_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 - use standard headers
 - fix malloc usage
 
---- lib-src/sorted-doc.c~	1992-10-07 18:21:09.000000000 +0000
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+--- lib-src/sorted-doc.c.orig
 +++ lib-src/sorted-doc.c
-@@ -6,11 +6,10 @@
+@@ -6,10 +6,14 @@
     */
  
  #include <stdio.h>
@@ -15,11 +20,14 @@ $NetBSD: patch-lib-src_sorted-doc_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  
 -extern char *malloc ();
 -char *xmalloc ();
--
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++extern int error ();
+ 
  #define NUL	'\0'
  #define MARKER '\037'
- 
-@@ -56,9 +55,8 @@ error (s1, s2)
+@@ -56,9 +60,8 @@
  
  /* Like malloc but get fatal error if memory is exhausted.  */
  

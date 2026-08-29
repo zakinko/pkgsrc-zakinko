@@ -2,17 +2,31 @@ $NetBSD: patch-lib-src_yow_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use time() correctly
 
---- lib-src/yow.c~	1994-06-07 15:18:54.000000000 +0000
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+--- lib-src/yow.c.orig
 +++ lib-src/yow.c
-@@ -9,6 +9,7 @@
+@@ -9,8 +9,16 @@
  
  #include <stdio.h>
  #include <ctype.h>
 +#include <time.h>
  #include <../src/paths.h>      /* For PATH_DATA.  */
  
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++
  #define BUFSIZE  80
-@@ -53,7 +54,7 @@ main (argc, argv)
+ #define SEP      '\0'
+ 
+@@ -53,7 +61,7 @@
    }
  
    /* initialize random seed */
@@ -21,3 +35,11 @@ $NetBSD: patch-lib-src_yow_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  
    setup_yow(fp);
    yow(fp);
+@@ -104,7 +112,6 @@
+   int c, i = 0;
+   char *buf;
+   unsigned int bufsize;
+-  char *malloc(), *realloc();
+ 
+   offset = rand() % len + header_len;
+   if (fseek(fp, offset, 0) == -1) {

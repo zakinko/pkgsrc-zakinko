@@ -2,11 +2,26 @@ $NetBSD: patch-lib-src_coco_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- lib-src/coco.c~	1996-04-04 03:43:46.000000000 +0000
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+--- lib-src/coco.c.orig
 +++ lib-src/coco.c
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,15 @@
  #include <stdio.h>
 +#include <stdlib.h>
  #include "mulelib.h"
  
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++#include <unistd.h>
++extern int code_conversion ();
++extern int mulelib_initialize ();
++extern int set_coding_system ();
++
  #define IN_BUF_SIZE 4096
+ #define OUT_BUF_SIZE (IN_BUF_SIZE * 5 + CONV_BUF_EXTRA)
+ 
