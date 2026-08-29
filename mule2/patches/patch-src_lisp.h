@@ -1,7 +1,20 @@
-The second block is generated: every function of this tree that was still
-being called through an implicit declaration, declared with the type its
-own definition carries.  161 of them.  Functions whose definition carries
-no type at all are not here; those need the definition fixed first.
+$NetBSD$
+
+Pull in <machine/limits.h> on NetBSD for DBL_DIG.
+
+Declare the functions this tree defines.  Every one of them was reached
+through an implicit declaration, which C99 removed and which clang 16 and
+gcc 14 make an error by default.  On LP64 it is also only safe while the
+return value fits in an int, which is how the truncation bugs in this tree
+were reached.
+
+Three groups.  The first was written by hand for the Lisp_Object returns
+that were losing their top half.  The second is generated from definitions
+that carry a type, with that type.  The third is generated from definitions
+that carry no type at all: in C that means int, so int is what they are
+declared as -- the same thing the compiler was already assuming, spelled
+out.  Whether those should return void instead is a separate question and
+a separate patch, because it means changing the definitions.
 
 --- src/lisp.h.orig
 +++ src/lisp.h
@@ -16,7 +29,7 @@ no type at all are not here; those need the definition fixed first.
  /* Define the fundamental Lisp data structures */
  
  /* Define an integer type with the same size as Lisp_Object.
-@@ -1550,3 +1554,375 @@
+@@ -1550,3 +1554,692 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
@@ -384,6 +397,323 @@ no type at all are not here; those need the definition fixed first.
 +extern void x_term_init ();
 +extern int x_text_icon ();
 +extern void x_uncatch_errors ();
++
++
++/* The tree's own functions whose definitions carry no type at all.  In C
++   that means int, so int is what they are declared as here: the same thing
++   the compiler was already assuming, spelled out.  Whether they should
++   instead return void is a separate question, and a separate patch: it
++   means changing the definitions, not just naming them.  */
++
++/* defined in abbrev.c */
++extern int syms_of_abbrev ();
++
++/* defined in alloc.c */
++extern int display_malloc_warning ();
++extern int free_cons ();
++extern int init_alloc ();
++extern int init_alloc_once ();
++extern int memory_full ();
++
++/* defined in buffer.c */
++extern int init_buffer ();
++extern int init_buffer_once ();
++extern int keys_of_buffer ();
++extern int nsberror ();
++extern int record_buffer ();
++extern int reset_buffer_local_variables ();
++extern int syms_of_buffer ();
++extern int validate_position ();
++extern int validate_region ();
++
++/* defined in bytecode.c */
++extern int syms_of_bytecode ();
++
++/* defined in callint.c */
++extern int syms_of_callint ();
++
++/* defined in callproc.c */
++extern int child_setup ();
++extern int init_callproc ();
++extern int init_callproc_1 ();
++extern int set_process_environment ();
++extern int syms_of_callproc ();
++
++/* defined in canna.c */
++extern int syms_of_canna ();
++
++/* defined in casefiddle.c */
++extern int keys_of_casefiddle ();
++extern int syms_of_casefiddle ();
++
++/* defined in casetab.c */
++extern int init_casetab_once ();
++extern int syms_of_casetab ();
++
++/* defined in category.c */
++extern int init_category_once ();
++extern int pack_mnemonic_string ();
++extern int syms_of_category ();
++
++/* defined in ccl.c */
++extern int ccl_driver ();
++extern int set_ccl_program ();
++extern int syms_of_ccl ();
++
++/* defined in charset.c */
++extern int init_charset_once ();
++extern int search_cmpchar ();
++extern int string_to_mchar ();
++extern int strwidth ();
++extern int syms_of_charset ();
++
++/* defined in cmds.c */
++extern int internal_self_insert ();
++extern int keys_of_cmds ();
++extern int syms_of_cmds ();
++
++/* defined in coding.c */
++extern int encode_code ();
++extern int init_coding ();
++extern int syms_of_coding ();
++
++/* defined in data.c */
++extern int pure_write_error ();
++
++/* defined in dired.c */
++extern int file_name_completion_stat ();
++extern int syms_of_dired ();
++
++/* defined in dispnew.c */
++extern int bitch_at_user ();
++extern int cancel_line ();
++extern int cancel_my_columns ();
++extern int clear_frame_records ();
++extern int do_pending_window_change ();
++extern int preserve_other_columns ();
++extern int redraw_frame ();
++extern int scrolling ();
++extern int syms_of_display ();
++extern int verify_charstarts ();
++
++/* defined in doc.c */
++extern int syms_of_doc ();
++
++/* defined in doprnt.c */
++extern int doprnt ();
++
++/* defined in emacs.c */
++extern int syms_of_emacs ();
++
++/* defined in eval.c */
++extern int do_autoload ();
++extern int init_eval ();
++extern int init_eval_once ();
++extern int syms_of_eval ();
++
++/* defined in fileio.c */
++extern int report_file_error ();
++extern int syms_of_fileio ();
++
++/* defined in filelock.c */
++extern int init_filelock ();
++extern int syms_of_filelock ();
++extern int unlock_buffer ();
++
++/* defined in floatfns.c */
++extern int init_floatfns ();
++extern int syms_of_floatfns ();
++
++/* defined in fns.c */
++extern int syms_of_fns ();
++
++/* defined in fontset.c */
++extern int find_fontset_from_font ();
++extern int fs_load_font ();
++extern int init_fontset ();
++extern int load_query_fontset ();
++extern int query_fontset ();
++extern int syms_of_fontset ();
++
++/* defined in frame.c */
++extern int choose_minibuf_frame ();
++extern int keys_of_frame ();
++extern int syms_of_frame ();
++
++/* defined in indent.c */
++extern int invalidate_current_column ();
++extern int position_indentation ();
++extern int syms_of_indent ();
++
++/* defined in insdel.c */
++extern int adjust_markers2 ();
++extern int insert ();
++extern int insert_and_inherit ();
++extern int insert_before_markers ();
++extern int insert_from_string ();
++extern int make_gap ();
++extern int modify_region ();
++extern int move_gap ();
++extern int prepare_to_modify_buffer ();
++extern int signal_after_change ();
++extern int signal_before_change ();
++
++/* defined in keyboard.c */
++extern int bind_polling_period ();
++extern int clear_input_pending ();
++extern int clear_waiting_for_input ();
++extern int detect_input_pending ();
++extern int echo ();
++extern int init_keyboard ();
++extern int keys_of_keyboard ();
++extern int quit_throw_to_read_char ();
++extern int record_auto_save ();
++extern int restore_getcjmp ();
++extern int save_getcjmp ();
++extern int set_waiting_for_input ();
++extern int start_polling ();
++extern int stop_polling ();
++extern int stuff_buffered_input ();
++extern int syms_of_keyboard ();
++
++/* defined in keymap.c */
++extern int describe_vector ();
++extern int keys_of_keymap ();
++extern int syms_of_keymap ();
++
++/* defined in lread.c */
++extern int init_lread ();
++
++/* defined in macros.c */
++extern int finalize_kbd_macro_chars ();
++extern int init_macros ();
++extern int keys_of_macros ();
++extern int store_kbd_macro_char ();
++extern int syms_of_macros ();
++
++/* defined in marker.c */
++extern int marker_position ();
++extern int syms_of_marker ();
++
++/* defined in mcpath.c */
++extern int syms_of_mcpath ();
++
++/* defined in minibuf.c */
++extern int init_minibuf_once ();
++extern int keys_of_minibuf ();
++extern int scmp ();
++extern int syms_of_minibuf ();
++
++/* defined in mocklisp.c */
++extern int syms_of_mocklisp ();
++
++/* defined in mule.c */
++extern int syms_of_mule ();
++
++/* defined in print.c */
++extern int write_string ();
++extern int write_string_1 ();
++
++/* defined in process.c */
++extern int close_process_descs ();
++extern int create_process ();
++extern int deactivate_process ();
++extern int init_process ();
++extern int kill_buffer_processes ();
++extern int read_process_output ();
++extern int status_notify ();
++extern int syms_of_process ();
++
++/* defined in regex19.c */
++extern int init_compile_charset_information ();
++
++/* defined in scroll.c */
++extern int scroll_cost ();
++
++/* defined in search.c */
++extern int scan_buffer ();
++extern int search_buffer ();
++extern int set_pattern ();
++extern int syms_of_search ();
++
++/* defined in syntax.c */
++extern int scan_words ();
++extern int syms_of_syntax ();
++
++/* defined in sysdep.c */
++extern int child_setup_tty ();
++extern int flush_pending_output ();
++extern int get_frame_size ();
++extern int init_baud_rate ();
++extern int init_sigio ();
++extern int request_sigio ();
++extern int restore_signal_handlers ();
++extern int save_signal_handlers ();
++extern int setup_pty ();
++extern int stuff_char ();
++extern int sys_subshell ();
++extern int sys_suspend ();
++extern int tabs_safe_p ();
++extern int unrequest_sigio ();
++extern int wait_for_termination ();
++
++/* defined in term.c */
++extern int clear_end_of_line ();
++extern int set_scroll_region ();
++extern int syms_of_term ();
++extern int term_init ();
++extern int turn_off_highlight ();
++extern int turn_off_insert ();
++extern int update_begin ();
++
++/* defined in undo.c */
++extern int record_change ();
++extern int syms_of_undo ();
++
++/* defined in window.c */
++extern int init_window_once ();
++extern int keys_of_window ();
++extern int syms_of_window ();
++
++/* defined in wnnfns.c */
++extern int c2m ();
++extern int m2w ();
++extern int syms_of_wnn ();
++extern int w2m ();
++
++/* defined in xdisp.c */
++extern int init_xdisp ();
++extern int redisplay_preserve_echo_area ();
++
++/* defined in xfns.c */
++extern int syms_of_xfns ();
++extern int x_char_height ();
++extern int x_char_width ();
++extern int x_pixel_height ();
++extern int x_pixel_width ();
++extern int x_report_frame_params ();
++extern int x_set_border_pixel ();
++
++/* defined in xmenu.c */
++extern int syms_of_xmenu ();
++
++/* defined in xterm.c */
++extern int x_calc_absolute_position ();
++extern int x_destroy_window ();
++extern int x_display_cursor ();
++extern int x_focus_on_frame ();
++extern int x_lower_frame ();
++extern int x_make_frame_invisible ();
++extern int x_make_frame_visible ();
++extern int x_raise_frame ();
++extern int x_scroll_bar_clear ();
++extern int x_set_offset ();
++extern int x_set_window_size ();
++extern int x_unfocus_frame ();
++extern int x_wm_set_icon_pixmap ();
++extern int x_wm_set_icon_position ();
++extern int x_wm_set_size_hint ();
++extern int x_wm_set_window_state ();
 +
 +#ifdef HAVE_X_WINDOWS
 +/* defined in xfns.c */
