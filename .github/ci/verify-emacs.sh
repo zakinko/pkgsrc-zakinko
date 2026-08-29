@@ -51,6 +51,16 @@ export PATH
 unset PKG_PATH
 
 if [ "$OS" = NetBSD ]; then
+	# BATCH=1 と、stdin を閉じること。当て物が当たらないと patch は
+	#
+	#	File to patch:
+	#	No file found--skip this patch? [n]
+	#
+	# と聞き、pkgsrc は stdin を閉じないので永久に聞き続ける。job は無音のまま
+	# 340 分の timeout に当たり、何が起きたのか一行も残らなかった (手元で同じ
+	# ものを回したらログが 6087 万行になった)。BATCH=1 は pkgsrc が patch へ
+	# --batch を渡すようにする。
+	BATCH=1; export BATCH
 	PKGMAKE=make
 	MKARGS=
 else
@@ -114,7 +124,7 @@ pkg_delete -f "$PKG" > /dev/null 2>&1 || true
 $PKGMAKE $MKARGS clean > /dev/null 2>&1 || true
 
 echo "--- 1. build と install ---"
-if ! $PKGMAKE $MKARGS package-install > /tmp/verify-$PKG.log 2>&1; then
+if ! $PKGMAKE $MKARGS package-install < /dev/null > /tmp/verify-$PKG.log 2>&1; then
 	grep -iE 'hunks? failed|saving rejects|Patching failed|in the PLIST but not|not in the PLIST' \
 	    /tmp/verify-$PKG.log | head -10
 	tail -40 /tmp/verify-$PKG.log
@@ -181,7 +191,7 @@ if [ "${EMACS_COEXIST_CHECK:-no}" = yes ]; then
 	echo "--- 3b. 共存の形でも組めるか ---"
 	pkg_delete -f "$PKG" > /dev/null 2>&1 || true
 	$PKGMAKE clean > /dev/null 2>&1 || true
-	if ! $PKGMAKE $MKARGS EMACS_COEXIST=yes package-install \
+	if ! $PKGMAKE $MKARGS EMACS_COEXIST=yes package-install < /dev/null \
 	     > /tmp/verify-$PKG-coexist.log 2>&1; then
 		# 30 行では足りなかった。coexist-names の mv が
 		# "rename emacs.1 to emacsNN.1: No such file or directory" で

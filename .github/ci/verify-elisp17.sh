@@ -38,6 +38,16 @@ case $EMACS_V in
 esac
 export EMACS_TYPE
 
+# BATCH=1 と、stdin を閉じること。当て物が当たらないと patch は
+#
+#	File to patch:
+#	No file found--skip this patch? [n]
+#
+# と聞き、pkgsrc は stdin を閉じないので永久に聞き続ける。job は無音のまま
+# 340 分の timeout に当たり、何が起きたのか一行も残らなかった (手元で同じ
+# ものを回したらログが 6087 万行になった)。BATCH=1 は pkgsrc が patch へ
+# --batch を渡すようにする。
+BATCH=1; export BATCH
 PKGMAKE="make"
 MKARGS="EMACS_TYPE=$EMACS_TYPE"
 [ -n "${BINPKG_SITES:-}" ] && MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
@@ -64,7 +74,7 @@ cd "$TREE/$EMACS_PKG" || { echo "FAIL: $EMACS_PKG が無い"; exit 1; }
 tick /tmp/emacs$EMACS_V.log &
 _tick=$!
 rc=0
-$PKGMAKE $MKARGS package-install > /tmp/emacs$EMACS_V.log 2>&1 || rc=$?
+$PKGMAKE $MKARGS package-install < /dev/null > /tmp/emacs$EMACS_V.log 2>&1 || rc=$?
 kill $_tick 2>/dev/null
 if [ $rc -ne 0 ]; then
 	tail -40 /tmp/emacs$EMACS_V.log
@@ -99,7 +109,7 @@ for p in $LIST; do
 	tick "/tmp/$(basename $p).log" &
 	_tick=$!
 	prc=0
-	( cd "$d" && $PKGMAKE $MKARGS package-install ) > "/tmp/$(basename $p).log" 2>&1 || prc=$?
+	( cd "$d" && $PKGMAKE $MKARGS package-install < /dev/null ) > "/tmp/$(basename $p).log" 2>&1 || prc=$?
 	kill $_tick 2>/dev/null
 	if [ $prc -eq 0 ]; then
 		# byte-compile の警告を数える。当て物で .el を書き換えたなら、
