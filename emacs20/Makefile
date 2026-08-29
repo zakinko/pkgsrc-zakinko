@@ -5,7 +5,7 @@ PKGNAME=	${DISTNAME:S/emacs/emacs20/}
 PKGREVISION=	29
 CATEGORIES=	zakinko editors
 MASTER_SITES=	http://ftp.gnu.org/pub/old-gnu/emacs/
-MASTER_SITES+=	ftp://ftp.gnu.org/pub/old-gnu/emacs
+MASTER_SITES+=	ftp://ftp.gnu.org/pub/old-gnu/emacs/
 DISTFILES=	${DISTNAME}${EXTRACT_SUFX}
 DISTFILES+=	${DISTNAME}-mule-4.1b-elc${EXTRACT_SUFX}
 SITES.${DISTNAME}-mule-4.1b-elc.tar.gz=	${MASTER_SITE_LOCAL}
@@ -54,7 +54,7 @@ LDFLAGS+=	-Wl,-z,nocombreloc
     !exists(/usr/lib/libgcc_s.so) && !exists(/usr/lib/libgcc.a)
 # NetBSD with native Clang doesn't provide libgcc, everything is in libc.
 pre-configure: fake-libgcc
-
+.PHONY: fake-libgcc
 fake-libgcc:
 	${AR} q ${BUILDLINK_DIR}/lib/libgcc.a
 .endif
@@ -101,7 +101,7 @@ post-extract:
 	${CP} ${FILESDIR}/dragonfly.h ${WRKSRC}/src/s
 
 pre-install:
-	@${FIND} ${WRKSRC} -type f -name "*.orig*" -print | ${XARGS} ${RM} -f
+	${RUN} ${FIND} ${WRKSRC} -type f -name "*.orig*" -exec ${RM} -f {} +
 
 post-install:
 	${CHOWN} -R ${SHAREOWN}:${SHAREGRP} ${DESTDIR}${PREFIX}/share/emacs

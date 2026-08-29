@@ -14,7 +14,17 @@ COMMENT=	GNU editing macros (editor)
 # configure: error: Emacs hasn't been ported to `x86_64-apple-darwin17' systems.
 BROKEN_ON_PLATFORM=	Darwin-*-*
 
-CONFLICTS=	mule-[0-9]*
+# += , not =.  Both Makefiles that include this one state their conflict with
+# the other before the include:
+#
+#	emacs21/Makefile:6		CONFLICTS+=	emacs21-nox11-[0-9]*
+#	emacs21-nox11/Makefile:8	CONFLICTS+=	emacs21-[0-9]*
+#
+# and a plain = here threw that away, so neither package declared the other.
+# They install the same bin/emacs and the same share/emacs/21.4, so pkg_add
+# would let the second one overwrite the first.  editors/emacs22's
+# Makefile.common already uses += for the same reason.
+CONFLICTS+=	mule-[0-9]*
 
 USE_TOOLS+=		gmake perl:run
 GNU_CONFIGURE=		yes
@@ -58,11 +68,14 @@ CPPFLAGS+=	-DTERMINFO
 CPPFLAGS+=	-DDFLY_CRT_USRLIB
 .endif
 
-PLIST_VARS+=	fns.el
+# pkglint: a PLIST identifier may not contain a dot.  It happened to work
+# because make accepts the dot in a variable name, but the name is meant to
+# be a plain word.
+PLIST_VARS+=	fns
 .if ${OPSYS} == "Darwin"
 PLIST_SUBST+=	DOCTAIL=""
 .else
-PLIST.fns.el=	yes
+PLIST.fns=	yes
 PLIST_SUBST+=	DOCTAIL="-${EMACSVERSION}.1"
 .endif
 
@@ -91,7 +104,7 @@ ALL_ENV+=	TRADCPP=${TRADCPP:Q}
     !exists(/usr/lib/libgcc_s.so) && !exists(/usr/lib/libgcc.a)
 # NetBSD with native Clang doesn't provide libgcc, everything is in libc.
 pre-configure: fake-libgcc
-
+.PHONY: fake-libgcc
 fake-libgcc:
 	${AR} q ${BUILDLINK_DIR}/lib/libgcc.a
 .endif
@@ -116,7 +129,7 @@ post-build:
 	   rm fast-lock.elc && ${MAKE_PROGRAM} fast-lock.elc
 
 pre-install:
-	@${FIND} ${WRKSRC} -type f -name "*.orig" -print | ${XARGS} ${RM} -f
+	${RUN} ${FIND} ${WRKSRC} -type f -name "*.orig" -exec ${RM} -f {} +
 
 post-install:
 	${CHOWN} -R ${SHAREOWN}:${SHAREGRP} ${DESTDIR}${PREFIX}/share/emacs

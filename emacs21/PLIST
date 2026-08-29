@@ -12,7 +12,7 @@ libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/cvtmail
 libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/digest-doc
 libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/emacsserver
 libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/fakemail
-${PLIST.fns.el}libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/fns-${EMACSVERSION}.1.el
+${PLIST.fns}libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/fns-${EMACSVERSION}.1.el
 libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/hexl
 libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/movemail
 libexec/emacs/${EMACSVERSION}/${MACHINE_GNU_PLATFORM}/profile
