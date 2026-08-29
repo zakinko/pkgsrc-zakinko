@@ -34,6 +34,16 @@ RELRO_SUPPORTED=	no
 # _FORTIFY_SOURCE does not survive the pre-ANSI string handling here.
 FORTIFY_SUPPORTED=	no
 
+# 1995 年の K&R C なので、方言を名指ししておく。C23 は f() を「引数不明」
+# ではなく f(void) と読むので、既定が C23 の gcc 15 では
+#
+#   struct tm *localtime ();
+#
+# のような宣言に引数を渡した所が全部エラーになる。この木は lisp.h だけで
+# 694 本の宣言をこの形で持っている。pkgsrc の FORCE_C_STD が採るのは
+# c89 c99 c11 gnu89 gnu99 gnu11 で、gnu17 は無い。gnu11 で足りる。
+FORCE_C_STD=		gnu11
+
 .include "../../mk/bsd.prefs.mk"
 
 CFLAGS+=	-g -fno-strict-aliasing
