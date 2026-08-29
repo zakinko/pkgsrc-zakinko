@@ -31,11 +31,28 @@ Fix what only the Linux arm of this file compiles.
 These lines are inside #ifdef arms that NetBSD does not take, so nothing
 here shows up when the package is built there.  glibc reaches them.
 
+Ask glibc for struct msgbuf the way it now wants to be asked.
+
+glibc has moved the convenience struct that msgsnd and msgrcv take from
+__USE_MISC to __USE_GNU.  On Fedora 44 neither _DEFAULT_SOURCE nor
+_XOPEN_SOURCE=700 brings it back; only _GNU_SOURCE does.  It has to be
+defined before the first header is read, so it goes at the top.
+
 --- lib-src/emacsclient.c.orig
 +++ lib-src/emacsclient.c
-@@ -20,6 +20,12 @@
+@@ -19,7 +19,22 @@
+ 
  
  #define NO_SHORTNAMES
++
++/* glibc は struct msgbuf を _GNU_SOURCE の側へ移した。__USE_MISC が立って
++   いても、_DEFAULT_SOURCE や _XOPEN_SOURCE=700 では出てこない (Fedora 44 で
++   確かめた)。この file は SysV IPC の枝でだけそれを使うので、ここで頼む。
++   他の宣言まで変えないよう、s/linux.h ではなくこの file に置く。  */
++#ifdef __GLIBC__
++#define _GNU_SOURCE 1
++#endif
++
  #include <../src/config.h>
 +
 +/* Declare the standard functions this file calls. */
@@ -46,7 +63,7 @@ here shows up when the package is built there.  glibc reaches them.
  #undef read
  #undef write
  #undef open
-@@ -30,7 +36,7 @@
+@@ -30,7 +45,7 @@
  #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
  #include <stdio.h>
  
@@ -55,7 +72,7 @@ here shows up when the package is built there.  glibc reaches them.
       int argc;
       char **argv;
  {
-@@ -54,7 +60,7 @@
+@@ -54,7 +69,7 @@
  
  extern char *strerror ();
  
@@ -64,7 +81,7 @@ here shows up when the package is built there.  glibc reaches them.
       int argc;
       char **argv;
  {
-@@ -85,9 +91,32 @@
+@@ -85,9 +100,32 @@
  #ifndef SERVER_HOME_DIR
    {
      struct stat statbfr;
@@ -98,7 +115,7 @@ here shows up when the package is built there.  glibc reaches them.
  
      if (stat (server.sun_path, &statbfr) == -1)
        {
-@@ -175,7 +204,7 @@
+@@ -175,7 +213,7 @@
  
  char *getwd (), *getcwd (), *getenv ();
  

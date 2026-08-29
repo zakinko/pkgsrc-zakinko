@@ -49,11 +49,28 @@ Fix what only the Linux arm of this file compiles.
 These lines are inside #ifdef arms that NetBSD does not take, so nothing
 here shows up when the package is built there.  glibc reaches them.
 
+Ask glibc for struct msgbuf the way it now wants to be asked.
+
+glibc has moved the convenience struct that msgsnd and msgrcv take from
+__USE_MISC to __USE_GNU.  On Fedora 44 neither _DEFAULT_SOURCE nor
+_XOPEN_SOURCE=700 brings it back; only _GNU_SOURCE does.  It has to be
+defined before the first header is read, so it goes at the top.
+
 --- lib-src/emacsserver.c.orig
 +++ lib-src/emacsserver.c
-@@ -26,6 +26,14 @@
+@@ -25,7 +25,24 @@
+    up to the Emacs which then executes them.  */
  
  #define NO_SHORTNAMES
++
++/* glibc は struct msgbuf を _GNU_SOURCE の側へ移した。__USE_MISC が立って
++   いても、_DEFAULT_SOURCE や _XOPEN_SOURCE=700 では出てこない (Fedora 44 で
++   確かめた)。この file は SysV IPC の枝でだけそれを使うので、ここで頼む。
++   他の宣言まで変えないよう、s/linux.h ではなくこの file に置く。  */
++#ifdef __GLIBC__
++#define _GNU_SOURCE 1
++#endif
++
  #include <../src/config.h>
 +
 +/* Declare the standard functions this file calls. */
@@ -66,7 +83,7 @@ here shows up when the package is built there.  glibc reaches them.
  #undef read
  #undef write
  #undef open
-@@ -36,7 +44,7 @@
+@@ -36,7 +53,7 @@
  #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
  #include <stdio.h>
  
@@ -75,7 +92,7 @@ here shows up when the package is built there.  glibc reaches them.
  {
    fprintf (stderr, "Sorry, the Emacs server is supported only on systems\n");
    fprintf (stderr, "with Berkeley sockets or System V IPC.\n");
-@@ -53,12 +61,43 @@
+@@ -53,12 +70,43 @@
  #include <sys/socket.h>
  #include <sys/signal.h>
  #include <sys/un.h>
@@ -120,7 +137,7 @@ here shows up when the package is built there.  glibc reaches them.
  {
    char system_name[32];
    int s, infd, fromlen;
-@@ -89,8 +128,17 @@
+@@ -89,8 +137,17 @@
      }
    server.sun_family = AF_UNIX;
  #ifndef SERVER_HOME_DIR
@@ -140,7 +157,7 @@ here shows up when the package is built there.  glibc reaches them.
  
    if (unlink (server.sun_path) == -1 && errno != ENOENT)
      {
-@@ -137,7 +185,7 @@
+@@ -137,7 +194,7 @@
  	  fromlen = sizeof (fromunix);
  	  fromunix.sun_family = AF_UNIX;
  	  infd = accept (s, (struct sockaddr *) &fromunix,
@@ -149,7 +166,7 @@ here shows up when the package is built there.  glibc reaches them.
  	  if (infd < 0)
  	    {
  	      if (errno == EMFILE || errno == ENFILE)
-@@ -243,7 +291,7 @@
+@@ -243,7 +300,7 @@
     Its stderr always exists--rms.  */
  #include <stdio.h>
  
