@@ -41,9 +41,13 @@ on:
         description: 'イメージ。空なら i386-9.4'
         required: false
 
+# push で続けて直したときは古い方を捨てる。手で回したものは run ごとに別の
+# group にして、走っている run の後ろで待たせない。一つの group に全部を入れて
+# cancel-in-progress: false にしていたので、xemacs-packages の 4 時間の裏で
+# emacs20 の再走が pending のまま動かなかった。
 concurrency:
-  group: elisp17
-  cancel-in-progress: false
+  group: elisp17-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   plan:
