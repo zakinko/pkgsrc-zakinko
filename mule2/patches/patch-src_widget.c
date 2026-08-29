@@ -13,9 +13,21 @@ as the Xt library changes underneath it.
 NetBSD 9.4/amd64 was where it finally showed: mule -q died with SIGSEGV in
 _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
 
+Include <X11/Xaw/Paned.h> for XawPanedSetRefigureMode.
+
 --- src/widget.c.orig
 +++ src/widget.c
-@@ -316,17 +316,17 @@
+@@ -36,6 +36,9 @@
+ #include <X11/Shell.h>
+ #include <X11/ShellP.h>
+ 
++/* XawPanedSetRefigureMode を宣言せずに呼んでいる。  */
++#include <X11/Xaw/Paned.h>
++
+ #define max(a, b) ((a) > (b) ? (a) : (b))
+ 
+ /* This sucks: this is the first default that x-faces.el tries.  This won't
+@@ -316,17 +319,17 @@
       treat that as the geometry of the frame.  (Is this bogus?
       I'm not sure.) */
    if (ew->emacs_frame.geometry == 0)
@@ -36,7 +48,7 @@ _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
      if (geom)
        app_flags = XParseGeometry (geom, &app_x, &app_y, &app_w, &app_h);
    }
-@@ -376,7 +376,7 @@
+@@ -376,7 +379,7 @@
  
        /* If the AppShell is iconic, then the EmacsFrame is iconic. */
        if (!ew->emacs_frame.iconic)
@@ -45,7 +57,7 @@ _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
  
        first_frame_p = False;
      }
-@@ -448,7 +448,7 @@
+@@ -448,7 +451,7 @@
  	len = strlen (shell_position) + 1;
  	tem = (char *) xmalloc (len);
  	strncpy (tem, shell_position, len);
@@ -54,7 +66,7 @@ _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
        }
      else if (flags & (WidthValue | HeightValue))
        {
-@@ -458,7 +458,7 @@
+@@ -458,7 +461,7 @@
  	len = strlen (shell_position) + 1;
  	tem = (char *) xmalloc (len);
  	strncpy (tem, shell_position, len);
@@ -63,7 +75,7 @@ _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
        }
  
      /* If the geometry spec we're using has W/H components, mark the size
-@@ -468,7 +468,7 @@
+@@ -468,7 +471,7 @@
  
      /* Also assign the iconic status of the frame to the Shell, so that
         the WM sees it. */
@@ -72,7 +84,7 @@ _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
  #endif /* 0 */
    }
  }
-@@ -514,7 +514,7 @@
+@@ -514,7 +517,7 @@
  		 XtNheightInc, ch,
  		 XtNminWidth, base_width + min_cols * cw,
  		 XtNminHeight, base_height + min_rows * ch,
@@ -81,7 +93,7 @@ _XtCountVaList, while 10.1 and 11.0 with the same ABI were fine.
  }
  
  static void
-@@ -826,7 +826,7 @@
+@@ -826,7 +829,7 @@
    if (cur->emacs_frame.iconic != new->emacs_frame.iconic)
      {
        Widget wmshell = get_wm_shell ((Widget) cur);
