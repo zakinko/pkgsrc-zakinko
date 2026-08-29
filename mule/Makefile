@@ -82,6 +82,17 @@ BUILD_DEFS+=		VARBASE
 
 .include	"../../mk/bsd.prefs.mk"
 
+# Fedora や Debian の gcc は --enable-default-pie で建っているので、黙って
+# いると PIE を作る。unexec は自分の ELF を読み直して書き換えることで dump
+# するので、PIE では成立せず、temacs が Lisp を読み終えた直後に落ちる。
+#
+# pkgsrc の MKPIE_SUPPORTED=no は「pkgsrc の側が -fPIE を足さない」という
+# 意味しか持たず、コンパイラ既定の PIE までは止めない。ここで明示する。
+.if ${OPSYS} == "Linux"
+CFLAGS+=	-fno-pie
+LDFLAGS+=	-no-pie
+.endif
+
 do-configure:
 	(cd ${WRKSRC}; \
 	${CP} src/config.h-${LOWER_OPSYS}  \

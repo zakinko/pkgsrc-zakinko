@@ -46,6 +46,17 @@ FORCE_C_STD=		gnu11
 
 .include "../../mk/bsd.prefs.mk"
 
+# Fedora や Debian の gcc は --enable-default-pie で建っているので、黙って
+# いると PIE を作る。unexec は自分の ELF を読み直して書き換えることで dump
+# するので、PIE では成立せず、temacs が Lisp を読み終えた直後に落ちる。
+#
+# pkgsrc の MKPIE_SUPPORTED=no は「pkgsrc の側が -fPIE を足さない」という
+# 意味しか持たず、コンパイラ既定の PIE までは止めない。ここで明示する。
+.if ${OPSYS} == "Linux"
+CFLAGS+=	-fno-pie
+LDFLAGS+=	-no-pie
+.endif
+
 CFLAGS+=	-g -fno-strict-aliasing
 # alloc.c hooks the allocator and unhooks itself around the real call.
 # Treated as builtins, GCC drops that store and the hook recurses forever.
