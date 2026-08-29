@@ -1,14 +1,9 @@
-$NetBSD$
+The second block is generated: every function of this tree that was still
+being called through an implicit declaration, declared with the type its
+own definition carries.  161 of them.  Functions whose definition carries
+no type at all are not here; those need the definition fixed first.
 
-Pull in <machine/limits.h> on NetBSD for DBL_DIG.
-
-Declare the Lisp_Object-returning functions that were only ever
-reached through an implicit declaration.  That was survivable while
-sizeof(int) == sizeof(Lisp_Object), but on an LP64 host built with
-LONG_LISP_OBJECT the implicit int return truncates the object to 32
-bits, which is what makes a dumped mule fault on garbage pointers.
-
---- src/lisp.h.orig	1994-10-21 04:20:28.000000000 +0000
+--- src/lisp.h.orig
 +++ src/lisp.h
 @@ -30,6 +30,10 @@
  /* 93.1.15  modified for Mule Ver.0.9.7.1 by Y.Akiba <akiba@cbs.canon.co.jp>
@@ -21,7 +16,7 @@ bits, which is what makes a dumped mule fault on garbage pointers.
  /* Define the fundamental Lisp data structures */
  
  /* Define an integer type with the same size as Lisp_Object.
-@@ -1550,3 +1554,119 @@
+@@ -1550,3 +1554,375 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
@@ -133,6 +128,262 @@ bits, which is what makes a dumped mule fault on garbage pointers.
 +
 +/* defined in textprop.c, and called from lread.c */
 +extern Lisp_Object Fset_text_properties ();
++
++
++/* The rest of the tree's own functions, generated from their definitions.
++   Each was reached through an implicit declaration before, which is only
++   safe while the return value fits in an int.  The type is the one the
++   definition carries; anything the generator could not read as a plain
++   type was left alone.  */
++
++/* defined in alloc.c */
++extern void syms_of_alloc ();
++extern void uninterrupt_malloc ();
++
++/* defined in buffer.c */
++extern void buffer_slot_type_mismatch ();
++extern void fix_overlays_before ();
++extern void fix_overlays_in_range ();
++extern int overlays_at ();
++extern void recenter_overlay_lists ();
++extern void set_buffer_internal ();
++extern int sort_overlays ();
++extern void verify_overlay_modification ();
++
++/* defined in callproc.c */
++extern int relocate_fd ();
++
++/* defined in category.c */
++extern int check_category_at ();
++
++/* defined in charset.c */
++extern int mchar_to_string ();
++
++/* defined in cmds.c */
++extern int forward_point ();
++
++/* defined in data.c */
++extern void store_symval_forwarding ();
++extern void syms_of_data ();
++
++/* defined in dispnew.c */
++extern void adjust_window_charstarts ();
++extern int buffer_posn_from_coords ();
++extern int direct_output_for_insert ();
++extern int direct_output_forward_char ();
++extern void free_frame_glyphs ();
++extern void quit_error_check ();
++extern void redraw_garbaged_frames ();
++extern int scroll_frame_lines ();
++extern int update_frame ();
++
++/* defined in editfns.c */
++extern int clip_to_bounds ();
++extern void init_editfns ();
++extern void insert1 ();
++extern void syms_of_editfns ();
++
++/* defined in eval.c */
++extern void record_unwind_protect ();
++extern void specbind ();
++
++/* defined in fileio.c */
++extern int a_write ();
++extern int e_write ();
++
++/* defined in filelock.c */
++extern int current_lock_owner ();
++extern int current_lock_owner_1 ();
++extern void lock_file ();
++extern int lock_file_1 ();
++extern int lock_if_free ();
++extern void unlock_all_files ();
++extern void unlock_file ();
++
++/* defined in filemode.c */
++extern void filemodestring ();
++
++/* defined in frame.c */
++extern int other_visible_frames ();
++extern void store_frame_param ();
++extern void store_in_alist ();
++
++/* defined in indent.c */
++extern int current_column ();
++extern int indented_beyond_p ();
++extern int pos_tab_offset ();
++
++/* defined in insdel.c */
++extern void del_range ();
++extern void del_range_1 ();
++extern void insert_char ();
++extern void insert_string ();
++
++/* defined in intervals.c */
++extern void set_point ();
++
++/* defined in keyboard.c */
++extern int gobble_input ();
++extern SIGTYPE input_poll_signal ();
++extern int input_polling_used ();
++extern void record_asynch_buffer_change ();
++extern void reinvoke_input_signal ();
++extern void set_poll_suppress_count ();
++extern void swallow_events ();
++
++/* defined in keymap.c */
++extern int current_minor_maps ();
++extern void describe_map_tree ();
++extern void initial_define_key ();
++extern void initial_define_lispy_key ();
++
++/* defined in lread.c */
++extern void close_load_descs ();
++extern void defvar_lisp_nopro ();
++extern void defvar_per_buffer ();
++extern void init_obarray ();
++extern int isfloat_string ();
++extern void map_obarray ();
++extern int openp ();
++extern void syms_of_lread ();
++
++/* defined in mcpath.c */
++extern int mc_access ();
++extern int mc_chdir ();
++extern int mc_chmod ();
++extern void mc_execvp ();
++extern int mc_link ();
++extern int mc_lstat ();
++extern int mc_mkdir ();
++extern int mc_readlink ();
++extern int mc_rename ();
++extern int mc_rmdir ();
++extern int mc_symlink ();
++extern int mc_unlink ();
++
++/* defined in msdos.c */
++extern void glyph_to_pixel_coords ();
++extern void pixel_to_glyph_coords ();
++
++/* defined in print.c */
++extern void float_to_string ();
++extern void syms_of_print ();
++
++/* defined in process.c */
++extern void change_keyboard_wait_descriptor ();
++extern int wait_reading_process_input ();
++
++/* defined in ralloc.c */
++extern void r_alloc_free ();
++
++/* defined in regex19.c */
++extern int compile_charset ();
++extern int lookup_charset ();
++
++/* defined in scroll.c */
++extern int scrolling_max_lines_saved ();
++
++/* defined in search.c */
++extern int fast_string_match ();
++extern int find_next_newline ();
++extern int find_next_newline_no_quit ();
++
++/* defined in sysdep.c */
++extern void change_input_fd ();
++extern int emacs_get_tty ();
++extern int emacs_set_tty ();
++extern void init_sys_modes ();
++extern void reset_sys_modes ();
++extern int set_window_size ();
++
++/* defined in term.c */
++extern int per_line_cost ();
++extern void ring_bell ();
++extern int string_cost ();
++
++/* defined in termcap.c */
++extern int tgetent ();
++extern int tgetflag ();
++extern int tgetnum ();
++extern void tputs ();
++
++/* defined in textprop.c */
++extern int property_change_between_p ();
++
++/* defined in unexelf.c */
++extern void unexec ();
++
++/* defined in vm-limit.c */
++extern void memory_warnings ();
++
++/* defined in vmsproc.c */
++
++/* defined in widget.c */
++extern void EmacsFrameSetCharSize ();
++
++/* defined in window.c */
++extern void check_frame_size ();
++extern void delete_all_subwindows ();
++extern int window_height ();
++
++/* defined in wnnfns.c */
++extern int check_wnn_server_type ();
++extern int dai_end ();
++
++/* defined in xdisp.c */
++extern void mark_window_display_accurate ();
++extern void message ();
++extern void message1 ();
++extern void message2 ();
++extern void prepare_menu_bars ();
++extern void redisplay ();
++extern void redisplay_region ();
++extern void syms_of_xdisp ();
++extern void truncate_echo_area ();
++
++/* defined in xfaces.c */
++extern void clear_face_vector ();
++extern int compute_char_face ();
++extern int compute_glyph_face ();
++extern int compute_glyph_face_1 ();
++extern int frame_update_line_height ();
++extern void init_frame_faces ();
++extern void recompute_basic_faces ();
++extern void syms_of_xfaces ();
++
++/* defined in xfns.c */
++extern int using_x_p ();
++extern void x_implicitly_set_name ();
++extern void x_real_positions ();
++extern void x_set_frame_parameters ();
++extern void x_set_menu_bar_lines ();
++extern void x_sync ();
++
++/* defined in xmenu.c */
++extern void initialize_frame_menubar ();
++
++/* defined in xselect.c */
++extern void Xatoms_of_xselect ();
++extern void syms_of_xselect ();
++extern void x_clear_frame_selections ();
++extern void x_handle_property_notify ();
++extern void x_handle_selection_clear ();
++extern void x_handle_selection_notify ();
++extern void x_handle_selection_request ();
++
++/* defined in xterm.c */
++extern void syms_of_xterm ();
++extern int x_bitmap_icon ();
++extern void x_catch_errors ();
++extern void x_check_errors ();
++extern int x_had_errors_p ();
++extern void x_set_mouse_pixel_position ();
++extern void x_set_mouse_position ();
++extern void x_start_queuing_selection_requests ();
++extern void x_stop_queuing_selection_requests ();
++extern void x_term_init ();
++extern int x_text_icon ();
++extern void x_uncatch_errors ();
 +
 +#ifdef HAVE_X_WINDOWS
 +/* defined in xfns.c */
