@@ -128,7 +128,7 @@ pre-configure:
 .for d in ${MOZC_DISTS}
 	${LN} -sf ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
 .endfor
-	${RM} -r ${WRKDIR}/.cwrapper
+	${RM} -rf ${WRKDIR}/.cwrapper
 
 # mozc-server and mozc-elisp link neither Qt nor GL.  Including these
 # unconditionally records qt6-qtbase as a run-time dependency and sets
