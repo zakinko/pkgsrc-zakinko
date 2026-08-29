@@ -125,11 +125,29 @@ jobs:
             zakinko/anthy
             zakinko/anthy-elisp
           VERIFY_SCRIPT: verify-emacs.sh
-          # 依存はバイナリで降ろす。素から組むと emacs の依存だけで
-          # job の上限 360 分に近づく。
-          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2/All
           EMACS_COEXIST_CHECK: ${{ inputs.coexist && 'yes' || 'no' }}
-        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+        run: |
+          # 依存はバイナリで降ろす。素から組むと emacs の依存だけで job の
+          # 上限 360 分に近づく。公式の集合は arch ごとに分かれているので、
+          # イメージの名前から引く。ここを x86_64 で決め打ちしていたとき、
+          # i386 の三版は一つも降ろせずに素から建てていて、amd64-11.0 が
+          # 39 分のところ i386-9.4 と i386-10.1 が 1 時間 11 分と 1 時間 13 分
+          # かかっていた。
+          #
+          # 版のほうは 10.0_2026Q2 に寄せる。9.4 と 11.0 のゲストへ 10.0 の
+          # バイナリを入れることになるが、NetBSD の ABI 互換の範囲で、
+          # verify-uim.sh も同じことをしている。合わなければ pkgsrc が
+          # 素から組み直すだけで、緑が嘘になることはない。
+          case '${{ matrix.image }}' in
+          i386-*)   ARCH=i386 ;;
+          amd64-*)  ARCH=x86_64 ;;
+          *)        ARCH= ;;
+          esac
+          [ -n "$ARCH" ] && \
+            BINPKG_SITES=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$ARCH/10.0_2026Q2/All
+          export BINPKG_SITES
+          echo "依存の出どころ: ${BINPKG_SITES:-(無し。素から組む)}"
+          sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
 
       - name: 転けたらコンソールを出す
         if: failure()

@@ -59,6 +59,9 @@ else
 fi
 if [ -n "${BINPKG_SITES:-}" ]; then
 	MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
+	echo "    依存の出どころ: $BINPKG_SITES"
+else
+	echo "    依存の出どころ: 無し。全部その場で組む"
 fi
 
 DIR=$TREE/$PKGPATH
@@ -92,6 +95,18 @@ if ! $PKGMAKE $MKARGS package-install > /tmp/verify-$PKG.log 2>&1; then
 	exit 1
 fi
 tail -2 /tmp/verify-$PKG.log
+
+# 依存をバイナリで降ろせたのか、その場で組んだのかを出す。build のログは
+# 上のリダイレクトに入って外から見えないので、ここで数えて出さないと
+# 「緑になった」以上のことが分からない。i386 のイメージへ x86_64 の
+# BINPKG_SITES を渡していたときは一つも降ろせず素から組んでいて、amd64 の
+# 倍近い時間がかかっていたが、ログからは気づけなかった。
+_bin=$(grep -c "Installing binary package of" /tmp/verify-$PKG.log 2>/dev/null || true)
+_src=$(grep -c "^===> Building for" /tmp/verify-$PKG.log 2>/dev/null || true)
+echo "    依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件"
+if [ -n "${BINPKG_SITES:-}" ] && [ "${_bin:-0}" = 0 ]; then
+	echo "    ::warning:: BINPKG_SITES を渡したのに一つも降ろせていない"
+fi
 
 VER=$($PKGMAKE show-var VARNAME=EMACS_VERSION)
 echo "--- 2. 起きて、当て物が効いているか (期待 $VER) ---"
