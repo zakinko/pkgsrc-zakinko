@@ -128,26 +128,28 @@ if [ "$OS" = NetBSD ]; then
 	PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
 	export PKG_PATH
 	for p in gmake gtexinfo mozilla-rootcerts; do pkg_add -U "$p" || true; done
-	# Canna はバイナリで入れない。公式は 3.7pl3nb1 で tree は 3.8 を求める
-	# ので、古いほうが入っていると pkgsrc が作り直した版を入れられず
-	# x11-links と同じ "A different version is already installed" で転ぶ。
-	# サーバと辞書は mule の依存には入らない (options.mk が読むのは
-	# canna-lib の buildlink3.mk だけ) ので、あとで名指しで組ませる。
+
+	# X も日本語入力もバイナリで入れる。85d21c1 でツリーを四半期枝に
+	# 向けたので、公式バイナリと版が揃うようになった。
+	#
+	# 以前はここで x11-links と Canna を pkg_delete していた。current の
+	# ツリーを見ていた頃は、公式バイナリのほうが古くて pkgsrc が作り直した
+	# 版を入れられず "A different version is already installed" で転んだ
+	# ためで、消して素から建てさせるのが唯一の逃げ道だった。枝を揃えた
+	# いまは同じ版なので、その必要が無い。
+	#
+	# 効き方が大きい。x11 構成の依存は libX11 libXt libXaw libXmu
+	# xbitmaps fontconfig と続くので、素から建てると x11 の一本が
+	# 200 分を超える。バイナリで入れば mule2 を建てる数分で済む。
+	want x11 && {
+		for p in x11-links libX11 libXt libXaw libXmu xbitmaps; do
+			pkg_add -U "$p" || true
+		done
+	}
+	want canna && { pkg_add -U Canna-lib || true; }
 	want wnn4  && { pkg_add -U ja-FreeWnn-lib ja-FreeWnn-server || true; }
 	mozilla-rootcerts install > /dev/null 2>&1 || true
 	unset PKG_PATH
-
-	# x11-links はバイナリで入れない。symlink を張るだけの小さな
-	# パッケージで、公式バイナリは pkgsrc current より古いことがある。
-	# 古いほうが残っていると pkgsrc が作り直した版を入れられず
-	# "A different version is already installed" で転ぶので、あれば
-	# 外して pkgsrc に作らせる。
-	want x11 && { pkg_delete -f x11-links > /dev/null 2>&1 || true; }
-
-	# Canna も同じ。まっさらなイメージなら入っていないが、作り直しの
-	# ときに古いものが残っていると同じ形で転ぶ。
-	want canna && { pkg_delete -f Canna-lib Canna-server Canna-dict \
-		> /dev/null 2>&1 || true; }
 
 	# tree の要求が公式バイナリより新しくても緩めない。足りなければ
 	# pkgsrc が自分で作り直す。緩めると、実際に使われる組み合わせでは
@@ -322,12 +324,23 @@ done
 #   日本語 = c6fc cbdc b8ec      変換 = cad1 b4b9
 if want canna; then
 	echo "--- 3. canna: ローマ字から漢字まで ---"
-	# サーバと辞書は mule の依存ではないので、ここで組ませる。lib と同じ
-	# tree から作られるので版が揃う。
+	# サーバと辞書は mule の依存ではないので、ここで用意する。まず公式
+	# バイナリを試して、無ければ組む。四半期枝を見ているので版は揃う。
+	#
+	# 組む側にも落とし穴がある。canna-server は PKG_GROUPS で自分の group を
+	# 要求するが、それが作られるのは install の段で、pkg_create はその前に
+	# 走るので "unknown group name for gid" で止まる。既に canna が入って
+	# いる箱では踏まないので、素のイメージでだけ出る。
+	PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
+	export PKG_PATH
 	for d in canna-server canna-dict; do
-		build_install $TREE/inputmethod/$d ||
-			bad "$d を組めない"
+		pkg_add -U "$d" > /dev/null 2>&1 && continue
+		unset PKG_PATH
+		build_install $TREE/inputmethod/$d || bad "$d を組めない"
+		PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
+		export PKG_PATH
 	done
+	unset PKG_PATH
 	# 辞書は libdata に入るが cannaserver が読むのは /var/dict/canna/canna
 	mkdir -p /var/dict/canna/canna /var/dict/canna/group
 	cp $PREFIX/libdata/canna/* /var/dict/canna/canna/ 2>/dev/null
