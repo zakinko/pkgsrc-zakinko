@@ -65,15 +65,23 @@ jobs:
             B="$BEFORE"
             case "$B" in ''|0000000000000000000000000000000000000000) B=HEAD~1 ;; esac
             CH=$(git diff --name-only "$B" HEAD 2>/dev/null || git diff --name-only HEAD~1 HEAD)
-            # modules.mk が動いたら全部の版に効くので全部回す。.github/ は
-            # 検査そのものの変更なので、いちばん新しい版だけで型を見る。
-            # ここで全部に広げると、CI を一行直すたびに 42 job になる。
+            # modules.mk が動いたら全部の版に効くので全部回す。
+            #
+            # そうでなければ触られた版を拾い、.github/ が動いていれば型を見る
+            # ために 28 を足す。elif で分けていたときは、版と .github/ が同じ
+            # push に入ると .github/ の枝が先に当たって 28 だけになり、その
+            # push に含まれる emacs25 と emacs26 の変更が試験されずに通って
+            # いた。和集合にする。
+            #
+            # .github/ だけで全部に広げないのは、CI を一行直すたびに 42 job に
+            # なるからである。
             if printf '%s\n' "$CH" | grep -q '^emacs/'; then
               V="$ALL"
-            elif printf '%s\n' "$CH" | grep -q '^\.github/'; then
-              V=28
             else
-              V=$(printf '%s\n' "$CH" | sed -n 's|^emacs\([0-9][0-9]\).*|\1|p' | sort -run | tr '\n' ' ')
+              V=$(printf '%s\n' "$CH" | sed -n 's|^emacs\([0-9][0-9]\).*|\1|p' | sort -u)
+              printf '%s\n' "$CH" | grep -q '^\.github/' && V="$V
+28"
+              V=$(printf '%s\n' $V | grep -E '^[0-9]+$' | sort -run | tr '\n' ' ')
             fi
           fi
           [ -n "$V" ] || V=28
@@ -126,28 +134,9 @@ jobs:
             zakinko/anthy-elisp
           VERIFY_SCRIPT: verify-emacs.sh
           EMACS_COEXIST_CHECK: ${{ inputs.coexist && 'yes' || 'no' }}
-        run: |
-          # 依存はバイナリで降ろす。素から組むと emacs の依存だけで job の
-          # 上限 360 分に近づく。公式の集合は arch ごとに分かれているので、
-          # イメージの名前から引く。ここを x86_64 で決め打ちしていたとき、
-          # i386 の三版は一つも降ろせずに素から建てていて、amd64-11.0 が
-          # 39 分のところ i386-9.4 と i386-10.1 が 1 時間 11 分と 1 時間 13 分
-          # かかっていた。
-          #
-          # 版のほうは 10.0_2026Q2 に寄せる。9.4 と 11.0 のゲストへ 10.0 の
-          # バイナリを入れることになるが、NetBSD の ABI 互換の範囲で、
-          # verify-uim.sh も同じことをしている。合わなければ pkgsrc が
-          # 素から組み直すだけで、緑が嘘になることはない。
-          case '${{ matrix.image }}' in
-          i386-*)   ARCH=i386 ;;
-          amd64-*)  ARCH=x86_64 ;;
-          *)        ARCH= ;;
-          esac
-          [ -n "$ARCH" ] && \
-            BINPKG_SITES=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$ARCH/10.0_2026Q2/All
-          export BINPKG_SITES
-          echo "依存の出どころ: ${BINPKG_SITES:-(無し。素から組む)}"
-          sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+        # BINPKG_SITES は verify-emacs.sh がゲストの中で uname -p から
+        # 決める。ここから渡すと arch を取り違える。
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
 
       - name: 転けたらコンソールを出す
         if: failure()
