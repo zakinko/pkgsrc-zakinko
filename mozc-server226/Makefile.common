@@ -81,9 +81,11 @@ BUILDLINK_TRANSFORM+=	rm:-Werror=char-subscripts
 # GUI を建てないときは gyp にもそう言う。言わないと
 #   CRITICAL: Qt is required to build GUI Tool. Specify --noqt to skip
 # で configure が止まる。
-MOZC_GYP_ARGS=	--gypdir=${LOCALBASE}/bin
+# どの package を建てているかは、inputmethod/mozc-server が既にやっている
+# 訊き方に合わせる。新しい変数を持ち込まない。
+MOZC_GUI_PKGS=	zakinko/mozc-server226 zakinko/mozc-elisp226
 
-.if defined(MOZC_NO_GUI)
+.if !empty(MOZC_GUI_PKGS:M${PKGPATH})
 MOZC_GYP_ARGS+=	--noqt
 SUBST_CLASSES+=		nogtk
 SUBST_STAGE.nogtk=	pre-configure
@@ -96,12 +98,12 @@ do-configure:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHONBIN} build_mozc.py \
 		gyp \
-		${MOZC_GYP_ARGS}
+		--gypdir=${LOCALBASE}/bin ${MOZC_GYP_ARGS}
 
 # mozc_emacs_helper が link しているのは base の libc/libstdc++/libm/
 # libpthread だけで、glib2 も zinnia も curl も使っていない (ldd で確認)。
 # MOZC_NO_GUI のときは引かない。
-.if !defined(MOZC_NO_GUI)
+.if empty(MOZC_GUI_PKGS:M${PKGPATH})
 .include "../../devel/glib2/buildlink3.mk"
 #.include "../../devel/protobuf/buildlink3.mk"
 # gmock is not used yet...

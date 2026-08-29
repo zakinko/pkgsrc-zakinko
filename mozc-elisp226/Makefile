@@ -4,8 +4,6 @@ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/mozc-/mozc-elisp-/}
 PKGREVISION=	47
 CATEGORIES=	inputmethod editors
 
-MOZC_NO_GUI=	yes
-
 # mozc.el は mozc_emacs_helper を起動するだけで、変換は helper が
 # mozc_server に投げる。server が無いと CreateSession は通るのに
 # 最初の SendKey が session-error になる。上流はこの依存を書いて
