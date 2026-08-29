@@ -37,6 +37,20 @@ anything else.  m/amd64.h is already here and says nothing about the operating
 system, so the arm is the same shape as the i386 one: pick the machine, then
 let the inner case pick the opsys.
 
+Check that the preprocessor configure picked really joins continued lines.
+
+Makefile.in continues the ALL_CFLAGS assignments with a backslash, and
+configure turns leading whitespace into a tab afterwards, so a preprocessor
+that leaves the continuation on its own line produces a Makefile whose first
+tab-indented line comes before any target.  GNU make stops there with
+"recipe commences before first target"; BSD make accepts it, which is why
+this only showed up on Linux.
+
+The test above tries cc -E, then cc -E -traditional-cpp, then /lib/cpp, but
+it takes /lib/cpp without testing it.  On Fedora that is the plain cpp,
+which does not join.  Test whatever came out of it and fall back to
+-traditional-cpp, which is the mode that joins.
+
 --- configure.orig
 +++ configure
 @@ -581,13 +581,33 @@
@@ -133,3 +147,30 @@ let the inner case pick the opsys.
  fi
  rm -f conftest*
  fi
+@@ -3926,6 +3964,26 @@
+     -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g' \
+ `"
+ 
++
++# ここまでで選んだ cpp が、\ で継いだ行を一行に繋ぐかどうかを確かめる。
++# Makefile.in は ALL_CFLAGS などの代入を \ で継いでいて、繋がない cpp を
++# 通すと続きの行がそのまま残る。configure はこの後 sed で行頭の空白を
++# TAB に直すので、GNU make はそれを recipe と読み、target より前に recipe
++# があると言って止まる。BSD make は通ってしまうので、気付くのが遅れる。
++#
++# 上の検査は cc -E, cc -E -traditional-cpp, /lib/cpp の順に試すが、最後の
++# /lib/cpp だけは繋ぐかどうかを見ずに採る。Linux では /lib/cpp が素の cpp
++# なので、そこに落ちると繋がないものを掴む。
++echo 'Should \' > conftest.cppjoin.c
++echo 'be one line.' >> conftest.cppjoin.c
++if $CPP conftest.cppjoin.c 2>/dev/null | grep "Should  *be one line" > /dev/null; then
++  :
++else
++  echo "$progname: $CPP does not join continued lines, using -traditional-cpp"
++  CPP="${CC-cc} -E -traditional-cpp"
++fi
++rm -f conftest.cppjoin.c
++
+ echo creating lib-src/Makefile
+ ( cd lib-src
+   rm -f junk.c junk1.c junk2.c
