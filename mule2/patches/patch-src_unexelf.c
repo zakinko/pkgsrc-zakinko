@@ -7,9 +7,27 @@ read after that, so what it declared was mc_open.  This file then undoes
 the rename to reach the real system call, and from there on open has no
 declaration at all.
 
+Declare fatal, which is a function in emacs.c when this file is built as
+part of Emacs.  The macro of the same name a few lines above is only for
+the standalone build, so the declaration is inside #ifdef emacs.
+
 --- src/unexelf.c.orig
 +++ src/unexelf.c
-@@ -458,6 +458,11 @@
+@@ -439,6 +439,13 @@
+ #include <elf.h>
+ #endif
+ #include <sys/mman.h>
++
++/* emacs の中で組むときの fatal は emacs.c の関数で、上の #ifndef emacs
++   の巨視ではない。unexelf.c は lisp.h を読まないのでここで宣言する。
++   巨視の側に当たらないよう emacs のときだけにする。  */
++#ifdef emacs
++extern int fatal ();
++#endif
+ #if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+ #include <sys/elf_mips.h>
+ #include <sym.h>
+@@ -458,6 +465,11 @@
  #ifdef MCPATH			/* hir, 1993.8.4 */
  #undef open
  #undef chmod
