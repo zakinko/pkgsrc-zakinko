@@ -70,11 +70,11 @@ on:
       uim_options:
         description: 'PKG_OPTIONS.uim (既定は gtk2 だけ切る)'
         required: false
-        default: '-gtk2 -gtk4 -qt5 -qt6'
+        default: '-gtk2 -gtk3 -gtk4 -qt5 -qt6'
 
 env:
   OMNIOS: ${{ inputs.release || 'r151056' }}
-  UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk4 -qt5 -qt6' }}
+  UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk3 -gtk4 -qt5 -qt6' }}
 
 jobs:
   lua-socket:

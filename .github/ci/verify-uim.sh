@@ -58,10 +58,21 @@ TREE=${TREE:-/usr/pkgsrc}
 # パターンを今はエラーにするので、そこで止まる。#153 とは別の、同じ
 # options.mk の二つ目のバグである。踏むと #153 の再現にならない。
 #
-# gtk3 と xim は残す。依存が公式のバイナリで降りるようになったので、
-# gtk3 の山を積んでも現実的な時間で終わる。gtk4 と qt5 と qt6 は #153 と
-# 関係がないので落とす。
-OPTS=${UIM_OPTIONS:-"-gtk2 -gtk4 -qt5 -qt6"}
+# gtk3 も落とす。残すと三つ目の壁を踏む。
+#
+#	ERROR: wayland>=1.21.0 is not installed; can't buildlink files.
+#
+# gtk3+ 自体はバイナリで降りてくる (39 回の bin-install の中に在る) が、
+# gtk3 の buildlink3.mk が要求する wayland は uim の依存一覧に現れないので、
+# 降ろす対象にならない。bin-install は package とその実行時依存しか入れず、
+# buildlink だけが要求するものまでは面倒を見ない。
+#
+# xim は残す。切ると subst.mk のバグを踏む。
+#
+# gtk2 と gtk3 を両方落としても #153 の再現にはなる。重複 18 行が全部
+# 「組まれていないのに PLIST が主張するもの」になるためで、むしろ一度に
+# 全部出る。
+OPTS=${UIM_OPTIONS:-"-gtk2 -gtk3 -gtk4 -qt5 -qt6"}
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 PATH=$PATH:/usr/X11R7/bin:/usr/X11R6/bin
