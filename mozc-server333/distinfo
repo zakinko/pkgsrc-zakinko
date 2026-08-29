@@ -74,3 +74,4 @@ SHA1 (patch-ipc_unix__ipc.cc) = 578a9fd9b9d44a2fd4f6469dc1aafc895e533d54
 SHA1 (patch-renderer_renderer.gyp) = aa1e7a4396e8fa0f15f2150fb9a49ef7bafe6c99
 SHA1 (patch-session_session.cc) = c20c35fc968635daa1e32b7d7d4daad1e6fb05c1
 SHA1 (patch-session_session__test.cc) = 2b2fcc3e8f2cb3f72e2fc01a7e469a31e65a1f25
+SHA1 (patch-third__party_abseil-cpp_absl_debugging_internal_elf__mem__image.cc) = dde691f4732254c056fb3e062bf050f15c036762
