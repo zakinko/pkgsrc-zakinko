@@ -82,7 +82,29 @@ export PATH
 #	ERROR: [bsd.pkg.mk] Please unset PKG_PATH before doing pkgsrc work!
 #
 # で組む前に弾かれる。最初それで転けた。
-BINPKG_SITES=${BINPKG_SITES:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2}
+# 座標は arch と release の二つで決まる。どちらもゲストの中で引く。
+#
+#   arch     uname -p が amd64 で x86_64、i386 で i386 を返す。ミラーの
+#            正準は x86_64 で、amd64/ はそこへの redirect である。
+#   release  集合は枝の頭にしか無い。9.4 も 10.1 も点リリースの側は
+#            redirect で、しかも arch ごとに飛び先の四半期が違う。
+#
+#              i386/9.4    -> i386/9.0_2026Q1
+#              x86_64/9.4  -> x86_64/9.0_2026Q2
+#
+#            redirect に任せると arch で別の四半期を引くので、major に
+#            .0 を付けた枝の頭を自分で組み立てる。
+#
+# 四半期のほうは固定にする。ツリーを四半期枝で取っているとき版が噛み合う
+# ので、そこを動かすと噛み合わなくなる。
+#
+# 末尾に /All を付けないこと。mk/install/bin-install.mk が自分で足すので、
+# 付けると .../All/All を引きに行き、見つからなければ黙ってソースビルドへ
+# 落ちる。失敗としては出ない。
+if [ "$OS" = NetBSD ] && [ -z "${BINPKG_SITES:-}" ]; then
+	_rel=$(uname -r); _br=${_rel%%.*}.0
+	BINPKG_SITES=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/${_br}_2026Q2
+fi
 unset PKG_PATH
 echo "--- 依存の出どころ: $BINPKG_SITES ---"
 

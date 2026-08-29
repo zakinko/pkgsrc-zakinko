@@ -60,23 +60,30 @@ fi
 # 依存は在ればバイナリで引く。emacs は依存が深いので、素から組むと job の
 # 上限 360 分に近づく。
 #
-# 出どころはゲストの中で決める。呼ぶ側から渡すと arch を取り違える。実際
-# workflow で x86_64 を直書きしていて、i386 の三版は一つも降ろせずに素から
-# 組んでいた。uname -p は amd64 で x86_64、i386 で i386 を返し、公式の集合の
-# 並びとそのまま一致する。verify-uim.sh が先に同じ形にしている。
+# 座標は arch と release の二つで決まる。どちらもゲストの中で引く。
 #
-# 末尾に /All を付けないこと。mk/install/bin-install.mk が
+#   arch     uname -p が amd64 で x86_64、i386 で i386 を返す。ミラーの
+#            正準は x86_64 で、amd64/ はそこへの redirect である。
+#   release  集合は枝の頭にしか無い。9.4 も 10.1 も点リリースの側は
+#            redirect で、しかも arch ごとに飛び先の四半期が違う。
 #
-#	for i in "$@"; do pkg_path="$pkg_path;$i/All"; done
+#              i386/9.4    -> i386/9.0_2026Q1
+#              x86_64/9.4  -> x86_64/9.0_2026Q2
 #
-# と自分で足すので、付けると .../All/All を引きに行く。しかも見つからな
-# かったときは do-bin-install-from-source が黙ってソースビルドへ落ちるので、
-# 失敗として出ない。付けたまま回して amd64 でも一件も降ろせていなかった。
+#            redirect に任せると arch で別の四半期を引くので、major に
+#            .0 を付けた枝の頭を自分で組み立てる。
 #
-# ツリーが四半期枝のときだけ版が噛み合う。run-in-qemu.sh の既定がそれ。
-if [ "$OS" = NetBSD ]; then
-	BINPKG_SITES=${BINPKG_SITES:-http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/10.0_2026Q2}
+# 四半期のほうは固定にする。ツリーを四半期枝で取っているとき版が噛み合う
+# ので、そこを動かすと噛み合わなくなる。
+#
+# 末尾に /All を付けないこと。mk/install/bin-install.mk が自分で足すので、
+# 付けると .../All/All を引きに行き、見つからなければ黙ってソースビルドへ
+# 落ちる。失敗としては出ない。
+if [ "$OS" = NetBSD ] && [ -z "${BINPKG_SITES:-}" ]; then
+	_rel=$(uname -r); _br=${_rel%%.*}.0
+	BINPKG_SITES=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/${_br}_2026Q2
 fi
+
 if [ -n "${BINPKG_SITES:-}" ]; then
 	MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 	echo "    依存の出どころ: $BINPKG_SITES"

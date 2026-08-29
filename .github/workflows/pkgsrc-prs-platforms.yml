@@ -84,7 +84,10 @@ jobs:
           # を前処理できずに落ちた。MASTER_SITE_CODEBERG が四半期枝に
           # 無い件は run-in-qemu.sh がゲスト側で補う。
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
-          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
+          # BINPKG_SITES は verify-xwpe.sh がゲストの中で uname -p と
+          # uname -r から組み立てる。ここで x86_64/10.0_2026Q2 と直書きして
+          # いたが、この matrix は 9.4 と 11.0 も回すので、その二つは版違いの
+          # 集合を引いていた。
         run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
       - name: 転けたらコンソールを出す
         if: failure()
