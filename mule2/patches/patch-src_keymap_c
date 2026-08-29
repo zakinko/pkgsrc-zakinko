@@ -2,9 +2,20 @@ $NetBSD: patch-src_keymap_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/keymap.c~	1994-10-24 12:30:52.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/keymap.c.orig
 +++ src/keymap.c
-@@ -31,6 +31,7 @@ the Free Software Foundation, 675 Mass A
+@@ -31,6 +31,7 @@
  
  #include <config.h>
  #include <stdio.h>
@@ -12,3 +23,30 @@ $NetBSD: patch-src_keymap_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #undef NULL
  #include "lisp.h"
  #include "commands.h"
+@@ -2292,7 +2293,7 @@
+   return unbind_to (count, Qnil);
+ }
+ 
+-describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
++int describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
+      register Lisp_Object vector;
+      Lisp_Object elt_prefix;
+      int (*elt_describer) ();
+@@ -2427,7 +2428,7 @@
+   return apropos_accumulate;
+ }
+ 
+-syms_of_keymap ()
++int syms_of_keymap ()
+ {
+   Lisp_Object tem;
+ 
+@@ -2539,7 +2540,7 @@
+   defsubr (&Sapropos_internal);
+ }
+ 
+-keys_of_keymap ()
++int keys_of_keymap ()
+ {
+   Lisp_Object tem;
+ 

@@ -4,9 +4,20 @@ Include the standard headers, and say what mark_object, mark_buffer,
 mark_interval and make_pure_vector take and return.  The declarations here
 named no parameters at all, which lets a mismatched call through.
 
---- src/alloc.c.orig	1994-10-24 11:37:41.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/alloc.c.orig
 +++ src/alloc.c
-@@ -30,6 +30,7 @@ the Free Software Foundation, 675 Mass A
+@@ -30,6 +30,7 @@
  	In make_string(), original bug fixed. */
  
  #include <signal.h>
@@ -14,7 +25,7 @@ named no parameters at all, which lets a mismatched call through.
  
  #include <config.h>
  #include "lisp.h"
-@@ -128,9 +129,11 @@ int stack_copy_size;
+@@ -128,9 +129,11 @@
  /* Non-zero means ignore malloc warnings.  Set during initialization.  */
  int ignore_warnings;
  
@@ -27,3 +38,64 @@ named no parameters at all, which lets a mismatched call through.
  
  /* Versions of malloc and realloc that print warnings as memory gets full.  */
  
+@@ -146,13 +149,13 @@
+ }
+ 
+ /* malloc calls this if it finds we are near exhausting storage */
+-malloc_warning (str)
++int malloc_warning (str)
+      char *str;
+ {
+   pending_malloc_warning = str;
+ }
+ 
+-display_malloc_warning ()
++int display_malloc_warning ()
+ {
+   register Lisp_Object val;
+ 
+@@ -162,7 +165,7 @@
+ }
+ 
+ /* Called if malloc returns zero */
+-memory_full ()
++int memory_full ()
+ {
+   /* This used to call error, but if we've run out of memory, we could get
+      infinite recursion trying to build the string.  */
+@@ -445,7 +448,7 @@
+ }
+ 
+ /* Explicitly free a float cell.  */
+-free_float (ptr)
++int free_float (ptr)
+      struct Lisp_Float *ptr;
+ {
+   XFASTINT (ptr->type) = (Lisp_Object_Int) float_free_list;
+@@ -518,7 +521,7 @@
+ }
+ 
+ /* Explicitly free a cons cell.  */
+-free_cons (ptr)
++int free_cons (ptr)
+      struct Lisp_Cons *ptr;
+ {
+   XFASTINT (ptr->car) = (Lisp_Object_Int) cons_free_list;
+@@ -2153,7 +2156,7 @@
+ 
+ /* Initialization */
+ 
+-init_alloc_once ()
++int init_alloc_once ()
+ {
+   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
+   pureptr = 0;
+@@ -2182,7 +2185,7 @@
+ #endif /* VIRT_ADDR_VARIES */
+ }
+ 
+-init_alloc ()
++int init_alloc ()
+ {
+   gcprolist = 0;
+ }

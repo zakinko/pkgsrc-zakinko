@@ -2,9 +2,20 @@ $NetBSD: patch-src_scroll_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/scroll.c~	1994-05-04 02:30:01.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/scroll.c.orig
 +++ src/scroll.c
-@@ -18,6 +18,7 @@ along with GNU Emacs; see the file COPYI
+@@ -18,6 +18,7 @@
  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  
  
@@ -12,3 +23,29 @@ $NetBSD: patch-src_scroll_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <config.h>
  #include "termchar.h"
  #include "lisp.h"
+@@ -84,6 +85,7 @@
+      int *old_hash;
+      int *new_hash;
+      int free_at_end;
++     int lines_below;
+ {
+   register int i, j;
+   int frame_height = FRAME_HEIGHT (frame);
+@@ -446,7 +448,7 @@
+    These are the same arguments that might be given to
+    scroll_frame_lines to perform this scrolling.  */
+ 
+-scroll_cost (frame, from, to, amount)
++int scroll_cost (frame, from, to, amount)
+      FRAME_PTR frame;
+      int from, to, amount;
+ {
+@@ -565,7 +567,7 @@
+    Deletion is essentially the same as insertion.
+  */
+ 
+-do_line_insertion_deletion_costs (frame,
++int do_line_insertion_deletion_costs (frame,
+ 				  ins_line_string, multi_ins_string,
+ 				  del_line_string, multi_del_string,
+ 				  setup_string, cleanup_string, coefficient)

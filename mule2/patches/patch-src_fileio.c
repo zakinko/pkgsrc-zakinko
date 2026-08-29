@@ -36,9 +36,20 @@ Three details are specific to Mule 2.3:
     O_EXCL, which have no safe hardcoded value, so the header is included for
     Unix as well.
 
---- src/fileio.c.orig	1995-06-23 10:25:18.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/fileio.c.orig
 +++ src/fileio.c
-@@ -181,6 +181,14 @@
+@@ -178,6 +178,14 @@
  #endif
  #endif
  
@@ -53,7 +64,7 @@ Three details are specific to Mule 2.3:
  #ifndef O_WRONLY
  #define O_WRONLY 1
  #endif
-@@ -235,6 +243,7 @@
+@@ -232,12 +240,13 @@
  static Lisp_Object Vinhibit_file_name_operation;
  
  Lisp_Object Qfile_error, Qfile_already_exists;
@@ -61,7 +72,41 @@ Three details are specific to Mule 2.3:
  
  Lisp_Object Qfile_name_history;
  
-@@ -3154,7 +3163,7 @@
+ Lisp_Object Qcar_less_than_car;
+ 
+-report_file_error (string, data)
++int report_file_error (string, data)
+      char *string;
+      Lisp_Object data;
+ {
+@@ -255,7 +264,7 @@
+ 	     Fcons (build_string (string), Fcons (errstring, data)));
+ }
+ 
+-close_file_unwind (fd)
++int close_file_unwind (fd)
+      Lisp_Object fd;
+ {
+   close (XFASTINT (fd));
+@@ -263,7 +272,7 @@
+ 
+ /* Restore point, having saved it as a marker.  */
+ 
+-restore_point_unwind (location)
++int restore_point_unwind (location)
+      Lisp_Object location; 
+ {
+   SET_PT (marker_position (location));
+@@ -580,7 +589,7 @@
+  * Value is nonzero if the string output is different from the input.
+  */
+ 
+-directory_file_name (src, dst)
++int directory_file_name (src, dst)
+      char *src, *dst;
+ {
+   long slen;
+@@ -3152,7 +3161,7 @@
    return Qnil;
  }
  
@@ -70,7 +115,7 @@ Three details are specific to Mule 2.3:
    "r\nFWrite region to file: ",
    "Write current region into specified file.\n\
  When called from a program, takes three arguments:\n\
-@@ -3171,9 +3180,12 @@
+@@ -3169,9 +3178,12 @@
    that means do not print the \"Wrote file\" message.\n\
  Kludgy feature: if START is a string, then that string is written\n\
  to the file, instead of any buffer contents, and END is ignored.\n\
@@ -85,7 +130,7 @@ Three details are specific to Mule 2.3:
  {
    register int desc;
    int failure;
-@@ -3343,7 +3355,13 @@
+@@ -3341,7 +3353,13 @@
  	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type, 
  	       S_IREAD | S_IWRITE);
  #else /* not MSDOS nor WIN32 */
@@ -100,7 +145,7 @@ Three details are specific to Mule 2.3:
  #endif /* not MSDOS */
  #endif /* not VMS */
  
-@@ -3356,6 +3374,13 @@
+@@ -3354,6 +3372,13 @@
        if (!auto_saving) unlock_file (visit_file);
        errno = save_errno;
  #endif /* CLASH_DETECTION */
@@ -114,7 +159,7 @@ Three details are specific to Mule 2.3:
        report_file_error ("Opening output file", Fcons (filename, Qnil));
      }
  
-@@ -3848,7 +3873,7 @@
+@@ -3846,7 +3871,7 @@
    return
      Fwrite_region (Qnil, Qnil,
  		   current_buffer->auto_save_file_name,
@@ -123,7 +168,16 @@ Three details are specific to Mule 2.3:
  }
  
  static Lisp_Object
-@@ -4369,6 +4394,8 @@
+@@ -4302,7 +4327,7 @@
+ }
+ #endif /* Old version */
+ 
+-syms_of_fileio ()
++int syms_of_fileio ()
+ {
+   Qexpand_file_name = intern ("expand-file-name");
+   Qdirectory_file_name = intern ("directory-file-name");
+@@ -4367,6 +4392,8 @@
    staticpro (&Qfile_error);
    Qfile_already_exists = intern("file-already-exists");
    staticpro (&Qfile_already_exists);

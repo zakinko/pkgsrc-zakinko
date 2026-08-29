@@ -2,9 +2,20 @@ $NetBSD: patch-src_editfns_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/editfns.c~	1994-10-24 04:23:21.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/editfns.c.orig
 +++ src/editfns.c
-@@ -46,6 +46,7 @@ the Free Software Foundation, 675 Mass A
+@@ -46,6 +46,7 @@
  	char_to_string() and string_to_char() completely re-written. */
  
  #include <sys/types.h>
@@ -12,3 +23,12 @@ $NetBSD: patch-src_editfns_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  
  #include <config.h>
  
+@@ -898,7 +899,7 @@
+   return Qnil;
+ }
+ 
+-insert_with_specified_function (insert_function, insert_from_string_function,
++int insert_with_specified_function (insert_function, insert_from_string_function,
+ 				inherit, nargs, args)
+      int (*insert_function)(), (*insert_from_string_function)();
+      int inherit, nargs;

@@ -2,9 +2,20 @@ $NetBSD: patch-src_xdisp_c,v 1.1 2011/12/24 17:07:08 dholland Exp $
 
 - use standard headers
 
---- src/xdisp.c~	1996-03-06 08:08:03.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/xdisp.c.orig
 +++ src/xdisp.c
-@@ -68,6 +68,7 @@ the Free Software Foundation, 675 Mass A
+@@ -68,6 +68,7 @@
  
  #include <config.h>
  #include <stdio.h>
@@ -12,3 +23,39 @@ $NetBSD: patch-src_xdisp_c,v 1.1 2011/12/24 17:07:08 dholland Exp $
  /*#include <ctype.h>*/
  #undef NULL
  #include "lisp.h"
+@@ -547,7 +548,7 @@
+ /* 92.8.2, 93.5.22 Y.Niibe */
+ 
+ static
+-r2l_double_cursor_set (pos_p,w,p)
++int r2l_double_cursor_set (pos_p,w,p)
+      struct position *pos_p;
+      struct window *w;
+      int p;
+@@ -1041,7 +1042,7 @@
+    area to be cleared.  See tracking_off and
+    wait_reading_process_input for examples of these situations.  */
+ 
+-redisplay_preserve_echo_area ()
++int redisplay_preserve_echo_area ()
+ {
+   if (echo_area_glyphs == 0 && previous_echo_glyphs != 0)
+     {
+@@ -3443,7 +3444,7 @@
+ }
+ 
+ /* 92.2.20 by K.Handa */
+-decode_mode_spec_coding(code, buf, eol)
++int decode_mode_spec_coding(code, buf, eol)
+      Lisp_Object code;
+      char *buf;
+      int eol;
+@@ -4229,7 +4230,7 @@
+ }
+ 
+ /* initialize the window system */
+-init_xdisp ()
++int init_xdisp ()
+ {
+   Lisp_Object root_window;
+ #ifndef COMPILER_REGISTER_BUG

@@ -5,9 +5,20 @@ Include <stdlib.h>, and pass compile_pattern the argument it now takes.
 src/regex19.h declares it with five parameters; this call site still passed
 four, so the fifth was whatever happened to be in place.
 
---- src/dired.c.orig	1994-11-11 00:35:50.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/dired.c.orig
 +++ src/dired.c
-@@ -21,6 +21,7 @@ the Free Software Foundation, 675 Mass A
+@@ -21,6 +21,7 @@
  #include <config.h>
  
  #include <stdio.h>
@@ -15,7 +26,7 @@ four, so the fifth was whatever happened to be in place.
  #include <sys/types.h>
  #include <sys/stat.h>
  
-@@ -159,7 +160,7 @@ If NOSORT is non-nil, the list is not so
+@@ -159,7 +160,7 @@
        compile_pattern (match, &searchbuf, 0,
  		       buffer_defaults.downcase_table->contents);
  #else
@@ -24,3 +35,21 @@ four, so the fifth was whatever happened to be in place.
  #endif
      }
  
+@@ -486,7 +487,7 @@
+   return Fsignal (Qquit, Qnil);
+ }
+ 
+-file_name_completion_stat (dirname, dp, st_addr)
++int file_name_completion_stat (dirname, dp, st_addr)
+      Lisp_Object dirname;
+      DIRENTRY *dp;
+      struct stat *st_addr;
+@@ -665,7 +666,7 @@
+   return Flist (sizeof(values) / sizeof(values[0]), values);
+ }
+ 
+-syms_of_dired ()
++int syms_of_dired ()
+ {
+   Qdirectory_files = intern ("directory-files");
+   Qfile_name_completion = intern ("file-name-completion");

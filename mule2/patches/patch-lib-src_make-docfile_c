@@ -7,6 +7,17 @@ implicit declaration: the standard functions through their headers (and
 the file's own hand-written declarations of them removed), the tree's own
 through the type their definition carries.
 
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
 --- lib-src/make-docfile.c.orig
 +++ lib-src/make-docfile.c
 @@ -32,6 +32,16 @@
@@ -26,3 +37,57 @@ through the type their definition carries.
  #ifdef MSDOS
  #include <fcntl.h>
  #endif /* MSDOS */
+@@ -46,7 +56,7 @@
+ 
+ FILE *outfile;
+ 
+-main (argc, argv)
++int main (argc, argv)
+      int argc;
+      char **argv;
+ {
+@@ -88,7 +98,7 @@
+ /* Read file FILENAME and output its doc strings to outfile.  */
+ /* Return 1 if file is not found, 0 if it is found.  */
+ 
+-scan_file (filename)
++int scan_file (filename)
+      char *filename;
+ {
+   int len = strlen (filename);
+@@ -109,7 +119,7 @@
+  Convert escape sequences \n and \t to newline and tab;
+  discard \ followed by newline.  */
+ 
+-read_c_string (infile, printflag)
++int read_c_string (infile, printflag)
+      FILE *infile;
+      int printflag;
+ {
+@@ -156,7 +166,7 @@
+ /* Write to file OUT the argument names of function FUNC, whose text is in BUF.
+    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
+ 
+-write_c_args (out, func, buf, minargs, maxargs)
++int write_c_args (out, func, buf, minargs, maxargs)
+      FILE *out;
+      char *func, *buf;
+      int minargs, maxargs;
+@@ -240,7 +250,7 @@
+    Looks for DEFUN constructs such as are defined in ../src/lisp.h.
+    Accepts any word starting DEF... so it finds DEFSIMPLE and DEFPRED.  */
+ 
+-scan_c_file (filename, mode)
++int scan_c_file (filename, mode)
+      char *filename, *mode;
+ {
+   FILE *infile;
+@@ -487,7 +497,7 @@
+ }
+ 
+ 
+-scan_lisp_file (filename, mode)
++int scan_lisp_file (filename, mode)
+      char *filename, *mode;
+ {
+   FILE *infile;

@@ -14,6 +14,17 @@ declaration.  The return value is ignored at both call sites, so the
 declaration is right whether the link picks up termcap.c or the system
 library.
 
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
 --- src/cm.c.orig
 +++ src/cm.c
 @@ -22,6 +22,9 @@
@@ -26,7 +37,35 @@ library.
  #if defined(WIN32) && defined(USE_FATFS) /* 93.2.25 by M.Higashida */
  #include "termhook.h"
  #else
-@@ -282,7 +285,7 @@
+@@ -38,7 +41,7 @@
+ int cost;		/* sums up costs */
+ 
+ /* ARGSUSED */
+-evalcost (c)
++int evalcost (c)
+      char c;
+ {
+   cost++;
+@@ -108,7 +111,7 @@
+  * out of <sgtty.h>.)
+  */
+ 
+-cmcostinit ()
++int cmcostinit ()
+ {
+     char *p;
+ 
+@@ -148,7 +151,8 @@
+  */
+ 
+ static
+-calccost (srcy, srcx, dsty, dstx, doit)
++int calccost (srcy, srcx, dsty, dstx, doit)
++     int doit, dstx, dsty, srcx, srcy;
+ {
+     register int    deltay,
+                     deltax,
+@@ -282,7 +286,7 @@
  #define	USELL	2
  #define	USECR	3
  
@@ -35,3 +74,21 @@ library.
  {
      int     homecost,
              crcost,
+@@ -384,7 +388,7 @@
+    Used before copying into it the info on the actual terminal.
+  */
+ 
+-Wcm_clear ()
++int Wcm_clear ()
+ {
+   bzero (&Wcm, sizeof Wcm);
+   UP = 0;
+@@ -398,7 +402,7 @@
+  * Return -2 if size not specified.
+  */
+ 
+-Wcm_init ()
++int Wcm_init ()
+ {
+ #if 0
+   if (Wcm.cm_abs && !Wcm.cm_ds)

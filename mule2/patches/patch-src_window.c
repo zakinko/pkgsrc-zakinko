@@ -7,9 +7,20 @@ return int.  Where it really returns a pointer or a Lisp_Object that
 assumption truncates the value on any machine where the two are not the
 same width, and the corruption surfaces far from the call.
 
---- src/window.c.orig	1994-10-21 04:21:03.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/window.c.orig
 +++ src/window.c
-@@ -34,6 +34,8 @@ the Free Software Foundation, 675 Mass A
+@@ -34,6 +34,8 @@
  #include "disptab.h"
  #include "keyboard.h"
  
@@ -18,7 +29,25 @@ same width, and the corruption surfaces far from the call.
  Lisp_Object Qwindowp, Qwindow_live_p;
  
  Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
-@@ -1583,10 +1585,7 @@ check_frame_size (frame, rows, cols)
+@@ -652,7 +654,7 @@
+ /* Record info on buffer window w is displaying
+    when it is about to cease to display that buffer.  */
+ static
+-unshow_buffer (w)
++int unshow_buffer (w)
+      register struct window *w;
+ {
+   Lisp_Object buf;
+@@ -688,7 +690,7 @@
+ 
+ /* Put replacement into the window structure in place of old. */
+ static
+-replace_window (old, replacement)
++int replace_window (old, replacement)
+      Lisp_Object old, replacement;
+ {
+   register Lisp_Object tem;
+@@ -1583,10 +1585,7 @@
     nodelete nonzero means do not do this.
     (The caller should check later and do so if appropriate)  */
  
@@ -30,7 +59,7 @@ same width, and the corruption surfaces far from the call.
  {
    register struct window *w = XWINDOW (window);
    register struct window *c;
-@@ -1648,10 +1647,7 @@ set_window_height (window, height, nodel
+@@ -1648,10 +1647,7 @@
  
  /* Recursively set width of WINDOW and its inferiors. */
  
@@ -42,7 +71,16 @@ same width, and the corruption surfaces far from the call.
  {
    register struct window *w = XWINDOW (window);
    register struct window *c;
-@@ -2198,9 +2194,7 @@ window_width (window)
+@@ -2007,7 +2003,7 @@
+ }
+ 
+ static
+-make_dummy_parent (window)
++int make_dummy_parent (window)
+      Lisp_Object window;
+ {
+   register Lisp_Object old, new;
+@@ -2198,9 +2194,7 @@
     also changes the heights of the siblings so as to
     keep everything consistent. */
  
@@ -53,3 +91,30 @@ same width, and the corruption surfaces far from the call.
  {
    register Lisp_Object parent;
    Lisp_Object window;
+@@ -3149,7 +3143,7 @@
+   return unbind_to (count, val);
+ }
+ 
+-init_window_once ()
++int init_window_once ()
+ {
+ #ifdef MULTI_FRAME
+   selected_frame = make_terminal_frame ();
+@@ -3195,7 +3189,7 @@
+ #endif /* not MULTI_FRAME */
+ }
+ 
+-syms_of_window ()
++int syms_of_window ()
+ {
+   Qwindowp = intern ("windowp");
+   staticpro (&Qwindowp);
+@@ -3344,7 +3338,7 @@
+   defsubr (&Ssave_window_excursion);
+ }
+ 
+-keys_of_window ()
++int keys_of_window ()
+ {
+   initial_define_key (control_x_map, '1', "delete-other-windows");
+   initial_define_key (control_x_map, '2', "split-window");

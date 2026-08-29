@@ -5,9 +5,20 @@ return type and typed parameters.  Both are static and passed to
 map_obarray as function pointers, so the types have to match what it
 expects.
 
---- src/abbrev.c.orig	1993-09-13 11:20:03.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/abbrev.c.orig
 +++ src/abbrev.c
-@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass A
+@@ -20,6 +20,7 @@
  
  #include <config.h>
  #include <stdio.h>
@@ -15,7 +26,7 @@ expects.
  #include "lisp.h"
  #include "commands.h"
  #include "buffer.h"
-@@ -369,9 +370,8 @@ is not undone.")
+@@ -369,9 +370,8 @@
    return Qnil;
  }
  
@@ -27,7 +38,7 @@ expects.
  {
    Lisp_Object name;
    if (NILP (XSYMBOL (sym)->value))
-@@ -388,9 +388,8 @@ write_abbrev (sym, stream)
+@@ -388,9 +388,8 @@
    insert (")\n", 2);
  }
  
@@ -39,3 +50,12 @@ expects.
  {
    Lisp_Object one;
  
+@@ -485,7 +484,7 @@
+   return Qnil;
+ }
+ 
+-syms_of_abbrev ()
++int syms_of_abbrev ()
+ {
+   DEFVAR_LISP ("abbrev-table-name-list", &Vabbrev_table_name_list,
+     "List of symbols whose values are abbrev tables.");

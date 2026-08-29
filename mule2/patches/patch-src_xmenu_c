@@ -2,9 +2,20 @@ $NetBSD: patch-src_xmenu_c,v 1.1 2011/12/24 17:07:08 dholland Exp $
 
 - use standard headers
 
---- src/xmenu.c~	1995-02-17 07:47:37.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/xmenu.c.orig
 +++ src/xmenu.c
-@@ -34,6 +34,7 @@ the Free Software Foundation, 675 Mass A
+@@ -34,6 +34,7 @@
  #include <config.h>
  
  #include <stdio.h>
@@ -12,3 +23,20 @@ $NetBSD: patch-src_xmenu_c,v 1.1 2011/12/24 17:07:08 dholland Exp $
  #include "lisp.h"
  #include "termhooks.h"
  #include "frame.h"
+@@ -388,6 +389,7 @@
+ static Lisp_Object
+ menu_item_enabled_p (def, notreal)
+      Lisp_Object def;
++     int notreal;
+ {
+   Lisp_Object enabled, tem;
+ 
+@@ -2352,7 +2354,7 @@
+ }
+ #endif /* not USE_X_TOOLKIT */
+ 
+-syms_of_xmenu ()
++int syms_of_xmenu ()
+ {
+   staticpro (&menu_items);
+   menu_items = Qnil;

@@ -18,7 +18,18 @@ extern for strtok goes with them -- it was there because BSD's strings.h did
 not give the return type, and with string.h included it now disagrees with
 the real prototype.
 
---- lib-src/b2m.c.orig	1994-05-17 19:12:13.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- lib-src/b2m.c.orig
 +++ lib-src/b2m.c
 @@ -15,10 +15,13 @@
   *   Mon Nov 7 15:54:06 PDT 1988
@@ -47,10 +58,11 @@ the real prototype.
  #ifndef TRUE
  #define TRUE  (1)
  #endif
-@@ -41,6 +41,23 @@
+@@ -41,7 +41,24 @@
  time_t ltoday;
  char from[256], labels[256], data[256], *p, *today;
  
+-main (argc, argv)
 +/* Read one line into BUF, at most SIZE bytes including the terminator.
 +   Like gets, the newline is dropped and NULL comes back at end of file.  */
 +static char *
@@ -68,9 +80,10 @@ the real prototype.
 +  return buf;
 +}
 +
- main (argc, argv)
++int main (argc, argv)
       int argc;
       char **argv;
+ {
 @@ -58,8 +75,7 @@
    ltoday = time (0);
    today = ctime (&ltoday);

@@ -7,9 +7,29 @@ return int.  Where it really returns a pointer or a Lisp_Object that
 assumption truncates the value on any machine where the two are not the
 same width, and the corruption surfaces far from the call.
 
---- src/data.c.orig	2013-03-01 17:41:37.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/data.c.orig
 +++ src/data.c
-@@ -2369,7 +2369,7 @@ arith_error (signo)
+@@ -111,7 +111,7 @@
+   return value;
+ }
+ 
+-pure_write_error ()
++int pure_write_error ()
+ {
+   error ("Attempt to modify read-only object");
+ }
+@@ -2369,7 +2369,7 @@
    Fsignal (Qarith_error, Qnil);
  }
  

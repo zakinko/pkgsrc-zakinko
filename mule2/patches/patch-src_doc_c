@@ -2,9 +2,20 @@ $NetBSD: patch-src_doc_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/doc.c~	1994-10-21 04:20:03.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/doc.c.orig
 +++ src/doc.c
-@@ -22,6 +22,7 @@ the Free Software Foundation, 675 Mass A
+@@ -22,6 +22,7 @@
  
  #include <sys/types.h>
  #include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
@@ -12,3 +23,12 @@ $NetBSD: patch-src_doc_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  
  #ifdef USG5
  #include <fcntl.h>
+@@ -536,7 +537,7 @@
+   RETURN_UNGCPRO (tem);
+ }
+ 
+-syms_of_doc ()
++int syms_of_doc ()
+ {
+   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
+     "Name of file containing documentation strings of built-in symbols.");

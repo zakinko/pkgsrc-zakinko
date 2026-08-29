@@ -2,9 +2,20 @@ $NetBSD: patch-src_callint_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/callint.c~	1994-10-21 04:19:49.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/callint.c.orig
 +++ src/callint.c
-@@ -24,6 +24,7 @@ the Free Software Foundation, 675 Mass A
+@@ -24,6 +24,7 @@
  /* 93.3.18  modified for Mule Ver.0.9.7.1 by K.Handa <handa@etl.go.jp>
  	Document of 'interactive' updated. */
  
@@ -12,3 +23,12 @@ $NetBSD: patch-src_callint_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <config.h>
  #include "lisp.h"
  #include "buffer.h"
+@@ -651,7 +652,7 @@
+   return val;
+ }
+ 
+-syms_of_callint ()
++int syms_of_callint ()
+ {
+   preserved_fns = Fcons (intern ("region-beginning"),
+ 			 Fcons (intern ("region-end"),

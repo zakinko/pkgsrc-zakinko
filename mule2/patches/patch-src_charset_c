@@ -3,9 +3,20 @@ $NetBSD: patch-src_charset_c,v 1.2 2017/05/07 06:49:23 tsutsui Exp $
 Include the standard headers, and declare mchar_to_string and
 update_mc_table with their parameter types before they are used.
 
---- src/charset.c.orig	1995-07-18 11:35:56.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/charset.c.orig
 +++ src/charset.c
-@@ -68,11 +68,13 @@ the Free Software Foundation, 675 Mass A
+@@ -68,11 +68,13 @@
  	Bug in charwidth() fixed. */
  
  #include <stdio.h>
@@ -19,7 +30,7 @@ update_mc_table with their parameter types before they are used.
  #define xmalloc (void *)malloc
  #define xrealloc (void *)realloc
  #endif /* emacs */
-@@ -117,10 +119,14 @@ unsigned char lc_table[4][128];
+@@ -117,10 +119,14 @@
     but reverse DIRECTION. */
  unsigned char rev_lc_table[256];
  
@@ -34,7 +45,16 @@ update_mc_table with their parameter types before they are used.
  mchar_to_string (c, str)
       register unsigned int c;
       register unsigned char *str;
-@@ -194,6 +200,7 @@ string_to_mchar (str, size)
+@@ -147,7 +153,7 @@
+ /* 93.5.27 by K.Handa
+    Use macro STRtoCHAR(str,size) instead of calling string_to_mchar() directly.
+ */
+-string_to_mchar (str, size)
++int string_to_mchar (str, size)
+      register unsigned char *str;
+      register int size;
+ {				/* 92.11.12, 93.5.27 by K.Handa */
+@@ -194,6 +200,7 @@
  /* end of patch */
  
  /* Add direction, 92.8.2 Y.Niibe */
@@ -42,3 +62,75 @@ update_mc_table with their parameter types before they are used.
  update_mc_table(lc, bytes, clm, type, graphic, final, direction, doc, reg)
       unsigned char lc, bytes, clm, type, graphic, final, direction;
       char *doc, *reg;
+@@ -222,7 +229,7 @@
+ #ifdef emacs
+ 
+ /* 92.9.16 by K.Handa */
+-undefined_private_charset(bytes, width)
++int undefined_private_charset(bytes, width)
+      int bytes, width;
+ {
+   int lc, from, to;
+@@ -447,7 +454,7 @@
+   return ch;
+ }
+ 
+-charbytes (c)
++int charbytes (c)
+      unsigned int c;
+ {
+   if (NILP (current_buffer->mc_flag))
+@@ -474,7 +481,7 @@
+ }
+ 
+ /* 93.6.17 by K.Handa */
+-charwidth (c)
++int charwidth (c)
+      unsigned int c;
+ {
+   if (!MC_CHAR_P (c)) {		/* 94.5.10 by K.Handa */
+@@ -500,7 +507,7 @@
+   return (int)c;
+ }
+ 
+-strwidth (s)
++int strwidth (s)
+      unsigned char *s;
+ {
+   int i = 0;
+@@ -700,7 +707,7 @@
+ 
+ static struct cmpchar_hash_info cmpchar_hash[CMPCHAR_HASH_SIZE];
+ 
+-hash_cmpchar(str)
++int hash_cmpchar(str)
+      unsigned char *str;
+ {
+   unsigned int h;
+@@ -710,7 +717,7 @@
+   return (int)h;
+ }
+ 
+-search_cmpchar(str, len)
++int search_cmpchar(str, len)
+      unsigned char *str;
+      int len;
+ {
+@@ -784,7 +791,7 @@
+   return n_cmpchars++;
+ }
+ 
+-init_charset_once()
++int init_charset_once()
+ {
+   int i,j;
+ 
+@@ -832,7 +839,7 @@
+ 
+ #ifdef emacs
+ 
+-syms_of_charset ()
++int syms_of_charset ()
+ {
+   defsubr (&Snew_character_set);
+   defsubr (&Sleading_char);

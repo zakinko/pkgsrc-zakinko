@@ -6,6 +6,17 @@ standard functions come through their headers, with the file's own
 hand-written declarations of them removed where they disagreed; the tree's
 own come through the type their definition carries.
 
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
 --- lib-src/movemail.c.orig
 +++ lib-src/movemail.c
 @@ -59,6 +59,14 @@
@@ -23,3 +34,48 @@ own come through the type their definition carries.
  #ifdef MSDOS
  #undef access
  #endif /* MSDOS */
+@@ -109,7 +117,7 @@
+ /* Nonzero means this is name of a lock file to delete on fatal error.  */
+ char *delete_lockname;
+ 
+-main (argc, argv)
++int main (argc, argv)
+      int argc;
+      char **argv;
+ {
+@@ -351,7 +359,7 @@
+ 
+ /* Print error message and exit.  */
+ 
+-fatal (s1, s2)
++int fatal (s1, s2)
+      char *s1, *s2;
+ {
+   if (delete_lockname)
+@@ -362,7 +370,7 @@
+ 
+ /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+ 
+-error (s1, s2, s3)
++int error (s1, s2, s3)
+      char *s1, *s2, *s3;
+ {
+   printf ("movemail: ");
+@@ -370,7 +378,7 @@
+   printf ("\n");
+ }
+ 
+-pfatal_with_name (name)
++int pfatal_with_name (name)
+      char *name;
+ {
+   extern char *strerror ();
+@@ -380,7 +388,7 @@
+   fatal (s, name);
+ }
+ 
+-pfatal_and_delete (name)
++int pfatal_and_delete (name)
+      char *name;
+ {
+   extern char *strerror ();

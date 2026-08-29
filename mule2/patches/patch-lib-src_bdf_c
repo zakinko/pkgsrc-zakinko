@@ -7,6 +7,17 @@ implicit declaration: the standard functions through their headers (and
 the file's own hand-written declarations of them removed), the tree's own
 through the type their definition carries.
 
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
 --- lib-src/bdf.c.orig
 +++ lib-src/bdf.c
 @@ -50,11 +50,19 @@
@@ -29,3 +40,74 @@ through the type their definition carries.
  #ifdef USG
  #include <string.h>
  #else
+@@ -72,7 +80,7 @@
+ #define LINE_BUF_SIZE 256
+ #endif
+ 
+-bdf_reset_font(fontp)
++int bdf_reset_font(fontp)
+      font_struct *fontp;
+ {
+   int size1, size2;
+@@ -101,7 +109,7 @@
+   }
+ }
+ 
+-bdf_init_font()
++int bdf_init_font()
+ {
+   int i, lc;
+ 
+@@ -117,14 +125,14 @@
+   }
+ }
+ 
+-bdf_init_glyph(glyphp)
++int bdf_init_glyph(glyphp)
+      glyph_struct *glyphp;
+ {
+   glyphp->bitmap_size = 100;
+   glyphp->bitmap = (char *)malloc(glyph.bitmap_size * (sizeof (char)));
+ }
+ 
+-bdf_initialize(bp, _emacs)
++int bdf_initialize(bp, _emacs)
+      char *bp;
+      int _emacs;
+ {
+@@ -137,7 +145,7 @@
+   bdf_init_glyph(&glyph);
+ }
+ 
+-bdf_proceed_line(fp, str)
++int bdf_proceed_line(fp, str)
+      FILE *fp;
+      char *str;
+ {
+@@ -149,7 +157,7 @@
+   return 1;
+ }
+ 
+-bdf_proceed_line2(fp, str, stop)
++int bdf_proceed_line2(fp, str, stop)
+      FILE *fp;
+      char *str, *stop;
+ {
+@@ -162,7 +170,7 @@
+   return 1;
+ }
+ 
+-bdf_load_font(lc)
++int bdf_load_font(lc)
+      int lc;
+ {
+   font_struct *fontp = &font[lc & 0x7F];
+@@ -230,7 +238,7 @@
+   return 1;
+ }
+ 
+-bdf_load_glyph(lc, idx, glyph)
++int bdf_load_glyph(lc, idx, glyph)
+      int lc, idx;
+      glyph_struct *glyph;
+ {

@@ -2,9 +2,20 @@ $NetBSD: patch-src_doprnt_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/doprnt.c~	1994-10-24 12:24:27.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/doprnt.c.orig
 +++ src/doprnt.c
-@@ -29,6 +29,7 @@ the Free Software Foundation, 675 Mass A
+@@ -29,6 +29,7 @@
  #include <config.h>
  #include <stdio.h>
  #include <ctype.h>
@@ -12,3 +23,12 @@ $NetBSD: patch-src_doprnt_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  
  #include "lisp.h"
  #include "charset.h"
+@@ -41,7 +42,7 @@
+    ARGS points to the vector of arguments, and NARGS says how many.
+    A double counts as two arguments.  */
+ 
+-doprnt (buffer, bufsize, format, format_end, nargs, args)
++int doprnt (buffer, bufsize, format, format_end, nargs, args)
+      char *buffer;
+      register int bufsize;
+      char *format;

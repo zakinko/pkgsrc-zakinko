@@ -2,9 +2,20 @@ $NetBSD: patch-src_mcpath_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/mcpath.c~	1995-08-01 10:41:51.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/mcpath.c.orig
 +++ src/mcpath.c
-@@ -25,6 +25,7 @@ the Free Software Foundation, 675 Mass A
+@@ -25,6 +25,7 @@
  
  #define MCPATH_SOURCE
  #include <stdio.h>
@@ -12,3 +23,12 @@ $NetBSD: patch-src_mcpath_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <sys/param.h>
+@@ -486,7 +487,7 @@
+ }
+ #endif
+ 
+-syms_of_mcpath ()
++int syms_of_mcpath ()
+ {
+   Qpathname_coding_system = intern ("pathname-coding-system");
+   Fset_pathname_coding_system (Qnil);

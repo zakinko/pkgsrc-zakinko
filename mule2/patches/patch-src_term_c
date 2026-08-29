@@ -7,9 +7,20 @@ The header include is one line of this; the rest is the same conversion
 done to the other files in src.  The previous note here said only "use
 standard headers", which does not describe what is in the patch.
 
---- src/term.c.orig	1995-01-06 05:57:00.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/term.c.orig
 +++ src/term.c
-@@ -53,6 +53,7 @@ the Free Software Foundation, 675 Mass A
+@@ -53,6 +53,7 @@
  
  #include <config.h>
  #include <stdio.h>
@@ -17,7 +28,7 @@ standard headers", which does not describe what is in the patch.
  #include <ctype.h>
  #include "termchar.h"
  #include "termopts.h"
-@@ -342,8 +343,11 @@ static int system_uses_terminfo;
+@@ -342,8 +343,11 @@
  char *tparam ();
  
  extern char *tgetstr ();
@@ -30,7 +41,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P (selected_frame))
      {
-@@ -353,7 +357,7 @@ ring_bell ()
+@@ -353,7 +357,7 @@
    OUTPUT (TS_visible_bell && visible_bell ? TS_visible_bell : TS_bell);
  }
  
@@ -39,7 +50,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P (selected_frame))
      {
-@@ -366,7 +370,7 @@ set_terminal_modes ()
+@@ -366,7 +370,7 @@
    losecursor ();
  }
  
@@ -48,7 +59,16 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P (selected_frame))
      {
-@@ -395,8 +399,7 @@ update_begin (f)
+@@ -387,7 +391,7 @@
+   cmputc ('\r');
+ }
+ 
+-update_begin (f)
++int update_begin (f)
+      FRAME_PTR f;
+ {
+   updating_frame = f;
+@@ -395,8 +399,7 @@
      (*update_begin_hook) (f);
  }
  
@@ -58,7 +78,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P (updating_frame))
      {
-@@ -410,8 +413,7 @@ update_end (f)
+@@ -410,8 +413,7 @@
    updating_frame = 0;
  }
  
@@ -68,7 +88,51 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P (updating_frame))
      {
-@@ -493,7 +495,7 @@ turn_on_highlight ()
+@@ -424,7 +426,7 @@
+   set_scroll_region (0, specified_window);
+ }
+ 
+-set_scroll_region (start, stop)
++int set_scroll_region (start, stop)
+      int start, stop;
+ {
+   char *buf;
+@@ -448,14 +450,14 @@
+   losecursor ();
+ }
+ 
+-turn_on_insert ()
++int turn_on_insert ()
+ {
+   if (!insert_mode)
+     OUTPUT (TS_insert_mode);
+   insert_mode = 1;
+ }
+ 
+-turn_off_insert ()
++int turn_off_insert ()
+ {
+   if (insert_mode)
+     OUTPUT (TS_end_insert_mode);
+@@ -469,7 +471,7 @@
+    These functions are called on all terminals, but do nothing
+    on terminals whose standout mode does not work that way.  */
+ 
+-turn_off_highlight ()
++int turn_off_highlight ()
+ {
+   if (TN_standout_width < 0)
+     {
+@@ -479,7 +481,7 @@
+     }
+ }
+ 
+-turn_on_highlight ()
++int turn_on_highlight ()
+ {
+   if (TN_standout_width < 0)
+     {
+@@ -493,7 +495,7 @@
     empty space inside windows.  What this is,
     depends on the user option inverse-video.  */
  
@@ -77,7 +141,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (TN_standout_width >= 0)
      return;
-@@ -505,8 +507,8 @@ background_highlight ()
+@@ -505,8 +507,8 @@
  
  /* Set standout mode to the mode specified for the text to be output.  */
  
@@ -88,7 +152,16 @@ standard headers", which does not describe what is in the patch.
  {
    if (TN_standout_width >= 0)
      return;
-@@ -544,9 +546,7 @@ write_standout_marker (flag, vpos)
+@@ -527,7 +529,7 @@
+ /* Write a standout marker or end-standout marker at the front of the line
+    at vertical position vpos.  */
+ 
+-write_standout_marker (flag, vpos)
++int write_standout_marker (flag, vpos)
+      int flag, vpos;
+ {
+   if (flag || (TS_end_standout_mode && !TF_teleray && !se_is_so
+@@ -544,9 +546,7 @@
     Call this when about to modify line at position VPOS
     and not change whether it is highlighted.  */
  
@@ -99,7 +172,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
      {
-@@ -565,8 +565,7 @@ reassert_line_highlight (highlight, vpos
+@@ -565,8 +565,7 @@
  /* Call this when about to modify line at position VPOS
     and change whether it is highlighted.  */
  
@@ -109,7 +182,7 @@ standard headers", which does not describe what is in the patch.
  {
    standout_requested = new_highlight;
    if (! FRAME_TERMCAP_P (updating_frame))
-@@ -601,8 +600,7 @@ change_line_highlight (new_highlight, vp
+@@ -601,8 +600,7 @@
  
  /* Move to absolute position, specified origin 0 */
  
@@ -119,7 +192,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P ((updating_frame
  			    ? updating_frame
-@@ -625,8 +623,7 @@ cursor_to (row, col)
+@@ -625,8 +623,7 @@
  
  /* Similar but don't take any account of the wasted characters.  */
  
@@ -129,7 +202,7 @@ standard headers", which does not describe what is in the patch.
  {
    if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
      {
-@@ -645,7 +642,7 @@ raw_cursor_to (row, col)
+@@ -645,7 +642,7 @@
  /* Erase operations */
  
  /* clear from cursor to end of frame */
@@ -138,7 +211,7 @@ standard headers", which does not describe what is in the patch.
  {
    register int i;
  
-@@ -672,7 +669,7 @@ clear_to_end ()
+@@ -672,7 +669,7 @@
  
  /* Clear entire frame */
  
@@ -147,7 +220,16 @@ standard headers", which does not describe what is in the patch.
  {
    if (clear_frame_hook
        && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
-@@ -717,8 +714,7 @@ clear_end_of_line (first_unused_hpos)
+@@ -701,7 +698,7 @@
+ 
+    Note that the cursor may be moved.  */
+ 
+-clear_end_of_line (first_unused_hpos)
++int clear_end_of_line (first_unused_hpos)
+      int first_unused_hpos;
+ {
+   static GLYPH buf = SPACEGLYPH;
+@@ -717,8 +714,7 @@
  
     Note that the cursor may be moved, on terminals lacking a `ce' string.  */
  
@@ -157,7 +239,16 @@ standard headers", which does not describe what is in the patch.
  {
    register int i;
  
-@@ -954,9 +950,7 @@ linecode_conversion (len, src, dst)
+@@ -818,7 +814,7 @@
+ static unsigned char *dest;
+ 
+ static
+-attr_cpy(ch)
++int attr_cpy(ch)
+      unsigned char ch;
+ {
+ 	*dest++ = ch;
+@@ -954,9 +950,7 @@
  /* len = actual_column_length, len2 = converted_string_length
     string2 = converted_string */
  /* I gave up using TS_repeat...K.Handa */
@@ -168,7 +259,7 @@ standard headers", which does not describe what is in the patch.
  {
    register GLYPH g;
    register int tlen = GLYPH_TABLE_LENGTH;
-@@ -1038,9 +1032,7 @@ write_glyphs (string, len)
+@@ -1038,9 +1032,7 @@
  
  /* If start is zero, insert blanks instead of a string at start */
   
@@ -179,7 +270,7 @@ standard headers", which does not describe what is in the patch.
  {
    char *buf;
    register GLYPH g;
-@@ -1112,8 +1104,7 @@ insert_glyphs (start, len)
+@@ -1112,8 +1104,7 @@
        }
  }
  
@@ -189,7 +280,7 @@ standard headers", which does not describe what is in the patch.
  {
    char *buf;
    register int i;
-@@ -1149,8 +1140,7 @@ delete_glyphs (n)
+@@ -1149,8 +1140,7 @@
  
  /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
  
@@ -199,9 +290,21 @@ standard headers", which does not describe what is in the patch.
  {
    char *multi = n > 0 ? TS_ins_multi_lines : TS_del_multi_lines;
    char *single = n > 0 ? TS_ins_line : TS_del_line;
-@@ -1354,8 +1344,7 @@ extern int x_screen_planes;
+@@ -1209,7 +1199,7 @@
  
- extern do_line_insertion_deletion_costs ();
+   if (TN_standout_width >= 0)
+     {
+-      register lower_limit
++      register int lower_limit
+ 	= (scroll_region_ok
+ 	   ? specified_window
+ 	   : FRAME_HEIGHT (selected_frame));
+@@ -1352,10 +1342,9 @@
+ extern int x_screen_planes;
+ #endif
+ 
+-extern do_line_insertion_deletion_costs ();
++extern int do_line_insertion_deletion_costs ();
  
 -calculate_costs (frame)
 -     FRAME_PTR frame;
@@ -209,3 +312,30 @@ standard headers", which does not describe what is in the patch.
  {
    register char *f = TS_set_scroll_region ?
                         TS_set_scroll_region
+@@ -1634,7 +1623,7 @@
+ }
+ 
+ 
+-term_init (terminal_type)
++int term_init (terminal_type)
+      char *terminal_type;
+ {
+   char *area;
+@@ -1930,7 +1919,7 @@
+ }
+ 
+ /* VARARGS 1 */
+-fatal (str, arg1, arg2)
++int fatal (str, arg1, arg2)
+      char *str;
+      Lisp_Object_Int arg1, arg2;
+ {
+@@ -1940,7 +1929,7 @@
+   exit (1);
+ }
+ 
+-syms_of_term ()
++int syms_of_term ()
+ {
+   DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+     "Non-nil means the system uses terminfo rather than termcap.\n\

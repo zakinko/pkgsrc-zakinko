@@ -14,9 +14,20 @@ server-socket-dir, commits 038de5b8 and 03ae35cf, 2002-2004).  The directory
 is the same $TMPDIR/emacs<uid> the Lisp side uses (mule-user-temp-directory),
 so the two stay consistent.
 
---- lib-src/emacsserver.c.orig	1995-01-01 00:00:00.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- lib-src/emacsserver.c.orig
 +++ lib-src/emacsserver.c
-@@ -53,10 +53,41 @@
+@@ -53,12 +53,43 @@
  #include <sys/socket.h>
  #include <sys/signal.h>
  #include <sys/un.h>
@@ -25,7 +36,8 @@ so the two stay consistent.
  #include <errno.h>
  #include <stdlib.h>
  #include <string.h>
-+
+ 
+-main ()
 +/* Create DIR (mode 0700) if it does not exist, then insist that it is a real
 +   directory owned by us with no group or other permission bits.  The socket
 +   goes inside it, so its predictable name cannot be pre-empted by another
@@ -55,9 +67,11 @@ so the two stay consistent.
 +      exit (1);
 +    }
 +}
- 
- main ()
++
++int main ()
  {
+   char system_name[32];
+   int s, infd, fromlen;
 @@ -89,8 +120,17 @@
      }
    server.sun_family = AF_UNIX;

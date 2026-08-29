@@ -2,9 +2,20 @@ $NetBSD: patch-src_eval_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/eval.c~	1994-10-21 04:20:08.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/eval.c.orig
 +++ src/eval.c
-@@ -24,6 +24,7 @@ the Free Software Foundation, 675 Mass A
+@@ -24,6 +24,7 @@
  /* 93.7.8   modified for Mule Ver.0.9.8 by T.Atsushiba <toshiki@jit.dec.co.jp>
  	Function type declaration of call4(). */
  
@@ -12,3 +23,48 @@ $NetBSD: patch-src_eval_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <config.h>
  #include "lisp.h"
  #include "blockinput.h"
+@@ -153,7 +154,7 @@
+ Lisp_Object funcall_lambda ();
+ extern Lisp_Object ml_apply (); /* Apply a mocklisp function to unevaluated argument list */
+ 
+-init_eval_once ()
++int init_eval_once ()
+ {
+   specpdl_size = 50;
+   specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
+@@ -161,7 +162,7 @@
+   max_lisp_eval_depth = 300;	/* 92.7.10 by K.Handa - to compile regexp.el */
+ }
+ 
+-init_eval ()
++int init_eval ()
+ {
+   specpdl_ptr = specpdl;
+   catchlist = 0;
+@@ -187,7 +188,7 @@
+   return apply1 (Vdebugger, arg);
+ }
+ 
+-do_debug_on_call (code)
++int do_debug_on_call (code)
+      Lisp_Object code;
+ {
+   debug_on_next_call = 0;
+@@ -1482,7 +1483,7 @@
+   return Qnil;
+ }
+ 
+-do_autoload (fundef, funname)
++int do_autoload (fundef, funname)
+      Lisp_Object fundef, funname;
+ {
+   int count = specpdl_ptr - specpdl;
+@@ -2489,7 +2490,7 @@
+     }
+ }
+ 
+-syms_of_eval ()
++int syms_of_eval ()
+ {
+   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
+     "Limit on number of Lisp variable bindings & unwind-protects before error.");

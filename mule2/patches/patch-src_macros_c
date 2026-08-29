@@ -2,9 +2,20 @@ $NetBSD: patch-src_macros_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/macros.c~	1993-09-12 01:21:02.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/macros.c.orig
 +++ src/macros.c
-@@ -18,6 +18,7 @@ along with GNU Emacs; see the file COPYI
+@@ -18,6 +18,7 @@
  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  
  
@@ -12,3 +23,48 @@ $NetBSD: patch-src_macros_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <config.h>
  #include "lisp.h"
  #include "macros.h"
+@@ -124,7 +125,7 @@
+ 
+ /* Store character c into kbd macro being defined */
+ 
+-store_kbd_macro_char (c)
++int store_kbd_macro_char (c)
+      Lisp_Object c;
+ {
+   if (defining_kbd_macro)
+@@ -146,7 +147,7 @@
+ /* Declare that all chars stored so far in the kbd macro being defined
+  really belong to it.  This is done in between editor commands.  */
+ 
+-finalize_kbd_macro_chars ()
++int finalize_kbd_macro_chars ()
+ {
+   kbd_macro_end = kbd_macro_ptr;
+ }
+@@ -227,7 +228,7 @@
+   return unbind_to (count, Qnil);
+ }
+ 
+-init_macros ()
++int init_macros ()
+ {
+   Vlast_kbd_macro = Qnil;
+   defining_kbd_macro = 0;
+@@ -235,7 +236,7 @@
+   Vexecuting_macro = Qnil;
+ }
+ 
+-syms_of_macros ()
++int syms_of_macros ()
+ {
+   kbd_macro_bufsize = 100;
+   kbd_macro_buffer = (Lisp_Object *) malloc (kbd_macro_bufsize
+@@ -262,7 +263,7 @@
+     "Last kbd macro defined, as a string; nil if none defined.");
+ }
+ 
+-keys_of_macros ()
++int keys_of_macros ()
+ {
+   initial_define_key (control_x_map, ('e'), "call-last-kbd-macro");
+   initial_define_key (control_x_map, ('('), "start-kbd-macro");

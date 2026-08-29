@@ -2,9 +2,20 @@ $NetBSD: patch-src_bytecode_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - use standard headers
 
---- src/bytecode.c~	1994-10-21 04:19:49.000000000 +0000
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- src/bytecode.c.orig
 +++ src/bytecode.c
-@@ -34,6 +34,7 @@ by Hallvard:
+@@ -34,6 +34,7 @@
  
  /* 92.3.6   modified for Mule Ver.0.9.0 by K.Handa <handa@etl.go.jp> */
  
@@ -12,3 +23,12 @@ $NetBSD: patch-src_bytecode_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
  #include <config.h>
  #include "lisp.h"
  #include "buffer.h"
+@@ -1141,7 +1142,7 @@
+   return v1;
+ }
+ 
+-syms_of_bytecode ()
++int syms_of_bytecode ()
+ {
+   Qbytecode = intern ("byte-code");
+   staticpro (&Qbytecode);
