@@ -2719,3 +2719,4 @@ share/emacs/${PKGVERSION}/lisp/xt-mouse.el.gz
 share/emacs/${PKGVERSION}/lisp/xt-mouse.elc
 share/emacs/${PKGVERSION}/site-lisp/subdirs.el
 ${PLIST.plain}share/emacs/site-lisp/subdirs.el
+${PLIST.plain}share/emacs/site-lisp/site-start.el
