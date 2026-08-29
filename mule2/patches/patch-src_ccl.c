@@ -16,16 +16,21 @@ Fix what only the Linux arm of this file compiles.
 These lines are inside #ifdef arms that NetBSD does not take, so nothing
 here shows up when the package is built there.  glibc reaches them.
 
+Fix what only the Linux arm of this file compiles.
+
+These lines are inside #ifdef arms that NetBSD does not take, so nothing
+here shows up when the package is built there.  glibc reaches them.
+
 --- src/ccl.c.orig
 +++ src/ccl.c
-@@ -31,6 +31,7 @@
+@@ -29,6 +29,7 @@
+ 	Add standalone routine. */
+ 
  #include <stdio.h>
++#include <string.h>
  #ifdef emacs
  #include <config.h>
-+#include <string.h>
  #include "lisp.h"
- #include "charset.h"
- #include "coding.h"
 @@ -152,7 +153,7 @@
    }\
  }
