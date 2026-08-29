@@ -31,4 +31,14 @@ do-install:
 		${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_INFOPREFIX};	\
 	done
 
+# Register the entry points instead of telling the user to paste autoloads
+# into ~/.emacs.  editors/emacs20 and emacs21 install site-lisp/site-start.el,
+# which loads everything here at startup.
+post-install: calc-site-start
+.PHONY: calc-site-start
+calc-site-start:
+	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/site-start.d
+	${INSTALL_DATA} ${FILESDIR}/site-start.el \
+		${DESTDIR}${EMACS_LISPPREFIX}/site-start.d/20-calc.el
+
 .include "../../mk/bsd.pkg.mk"

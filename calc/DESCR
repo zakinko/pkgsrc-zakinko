@@ -22,6 +22,3 @@ series of calculators, its many features include:
    * Graphics using GNUPLOT, a versatile (and free) plotting program.
    * Easy programming using keyboard macros, algebraic formulas,
      algebraic rewrite rules, or extended Emacs Lisp.
-
-calc.info lists the autoloads to put in .emacs.el; the package is already on
-the load-path.

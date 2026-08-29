@@ -1767,3 +1767,4 @@ share/emacs/${EMACSVERSION}/lisp/xt-mouse.el
 share/emacs/${EMACSVERSION}/lisp/xt-mouse.elc
 share/emacs/${EMACSVERSION}/site-lisp/subdirs.el
 share/emacs/site-lisp/subdirs.el
+share/emacs/site-lisp/site-start.el

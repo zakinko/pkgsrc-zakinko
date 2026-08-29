@@ -1276,4 +1276,5 @@ share/emacs/${PKGVERSION}/lisp/zone-mode.el
 share/emacs/${PKGVERSION}/lisp/zone-mode.elc
 share/emacs/${PKGVERSION}/site-lisp/subdirs.el
 share/emacs/site-lisp/subdirs.el
+share/emacs/site-lisp/site-start.el
 @pkgdir share/emacs/${PKGVERSION}/leim
