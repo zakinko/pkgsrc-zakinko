@@ -4,13 +4,13 @@ PKGNAME=	${DISTNAME:S/mozc-/mozc-tool-/}
 
 INSTALLATION_DIRS+=	libexec
 
-DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server333
+DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server333
 
 # This builds with GYP as well: gui.gyp defines mozc_tool outside any
 # conditions block, so all it takes is letting the build find Qt
 # (patch-gui_qt__libraries.gypi and patch-gui_qt__tool__dir.gypi).  That is
 # what makes it different from mozc-renderer.
-.include "../../zakinko/mozc-server333/options.mk"
+.include "../../inputmethod/mozc-server333/options.mk"
 
 .if empty(PKG_OPTIONS:Mgyp)
 do-build:
@@ -46,5 +46,5 @@ do-install:
 		${DESTDIR}${PREFIX}/libexec
 .endif
 
-.include "../../zakinko/mozc-server333/Makefile.common"
+.include "../../inputmethod/mozc-server333/Makefile.common"
 .include "../../mk/bsd.pkg.mk"

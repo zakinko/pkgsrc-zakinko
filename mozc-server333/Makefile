@@ -4,7 +4,7 @@ PKGNAME=	${DISTNAME:S/mozc-/mozc-server-/}
 
 INSTALLATION_DIRS+=	libexec
 
-.include "../../zakinko/mozc-server333/options.mk"
+.include "../../inputmethod/mozc-server333/options.mk"
 
 # No GUI is built here, so Qt is not needed.
 MOZC_GYP_ARGS=	--noqt

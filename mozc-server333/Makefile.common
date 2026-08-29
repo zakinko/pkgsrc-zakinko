@@ -1,9 +1,9 @@
 # $NetBSD$
 
-# used by zakinko/mozc-elisp333/Makefile
-# used by zakinko/mozc-renderer333/Makefile
-# used by zakinko/mozc-server333/Makefile
-# used by zakinko/mozc-tool333/Makefile
+# used by inputmethod/mozc-elisp333/Makefile
+# used by inputmethod/mozc-renderer333/Makefile
+# used by inputmethod/mozc-server333/Makefile
+# used by inputmethod/mozc-tool333/Makefile
 
 # 3.33.6089 is the last mozc that carries GYP.  The next tag, 3.33.6133, has
 # neither src/build_mozc.py nor src/gyp/ -- they were removed on 2026-03-11
@@ -63,8 +63,8 @@ DISTFILES+=	${d}
 
 WRKSRC=		${WRKDIR}/${DISTNAME}/src
 
-DISTINFO_FILE=	${.CURDIR}/../../zakinko/mozc-server333/distinfo
-PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server333/patches
+DISTINFO_FILE=	${.CURDIR}/../../inputmethod/mozc-server333/distinfo
+PATCHDIR=	${.CURDIR}/../../inputmethod/mozc-server333/patches
 
 PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
@@ -73,7 +73,7 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 .if empty(PKG_OPTIONS:Mgyp)
 # 3.33's .bazeliskrc pins USE_BAZEL_VERSION=8.4.1, but carrying a second
 # bazel just for this package costs more than moving the dependencies
-# forward.  zakinko/bazel9 is the 9.2.0 that mozc 3.34 needs anyway, so
+# forward.  devel/bazel9 is the 9.2.0 that mozc 3.34 needs anyway, so
 # both versions build with the one tool.
 #
 # The rules_cc 0.2.2 that 3.33 pins reads the CcInfo, DebugPackageInfo and
@@ -81,7 +81,7 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 # loading phase; patch-MODULE.bazel raises it to 0.2.17 and adds what
 # upstream added in 3.34 for bazel 9.  Measured on NetBSD 11.0/amd64:
 # server:mozc_server builds, 2125 actions, no errors.
-TOOL_DEPENDS+=	bazel>=9.0.0:../../zakinko/bazel9
+TOOL_DEPENDS+=	bazel>=9.0.0:../../devel/bazel9
 # 3.33 replaced WORKSPACE.bazel with MODULE.bazel.  bzlmod resolves its
 # dependencies while building, so lining up tarballs under --distdir the way
 # the 2.29 packages do does not close the build.

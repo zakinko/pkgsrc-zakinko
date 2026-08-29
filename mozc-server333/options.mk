@@ -29,7 +29,7 @@ PKG_SUPPORTED_OPTIONS=	gyp
 #
 # Note that only x86_64 has been measured.  aarch64 is included because the
 # JDK and the 64-bit requirement are both satisfied, not because anyone has
-# built it: zakinko/bazel9 carries no aarch64 branch and was built on amd64.
+# built it: devel/bazel9 carries no aarch64 branch and was built on amd64.
 .if ${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
 PKG_SUGGESTED_OPTIONS+=	gyp
@@ -39,12 +39,12 @@ PKG_SUGGESTED_OPTIONS+=	gyp
 
 # The default above only chooses; it does not stop anyone from asking for the
 # bazel build on a platform where bazel cannot exist.  Without this the build
-# fails while resolving TOOL_DEPENDS, and the message names zakinko/bazel9
+# fails while resolving TOOL_DEPENDS, and the message names devel/bazel9
 # rather than mozc, which reads as a missing package rather than as a wrong
 # choice.
 .if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
-PKG_FAIL_REASON+=	"The bazel build needs zakinko/bazel9, which builds"	\
+PKG_FAIL_REASON+=	"The bazel build needs devel/bazel9, which builds"	\
 			"only on NetBSD x86_64 and aarch64."			\
 			"Set PKG_OPTIONS.mozc=gyp to build mozc here."
 .endif

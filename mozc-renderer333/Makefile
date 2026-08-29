@@ -5,7 +5,7 @@ PKGNAME=	${DISTNAME:S/mozc-/mozc-renderer-/}
 INSTALLATION_DIRS+=	libexec share/icons
 
 DEPENDS+=	xdg-utils-[0-9]*:../../misc/xdg-utils
-DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server333
+DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server333
 
 # Upstream's renderer/renderer.gyp defines mozc_renderer only inside the
 # OS=="win" and OS=="mac" conditions.  The sources are all in renderer/qt/
@@ -16,7 +16,7 @@ DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server333
 # inputmethod/mozc-server226 carries the same kind of patch for the GTK
 # candidate window.  Upstream dropped GTK in 3.33 and the Qt renderer took
 # its place, so the same treatment is needed here.
-.include "../../zakinko/mozc-server333/options.mk"
+.include "../../inputmethod/mozc-server333/options.mk"
 
 .if empty(PKG_OPTIONS:Mgyp)
 do-build:
@@ -66,5 +66,5 @@ do-install:
 		${DESTDIR}${PREFIX}/share/icons/mozc.png
 .endif
 
-.include "../../zakinko/mozc-server333/Makefile.common"
+.include "../../inputmethod/mozc-server333/Makefile.common"
 .include "../../mk/bsd.pkg.mk"

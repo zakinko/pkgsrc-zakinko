@@ -6,9 +6,9 @@ CATEGORIES=	inputmethod editors
 # The helper does no conversion of its own; it talks to mozc_server, and the
 # client refuses a server whose version string differs (client.cc,
 # CheckVersionOrRestartServer).  So pin the version, not just the package.
-DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server333
+DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server333
 
-.include "../../zakinko/mozc-server333/options.mk"
+.include "../../inputmethod/mozc-server333/options.mk"
 
 MOZC_GYP_ARGS=	--noqt
 
@@ -64,5 +64,5 @@ do-install:
 		${DESTDIR}${EMACS_LISPPREFIX}
 .endif
 
-.include "../../zakinko/mozc-server333/Makefile.common"
+.include "../../inputmethod/mozc-server333/Makefile.common"
 .include "../../mk/bsd.pkg.mk"
