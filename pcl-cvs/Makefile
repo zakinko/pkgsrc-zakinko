@@ -24,6 +24,16 @@ EMACS_VERSIONS_ACCEPTED=	emacs20
 
 .include "../../editors/emacs/modules.mk"
 
+# There used to be a second PKG_FAIL_REASON here, for EMACS_FLAVOR != emacs or
+# EMACS_VERSION_MAJOR != 20.  modules.mk already sets one from the line above:
+#
+#	.if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
+#	PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
+#
+# and with emacs20 the only accepted type, the two conditions are the same
+# one -- emacs20 is the emacs flavour at major 20 and nothing else is.  The
+# duplicate only added a second line to the same failure.
+
 MAKE_ENV+=	PREFIX=${DESTDIR}${PREFIX}
 BUILD_TARGET=	default
 INFO_FILES=	yes
