@@ -5,4 +5,4 @@ SHA512 (calc-2.02f.tar.gz) = e39e32ef75477f532c0ddbb56d60fb87390b58009e69052e2a8
 Size (calc-2.02f.tar.gz) = 831865 bytes
 SHA1 (patch-aa) = a2f40206a22dd6f5c5f29c97a19605f6dbcda979
 SHA1 (patch-ab) = 3790d3a41db9446c8092678a762ae9a6a3e07745
-SHA1 (patch-calc-graph.el) = 197dd502d5c888503b2a73f2f41f17e6e2555b13
+SHA1 (patch-calc-graph.el) = 18d8d939c7026d7358bd63a03b4a5e079c59f448

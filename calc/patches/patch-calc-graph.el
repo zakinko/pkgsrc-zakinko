@@ -23,6 +23,16 @@ has no such primitive, so the files are moved out of the shared directory
 altogether, into ~/.calc-tmp made 0700 first.  editors/emacs20's fast-lock
 patch takes the same way out, dropping "." from the cache directories.
 
+A third change follows from the second.  calc-graph-show-tty pastes the
+output file name into a shell command without quoting it:
+
+	"-c" (format "cat %s >/dev/tty; rm %s" output output)
+
+With "auto" or "tty" output that name is the temporary file, so it used to be
+/tmp/calc... and could not contain anything the shell would look at.  A path
+under the user's home can, so it is quoted now.  shell-quote-argument is in
+20.7 and 21.4.
+
 --- calc-graph.el.orig
 +++ calc-graph.el
 @@ -32,7 +32,12 @@
@@ -67,3 +77,22 @@ patch takes the same way out, dropping "." from the cache directories.
  			  (concat calc-gnuplot-tempfile
  				  (if (<= num 0)
  				      (char-to-string (- ?A num))
+@@ -883,9 +902,15 @@
+ (defun calc-graph-show-tty (output)
+   "Default calc-gnuplot-plot-command for \"tty\" output mode.
+ This is useful for tek40xx and other graphics-terminal types."
+-  (call-process-region 1 1 shell-file-name
+-		       nil calc-gnuplot-buffer nil
+-		       "-c" (format "cat %s >/dev/tty; rm %s" output output))
++  ;; output is a file name, and with "auto" or "tty" output it is the
++  ;; temporary file calc-temp-file-name just made.  It is pasted into a
++  ;; shell command, so it has to be quoted: under /tmp it never contained
++  ;; anything the shell would look at, but a path under the user's home
++  ;; can.
++  (let ((q (shell-quote-argument output)))
++    (call-process-region 1 1 shell-file-name
++			 nil calc-gnuplot-buffer nil
++			 "-c" (format "cat %s >/dev/tty; rm %s" q q)))
+ )
+ 
+ (defun calc-graph-show-dumb (&optional output)
