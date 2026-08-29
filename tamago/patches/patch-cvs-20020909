@@ -1,11 +1,14 @@
 $NetBSD$
 
-The 4.0.6 tarball predates the CVS tree it was cut from; this brings it up to
-the 2001-01-27 state, which is what upstream's own instructions assume.  It
-touches 41 files, so pkglint asks for it to be split one patch per file.  It
-is not split here on purpose: every piece would carry this same sentence, and
-41 copies of it read worse than one.  Splitting is worth doing if the changes
-are ever separated by intent rather than by file.
+Bring the tree up to the upstream CVS state of 2002-09-09, which is what
+PKGNAME says this package is: the 4.0.6 tarball is the 2001-01-27 import and
+the work that makes tamago usable with emacs 21 and with the Wnn and Canna
+servers of the time went in after it.  Upstream never cut another release.
+
+It touches 41 files and adds 9, so pkglint asks for it to be split one patch
+per file.  It is not split here on purpose: the 41 pieces have one reason
+between them, and 41 copies of this paragraph read worse than one.  Splitting
+is worth doing if the changes are ever separated by intent rather than by file.
 
 --- AUTHORS	27 Jan 2001 18:45:24 -0000	1.1.1.1
 +++ AUTHORS	23 Aug 2002 07:46:38 -0000	1.2

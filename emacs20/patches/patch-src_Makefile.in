@@ -1,6 +1,6 @@
 $NetBSD$
 
-Four things in the src makefile.
+Three things in the src makefile.
 
 Put @LIBXPM@ on the Xaw link line.  Xaw itself is sometimes linked against Xpm,
 and then -lXaw alone leaves Xpm symbols unresolved.  patch-configure.in adds
@@ -11,14 +11,21 @@ the test that fills this in:
 LINKER is $(CC) -nostdlib, which drops the standard libraries as well as the
 startup files.  -nostartfiles is what was meant.
 
-Drop the "bytecomp" step from all.  It ran the freshly dumped emacs to compile
-five lisp files, and those .elc files are already in the distribution.
+Drop the "bytecomp" target.  It comes from the Mule 4.1b patch, not from
+emacs, and it runs the dumped emacs to byte-compile five lisp files -- but
+dumping needs those .elc files to exist first, so it runs a step too late to
+be of use.  The five are fetched instead, as emacs-20.7-mule-4.1b-elc.tar.gz;
+its README says why:
 
-Disable ASLR on temacs and on the dumped emacs.  unexec writes the running
-image out as an executable, so the addresses have to be the same next time;
-with security.pax.aslr.global on, which is the default on NetBSD, they are not,
-and the result crashes at random points.  || true keeps this working where
-paxctl is not present.
+	These files have to be ditributed separately since in Emacs build
+	Emacs needs *.elc files to dump from temacs; on the other hand,
+	Emacs can't (or very difficult) do byte compile Emacs lisp files
+	before dumped.
+
+		Masao Uebayashi <uebayasi@netbsd.org>
+
+The paxctl calls that used to be in here are patch-pax-aslr now; they are a
+different kind of change and the other emacs packages need the same one.
 
 --- src/Makefile.in.orig	2016-11-26 06:25:26.875919180 +0000
 +++ src/Makefile.in
@@ -56,19 +63,3 @@ paxctl is not present.
  
  emacs: temacs ${etc}DOC ${lisp}
  #ifdef CANNOT_DUMP
-@@ -823,6 +816,7 @@ emacs: temacs ${etc}DOC ${lisp}
- #else /* ! defined (HAVE_SHM) */
- 	./temacs -batch -l loadup dump
- #endif /* ! defined (HAVE_SHM) */
-+	/usr/sbin/paxctl +a emacs || true
- #endif /* ! defined (CANNOT_DUMP) */
- 	-./emacs -q -batch -f list-load-path-shadows
- 
-@@ -851,6 +845,7 @@ temacs: MAKE_PARALLEL $(LOCALCPP) $(STAR
- 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
-     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
-     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
-+	/usr/sbin/paxctl +a temacs || true
- 
- /* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
-    often contain options that have to do with using Emacs's crt0,
