@@ -81,9 +81,11 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない。積み残しの CVE 二本も当てる |
 | [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
+| [leim20/](leim20/) | `editors/leim20` | 版を四箇所直書きしていたのを `${VERSION}` へ。LICENSE と当て物の説明 |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
 | [mozc-elisp226/](mozc-elisp226/) | `inputmethod/mozc-elisp226` | 要らない GUI 依存を外し、要る mozc-server を足す。emacs29〜31 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
+| [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
 | [xwpe/](xwpe/) | `editors/xwpe` | 1.6.9 へ上げ、当て物を 9 本から 3 本に減らす (pkgsrc PR #180) |
 | [zls/](zls/) | `devel/zls` | 0.16.0 へ上げて BROKEN を外す (pkgsrc PR #164) |
 

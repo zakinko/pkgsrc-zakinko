@@ -1,0 +1,10 @@
+$NetBSD: distinfo,v 1.7 2021/10/26 10:21:32 nia Exp $
+
+BLAKE2s (emacs-20.7.tar.gz) = 42da52d0764c5ab4dc82919a2515fefa5b74205e33a56e8eef5833b3b1943538
+SHA512 (emacs-20.7.tar.gz) = d782acdaa496ba5f606efa29976a00434a6e571c632f5511bc0b67cb7db7fd77aa5aedb12dac31abdced55f48170f9201cc35d6d533e2bc0a67f78bbdaa7da2a
+Size (emacs-20.7.tar.gz) = 15043428 bytes
+BLAKE2s (leim-20.7.tar.gz) = ab378f1da9666da526eefe0d24854aeb486901299f0851f9c4becd64473f98bc
+SHA512 (leim-20.7.tar.gz) = f8429fbbfedeaf38bf7f5357c848f32e952e30bc7d1903d0e12a4dca85d6f6384423786f8156bcb8facaf1ca3e214e0246cb8d8a388c19592a4d7a6a829b67b6
+Size (leim-20.7.tar.gz) = 3288714 bytes
+SHA1 (patch-aa) = 8719b24db9baac335cad806e0f69b2ecdaf7fa22
+SHA1 (patch-ab) = 188de871efd92aaf7142207cef15f85464199fb6
