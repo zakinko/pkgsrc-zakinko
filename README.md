@@ -78,7 +78,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
-| [calc/](calc/) | `math/calc` | LICENSE が gnu-gpl-v1 (1989 年版)。MESSAGE を DESCR へ。当て物の説明 |
+| [calc/](calc/) | `math/calc` | **/tmp に予測できる名前で書いていたのを直す**。LICENSE が gnu-gpl-v1 (1989 年版)。site-start.d で autoload を登録。当て物の説明 |
 | [emacs-ilisp/](emacs-ilisp/) | `devel/emacs-ilisp` | GPL でない独自許諾の文面を files/ に用意。当て物 4 本の説明 |
 | [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない。積み残しの CVE 二本も当てる |
 | [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
