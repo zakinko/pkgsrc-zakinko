@@ -2,9 +2,26 @@ $NetBSD: patch-lib-src_profile_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
 
 - fix void main
 
---- lib-src/profile.c~	1994-07-25 23:20:58.000000000 +0000
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
+--- lib-src/profile.c.orig
 +++ lib-src/profile.c
-@@ -66,7 +66,7 @@ get_time ()
+@@ -33,6 +33,10 @@
+ #include <../src/config.h>
+ #include <../src/systime.h>
+ 
++/* Declare the standard functions this file calls. */
++#include <stdlib.h>
++#include <time.h>
++
+ static struct timeval TV1, TV2;
+ static int watch_not_started = 1; /* flag */
+ static char time_string[30];
+@@ -66,7 +70,7 @@
    return time_string;
  }
  

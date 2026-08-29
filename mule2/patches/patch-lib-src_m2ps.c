@@ -17,9 +17,15 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/m2ps.c.orig
 +++ lib-src/m2ps.c
-@@ -52,6 +52,27 @@
+@@ -52,6 +52,30 @@
  
  #include <../src/paths.h>
  
@@ -27,6 +33,9 @@ nothing about what is built.  Only what the source says out loud.
 +   headers, the tree's own through the type their definition carries.
 +   Reaching either through an implicit declaration is what C99 removed. */
 +#include <stdlib.h>
++
++/* Declare the standard functions this file calls. */
++#include <string.h>
 +extern int bdf_initialize ();
 +extern int bdf_load_font ();
 +extern int bdf_load_glyph ();
@@ -47,7 +56,7 @@ nothing about what is built.  Only what the source says out loud.
  static char *m2ps_version = "2.2";
  
  #ifndef PSHeader
-@@ -124,7 +145,7 @@
+@@ -124,7 +148,7 @@
  /* GLOBAL VARIABLES */
  int clm, row, current_lc;
  
@@ -56,7 +65,7 @@ nothing about what is built.  Only what the source says out loud.
       int lc;
  {				/* 93.5.7, 94.11.29 by K.Handa -- Big change */
    if (FONT_LOADED (lc) == 0) {
-@@ -140,7 +161,7 @@
+@@ -140,7 +164,7 @@
    }
  }
  
@@ -65,7 +74,7 @@ nothing about what is built.  Only what the source says out loud.
       int lc;
  {
    bzero(((font_extra *)font[lc & 0x7F].extra)->new, 256 * (sizeof (char)));
-@@ -148,7 +169,7 @@
+@@ -148,7 +172,7 @@
  
  /* Load specified glyph, then return the index to glyph.  Note the index
     is within the range of [0,255].  Return -1 if error. */
@@ -74,7 +83,7 @@ nothing about what is built.  Only what the source says out loud.
       int lc, c;
  {
    if (!DEFINED1(lc, c)) {
-@@ -161,7 +182,7 @@
+@@ -161,7 +185,7 @@
    return c;
  }
  
@@ -83,7 +92,7 @@ nothing about what is built.  Only what the source says out loud.
       font_struct *fontp;
       int lc, c;
  {
-@@ -189,7 +210,7 @@
+@@ -189,7 +213,7 @@
  /* Load specified glyph, replacing previously loaded glyph if necessary,
     then return the index to glyph.  Note the index is within the range
     of [0,255].  Return -1 if error. */
@@ -92,7 +101,7 @@ nothing about what is built.  Only what the source says out loud.
       int lc, c;
  {
    int code;
-@@ -212,7 +233,7 @@
+@@ -212,7 +236,7 @@
    return code;
  }
  
@@ -101,7 +110,7 @@ nothing about what is built.  Only what the source says out loud.
       unsigned char *buf;
       int from, to;
  {
-@@ -229,7 +250,7 @@
+@@ -229,7 +253,7 @@
    bcopy(buf2, buf + from, to - from);
  }
  
@@ -110,7 +119,7 @@ nothing about what is built.  Only what the source says out loud.
  {
    register int i, j, k, c, lc;
    char buf[1024];		/* 92.11.6 by K.Shibata */
-@@ -406,7 +427,7 @@
+@@ -406,7 +430,7 @@
    ps_eot();
  }
  
@@ -119,7 +128,7 @@ nothing about what is built.  Only what the source says out loud.
       int c;
  {
    c += '@';
-@@ -417,7 +438,7 @@
+@@ -417,7 +441,7 @@
    }
  }    
  
@@ -128,7 +137,7 @@ nothing about what is built.  Only what the source says out loud.
       int c;
  {
    int i;
-@@ -434,7 +455,7 @@
+@@ -434,7 +458,7 @@
    }
  }
  
@@ -137,7 +146,7 @@ nothing about what is built.  Only what the source says out loud.
       int argc;
       char *argv[];
  {
-@@ -502,7 +523,7 @@
+@@ -502,7 +526,7 @@
  /* PostScript staffs */
  /*********************/
  
@@ -146,7 +155,7 @@ nothing about what is built.  Only what the source says out loud.
  {
    int c;
    FILE *fp;
-@@ -521,7 +542,7 @@
+@@ -521,7 +545,7 @@
    printf("/ShortMemory %s def\n", (shortmemory ? "true" : "false"));
  }
  
@@ -155,7 +164,7 @@ nothing about what is built.  Only what the source says out loud.
  {
    printf("end\n");
  }
-@@ -529,7 +550,7 @@
+@@ -529,7 +553,7 @@
  /* Define new PS font for a leading char LC.
     No_cache flag is for the fonts be modified (replacing the glyphs, etc.)
     at execution time. */
@@ -164,7 +173,7 @@ nothing about what is built.  Only what the source says out loud.
       int lc;
  {
    font_struct *fontp = &font[lc & 0x7F];
-@@ -542,13 +563,13 @@
+@@ -542,13 +566,13 @@
  	 (fontp->bytes == 1 ? "true" : "false"));
  }
  
@@ -180,7 +189,7 @@ nothing about what is built.  Only what the source says out loud.
       int encoding;
       glyph_struct *glyph;
  {
-@@ -567,7 +588,7 @@
+@@ -567,7 +591,7 @@
  	 bitmap);
  }
  
@@ -189,7 +198,7 @@ nothing about what is built.  Only what the source says out loud.
  {
    int lc;
  
-@@ -581,7 +602,7 @@
+@@ -581,7 +605,7 @@
    }
  }
  

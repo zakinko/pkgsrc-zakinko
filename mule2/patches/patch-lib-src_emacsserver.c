@@ -32,9 +32,26 @@ warning here now stops the build.  Where the declaration was simply wrong
 it is corrected; where the system call or the library has moved since 1995
 the value is converted at the call.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/emacsserver.c.orig
 +++ lib-src/emacsserver.c
-@@ -53,12 +53,43 @@
+@@ -26,6 +26,10 @@
+ 
+ #define NO_SHORTNAMES
+ #include <../src/config.h>
++
++/* Declare the standard functions this file calls. */
++#include <unistd.h>
++#include <fcntl.h>
+ #undef read
+ #undef write
+ #undef open
+@@ -53,12 +57,43 @@
  #include <sys/socket.h>
  #include <sys/signal.h>
  #include <sys/un.h>
@@ -79,7 +96,7 @@ the value is converted at the call.
  {
    char system_name[32];
    int s, infd, fromlen;
-@@ -89,8 +120,17 @@
+@@ -89,8 +124,17 @@
      }
    server.sun_family = AF_UNIX;
  #ifndef SERVER_HOME_DIR
@@ -99,7 +116,7 @@ the value is converted at the call.
  
    if (unlink (server.sun_path) == -1 && errno != ENOENT)
      {
-@@ -137,7 +177,7 @@
+@@ -137,7 +181,7 @@
  	  fromlen = sizeof (fromunix);
  	  fromunix.sun_family = AF_UNIX;
  	  infd = accept (s, (struct sockaddr *) &fromunix,

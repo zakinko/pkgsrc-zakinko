@@ -18,9 +18,15 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/coco.c.orig
 +++ lib-src/coco.c
-@@ -1,6 +1,15 @@
+@@ -1,6 +1,18 @@
  #include <stdio.h>
 +#include <stdlib.h>
  #include "mulelib.h"
@@ -29,6 +35,9 @@ nothing about what is built.  Only what the source says out loud.
 +   headers, the tree's own through the type their definition carries.
 +   Reaching either through an implicit declaration is what C99 removed. */
 +#include <unistd.h>
++
++/* Declare the standard functions this file calls. */
++#include <string.h>
 +extern int code_conversion ();
 +extern int mulelib_initialize ();
 +extern int set_coding_system ();
@@ -36,7 +45,7 @@ nothing about what is built.  Only what the source says out loud.
  #define IN_BUF_SIZE 4096
  #define OUT_BUF_SIZE (IN_BUF_SIZE * 5 + CONV_BUF_EXTRA)
  
-@@ -13,7 +22,7 @@
+@@ -13,7 +25,7 @@
    return strcmp(*p0, *p1);
  }
  
@@ -45,7 +54,7 @@ nothing about what is built.  Only what the source says out loud.
       FILE *stream;
  {
    int i, j, k, clm, len, maxlen;
-@@ -58,7 +67,7 @@
+@@ -58,7 +70,7 @@
    return 0;
  }
  

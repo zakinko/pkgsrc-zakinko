@@ -11,10 +11,21 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/fakemail.c.orig
 +++ lib-src/fakemail.c
-@@ -23,7 +23,7 @@
+@@ -21,9 +21,12 @@
+ #define NO_SHORTNAMES
+ #include <../src/config.h>
  
++/* Declare the standard functions this file calls. */
++#include <stdlib.h>
++
  #if defined (BSD) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
  /* This program isnot used in BSD, so just avoid loader complaints.  */
 -main ()

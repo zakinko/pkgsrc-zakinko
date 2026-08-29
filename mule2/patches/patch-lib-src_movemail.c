@@ -24,12 +24,21 @@ warning here now stops the build.  Where the declaration was simply wrong
 it is corrected; where the system call or the library has moved since 1995
 the value is converted at the call.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/movemail.c.orig
 +++ lib-src/movemail.c
-@@ -59,6 +59,14 @@
+@@ -59,6 +59,17 @@
  #include <string.h>
  #include <../src/syswait.h>
  
++/* Declare the standard functions this file calls. */
++#include <time.h>
++
 +/* Declare what this program calls: the standard functions through their
 +   headers, the tree's own through the type their definition carries.
 +   Reaching either through an implicit declaration is what C99 removed. */
@@ -41,7 +50,7 @@ the value is converted at the call.
  #ifdef MSDOS
  #undef access
  #endif /* MSDOS */
-@@ -109,7 +117,7 @@
+@@ -109,7 +120,7 @@
  /* Nonzero means this is name of a lock file to delete on fatal error.  */
  char *delete_lockname;
  
@@ -50,7 +59,7 @@ the value is converted at the call.
       int argc;
       char **argv;
  {
-@@ -337,7 +345,7 @@
+@@ -337,7 +348,7 @@
        exit (0);
      }
  
@@ -59,7 +68,7 @@ the value is converted at the call.
    if (!WIFEXITED (status))
      exit (1);
    else if (WRETCODE (status) != 0)
-@@ -351,7 +359,7 @@
+@@ -351,7 +362,7 @@
  
  /* Print error message and exit.  */
  
@@ -68,7 +77,7 @@ the value is converted at the call.
       char *s1, *s2;
  {
    if (delete_lockname)
-@@ -362,7 +370,7 @@
+@@ -362,7 +373,7 @@
  
  /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
  
@@ -77,7 +86,7 @@ the value is converted at the call.
       char *s1, *s2, *s3;
  {
    printf ("movemail: ");
-@@ -370,7 +378,7 @@
+@@ -370,7 +381,7 @@
    printf ("\n");
  }
  
@@ -86,7 +95,7 @@ the value is converted at the call.
       char *name;
  {
    extern char *strerror ();
-@@ -380,7 +388,7 @@
+@@ -380,7 +391,7 @@
    fatal (s, name);
  }
  

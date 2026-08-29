@@ -20,9 +20,28 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/emacsclient.c.orig
 +++ lib-src/emacsclient.c
-@@ -54,7 +54,7 @@
+@@ -20,6 +20,12 @@
+ 
+ #define NO_SHORTNAMES
+ #include <../src/config.h>
++
++/* Declare the standard functions this file calls. */
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <fcntl.h>
+ #undef read
+ #undef write
+ #undef open
+@@ -54,7 +60,7 @@
  
  extern char *strerror ();
  
@@ -31,7 +50,7 @@ nothing about what is built.  Only what the source says out loud.
       int argc;
       char **argv;
  {
-@@ -85,9 +85,32 @@
+@@ -85,9 +91,32 @@
  #ifndef SERVER_HOME_DIR
    {
      struct stat statbfr;

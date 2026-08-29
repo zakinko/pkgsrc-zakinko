@@ -1,6 +1,4 @@
-$NetBSD: patch-lib-src_fakelisp_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
-
-- use standard headers
+$NetBSD$
 
 Include the headers that declare what this file calls.
 
@@ -8,15 +6,17 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
---- lib-src/fakelisp.c.orig
-+++ lib-src/fakelisp.c
-@@ -1,5 +1,9 @@
-+#include <stdlib.h>
- #include "fakelisp.h"
+--- lib-src/tcp.c.orig
++++ lib-src/tcp.c
+@@ -36,6 +36,11 @@
+ #include <ctype.h>
+ #include <sys/types.h>
  
 +/* Declare the standard functions this file calls. */
++#include <stdlib.h>
++#include <unistd.h>
 +#include <string.h>
 +
- void *Lisp_Object_Table[4096];
- int Lisp_Object_Index = 0;
- 
+ #ifdef FUJITSU_UTS
+ #define USG
+ #include <sys/ucbtypes.h>
