@@ -26,6 +26,7 @@ SHA1 (patch-aw) = 0ee1fe77f03ac52a74a2adb07220ce1b70a0c37d
 SHA1 (patch-ax) = 4a9a795fd08eedcd83c1c92ede566fd63f365bec
 SHA1 (patch-ba) = 066f6e0f1f69e1e477820589d9b9de4a4a168148
 SHA1 (patch-lib-src_etags.c) = edf6b56efa2eda205b482790fd952eefb552cc5a
+SHA1 (patch-lisp_emacs-lisp_find-gc.el) = 1c50239793a7c540d32a8d75c3725491108ee811
 SHA1 (patch-lisp_international_titdic-cnv.el) = cbd95417dce23d6b0f8f848a02d3e7c3e57d806a
 SHA1 (patch-lisp_net_browse-url.el) = 3a79852557d4bb2fde55382b5fa0ce5b5c0e1fb6
 SHA1 (patch-src_Makefile.in) = 656a199e1f2b2fcc7954935c1f9db1861c12bde0
