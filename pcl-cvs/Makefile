@@ -34,7 +34,15 @@ EMACS_VERSIONS_ACCEPTED=	emacs20
 # one -- emacs20 is the emacs flavour at major 20 and nothing else is.  The
 # duplicate only added a second line to the same failure.
 
-MAKE_ENV+=	PREFIX=${DESTDIR}${PREFIX}
+# The bundled makefile installs with $(PREFIX) in front of every path, so it
+# has to be told about DESTDIR.  MAKE_ENV cannot do it: pkgsrc puts its own
+# PREFIX=${PREFIX} into the environment after everything a package adds, and
+# the later one wins, so the package's line had no effect and the install ran
+# straight into the live ${PREFIX}.  What that produced was not a clean
+# failure -- 19 files and three info files landed under /usr/pkg, owned by no
+# package, and only then did pkg_create complain that the destdir was empty.
+# Flags on the command line beat the environment, so pass it there instead.
+INSTALL_MAKE_FLAGS+=	PREFIX=${DESTDIR}${PREFIX}
 BUILD_TARGET=	default
 INFO_FILES=	yes
 
