@@ -98,24 +98,25 @@ jobs:
       - name: 止まった場所を出す
         if: failure()
         run: |
-          tail -60 /tmp/build.log 2>/dev/null || true
-          # movemail は <fcntl.h> を深さ 0 で読んでいるのに open が暗黙宣言に
-          # なり、emacsserver は <sys/msg.h> を読んでいるのに struct msgbuf が
-          # 未定義になる。NetBSD では再現しないので、この箱の素の cc に同じ
-          # ことを訊いて、木の側の話かこちらの話かを分ける。
-          printf '#include <fcntl.h>\nint main (void) { return open ("/dev/null", 0); }\n' > /tmp/p1.c
+          tail -40 /tmp/build.log 2>/dev/null || true
+          # struct msgbuf は _DEFAULT_SOURCE でも出てこなかった。何を渡せば
+          # 出るのかを訊く。
           printf '#include <sys/ipc.h>\n#include <sys/msg.h>\nstruct msgbuf probe;\n' > /tmp/p2.c
-          for f in /tmp/p1.c /tmp/p2.c; do
-            for std in "" "-std=gnu11"; do
-              printf '%s %s => ' "$f" "${std:-既定}"
-              if cc -D_BSD_SOURCE -D_DEFAULT_SOURCE $std -c -o /dev/null "$f" 2>/tmp/e; then
-                echo "通る"
-              else
-                head -2 /tmp/e
-              fi
-            done
+          for d in -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700 "-D_DEFAULT_SOURCE -D_GNU_SOURCE"; do
+            printf 'msgbuf %s => ' "$d"
+            cc $d -c -o /dev/null /tmp/p2.c 2>/dev/null && echo "出る" || echo "出ない"
           done
-          for f in $(find / -path '*mule/lib-src/movemail.c' 2>/dev/null | head -1); do
-            echo "===== $f の 48-72"
-            sed -n '48,72p' "$f"
-          done
+          printf '__USE_MISC: '; printf '#include <features.h>\n' > /tmp/p3.c
+          cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -dM -E /tmp/p3.c | grep -c '__USE_MISC'
+          # movemail は <fcntl.h> を素で読めば open が通るのに、この file の
+          # 中では通らない。前処理器を通した後に何が残っているかを見る。
+          W=$(find / -path '*mule/lib-src/movemail.c' 2>/dev/null | head -1)
+          if [ -n "$W" ]; then
+            cd "$(dirname "$W")"
+            echo "=== open の宣言が前処理後に在るか"
+            cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
+               -E movemail.c 2>/dev/null | grep -c 'extern int open'
+            echo "=== open を巨視で触っているか"
+            cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
+               -dM -E movemail.c 2>/dev/null | grep -E '^#define (open|read|write|close)\b' || echo "触っていない"
+          fi
