@@ -65,6 +65,9 @@ SUBDIR+=	stnsd
 SUBDIR+=	tamago
 SUBDIR+=	uim-mozc
 SUBDIR+=	w3
+SUBDIR+=	xemacs
+SUBDIR+=	xemacs-current
+SUBDIR+=	xemacs-packages
 SUBDIR+=	xwpe
 SUBDIR+=	zls
 

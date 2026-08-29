@@ -95,6 +95,9 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
 | [tamago/](tamago/) | `editors/tamago` | LICENSE。12786 行の当て物が何かを書く |
 | [w3/](w3/) | `www/w3` | LICENSE と当て物 3 本の説明 |
+| [xemacs/](xemacs/) | `editors/xemacs` | MESSAGE を DESCR へ。COMMENT が package 名で始まるのを直す。効いていない PLIST_VARS+= debug |
+| [xemacs-current/](xemacs-current/) | `editors/xemacs-current` | 同上 |
+| [xemacs-packages/](xemacs-packages/) | `editors/xemacs-packages` | CATEGORIES の位置。LICENSE を単一で書けない理由を残す |
 | [xwpe/](xwpe/) | `editors/xwpe` | 1.6.9 へ上げ、当て物を 9 本から 3 本に減らす (pkgsrc PR #180) |
 | [zls/](zls/) | `devel/zls` | 0.16.0 へ上げて BROKEN を外す (pkgsrc PR #164) |
 
