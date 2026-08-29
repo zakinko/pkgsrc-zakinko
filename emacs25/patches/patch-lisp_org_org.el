@@ -1,31 +1,46 @@
 $NetBSD$
 
-Two things, both about Org fetching things it should ask about first.
+Three things, all about Org running or fetching something it should ask about
+first.
+
+An abbreviated link may name a function, and expanding the link called it, so
+following a link in a document ran code the document chose.  That is
+CVE-2024-39331, upstream commit c645e1d820 from the 29.4 release.  In Org
+8.2.10 org-link-expand-abbrev still lives in org.el rather than ol.el, so the
+change is made there; the code itself is upstream's.
 
 LaTeX preview was generated for e-mail attachments, and generating it runs
 LaTeX on content the sender wrote.  That is CVE-2024-30204, upstream commit
-6f9ea396f4 from the 29.3 emergency release, applied unchanged.
+6f9ea396f4 from the 29.3 emergency release.  8.2.10 guards the body with
+(when (display-graphic-p) ...) rather than the cond of later versions, so the
+test is added to that when.
 
 Org treated a remote file name as if it were local, so contents fetched over
 TRAMP were trusted.  That is CVE-2024-30205, upstream commit 2bc865ace0 with
-its follow-up 7a5d7be52c.  Neither applies to Org 9.4.4: the confirmation they
-extend does not exist in it at all, which fetches a URL named by a document
-with no prompt whatsoever.  So the whole mechanism is brought over from Emacs
-29.4 instead -- the options org-resource-download-policy and
-org-safe-remote-resources, and the three helpers they drive.  Placed just
-before org-file-contents, after org-file-url-p, which 9.4.4 has and 9.5.5 does
-not.
+its follow-up 7a5d7be52c.  Only half of it applies here: 8.2.10's
+org-file-contents has no URL path at all -- it reads a local file and nothing
+else -- but #+SETUPFILE: /ssh:host:/path is still fetched over TRAMP without a
+word to the user.  The confirmation the upstream commits extend does not exist
+in 8.2.10 either, so it is brought over from Emacs 29.4: the options
+org-resource-download-policy and org-safe-remote-resources, and the three
+helpers they drive.  The test is placed ahead of file-readable-p, because that
+call alone already opens the TRAMP connection.
+
+One substitution was needed: setq-local, which arrived in 24.3, is written as
+set + make-local-variable, and the rx form (? "s") as (optional "s").  Neither
+changes what the code does.
 
 --- lisp/org/org.el.orig
 +++ lisp/org/org.el
-@@ -1077,6 +1077,24 @@
+@@ -737,7 +737,25 @@
+   :version "24.4"
    :package-version '(Org . "8.0")
    :type 'boolean)
- 
++
 +(defvar untrusted-content) ; defined in files.el
 +(defvar org--latex-preview-when-risky nil
 +  "If non-nil, enable LaTeX preview in Org buffers from unsafe source.
-+
+ 
 +Some specially designed LaTeX code may generate huge pdf or log files
 +that may exhaust disk space.
 +
@@ -41,12 +56,12 @@ not.
 +This variable may be renamed or changed in the future.")
 +
  (defcustom org-insert-mode-line-in-empty-file nil
-   "Non-nil means insert the first line setting Org mode in empty files.
+   "Non-nil means insert the first line setting Org-mode in empty files.
  When the function `org-mode' is called interactively in an empty file, this
-@@ -4631,6 +4649,42 @@
-   "Non-nil if FILE is a URL."
-   (require 'ffap)
-   (string-match-p ffap-url-regexp file))
+@@ -5175,18 +5193,158 @@
+ 			  org-clock-string org-closed-string)))
+       (setq org-ota nil)
+       (org-compute-latex-and-related-regexp))))
 +
 +;; The remote-resource confirmation below is backported from Emacs 29.4
 +;; (Org 9.6/9.7).  The Org shipped here fetches a URL named by a document
@@ -84,67 +99,36 @@ not.
 +  :package-version '(Org . "9.6")
 +  :type '(repeat regexp))
  
- (defun org-file-contents (file &optional noerror nocache)
-   "Return the contents of FILE, as a string.
-@@ -4647,27 +4701,39 @@
- If NOCACHE is non-nil, do a fresh fetch of FILE even if cached version
- is available.  This option applies only if FILE is a URL."
-   (let* ((is-url (org-file-url-p file))
-+         (is-remote (condition-case nil
-+                        (file-remote-p file)
-+                      ;; In case of error, be safe.
-+                      (t t)))
-          (cache (and is-url
-                      (not nocache)
-                      (gethash file org--file-cache))))
-     (cond
-      (cache)
--     (is-url
--      (with-current-buffer (url-retrieve-synchronously file)
--	(goto-char (point-min))
--	;; Move point to after the url-retrieve header.
--	(search-forward "\n\n" nil :move)
--	;; Search for the success code only in the url-retrieve header.
--	(if (save-excursion
--	      (re-search-backward "HTTP.*\\s-+200\\s-OK" nil :noerror))
--	    ;; Update the cache `org--file-cache' and return contents.
--	    (puthash file
--		     (buffer-substring-no-properties (point) (point-max))
--		     org--file-cache)
--	  (funcall (if noerror #'message #'user-error)
--		   "Unable to fetch file from %S"
--		   file)
--	  nil)))
-+     ((or is-url is-remote)
-+      (if (org--should-fetch-remote-resource-p file)
-+          (condition-case error
-+              (with-current-buffer (url-retrieve-synchronously file)
-+                (goto-char (point-min))
-+                ;; Move point to after the url-retrieve header.
-+                (search-forward "\n\n" nil :move)
-+                ;; Search for the success code only in the url-retrieve header.
-+                (if (save-excursion
-+                      (re-search-backward "HTTP.*\\s-+200\\s-OK" nil :noerror))
-+                    ;; Update the cache `org--file-cache' and return contents.
-+                    (puthash file
-+                             (buffer-substring-no-properties (point) (point-max))
-+                             org--file-cache)
-+                  (funcall (if noerror #'message #'user-error)
-+                           "Unable to fetch file from %S"
-+                           file)
-+                  nil))
-+            (error (if noerror
-+                       (message "Org couldn't download \"%s\": %s %S" file (car error) (cdr error))
-+                     (signal (car error) (cdr error)))))
-+        (funcall (if noerror #'message #'user-error)
-+                 "The remote resource %S is considered unsafe, and will not be downloaded."
-+                 file)))
-      (t
-       (with-temp-buffer
-         (condition-case nil
-@@ -4680,6 +4746,95 @@
- 		    file)
- 	   nil)))))))
+ (defun org-file-contents (file &optional noerror)
+   "Return the contents of FILE, as a string."
+-  (if (or (not file) (not (file-readable-p file)))
+-      (if (not noerror)
+-	  (error "Cannot read file \"%s\"" file)
+-	(message "Cannot read file \"%s\"" file)
+-	"")
++  (cond
++   ;; A remote file name is fetched over TRAMP by file-readable-p and
++   ;; insert-file-contents below, and it is the document -- #+SETUPFILE: --
++   ;; not the user, that chose it.  Ask before connecting.  This is the half
++   ;; of CVE-2024-30205 that applies here; the URL half does not, because
++   ;; this org-file-contents has no URL path at all.
++   ((and file
++         (condition-case nil (file-remote-p file) (t t))
++         (not (org--should-fetch-remote-resource-p file)))
++    (if (not noerror)
++	(user-error "The remote resource %S is considered unsafe, and will not be downloaded." file)
++      (message "The remote resource %S is considered unsafe, and will not be downloaded." file)
++      ""))
++   ((or (not file) (not (file-readable-p file)))
++    (if (not noerror)
++	(error "Cannot read file \"%s\"" file)
++      (message "Cannot read file \"%s\"" file)
++      ""))
++   (t
+     (with-temp-buffer
+       (insert-file-contents file)
+-      (buffer-string))))
++      (buffer-string)))))
  
 +(defun org--should-fetch-remote-resource-p (uri)
 +  "Return non-nil if the URI should be fetched."
@@ -173,7 +157,7 @@ not.
 +    (let ((current-file (and (buffer-file-name (buffer-base-buffer))
 +                             (file-truename (buffer-file-name (buffer-base-buffer)))))
 +          (domain (and (string-match
-+                        (rx (seq "http" (? "s") "://")
++                        (rx (seq "http" (optional "s") "://")
 +                            (optional (+ (not (any "@/\n"))) "@")
 +                            (optional "www.")
 +                            (one-or-more (not (any ":/?\n"))))
@@ -207,7 +191,7 @@ not.
 +                " to download this resource, just this once.\n "
 +                (propertize "n" 'face 'error)
 +                " to skip this resource.\n")
-+        (setq-local cursor-type nil)
++        (set (make-local-variable 'cursor-type) nil)
 +        (set-buffer-modified-p nil)
 +        (goto-char (point-min)))
 +      ;; Display the buffer and read a choice.
@@ -235,14 +219,64 @@ not.
 +          (prog1 (memq char '(?y ?! ?d ?\s ?f))
 +            (quit-window t)))))))
 +
++
  (defun org-extract-log-state-settings (x)
    "Extract the log state setting from a TODO keyword string.
  This will extract info from a string like \"WAIT(w@/!)\"."
-@@ -15827,6 +15982,7 @@
+@@ -9361,16 +9519,33 @@
+ 	(if (not as)
+ 	    link
+ 	  (setq rpl (cdr as))
+-	  (cond
+-	   ((symbolp rpl) (funcall rpl tag))
+-	   ((string-match "%(\\([^)]+\\))" rpl)
+-	    (replace-match
+-	     (save-match-data
+-	       (funcall (intern-soft (match-string 1 rpl)) tag)) t t rpl))
+-	   ((string-match "%s" rpl) (replace-match (or tag "") t t rpl))
+-	   ((string-match "%h" rpl)
+-	    (replace-match (url-hexify-string (or tag "")) t t rpl))
+-	   (t (concat rpl tag)))))
++	  ;; Drop any potentially dangerous text properties like
++	  ;; `modification-hooks' that may be used as an attack vector.
++	  (substring-no-properties
++	   (cond
++	    ((symbolp rpl) (funcall rpl tag))
++	    ((string-match "%(\\([^)]+\\))" rpl)
++	     (let ((rpl-fun-symbol (intern-soft (match-string 1 rpl))))
++	       ;; Using `unsafep-function' is not quite enough because
++	       ;; Emacs considers functions like `genenv' safe, while
++	       ;; they can potentially be used to expose private system
++	       ;; data to attacker if abbreviated link is clicked.
++	       (if (or (eq t (get rpl-fun-symbol 'org-link-abbrev-safe))
++		       (eq t (get rpl-fun-symbol 'pure)))
++		   (replace-match
++		    (save-match-data
++		      (funcall (intern-soft (match-string 1 rpl)) tag)) t t rpl)
++		 (org-display-warning
++		  (format "Disabling unsafe link abbrev: %s
++You may mark function safe via (put '%s 'org-link-abbrev-safe t)"
++			  rpl (match-string 1 rpl)))
++		 (setq org-link-abbrev-alist-local (delete as org-link-abbrev-alist-local)
++		       org-link-abbrev-alist (delete as org-link-abbrev-alist))
++		 link)))
++	    ((string-match "%s" rpl) (replace-match (or tag "") t t rpl))
++	    ((string-match "%h" rpl)
++	     (replace-match (url-hexify-string (or tag "")) t t rpl))
++	    (t (concat rpl tag))))))
+     link))
+ 
+ ;;; Storing and inserting links
+@@ -18388,7 +18563,11 @@
    (interactive "P")
-   (cond
-    ((not (display-graphic-p)) nil)
-+   ((and untrusted-content (not org--latex-preview-when-risky)) nil)
-    ;; Clear whole buffer.
-    ((equal arg '(64))
-     (org-clear-latex-preview (point-min) (point-max))
+   (unless buffer-file-name
+     (user-error "Can't preview LaTeX fragment in a non-file buffer"))
+-  (when (display-graphic-p)
++  (when (and (display-graphic-p)
++             ;; Do not run LaTeX on fragments that came from an untrusted
++             ;; source; generating a preview runs LaTeX on what the sender
++             ;; wrote.  CVE-2024-30204.
++             (or (not untrusted-content) org--latex-preview-when-risky))
+     (org-remove-latex-fragment-image-overlays)
+     (save-excursion
+       (save-restriction

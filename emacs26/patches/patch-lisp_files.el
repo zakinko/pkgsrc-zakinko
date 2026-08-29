@@ -13,7 +13,7 @@ Both taken unchanged.
 
 --- lisp/files.el.orig
 +++ lisp/files.el
-@@ -587,7 +587,64 @@
+@@ -583,7 +583,64 @@
    "Non-nil means enable use of directory-local variables.
  Some modes may wish to set this to nil to prevent directory-local
  settings being applied, but still respect file-local ones.")
