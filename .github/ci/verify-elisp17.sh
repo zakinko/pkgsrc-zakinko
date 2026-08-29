@@ -74,7 +74,20 @@ for p in $LIST; do
 	printf "  --- %-24s " "$p"
 	( cd "$d" && $PKGMAKE $MKARGS clean ) > /dev/null 2>&1
 	if ( cd "$d" && $PKGMAKE $MKARGS package-install ) > "/tmp/$(basename $p).log" 2>&1; then
-		echo "ok"
+		# byte-compile の警告を数える。当て物で .el を書き換えたなら、
+		# 増えていないことまで見ないと「通った」と言えない。当て物が
+		# 触った file の名前を含む行は、数だけでなく中身も出す。
+		w=$(grep -c '^Warning:\|^In .*:$' "/tmp/$(basename $p).log" 2>/dev/null || echo 0)
+		echo "ok (byte-compile の警告 $w)"
+		if [ -d "$d/patches" ]; then
+			for pf in "$d"/patches/patch-*; do
+				[ -f "$pf" ] || continue
+				el=$(sed -n 's|^--- \(.*\.el\)\.orig.*|\1|p' "$pf" | head -1)
+				[ -n "$el" ] || continue
+				grep -F "$(basename "$el")" "/tmp/$(basename $p).log" 2>/dev/null \
+				  | grep -i 'warning' | head -6 | sed 's/^/        /'
+			done
+		fi
 		ok=$((ok+1))
 	else
 		echo "★ 転けた"
