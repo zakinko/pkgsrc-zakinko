@@ -26,11 +26,22 @@ on:
     paths:
       - 'mule2/**'
       - '.github/workflows/mule.yml'
-      - '.github/ci/**'
+      # .github/ci/** を丸ごと引いていたので、mule と関係ない検査を直した
+      # だけで六本が起動していた。あそこには verify-emacs.sh や
+      # verify-uim.sh や verify-xwpe.sh が並んでいて、誰かが触るたびに
+      # VM を建てる job が積み上がる。account 全体の待ち行列に効く。
+      #
+      # この workflow が実際に引くのは二つだけ。run-in-qemu.sh を呼び、
+      # UPSTREAM_PKG を設定しないので後半の mule2 の道に落ちて
+      # verify-mule2.sh に渡る。verify-pkg.sh は UPSTREAM_PKG があるときの
+      # 落ち先なので、こちらには関係ない。
+      - '.github/ci/run-in-qemu.sh'
+      - '.github/ci/verify-mule2.sh'
   pull_request:
     paths:
       - 'mule2/**'
-      - '.github/ci/**'
+      - '.github/ci/run-in-qemu.sh'
+      - '.github/ci/verify-mule2.sh'
   workflow_dispatch:
     inputs:
       images:
