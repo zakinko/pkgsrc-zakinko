@@ -1,0 +1,63 @@
+$NetBSD$
+
+Three things in the bundled Makefile.
+
+EMACS is set here; pkgsrc passes its own, so leave the assignment commented out
+the way the xemacs one already is.
+
+MAKEINFO is set and used to rebuild the info file.  The tarball ships one, and
+requiring makeinfo would add a build dependency for nothing.
+
+MAINT loads calc-maint.elc, which does not exist until the build has compiled
+it.  Load the source instead.
+
+--- Makefile.orig	Mon Dec 16 04:50:45 1996
++++ Makefile
+@@ -29,10 +29,9 @@
+ 
+ 
+ # Programs.
+-EMACS    = emacs
++#EMACS    = xemacs
+ TEX      = tex
+ TEXINDEX = texindex
+-MAKEINFO = makeinfo
+ MAKE	 = make
+ ECHO	 = @echo
+ REMOVE	 = -rm -f
+@@ -41,7 +40,7 @@ REMOVE	 = -rm -f
+ 
+ # Other macros.
+ EFLAGS   = -batch
+-MAINT	 = -l calc-maint.elc
++MAINT	 = -l calc-maint.el
+ 
+ # Control whether intermediate files are kept.
+ PURGE	 = -rm -f
+@@ -54,13 +53,10 @@ PURGE	 = -rm -f
+ # to make the steps more explicit while the `make' is in progress.
+ all:
+ 	$(MAKE) compile
+-	$(MAKE) private
+ 	$(MAKE) info
+-	$(ECHO) "Calc is now installed."
+ 
+ install:
+ 	$(MAKE) compile
+-	$(MAKE) public
+ 	$(MAKE) info
+ 	$(ECHO) "Calc is now installed."
+ 
+@@ -83,9 +79,9 @@ private: maint
+ # Format the Calc manual for the Info system using makeinfo.
+ info: calc.info
+ calc.info: calc.texinfo
+-	-$(MAKEINFO) calc.texinfo
+-	$(ECHO) "Please ignore warnings for Copying, Getting Started, and Interactive Tutorial."
+-	$(MAKE) texinfo
++	$(MAKEINFO) --no-validate calc.texinfo
++#	$(ECHO) "Please ignore warnings for Copying, Getting Started, and Interactive Tutorial."
++#	$(MAKE) texinfo
+ 
+ 
+ # Format the Calc manual for the Info system using texinfo.el.

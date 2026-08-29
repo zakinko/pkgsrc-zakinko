@@ -78,14 +78,23 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
+| [calc/](calc/) | `math/calc` | LICENSE が gnu-gpl-v1 (1989 年版)。MESSAGE を DESCR へ。当て物の説明 |
+| [emacs-ilisp/](emacs-ilisp/) | `devel/emacs-ilisp` | GPL でない独自許諾の文面を files/ に用意。当て物 4 本の説明 |
 | [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない。積み残しの CVE 二本も当てる |
 | [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
+| [iiimecf/](iiimecf/) | `inputmethod/iiimecf` | LICENSE と category の順。shell を ${RUN} で書く |
+| [jde/](jde/) | `editors/jde` | 効いていなかった PKGSRC_MAKE_ENV+= EMACS=${EMACS} を直す。LICENSE |
 | [leim20/](leim20/) | `editors/leim20` | 版を四箇所直書きしていたのを `${VERSION}` へ。LICENSE と当て物の説明 |
+| [leim21/](leim21/) | `editors/leim21` | LICENSE と当て物の説明 |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
 | [mozc-elisp226/](mozc-elisp226/) | `inputmethod/mozc-elisp226` | 要らない GUI 依存を外し、要る mozc-server を足す。emacs29〜31 |
+| [mule-ucs/](mule-ucs/) | `editors/mule-ucs` | LICENSE。MESSAGE を DESCR へ。当て物の説明 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
+| [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
+| [tamago/](tamago/) | `editors/tamago` | LICENSE。12786 行の当て物が何かを書く |
+| [w3/](w3/) | `www/w3` | LICENSE と当て物 3 本の説明 |
 | [xwpe/](xwpe/) | `editors/xwpe` | 1.6.9 へ上げ、当て物を 9 本から 3 本に減らす (pkgsrc PR #180) |
 | [zls/](zls/) | `devel/zls` | 0.16.0 へ上げて BROKEN を外す (pkgsrc PR #164) |
 

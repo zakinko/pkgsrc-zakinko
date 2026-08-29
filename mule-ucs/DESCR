@@ -1,0 +1,8 @@
+Mule-UCS is an Emacs Lisp library providing flexible and complehensible
+encoding mechanism to Emacs. As the name suggests, it supports Unicode, which
+the original Emacs doesn't support.
+
+To use Mule-UCS with Unicode, add this to your .emacs, or to
+site-start.el under the share/emacs site-lisp directory:
+
+	(require 'un-define)

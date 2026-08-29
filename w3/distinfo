@@ -1,0 +1,11 @@
+$NetBSD: distinfo,v 1.8 2021/10/26 11:31:12 nia Exp $
+
+BLAKE2s (w3-4.0pre.47.tar.gz) = 8d460c685b8937d8a759fcf01f4b8a559c6d1da2df2629efc474fdfd536e6bf3
+SHA512 (w3-4.0pre.47.tar.gz) = 8ac2f58bebaa98bb3c7dee80578910ac04152f2d5844140f9bf419831b3e1344634781fd4d0145d52676cc21e8845858e1321b98665e19c6136dacfea59ba38f
+Size (w3-4.0pre.47.tar.gz) = 503062 bytes
+SHA1 (patch-aa) = 4bef57ef1b62c175fd2be4aab31899fafaeda028
+SHA1 (patch-ab) = 5c4b350049e72f8827bf8df67dbade3287fcb524
+SHA1 (patch-ac) = 8a8e764f3cb616da073251b22ee1d9cbd1f11e25
+SHA1 (patch-etc_Makefile.in) = a4f4998b66662bd6079b04ae57f8b72264312ef1
+SHA1 (patch-lisp_Makefile.in) = 2aa79a7399daca4589322a43ef70a83e49817e86
+SHA1 (patch-texi_Makefile.in) = 528c07c13f35f09266073ad7c8db8edc0f1a143c
