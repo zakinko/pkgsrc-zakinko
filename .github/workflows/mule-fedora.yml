@@ -31,6 +31,11 @@ on:
         required: false
         default: '-canna -wnn4 -x11'
 
+      make_flags:
+        description: 'MAKE_FLAGS (誤りを全部集めるなら -k)'
+        required: false
+        default: ''
+
 jobs:
   fedora:
     name: Fedora 44 / ${{ matrix.pkg }}
@@ -71,6 +76,10 @@ jobs:
           # PKG_DEFAULT_OPTIONS は環境変数として bmake が拾うので、こちらで
           # 全 package に効かせる。
           PKG_DEFAULT_OPTIONS: ${{ inputs.options || '-canna -wnn4 -x11' }}
+          # 1995 年の木は一つ直すたびに次の一つが出る。誤りを一度に
+          # 全部見たいときは -k を渡す。GNU make は落ちた target を
+          # 飛ばして最後まで進み、まとめて報告する。
+          MAKE_FLAGS: ${{ inputs.make_flags || '' }}
           # native をやめた。can-be-built-here.mk の検査が
           #   /usr: X11_TYPE=native but xbase set is not installed
           #   (missing: digest install-info makeinfo patch)

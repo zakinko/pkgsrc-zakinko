@@ -17,12 +17,22 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/mulelib.c.orig
 +++ lib-src/mulelib.c
-@@ -16,6 +16,13 @@
+@@ -16,6 +16,17 @@
  
  #include <../src/paths.h>
  
++/* Declare the standard functions this file calls. */
++#include <stdlib.h>
++#include <string.h>
++
 +/* Declare what this program calls: the standard functions through their
 +   headers, the tree's own through the type their definition carries.
 +   Reaching either through an implicit declaration is what C99 removed. */
@@ -33,7 +43,7 @@ nothing about what is built.  Only what the source says out loud.
  char *mule_library_version = "2.2";
  
  int mule_error;
-@@ -72,7 +79,7 @@
+@@ -72,7 +83,7 @@
    }
  }
  
@@ -42,7 +52,7 @@ nothing about what is built.  Only what the source says out loud.
       char *buf;
       int size;
       FILE *fp;
-@@ -91,28 +98,28 @@
+@@ -91,28 +102,28 @@
  #define PROCEED_CHAR(c) \
    if (!(p1 = (char *)index(p0, c))) goto invalid_entry
  
@@ -75,7 +85,7 @@ nothing about what is built.  Only what the source says out loud.
       char *arg;
  {
    fprintf(stderr, "%s", arg);
-@@ -127,7 +134,7 @@
+@@ -127,7 +138,7 @@
  char *font_name[128];
  int font_encoding[128];
  
@@ -84,7 +94,7 @@ nothing about what is built.  Only what the source says out loud.
       char *line;
  {
    char *p0 = line, *p1;
-@@ -190,7 +197,7 @@
+@@ -190,7 +201,7 @@
    return -1;
  }
   
@@ -93,7 +103,7 @@ nothing about what is built.  Only what the source says out loud.
       char *line;
  {
    int lc, len, i, j;
-@@ -212,7 +219,7 @@
+@@ -212,7 +223,7 @@
    return 0;
  }
  
@@ -102,7 +112,7 @@ nothing about what is built.  Only what the source says out loud.
       char *charsets;
  {
    FILE *fp;
-@@ -254,7 +261,7 @@
+@@ -254,7 +265,7 @@
  int n_base_coding_system = 0;
  int n_coding_system;
  
@@ -111,7 +121,7 @@ nothing about what is built.  Only what the source says out loud.
       char *line;
       coding_type *cs;
  {
-@@ -354,7 +361,7 @@
+@@ -354,7 +365,7 @@
    "*coding-category-big5*",
    "*coding-category-bin*"};
  
@@ -120,7 +130,7 @@ nothing about what is built.  Only what the source says out loud.
       char *line;
       int priority;
  {
-@@ -380,7 +387,7 @@
+@@ -380,7 +391,7 @@
    return -1;
  } 
  
@@ -129,7 +139,7 @@ nothing about what is built.  Only what the source says out loud.
       char *codings;
  {
    FILE *fp;
-@@ -452,7 +459,7 @@
+@@ -452,7 +463,7 @@
  }
  
  static
@@ -138,7 +148,7 @@ nothing about what is built.  Only what the source says out loud.
       char *str;
  {
    int i;
-@@ -477,7 +484,7 @@
+@@ -477,7 +488,7 @@
    return -1;
  }
  
@@ -147,7 +157,7 @@ nothing about what is built.  Only what the source says out loud.
       Lisp_Object code;
       coding_type *mccode;
  {
-@@ -489,7 +496,7 @@
+@@ -489,7 +500,7 @@
      CODE_TYPE_SET (mccode, NOCONV);
  }
  
@@ -156,7 +166,7 @@ nothing about what is built.  Only what the source says out loud.
       char *inname, *outname;
       coding_type *incode, *outcode;
  {
-@@ -514,7 +521,7 @@
+@@ -514,7 +525,7 @@
    return 0;
  }
  
@@ -165,7 +175,7 @@ nothing about what is built.  Only what the source says out loud.
       coding_type *incode, *outcode;
       char *inbuf, *outbuf;
       int insize, outsize;
-@@ -626,7 +633,7 @@
+@@ -626,7 +637,7 @@
   * INITIALIZER *
   ***************/
  

@@ -38,9 +38,15 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/emacsserver.c.orig
 +++ lib-src/emacsserver.c
-@@ -26,6 +26,10 @@
+@@ -26,6 +26,14 @@
  
  #define NO_SHORTNAMES
  #include <../src/config.h>
@@ -48,10 +54,14 @@ made an implicit declaration an error, so the build stops here.
 +/* Declare the standard functions this file calls. */
 +#include <unistd.h>
 +#include <fcntl.h>
++
++/* Declare the standard functions this file calls. */
++#include <stdlib.h>
++#include <string.h>
  #undef read
  #undef write
  #undef open
-@@ -53,12 +57,43 @@
+@@ -53,12 +61,43 @@
  #include <sys/socket.h>
  #include <sys/signal.h>
  #include <sys/un.h>
@@ -96,7 +106,7 @@ made an implicit declaration an error, so the build stops here.
  {
    char system_name[32];
    int s, infd, fromlen;
-@@ -89,8 +124,17 @@
+@@ -89,8 +128,17 @@
      }
    server.sun_family = AF_UNIX;
  #ifndef SERVER_HOME_DIR
@@ -116,7 +126,7 @@ made an implicit declaration an error, so the build stops here.
  
    if (unlink (server.sun_path) == -1 && errno != ENOENT)
      {
-@@ -137,7 +181,7 @@
+@@ -137,7 +185,7 @@
  	  fromlen = sizeof (fromunix);
  	  fromunix.sun_family = AF_UNIX;
  	  infd = accept (s, (struct sockaddr *) &fromunix,

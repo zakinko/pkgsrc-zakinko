@@ -17,9 +17,15 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/wakeup.c.orig
 +++ lib-src/wakeup.c
-@@ -5,6 +5,10 @@
+@@ -5,6 +5,13 @@
  #include <stdio.h>
  #include <sys/types.h>
  
@@ -27,10 +33,13 @@ made an implicit declaration an error, so the build stops here.
 +#include <stdlib.h>
 +#include <unistd.h>
 +
++/* Declare the standard functions this file calls. */
++#include <time.h>
++
  #ifdef TIME_WITH_SYS_TIME
  #include <sys/time.h>
  #include <time.h>
-@@ -18,7 +22,7 @@
+@@ -18,7 +25,7 @@
  
  struct tm *localtime ();
  

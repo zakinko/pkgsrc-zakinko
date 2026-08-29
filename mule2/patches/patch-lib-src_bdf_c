@@ -18,9 +18,15 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/bdf.c.orig
 +++ lib-src/bdf.c
-@@ -50,11 +50,19 @@
+@@ -50,11 +50,22 @@
  	In bdf_load_font(), fontp->extra->fs should not be set in emacs. */
  
  #include <stdio.h>
@@ -31,6 +37,9 @@ nothing about what is built.  Only what the source says out loud.
  #include <sys/file.h>
  #include "mulelib.h"
 +
++/* Declare the standard functions this file calls. */
++#include <string.h>
++
 +/* Declare what this program calls: the standard functions through their
 +   headers, the tree's own through the type their definition carries.
 +   Reaching either through an implicit declaration is what C99 removed. */
@@ -40,7 +49,7 @@ nothing about what is built.  Only what the source says out loud.
  #ifdef USG
  #include <string.h>
  #else
-@@ -72,7 +80,7 @@
+@@ -72,7 +83,7 @@
  #define LINE_BUF_SIZE 256
  #endif
  
@@ -49,7 +58,7 @@ nothing about what is built.  Only what the source says out loud.
       font_struct *fontp;
  {
    int size1, size2;
-@@ -101,7 +109,7 @@
+@@ -101,7 +112,7 @@
    }
  }
  
@@ -58,7 +67,7 @@ nothing about what is built.  Only what the source says out loud.
  {
    int i, lc;
  
-@@ -117,14 +125,14 @@
+@@ -117,14 +128,14 @@
    }
  }
  
@@ -75,7 +84,7 @@ nothing about what is built.  Only what the source says out loud.
       char *bp;
       int _emacs;
  {
-@@ -137,7 +145,7 @@
+@@ -137,7 +148,7 @@
    bdf_init_glyph(&glyph);
  }
  
@@ -84,7 +93,7 @@ nothing about what is built.  Only what the source says out loud.
       FILE *fp;
       char *str;
  {
-@@ -149,7 +157,7 @@
+@@ -149,7 +160,7 @@
    return 1;
  }
  
@@ -93,7 +102,7 @@ nothing about what is built.  Only what the source says out loud.
       FILE *fp;
       char *str, *stop;
  {
-@@ -162,7 +170,7 @@
+@@ -162,7 +173,7 @@
    return 1;
  }
  
@@ -102,7 +111,7 @@ nothing about what is built.  Only what the source says out loud.
       int lc;
  {
    font_struct *fontp = &font[lc & 0x7F];
-@@ -230,7 +238,7 @@
+@@ -230,7 +241,7 @@
    return 1;
  }
  

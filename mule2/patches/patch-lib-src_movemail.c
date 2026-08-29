@@ -30,14 +30,25 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
 --- lib-src/movemail.c.orig
 +++ lib-src/movemail.c
-@@ -59,6 +59,17 @@
+@@ -59,6 +59,22 @@
  #include <string.h>
  #include <../src/syswait.h>
  
 +/* Declare the standard functions this file calls. */
 +#include <time.h>
++
++/* Declare the standard functions this file calls. */
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/wait.h>
 +
 +/* Declare what this program calls: the standard functions through their
 +   headers, the tree's own through the type their definition carries.
@@ -50,7 +61,7 @@ made an implicit declaration an error, so the build stops here.
  #ifdef MSDOS
  #undef access
  #endif /* MSDOS */
-@@ -109,7 +120,7 @@
+@@ -109,7 +125,7 @@
  /* Nonzero means this is name of a lock file to delete on fatal error.  */
  char *delete_lockname;
  
@@ -59,7 +70,7 @@ made an implicit declaration an error, so the build stops here.
       int argc;
       char **argv;
  {
-@@ -337,7 +348,7 @@
+@@ -337,7 +353,7 @@
        exit (0);
      }
  
@@ -68,7 +79,7 @@ made an implicit declaration an error, so the build stops here.
    if (!WIFEXITED (status))
      exit (1);
    else if (WRETCODE (status) != 0)
-@@ -351,7 +362,7 @@
+@@ -351,7 +367,7 @@
  
  /* Print error message and exit.  */
  
@@ -77,7 +88,7 @@ made an implicit declaration an error, so the build stops here.
       char *s1, *s2;
  {
    if (delete_lockname)
-@@ -362,7 +373,7 @@
+@@ -362,7 +378,7 @@
  
  /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
  
@@ -86,7 +97,7 @@ made an implicit declaration an error, so the build stops here.
       char *s1, *s2, *s3;
  {
    printf ("movemail: ");
-@@ -370,7 +381,7 @@
+@@ -370,7 +386,7 @@
    printf ("\n");
  }
  
@@ -95,7 +106,7 @@ made an implicit declaration an error, so the build stops here.
       char *name;
  {
    extern char *strerror ();
-@@ -380,7 +391,7 @@
+@@ -380,7 +396,7 @@
    fatal (s, name);
  }
  
