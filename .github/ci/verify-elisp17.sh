@@ -3,7 +3,7 @@
 #
 #   VERIFY_OPTS=20 sh verify-elisp17.sh 'zakinko/emacs20 zakinko/emacs ...'
 #
-# 版は VERIFY_OPTS で受ける。run-in-qemu.sh がゲストへ運ぶ環境変数は명示の
+# 版は VERIFY_OPTS で受ける。run-in-qemu.sh がゲストへ運ぶ環境変数は明示の
 # 一覧で決まっていて、そこに在るのがこれだから。EMACS_V でも受ける (手で
 # 走らせるとき用)。
 #
@@ -42,9 +42,31 @@ PKGMAKE="make"
 MKARGS="EMACS_TYPE=$EMACS_TYPE"
 [ -n "${BINPKG_SITES:-}" ] && MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 
+# build の出力は log へ流すので、走っている間 job は無音になる。emacs20 が
+# 5 時間半まったく何も出さないまま timeout に当たり、fetch で待っていたのか
+# 組んでいたのか、後から一行も分からなかった。5 分ごとに log の末尾を出す。
+#
+# 回数で上限を切ってあるので、親を見失っても自分で終わる (80 x 300s = 400 分
+# で、job の timeout 340 分より後)。書けなくなったらそこで抜ける。
+tick() {
+	_log=$1; _n=0
+	while [ $_n -lt 80 ]; do
+		sleep 300
+		_n=$((_n+1))
+		[ -f "$_log" ] || continue
+		echo "      [$(date +%H:%M)] $(wc -l < "$_log" | tr -d ' ') 行: $(tail -1 "$_log" | cut -c1-90)" || exit 0
+	done
+}
+
 echo "=== emacs$EMACS_V を建てて入れる ($OS $(uname -r) / $(uname -m)) ==="
 cd "$TREE/$EMACS_PKG" || { echo "FAIL: $EMACS_PKG が無い"; exit 1; }
-if ! $PKGMAKE $MKARGS package-install > /tmp/emacs$EMACS_V.log 2>&1; then
+: > /tmp/emacs$EMACS_V.log
+tick /tmp/emacs$EMACS_V.log &
+_tick=$!
+rc=0
+$PKGMAKE $MKARGS package-install > /tmp/emacs$EMACS_V.log 2>&1 || rc=$?
+kill $_tick 2>/dev/null
+if [ $rc -ne 0 ]; then
 	tail -40 /tmp/emacs$EMACS_V.log
 	echo "FAIL: emacs$EMACS_V が入らない"
 	exit 1
@@ -73,7 +95,13 @@ for p in $LIST; do
 	esac
 	printf "  --- %-24s " "$p"
 	( cd "$d" && $PKGMAKE $MKARGS clean ) > /dev/null 2>&1
-	if ( cd "$d" && $PKGMAKE $MKARGS package-install ) > "/tmp/$(basename $p).log" 2>&1; then
+	: > "/tmp/$(basename $p).log"
+	tick "/tmp/$(basename $p).log" &
+	_tick=$!
+	prc=0
+	( cd "$d" && $PKGMAKE $MKARGS package-install ) > "/tmp/$(basename $p).log" 2>&1 || prc=$?
+	kill $_tick 2>/dev/null
+	if [ $prc -eq 0 ]; then
 		# byte-compile の警告を数える。当て物で .el を書き換えたなら、
 		# 増えていないことまで見ないと「通った」と言えない。当て物が
 		# 触った file の名前を含む行は、数だけでなく中身も出す。

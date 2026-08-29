@@ -96,9 +96,11 @@ jobs:
         env:
           # 主対象と、それが読むものを連れていく。emacs20/21 の側は
           # Makefile.common と PLIST と modules.mk を読むので一つでは足りない。
+          # emacs20 に nox11 の兄弟は無い。emacs${{ matrix.version }}-nox11 と
+          # 書いていたので、20 の側で tar が Cannot stat を出していた。両方を
+          # 名前で並べる。使わない側が一つ増えるだけで、転送は数十 KB。
           UPSTREAM_PKG: >-
-            zakinko/emacs${{ matrix.version }}
-            zakinko/emacs${{ matrix.version }}-nox11
+            zakinko/emacs20 zakinko/emacs21 zakinko/emacs21-nox11
             zakinko/emacs
             zakinko/leim20 zakinko/leim21 zakinko/mule-ucs zakinko/tamago
             zakinko/iiimecf zakinko/calc zakinko/nxml-mode zakinko/pcl-cvs
