@@ -26,7 +26,7 @@ PLIST_VARS+=	exclusive
 SUBST_CLASSES+=		wnn4
 SUBST_STAGE.wnn4=	pre-configure
 SUBST_MESSAGE.wnn4=	Turning Wnn and Egg support off
-SUBST_FILES.wnn4=	src/mconfig.h-netbsd
+SUBST_FILES.wnn4=	src/mconfig.h-${LOWER_OPSYS}
 SUBST_SED.wnn4=		-e 's,^\#define WNN4$$,/* \#define WNN4 */,'
 SUBST_SED.wnn4+=	-e 's,^\#define EGG$$,/* \#define EGG */,'
 .endif
@@ -49,7 +49,7 @@ SUBST_SED.wnn4+=	-e 's,^\#define EGG$$,/* \#define EGG */,'
 SUBST_CLASSES+=		nox11
 SUBST_STAGE.nox11=	pre-configure
 SUBST_MESSAGE.nox11=	Turning X support off
-SUBST_FILES.nox11=	src/config.h-netbsd
+SUBST_FILES.nox11=	src/config.h-${LOWER_OPSYS}
 SUBST_SED.nox11=	-e 's,^\#define HAVE_X_WINDOWS$$,/* \#define HAVE_X_WINDOWS */,'
 .endif
 
@@ -59,7 +59,7 @@ SUBST_SED.nox11=	-e 's,^\#define HAVE_X_WINDOWS$$,/* \#define HAVE_X_WINDOWS */,
 SUBST_CLASSES+=		canna
 SUBST_STAGE.canna=	pre-configure
 SUBST_MESSAGE.canna=	Turning Canna support on
-SUBST_FILES.canna=	src/mconfig.h-netbsd
+SUBST_FILES.canna=	src/mconfig.h-${LOWER_OPSYS}
 SUBST_SED.canna=	-e 's,^/\* \#define CANNA \*/$$,\#define CANNA,'
 SUBST_SED.canna+=	-e 's,^/\* \#define CANNA3_7 \*/$$,\#define CANNA3_7,'
 .endif
