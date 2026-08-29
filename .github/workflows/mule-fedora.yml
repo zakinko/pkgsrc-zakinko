@@ -90,3 +90,10 @@ jobs:
         if: failure()
         run: |
           tail -60 /tmp/build.log 2>/dev/null || true
+          # 1995 年の lib-src/Makefile は configure が cpp に通して作る。
+          # GNU make が "recipe commences before first target" と言って
+          # 止まったので、生成された物そのものを見ないと直せない。
+          for f in $(find / -path '*lib-src/Makefile' -newer /etc/hostname 2>/dev/null | head -2); do
+            echo "===== $f"
+            sed -n '95,130p' "$f" | sed -e 's/\t/<TAB>/g'
+          done
