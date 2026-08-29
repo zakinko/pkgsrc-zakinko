@@ -11,18 +11,27 @@ PKG_SUPPORTED_OPTIONS=	gyp
 # candidate window from it, so only inputmethod/mozc-server and
 # inputmethod/mozc-elisp include this file.
 #
-# devel/bazel does not build on the 32-bit platforms, and there is no bazel
-# binary package for any of them either: on the NetBSD 11.0 sets bazel exists
-# for x86_64 and aarch64 only.  Its Makefile means to say the first part with
+# bazel can be used on two platforms and no others.  devel/bazel wants a
+# JVM -- PKG_JVMS_ACCEPTED= openjdk11 -- and mk/java-vm.mk names where that
+# exists:
+#
+#	_ONLY_FOR_PLATFORMS.openjdk11= x86_64 i386 aarch64 earmv[67]hf
+#
+# so powerpc64, riscv64, mips64, sparc64, alpha and ia64 have no JVM at all,
+# and of the four that do, i386 and earmv[67]hf are 32-bit, where bazel does
+# not build.  That leaves x86_64 and aarch64.
+#
+# devel/bazel means to say the 32-bit half itself, with
 # BROKEN_ON_PLATFORM= ${LP32PLATFORMS}, but a second assignment further down
-# overwrites that line, so at present nothing stops a 32-bit build from being
-# attempted.  Default to the gyp build everywhere else, so that the Emacs
-# input method can be built at all on those platforms.
-.for mozc_lp32 in ${LP32PLATFORMS}
-.  if !empty(MACHINE_PLATFORM:M${mozc_lp32})
+# overwrites that line and nothing currently stops a 32-bit build from being
+# attempted.  Reported separately.
+#
+# Test for the two that work rather than listing the many that do not, so a
+# platform added later defaults to the build that has a chance of running.
+.if ${OPSYS} != "NetBSD" || \
+    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
 PKG_SUGGESTED_OPTIONS+=	gyp
-.  endif
-.endfor
+.endif
 
 # The option is acted on in Makefile.common rather than here, because
 # inputmethod/mozc-tool, inputmethod/mozc-renderer and inputmethod/ibus-mozc
