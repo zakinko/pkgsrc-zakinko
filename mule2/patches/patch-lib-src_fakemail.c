@@ -23,6 +23,11 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Fix what only the Linux arm of this file compiles.
+
+These lines are inside #ifdef arms that NetBSD does not take, so nothing
+here shows up when the package is built there.  glibc reaches them.
+
 --- lib-src/fakemail.c.orig
 +++ lib-src/fakemail.c
 @@ -21,9 +21,16 @@
@@ -43,3 +48,13 @@ made an implicit declaration an error, so the build stops here.
  {
  }
  #else /* not BSD 4.2 (or newer) */
+@@ -127,8 +134,8 @@
+ static boolean no_problems = true;
+ 
+ extern FILE *popen ();
++extern char *cuserid ();
+ extern int fclose (), pclose ();
+-extern char *malloc (), *realloc ();
+ 
+ #ifdef CURRENT_USER
+ extern struct passwd *getpwuid ();

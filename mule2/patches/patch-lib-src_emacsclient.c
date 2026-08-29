@@ -26,6 +26,11 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Fix what only the Linux arm of this file compiles.
+
+These lines are inside #ifdef arms that NetBSD does not take, so nothing
+here shows up when the package is built there.  glibc reaches them.
+
 --- lib-src/emacsclient.c.orig
 +++ lib-src/emacsclient.c
 @@ -20,6 +20,12 @@
@@ -41,6 +46,15 @@ made an implicit declaration an error, so the build stops here.
  #undef read
  #undef write
  #undef open
+@@ -30,7 +36,7 @@
+ #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
+ #include <stdio.h>
+ 
+-main (argc, argv)
++int main (argc, argv)
+      int argc;
+      char **argv;
+ {
 @@ -54,7 +60,7 @@
  
  extern char *strerror ();
@@ -84,3 +98,12 @@ made an implicit declaration an error, so the build stops here.
  
      if (stat (server.sun_path, &statbfr) == -1)
        {
+@@ -175,7 +204,7 @@
+ 
+ char *getwd (), *getcwd (), *getenv ();
+ 
+-main (argc, argv)
++int main (argc, argv)
+      int argc;
+      char **argv;
+ {

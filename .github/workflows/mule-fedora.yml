@@ -99,10 +99,23 @@ jobs:
         if: failure()
         run: |
           tail -60 /tmp/build.log 2>/dev/null || true
-          # 1995 年の lib-src/Makefile は configure が cpp に通して作る。
-          # GNU make が "recipe commences before first target" と言って
-          # 止まったので、生成された物そのものを見ないと直せない。
-          for f in $(find / -path '*lib-src/Makefile' -newer /etc/hostname 2>/dev/null | head -2); do
-            echo "===== $f"
-            sed -n '95,130p' "$f" | sed -e 's/\t/<TAB>/g'
+          # movemail は <fcntl.h> を深さ 0 で読んでいるのに open が暗黙宣言に
+          # なり、emacsserver は <sys/msg.h> を読んでいるのに struct msgbuf が
+          # 未定義になる。NetBSD では再現しないので、この箱の素の cc に同じ
+          # ことを訊いて、木の側の話かこちらの話かを分ける。
+          printf '#include <fcntl.h>\nint main (void) { return open ("/dev/null", 0); }\n' > /tmp/p1.c
+          printf '#include <sys/ipc.h>\n#include <sys/msg.h>\nstruct msgbuf probe;\n' > /tmp/p2.c
+          for f in /tmp/p1.c /tmp/p2.c; do
+            for std in "" "-std=gnu11"; do
+              printf '%s %s => ' "$f" "${std:-既定}"
+              if cc -D_BSD_SOURCE -D_DEFAULT_SOURCE $std -c -o /dev/null "$f" 2>/tmp/e; then
+                echo "通る"
+              else
+                head -2 /tmp/e
+              fi
+            done
+          done
+          for f in $(find / -path '*mule/lib-src/movemail.c' 2>/dev/null | head -1); do
+            echo "===== $f の 48-72"
+            sed -n '48,72p' "$f"
           done

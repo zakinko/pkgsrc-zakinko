@@ -44,6 +44,11 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Fix what only the Linux arm of this file compiles.
+
+These lines are inside #ifdef arms that NetBSD does not take, so nothing
+here shows up when the package is built there.  glibc reaches them.
+
 --- lib-src/emacsserver.c.orig
 +++ lib-src/emacsserver.c
 @@ -26,6 +26,14 @@
@@ -61,6 +66,15 @@ made an implicit declaration an error, so the build stops here.
  #undef read
  #undef write
  #undef open
+@@ -36,7 +44,7 @@
+ #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
+ #include <stdio.h>
+ 
+-main ()
++int main ()
+ {
+   fprintf (stderr, "Sorry, the Emacs server is supported only on systems\n");
+   fprintf (stderr, "with Berkeley sockets or System V IPC.\n");
 @@ -53,12 +61,43 @@
  #include <sys/socket.h>
  #include <sys/signal.h>
@@ -135,3 +149,12 @@ made an implicit declaration an error, so the build stops here.
  	  if (infd < 0)
  	    {
  	      if (errno == EMFILE || errno == ENFILE)
+@@ -243,7 +291,7 @@
+    Its stderr always exists--rms.  */
+ #include <stdio.h>
+ 
+-main ()
++int main ()
+ {
+   int s, infd, fromlen, ioproc;
+   key_t key;
