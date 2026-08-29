@@ -25,6 +25,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- lib-src/emacsserver.c.orig
 +++ lib-src/emacsserver.c
 @@ -53,12 +53,43 @@
@@ -92,3 +99,12 @@ nothing about what is built.  Only what the source says out loud.
  
    if (unlink (server.sun_path) == -1 && errno != ENOENT)
      {
+@@ -137,7 +177,7 @@
+ 	  fromlen = sizeof (fromunix);
+ 	  fromunix.sun_family = AF_UNIX;
+ 	  infd = accept (s, (struct sockaddr *) &fromunix,
+-			 (size_t *) &fromlen);
++			 (socklen_t *) &fromlen);
+ 	  if (infd < 0)
+ 	    {
+ 	      if (errno == EMFILE || errno == ENFILE)

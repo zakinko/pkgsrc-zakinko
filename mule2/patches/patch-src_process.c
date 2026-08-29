@@ -11,6 +11,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- src/process.c.orig
 +++ src/process.c
 @@ -325,7 +325,7 @@
@@ -103,6 +110,15 @@ nothing about what is built.  Only what the source says out loud.
       Lisp_Object buffer;
  {
    Lisp_Object tail, proc;
+@@ -3185,7 +3185,7 @@
+       do 
+ 	{
+ 	  errno = 0;
+-	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
++	  pid = wait3 ((int *) &w, WNOHANG | WUNTRACED, 0);
+ 	}
+       while (pid <= 0 && errno == EINTR);
+ 
 @@ -3348,7 +3348,7 @@
     (either run the sentinel or output a message).
     This is done while Emacs is waiting for keyboard input.  */

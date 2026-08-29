@@ -18,6 +18,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- src/window.c.orig
 +++ src/window.c
 @@ -34,6 +34,8 @@
@@ -80,7 +87,7 @@ nothing about what is built.  Only what the source says out loud.
       Lisp_Object window;
  {
    register Lisp_Object old, new;
-@@ -2198,9 +2194,7 @@
+@@ -2198,16 +2194,14 @@
     also changes the heights of the siblings so as to
     keep everything consistent. */
  
@@ -91,6 +98,14 @@ nothing about what is built.  Only what the source says out loud.
  {
    register Lisp_Object parent;
    Lisp_Object window;
+   register struct window *p;
+   int *sizep;
+   int (*sizefun) () = widthflag ? window_width : window_height;
+-  register int (*setsizefun) () = (widthflag
++  register void (*setsizefun) () = (widthflag
+ 				   ? set_window_width
+ 				   : set_window_height);
+ 
 @@ -3149,7 +3143,7 @@
    return unbind_to (count, val);
  }

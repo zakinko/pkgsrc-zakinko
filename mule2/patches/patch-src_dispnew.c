@@ -11,6 +11,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- src/dispnew.c.orig
 +++ src/dispnew.c
 @@ -235,7 +235,7 @@
@@ -95,6 +102,15 @@ nothing about what is built.  Only what the source says out loud.
       FRAME_PTR frame;
  {
    int unchanged_at_top, unchanged_at_bottom;
+@@ -1869,7 +1869,7 @@
+ 	  olen = nlen - (nsp - osp);
+ 	}
+       cursor_to (vpos, osp);
+-      insert_glyphs ((char *)0, nsp - osp);
++      insert_glyphs ((GLYPH *)0, nsp - osp);
+     }
+   olen += nsp - osp;
+ 
 @@ -2082,7 +2082,7 @@
  
  /* Do any change in frame size that was requested by a signal.  */

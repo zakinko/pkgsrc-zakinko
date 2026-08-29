@@ -23,6 +23,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- src/wnnfns.c.orig
 +++ src/wnnfns.c
 @@ -316,6 +316,16 @@
@@ -42,6 +49,15 @@ nothing about what is built.  Only what the source says out loud.
  static struct wnn_buf *wnnfns_buf[NSERVER];
  static struct wnn_env *wnnfns_env_norm[NSERVER];
  static struct wnn_env *wnnfns_env_rev[NSERVER];
+@@ -455,7 +465,7 @@
+ 		(args[5] == Qnil) ? 0 : XSTRING(args[5])->data,
+ 		(args[6] == Qnil) ? 0 : XSTRING(args[6])->data,
+ 		yes_or_no,
+-		puts2 ) < 0) {
++		(int (*) ()) puts2 ) < 0) {
+     UNGCPRO;
+     return Qnil;
+   }
 @@ -1722,7 +1732,7 @@
      return make_number(serv);
  }

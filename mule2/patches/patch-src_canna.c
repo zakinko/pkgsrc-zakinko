@@ -26,6 +26,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- src/canna.c.orig
 +++ src/canna.c
 @@ -149,6 +149,12 @@
@@ -55,7 +62,7 @@ nothing about what is built.  Only what the source says out loud.
  #else
  static m2c();
  static Lisp_Object mule_make_string();
-@@ -407,7 +413,7 @@
+@@ -407,10 +413,10 @@
      return Fcons(Qnil, val);
    }
    else {
@@ -63,7 +70,11 @@ nothing about what is built.  Only what the source says out loud.
 +    extern int (*jrBeepFunc)();
      Lisp_Object Fding(), CANNA_mode_keys();
  
-     jrBeepFunc = Fding;
+-    jrBeepFunc = Fding;
++    jrBeepFunc = (int (*) ()) Fding;
+ 
+ #ifdef KC_SETAPPNAME
+ #ifndef CANNA_MULE
 @@ -664,7 +670,7 @@
  static unsigned char yomibuf[RKBUFSIZE];
  static short kugiri[RKBUFSIZE / 2];

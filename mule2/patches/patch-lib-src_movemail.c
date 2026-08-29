@@ -17,6 +17,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- lib-src/movemail.c.orig
 +++ lib-src/movemail.c
 @@ -59,6 +59,14 @@
@@ -43,6 +50,15 @@ nothing about what is built.  Only what the source says out loud.
       int argc;
       char **argv;
  {
+@@ -337,7 +345,7 @@
+       exit (0);
+     }
+ 
+-  wait (&status);
++  wait ((int *) &status);
+   if (!WIFEXITED (status))
+     exit (1);
+   else if (WRETCODE (status) != 0)
 @@ -351,7 +359,7 @@
  
  /* Print error message and exit.  */

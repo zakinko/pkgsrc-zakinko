@@ -18,6 +18,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
 --- src/term.c.orig
 +++ src/term.c
 @@ -53,6 +53,7 @@
@@ -28,6 +35,24 @@ nothing about what is built.  Only what the source says out loud.
  #include <ctype.h>
  #include "termchar.h"
  #include "termopts.h"
+@@ -121,7 +122,7 @@
+ 
+ int (*clear_to_end_hook) ();
+ int (*clear_frame_hook) ();
+-int (*clear_end_of_line_hook) ();
++void (*clear_end_of_line_hook) ();
+ 
+ int (*ins_del_lines_hook) ();
+ 
+@@ -132,7 +133,7 @@
+ int (*write_glyphs_hook) ();
+ int (*delete_glyphs_hook) ();
+ 
+-int (*ring_bell_hook) ();
++void (*ring_bell_hook) ();
+ 
+ int (*reset_terminal_modes_hook) ();
+ int (*set_terminal_modes_hook) ();
 @@ -342,8 +343,11 @@
  char *tparam ();
  
