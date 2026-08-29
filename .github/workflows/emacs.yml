@@ -78,9 +78,8 @@ jobs:
             if printf '%s\n' "$CH" | grep -q '^emacs/'; then
               V="$ALL"
             else
-              V=$(printf '%s\n' "$CH" | sed -n 's|^emacs\([0-9][0-9]\).*|\1|p' | sort -u)
-              printf '%s\n' "$CH" | grep -q '^\.github/' && V="$V
-28"
+              V=$(printf '%s\n' "$CH" | sed -n 's|^emacs\([0-9][0-9]\).*|\1|p' | sort -u | tr '\n' ' ')
+              printf '%s\n' "$CH" | grep -q '^\.github/' && V="$V 28"
               V=$(printf '%s\n' $V | grep -E '^[0-9]+$' | sort -run | tr '\n' ' ')
             fi
           fi
