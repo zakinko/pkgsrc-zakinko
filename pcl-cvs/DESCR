@@ -6,8 +6,7 @@ for CVS.  PCL-CVS is not a replacement for VC and is supposed to interact well
 with it.  It provides a global view of your project and allows execution
 of cvs commands on several files at a time.
 
-To load PCL-CVS when emacs starts, put its directory on the load-path and
-load pcl-cvs-startup, for instance in ~/.emacs.el:
+site-lisp is scanned for subdirectories at startup, so this package is already
+on the load-path.  To load it, put this in ~/.emacs.el:
 
-    (add-to-list 'load-path "<prefix>/share/emacs/site-lisp/pcl-cvs")
     (load "pcl-cvs-startup")
