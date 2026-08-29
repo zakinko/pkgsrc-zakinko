@@ -140,7 +140,11 @@ echo "--- 2. 起きて、当て物が効いているか (期待 $VER) ---"
 E=$PREFIX/bin/emacs
 [ -x "$E" ] || { echo "FAIL: $E が無い"; exit 1; }
 "$E" --version | head -1 | sed 's/^/    /'
-"$E" --version | head -1 | grep -q " $VER\$" || {
+# Emacs 25 までは三つ目の桁を付けて名乗る。22.3 は "GNU Emacs 22.3.1"、
+# 25.3 は "GNU Emacs 25.3.1" で、EMACS_VERSION は二桁の 22.3 と 25.3。
+# 26 で付かなくなったので、26 から 28 だけが末尾一致で通っていた。
+# 三つ目を任意にする。
+"$E" --version | head -1 | grep -qE " $VER(\.[0-9]+)?\$" || {
 	echo "FAIL: 名乗る版が $VER ではない"; exit 1; }
 [ -x "$PREFIX/bin/emacs-$VER" ] || {
 	echo "FAIL: bin/emacs-$VER が無い"; exit 1; }
@@ -179,7 +183,20 @@ if [ "${EMACS_COEXIST_CHECK:-no}" = yes ]; then
 	$PKGMAKE clean > /dev/null 2>&1 || true
 	if ! $PKGMAKE $MKARGS EMACS_COEXIST=yes package-install \
 	     > /tmp/verify-$PKG-coexist.log 2>&1; then
-		tail -30 /tmp/verify-$PKG-coexist.log
+		# 30 行では足りなかった。coexist-names の mv が
+		# "rename emacs.1 to emacsNN.1: No such file or directory" で
+		# 落ちたとき、man を入れる段がその手前に見えず、どこで消えたのか
+		# 分からなかった。install の並びが見える程度まで出す。
+		tail -120 /tmp/verify-$PKG-coexist.log
+		echo "--- destdir に何が入っているか ---"
+		D=$($PKGMAKE $MKARGS EMACS_COEXIST=yes show-var VARNAME=DESTDIR 2>/dev/null)
+		W=$($PKGMAKE $MKARGS EMACS_COEXIST=yes show-var VARNAME=WRKDIR 2>/dev/null)
+		for d in "$D$PREFIX/bin" "$D$PREFIX/man/man1" "$W/.destdir$PREFIX/bin" \
+		         "$W/.destdir$PREFIX/man/man1" "$W/.destdir$PREFIX/share/man/man1"; do
+			[ -d "$d" ] || continue
+			echo "    $d:"
+			ls "$d" 2>/dev/null | sed 's/^/      /'
+		done
 		echo "FAIL: EMACS_COEXIST=yes で入らない"; exit 1
 	fi
 	[ -x "$PREFIX/bin/emacs$V" ] || {

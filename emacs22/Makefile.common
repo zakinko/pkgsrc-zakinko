@@ -33,7 +33,7 @@ COMMENT?=	GNU editing macros (editor)
 MKPIE_SUPPORTED=	no
 RELRO_SUPPORTED=	no
 
-DISTNAME=	emacs-22.3
+DISTNAME=	emacs-${EMACS_VERSION}
 PKGNAME?=	${DISTNAME:S/emacs/emacs22/}
 CATEGORIES=	zakinko editors
 MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
@@ -58,6 +58,14 @@ CONFIGURE_ENV+=		GAMEOWN=${GAMEOWN:Q}
 
 BUILD_DEFS+=		VARBASE
 BUILD_DEFS+=		GAMEDATAMODE
+
+.include "../../zakinko/emacs22/version.mk"
+
+# emacs22 だけ EMACS_VERSION を持っていなかった。DISTNAME に 22.3 を直書きして
+# いたので誰も困っていなかったが、版の出どころが二つあるのは筋が悪い。23 から
+# 28 と同じ形にする。CI の「名乗る版が合っているか」もこれを見ていて、空だった
+# ために i386 の三つが落ちていた。
+EMACS_VERSION=		${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
 
 # build PATH in the dumped emacs is not a problem
 CHECK_WRKREF_SKIP+=	bin/emacs
