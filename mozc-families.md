@@ -81,6 +81,232 @@ pkgsrc の `inputmethod/mozc-*` を、四つの版で同時に触っている。
 「C++ を C コンパイラでリンクしている」という誤った結論になる。2.29 で 430 本
 中 111 本、3.33 で 357 本中 106 本。
 
+### emacs は同じ箱に二つ入らない
+
+`bin/ctags` を版ごとに持つので、`emacsNN-nox11` は同時に一つしか入らない。
+
+	pkg_add: emacs30-nox11-30.2nb1: conflicting PLIST with
+	         emacs28-nox11-28.2nb1: bin/ctags
+
+`/etc/mk.conf` の `EMACS_TYPE` が指す版が入っていないと、`mozc-elisp` も
+`anthy-elisp` も建たない。**emacs の版を入れ替えるときは、elisp 系を
+建てているセッションに一声かけること。** 8/28 23:45 に emacs30-nox11 が
+emacs28-nox11 に替わり、8/29 の mozc-elisp が落ちた。
+
+### pkgsrc の glob は `-` を跨ぐ。目で読まず `pkg_admin pmatch` に訊く
+
+	emacs[0-9]*-[0-9]*   emacs30-nox11-30.2nb1   当たる
+	emacs[0-9]*-[0-9]*   emacs28-nox11-28.2nb1   当たる
+	emacs-nox11-[0-9]*   emacs30-nox11-30.2nb1   当たらない
+	emacs-[0-9]*         emacs30-nox11-30.2nb1   当たらない
+
+`*` が `-` も食うので、`emacs` + `[0-9]`=3 + `*`=`0-nox11` + `-` +
+`[0-9]`=3 + `*`=`0.2nb1` と分解される。**「`emacs30-nox11` は
+`emacs[0-9]*-[0-9]*` の形ではない」という目視は外れる。**
+
+	pkg_admin pmatch '<pattern>' '<pkgname>'    → 終了状態で答える
+
+`DEPENDS` の `>=` や `CONFLICTS` を読むときは、必ずこれに訊く。
+**ただし終了状態を見る測定なので、下の「失敗と偽の区別」も併せて。**
+
+### mule2 と emacs も同じ箱に入らない
+
+emacs の版どうしが `bin/ctags` で排他なのと同じ理由で、`zakinko/mule2` と
+`emacsNN-nox11` も同居できない。
+
+	mule2/PLIST     bin/ctags  bin/etags  bin/emacsclient  ...
+	emacs30-nox11   /usr/pkg/bin/ctags  /usr/pkg/bin/etags
+
+`CONFLICTS` の書き方が緩いのではなく、実態が書いてある。**techne では
+「mule2 を入れて確かめる」と「elisp 系を建てる」が排他。** 直す類の話では
+なく、順番を決める話。
+
+### binary の文字列を見て「持っていない」と読むのは外れる
+
+gyp で建てた `mozc_server` と `mozc_emacs_helper` に `/usr/pkg/libexec` が
+無い、と `grep -a` が答えた。bazel 版には在る。**「gyp 版はサーバの path を
+持っていない」と読みかけた。**
+
+	grep -a -c 'usr/pkg/libexec'   bazel 1 / gyp 0
+	strings                        bazel /usr/pkg/libexec
+	                               gyp   /usr/pkg と /libexec が別々
+
+**実際は動く。** gyp 版の helper を PATH の先頭に置いて変換させたら
+`にほんご → 日本語` が通った。gcc が定数を分けて持ち、実行時に連結して
+いるだけだった。
+
+**文字列の有無は実装の都合で変わる。動かして確かめる。** `ktrace -t cn` で
+open するパスを見る手もあるが、helper は `CreateSession` を受けて初めて
+サーバを探すので、`/dev/null` を食わせても何も出ない。
+
+### 他家族の当て物と突き合わせる — 何が要らないかを確かめる
+
+「2.29 にまだバグは無いか」を、226 が持っていて 2.29 に無い当て物から逆算
+した。**五つとも 2.29 には要らなかったが、要らないことを一つずつ確かめる
+までは分からなかった。**
+
+	ipc_named__event.cc    sem_open(...,0) は NetBSD 11.0 で通る (実測)
+	graphcycles.cc         2.29 は既に #include <limits> を持つ
+	base_clock.cc          2.29 は書き換わっていて該当しない
+	base_run__level.cc     同上
+	base_base.gyp          server_dir!="" が偽なので platform を足しても
+	                       効かない。#ifndef の既定値で足りることを実測
+
+**当て物の名前とファイルの有無だけで判断すると、要らない当て物を足す。**
+`ipc_named__event.cc` は「226 が直しているのに 2.29 が直していない」形に
+見えたが、2021 年の NetBSD の問題で 11.0 では直っていた。
+
+	探し方   for f in 226/patches/patch-*; do
+	           2.29 に同名の当て物が無く、かつ 2.29 に同名ソースが在るものを挙げる
+
+### 手元の記録も、後で誰かが根拠に使う
+
+「送るもの」には気を張っても、`README.md` や照合表のような**手元の記録**には
+張らないことがある。**記録も後で根拠として引かれる**ので、同じ扱いが要る。
+
+実例。ある PR 番号を「226 の分」と peer から聞いて、確かめずに送信済み表へ
+書き込んだ。実際は別セッションの emacs の PR で、226 はまだ送られていな
+かった。**「人から聞いた話は実物を開くまで伝聞のまま」を各セッションに配って
+回った側が、その日のうちに四度目を踏んだ。**
+
+	送るもの   気を張る
+	記録       張らない   ← ここが抜ける
+
+確かめ方は同じ。**その PR の実物を開く。**
+
+	ls -la ~/w/claude/*/*.pr        誰が何を置いたか
+	head -4 <file>                  Subject と宛先
+
+### 終了状態を見る測定は、失敗と「偽」の区別が付かない
+
+	$ pkg_admin pmatch 'mozc-server>=2.26...' mozc-server-2.29...nb14
+	  → 「一致しない」
+
+**実際は `pkg_admin` が非対話 ssh の PATH に無く、command-not-found の
+終了状態を「不一致」と読んでいた。** 絶対 path で取り直したら全件逆だった
+(226 の実例)。
+
+同じ形が `make show-var` にもある。**空の出力は「変数が空」とも
+「コマンドが失敗」とも読める。**
+
+	$ make show-var VARNAME=NO_SUCH_VAR_XYZ
+	rc=0  出力=[]        ← 存在しない変数も同じ答え
+
+**区別するには、同じコマンドが別の入力で値を返すことを並べて示す。**
+pkg/60666 では、同じ箱の同じコマンドが `BROKEN_ON_PLATFORM` と
+`MACHINE_PLATFORM` には値を返し、当て物の後には `PKG_FAIL_REASON` にも
+値を返すことを見せている。
+
+rc を三分岐 (0 / 1 / それ以外) にして「測定失敗」を別に出すのが確実。
+
+### 実物を開いても、当てる先を間違えると伝聞と変わらない
+
+334 の abseil を「素で正しい」と読んだ例。distfile を開いて
+`->vs_vers` を目で見ているので「実物を見た」つもりになる。**見るべきは
+-current の `sys/exec_elf.h` との組み合わせだった。**
+
+	11.0        #define _SYS_EXEC_ELF_H_        値なし → Versym は struct
+	-current    #define _SYS_EXEC_ELF_H_  2     Elf_Half になる
+
+**「11.0 で通る形か」と「-current で壊れないか」は別の問い。** 開いた file が
+正しくても、問いが違えば答えは使えない (af 自身の弁)。
+
+### 変数は定義を grep せず、展開させて測る
+
+`mozc-renderer226/Makefile` が `${MOZC_VERSION}` を参照しているのに、
+`Makefile.common` が定義しているのは `MOZC_VER` だった。**空に展開されて
+pattern が `mozc-server-*` になり、何にでも一致する。**
+
+	$ make show-var VARNAME=MOZC_VERSION      → []
+	$ make show-depends | grep mozc-server    → mozc-server-*:...
+
+逆向きの誤りもある。`PKGVERSION_NOREV` を package の Makefile の中だけで
+grep して「未定義」と読んだ例。**実際は pkgsrc の組み込み**
+(`mk/bsd.pkg.mk:46`)。**「定義が見つからない」と「未定義」は別。**
+
+	$ make show-var VARNAME=PKGVERSION_NOREV   → 3.33.6089
+
+**どちらも `make show-var` で展開まで見れば一発で分かる。**
+
+家族間の依存の縛りも、展開して初めて強さが見える。2.29 の場合:
+
+	mozc-elisp     mozc-server-2.29.5268.102{,nb*}   厳密
+	mozc-renderer  mozc-server-[0-9]*                任意の版
+	ibus-mozc      mozc-{renderer,server,tool}>=2.29  2.29 以上なら何でも
+
+**`>=2.29` は 3.33 でも満たされる。** PKGBASE が同じで同居できない以上、
+install の順序によっては噛み合わない。新しく足すときは
+`PKGVERSION_NOREV` を使うと家族固有の変数が要らず、名前の食い違いも
+起きない。
+
+### 写しで測ると、送る形の条件が一度も踏まれない
+
+`zakinko/` の写しで建てている限り `PKGPATH` は `zakinko/...` のまま。
+**`options.mk` や `Makefile.common` が `PKGPATH` で分岐していると、送る形の
+条件を一度も通らない。** 写しでは測れない条件が入った時点で、写しでの検証が
+嘘になる (76431e7e)。
+
+333 は `inputmethod/mozc-*333` を symlink にし、CI では実体を動かして
+`PKGPATH` まで送る形に揃えている。
+
+2.29 は式が等価であることを測って済ませた。
+
+	提出   empty(PKGPATH:Minputmethod/mozc-server) && ...mozc-elisp)
+	fork   empty(PKGPATH:M*/mozc-server) && ...mozc-elisp)
+
+	                提出          fork
+	mozc-server     しない        しない
+	mozc-elisp      しない        しない
+	mozc-tool       する          する
+	mozc-renderer   する          する
+	ibus-mozc       する          する
+
+**測り方に注意。** `.for` の中で `empty(PKGPATH:M...)` と書くと、loop 変数
+ではなく未設定の実変数を読み、常に真になる。`.for` が置換するのは
+`${PKGPATH}` の形だけ。**コマンドラインで `make -f t.mk PKGPATH=...` と
+渡すのが正しい。** 誤った書き方は「全部 buildlink する」というもっともらしい
+答えを返すので気づきにくい。
+
+### 片付けると証拠も消える
+
+**「手元で一度測った」は、work や package を消した時点で消える。**
+PR の本文に書いた主張の裏付けが、掃除で無くなっていることがある
+(226 が四件それで取り直しになった)。
+
+`CLEANUP` に undo を書く決まりの裏側である。**証拠を残さない片付けは、
+主張も一緒に消す。** 送るまでは、測定に使った成果物を退避しておく。
+
+### `pkg_delete` と pkgsrc が別の DB を見る
+
+	$ make show-var VARNAME=PKG_DBDIR
+	/var/db/pkg
+	$ pkg_delete <pkg>            → 既定で /usr/pkg/pkgdb を見る
+
+食い違うと `pkg_delete` は「そんな package は無い」と言い、`pkg_add` は
+「もう入っている」と言い、ファイルは古いまま残る。三つが食い違って原因が
+見えなくなる。**`sudo env PKG_DBDIR=/var/db/pkg pkg_delete <pkg>` と
+指すこと。**
+
+### `+BUILD_INFO` で package の出所が引ける
+
+「この package は誰が、どの木から、いつ建てたか」は package 側に在る。
+
+	/var/db/pkg/<pkg>/+BUILD_INFO
+	BUILD_DATE=2026-08-28 23:44:47 +0000
+	PKGPATH=zakinko/emacs28-nox11        ← 木の editors/ ではない
+
+**共有の箱で「これは誰のものか」を追うときの最初の一手。**
+
+### `make install` が当て物前の binary を入れることがある
+
+`ninja` で relink しただけでは `work/.destdir` も `packages/All/*.tgz` も
+作り直されない。**`make install` が rc=0 で返っても、入るのは前の binary。**
+
+	sudo rm -f $W/.install_done $W/.package_done
+	sudo rm -rf $W/.destdir $W/.packages
+
+`make clean` から建て直していれば当たらない。
+
 ## 測り方
 
 334 の書き方に倣う。**「建った」と「動いた」と「届く見込み」を分ける。**
@@ -143,41 +369,38 @@ pkgsrc は `patch` の `.orig` を work に残す。**「当て物を入れる�
 **`make clean` すると消える。** 他のセッションが同じ木で `make clean` を
 走らせることがあるので、読みたいものは先に控える。
 
-## 未解決 — 二人の報告が食い違っているもの
+## 報告が食い違ったもの — どちらも決着済み
 
-### 3.33 の `FinalizeSingletons` は何を踏んでいるのか
+### 3.33 の `FinalizeSingletons` — 決着済み
 
-同じコードについて逆アセンブルの読みが割れている。**PR の文面がこれに依るので、
-どちらかに寄せる必要がある。**
+同じ関数の逆アセンブルで読みが割れた。**どちらの読みも正しく、対象が
+違った。** 素の distfile で確定:
 
-25689 の読み — 256 個を無条件に舐める
+	=== distfiles/mozc-3.33.6089.tar.gz を展開したもの ===
+	for (auto func : internal::finalizers) {      ← 256 個ぜんぶ
+	  func();
 
-	.L14:  call *(%rbx)
-	       addq $8, %rbx
-	       cmpq $…finalizersE+2048, %rbx    2048/8 = 256
-	       jne  .L14
+	=== 当て物 patch-base_singleton.cc を当てた work ===
+	for (int i = 0; i < internal::size; ++i) {    ← 「原文」として引かれた形
+	  internal::finalizers[i]();
 
-15aaa173 の読み — `size` で止まっており、その範囲の中に null が居る
+一方は素、もう一方は当て物の後を見ていた。逆アセンブルした binary は
+8/28 に relink されたもので、core は 8/27。**`exec file is newer than
+core file` が出ていた**が、それが警告どおりの結果だった。
 
-	+28: mov  …N_14sizeE,%eax
-	+34: test %eax,%eax
-	+36: jle  <+63>                          size <= 0 なら抜ける
-	+47: call *(%r12,%rbx,8)                 ← ここで番地 0 を呼んだ
+**教訓は二つ。**
 
-	constinit std::array<void (*)(void), 256> finalizers = {};
-	constinit int size = 0;
-	void FinalizeSingletons() {
-	  for (int i = 0; i < internal::size; ++i) {   ← 256 ではなく size
-	    internal::finalizers[i]();
+	逆アセンブルを根拠に出すときは、その binary が素か当て物後かを添える
+	gdb の "exec file is newer than core file" は無視してよい警告ではない
 
-**「未登録の枠を舐めた」と「登録済みのはずの枠が null だった」では、直し方も
-書き方も変わる。** 最適化の度合いが違う二つの binary を見ている可能性がある。
-どちらの binary をどの版から建てたかを添えて突き合わせること。
+**切り分けに効いたのは「backtrace だけでは区別が付かない、区別が付くのは
+`size` の値」**という問い方だった。結果的に対象違いと分かったが、同じ
+対象なら決め手になっていた。
 
-### 334 の abseil — 当て物が要る
+### 334 の abseil — 当て物が要る (決着済み)
 
-15aaa173 から「素で正しい (当て物不要)」と報告があったが、**引用されていた
-コードそのものが問題の形である。** 24db8d が実物で確認した。
+「素で正しい (当て物不要)」という報告だったが、**引用されていたコードその
+ものが問題の形だった。** 本人が確かめ直して訂正済み。
 
 	mozc-3.34.6239/src/third_party/abseil-cpp/absl/debugging/internal/elf_mem_image.cc:380
 	#if defined(__NetBSD__)
