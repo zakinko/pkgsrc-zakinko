@@ -31,9 +31,15 @@ build dies much later with `No rule to make target "all"'.  That is what
 DragonFly was doing.  Keep the -traditional-cpp candidate already in hand
 unless /lib/cpp is really present.
 
---- configure.orig	1995-07-21 06:12:16.000000000 +0000
+The machine table has no x86_64 arm outside the BSDs, so configure stops with
+"Emacs hasn't been ported to `x86_64--linux-gnu' systems" before it looks at
+anything else.  m/amd64.h is already here and says nothing about the operating
+system, so the arm is the same shape as the i386 one: pick the machine, then
+let the inner case pick the opsys.
+
+--- configure.orig
 +++ configure
-@@ -581,16 +581,36 @@
+@@ -581,13 +581,33 @@
    *-*-netbsd* )
      opsys=netbsd
      case "${canonical}" in
@@ -47,9 +53,9 @@ unless /lib/cpp is really present.
 +      powerpc-*-netbsd*) machine=powerpc ;;
        sparc-*-netbsd*)	machine=sparc ;;
 +      x86_64-*-netbsd*) machine=amd64 ;;
-     esac
-   ;;
- 
++    esac
++  ;;
++
 +  ## DragonFly ports.  Only ever ran on x86_64.
 +  *-*-dragonfly* )
 +    opsys=dragonfly
@@ -64,13 +70,10 @@ unless /lib/cpp is really present.
 +    case "${canonical}" in
 +      i[345]86-*-freebsd*) machine=intel386 ;;
 +      x86_64-*-freebsd*) machine=amd64 ;;
-+    esac
-+  ;;
-+
-   ## Alliant machines
-   ## Strictly speaking, we need the version of the alliant operating
-   ## system to choose the right machine file, but currently the
-@@ -1177,6 +1197,7 @@
+     esac
+   ;;
+ 
+@@ -1177,11 +1197,21 @@
        *-bsd386* | *-bsdi* )	opsys=bsd386 ;;
        *-386bsd* )	        opsys=386bsd ;;
        *-freebsd* )	        opsys=freebsd ;;
@@ -78,7 +81,21 @@ unless /lib/cpp is really present.
        *-nextstep* )             opsys=mach2 ;;
        ## Otherwise, we'll fall through to the generic opsys code at the bottom.
      esac
-@@ -1384,10 +1405,13 @@
+   ;;
+ 
++  ## x86_64 machines where we do not care about the manufacturer
++  x86_64-*-* )
++    machine=amd64
++    case "${canonical}" in
++      *-linux* )		opsys=linux ;;
++      ## Otherwise, we will fall through to the generic opsys code at the bottom.
++    esac
++  ;;
++
+   * )
+     unported=true
+   ;;
+@@ -1384,10 +1414,13 @@
  #include "confdefs.h"
  #include <stdio.h>
  Syntax Error
@@ -93,7 +110,7 @@ unless /lib/cpp is really present.
  if test -z "$ac_err"; then
    :
  else
-@@ -1397,15 +1421,20 @@
+@@ -1397,15 +1430,20 @@
  #include "confdefs.h"
  #include <stdio.h>
  Syntax Error
