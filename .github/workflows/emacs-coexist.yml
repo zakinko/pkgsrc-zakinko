@@ -1,0 +1,101 @@
+name: emacs22-28 共存
+
+# EMACS_COEXIST=yes で建てたときに、無印の名前を置かず版付きだけを置けるか
+# を見る。emacs22 から emacs28 を並べて入れられるようにするための option で、
+# 既定では効かない。
+#
+# 別の workflow にしてあるのは、この検査が emacs をもう一度丸ごと建て直す
+# からである。verify-emacs.sh は 1 から 3 で既定の形を建てて日本語変換まで
+# 見たあと、3b で clean してから EMACS_COEXIST=yes で建て直す。一版あたり
+# 二倍かかるので、emacs22-28 の押すたびの検査に混ぜると待ち行列が倍になる。
+#
+# この option は書いてから一度も走らせていなかった。emacs22 に古い実装
+# (coexist-rename) が丸ごと残っていて、しかもそれが .if の外に hook されて
+# いたために既定の install を壊していた、というのが cf28c55 で見つかっている。
+# 既定の道に漏れたから気づけたが、共存の道そのものは誰も踏んでいない。
+#
+# 見るのは名前だけなので platform を並べる意味は薄い。既定は amd64-10.1 の
+# 一つで、必要なら images に並べる。
+
+on:
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: '対象の版 (例 "28 27")。空なら 7 版すべて'
+        required: false
+      images:
+        description: '対象イメージ (例 "i386-9.4")。空なら amd64-10.1 だけ'
+        required: false
+  schedule:
+    # 毎月 1 日 18:00 UTC (JST 3:00)。押されない限り誰も踏まない道なので、
+    # pkgsrc の mk/plist が動いたときに気づく口をひとつ残しておく。
+    - cron: '0 18 1 * *'
+
+concurrency:
+  group: emacs-coexist
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.q.outputs.versions }}
+      images: ${{ steps.q.outputs.images }}
+    steps:
+      - id: q
+        env:
+          IN_V: ${{ inputs.versions }}
+          IN_I: ${{ inputs.images }}
+        run: |
+          set -e
+          [ -n "$IN_V" ] && V="$IN_V" || V="28 27 26 25 24 23 22"
+          [ -n "$IN_I" ] && I="$IN_I" || I="amd64-10.1"
+          printf 'versions=%s\n' "$(printf '%s\n' $V | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          printf 'images=%s\n'   "$(printf '%s\n' $I | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  build:
+    needs: plan
+    runs-on: ubuntu-latest
+    # 既定の形と共存の形を続けて建てるので、emacs22-28 の一版ぶんの倍を見る。
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        version: ${{ fromJSON(needs.plan.outputs.versions) }}
+        image: ${{ fromJSON(needs.plan.outputs.images) }}
+    name: 共存 emacs${{ matrix.version }} ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      - name: 共存の形で組んで名前を見る
+        env:
+          UPSTREAM_PKG: >-
+            zakinko/emacs${{ matrix.version }}-nox11
+            zakinko/emacs${{ matrix.version }}
+            zakinko/emacs
+            zakinko/anthy
+            zakinko/anthy-elisp
+          VERIFY_SCRIPT: verify-emacs.sh
+          EMACS_COEXIST_CHECK: 'yes'
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true

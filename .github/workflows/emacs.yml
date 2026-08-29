@@ -15,6 +15,10 @@ name: emacs22-28
 # イメージは mule2 と同じ netbsd-ci-images の release から取る。runner が
 # x86_64 の Linux で KVM が使えるので i386 も amd64 もほぼ実速で動く。
 
+# EMACS_COEXIST=yes の検査はここには無い。emacs をもう一度丸ごと建て直す
+# ので、押すたびのこの検査に混ぜると待ち行列が倍になる。emacs-coexist.yml
+# に分けてある。
+
 # concurrency は置かない。この repo の 15 本のうち置いていたのはここだけで、
 # cancel-in-progress: true にしていたため main へ押すたび走行中の job が切られ
 # ていた。VM は一版あたり 40 分から 70 分かかるので、連続で押した二回目に
@@ -38,10 +42,6 @@ on:
       images:
         description: '対象イメージ (例 "amd64-11.0")。空なら既定の 6 つ'
         required: false
-      coexist:
-        description: 'EMACS_COEXIST=yes でも組み直して名前を見るか'
-        type: boolean
-        default: false
 
 jobs:
   plan:
@@ -133,7 +133,6 @@ jobs:
             zakinko/anthy
             zakinko/anthy-elisp
           VERIFY_SCRIPT: verify-emacs.sh
-          EMACS_COEXIST_CHECK: ${{ inputs.coexist && 'yes' || 'no' }}
         # BINPKG_SITES は verify-emacs.sh がゲストの中で uname -p から
         # 決める。ここから渡すと arch を取り違える。
         run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
