@@ -1,4 +1,4 @@
-$NetBSD: patch-bd,v 1.1 2008/04/05 21:29:14 kristerw Exp $
+$NetBSD$
 
 Same as patch-bs, in the Motif part of lwlib.
 

@@ -1,4 +1,4 @@
-$NetBSD: patch-al,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 Solaris declares index() and rindex() in <strings.h>, not <string.h>, and this
 file calls them.  Without the declaration the compiler assumes int, which is

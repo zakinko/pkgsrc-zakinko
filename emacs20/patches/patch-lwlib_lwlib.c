@@ -1,4 +1,4 @@
-$NetBSD: patch-bp,v 1.3 2012/12/11 04:54:47 dholland Exp $
+$NetBSD$
 
 Same as patch-bs, in lwlib.
 

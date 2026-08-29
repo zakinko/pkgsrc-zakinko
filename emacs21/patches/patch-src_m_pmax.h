@@ -1,4 +1,4 @@
-$NetBSD: patch-af,v 1.1 2007/06/11 13:38:34 markd Exp $
+$NetBSD$
 
 pmax (DECstation) on NetBSD is ELF and does not want the Ultrix crt0, so keep
 START_FILES out of the NetBSD build rather than defining it and then undefining

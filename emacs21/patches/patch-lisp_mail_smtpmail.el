@@ -1,4 +1,4 @@
-$NetBSD: patch-bb,v 1.1 2007/06/11 13:38:43 markd Exp $
+$NetBSD$
 
 --- lisp/mail/smtpmail.el.orig	2006-09-02 00:23:45.000000000 +0300
 +++ lisp/mail/smtpmail.el

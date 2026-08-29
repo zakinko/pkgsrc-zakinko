@@ -1,4 +1,4 @@
-$NetBSD: patch-ce,v 1.1 2008/07/13 17:28:34 dholland Exp $
+$NetBSD$
 
 /tmp/geta$$ is a name an attacker can guess and create first, as a symlink to
 somewhere else.  vcdiff runs as the user, so the redirection then writes

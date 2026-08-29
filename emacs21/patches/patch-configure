@@ -1,4 +1,4 @@
-$NetBSD: patch-ab,v 1.7 2015/02/19 14:18:52 wiz Exp $
+$NetBSD$
 
 Caution: the extra cpp checking (the three hunks containing "Should be
 one line") is manually hacked and not reflected in configure.in; do

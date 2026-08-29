@@ -1,4 +1,4 @@
-$NetBSD: patch-cc,v 1.1 2008/07/13 17:28:34 dholland Exp $
+$NetBSD$
 
 "." as a font-lock cache directory means a cache file is written beside the
 file being visited, and read from there.  In a directory several people can

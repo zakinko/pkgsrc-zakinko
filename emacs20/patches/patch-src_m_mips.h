@@ -1,4 +1,4 @@
-$NetBSD: patch-ax,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 The BSD branch here hardcodes /bsd43/bin/ld, which is an Ultrix path.  NetBSD
 and OpenBSD on MIPS are ELF and use the ordinary linker, so leave LINKER unset

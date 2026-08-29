@@ -1,4 +1,4 @@
-$NetBSD: patch-ac,v 1.1 2007/06/11 13:38:34 markd Exp $
+$NetBSD$
 
 NetBSD/hppa with GCC has __builtin_alloca, so use it rather than falling
 through to the C alloca that the hpux part of this file arranges for.

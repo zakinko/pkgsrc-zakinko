@@ -1,4 +1,4 @@
-$NetBSD: patch-ax,v 1.3 2014/05/23 22:34:41 dholland Exp $
+$NetBSD$
 
 * Fix build with png-1.5.
 * Fix build with giflib 5.0.

@@ -1,4 +1,4 @@
-$NetBSD: patch-ba,v 1.1 2008/04/05 21:29:14 kristerw Exp $
+$NetBSD$
 
 Same as patch-bs: the XtVaSetValues list ends with a null pointer, not the
 integer 0.

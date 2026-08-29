@@ -1,4 +1,4 @@
-$NetBSD: patch-ab,v 1.13 2021/12/29 03:40:23 dholland Exp $
+$NetBSD$
 
 Caution: the changes for using a different cpp for munging the
 makefiles (search for MAKEFILECPP) are *not* reflected in the pkgsrc

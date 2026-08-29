@@ -1,4 +1,4 @@
-$NetBSD: patch-bi,v 1.2 2016/11/26 03:50:16 dholland Exp $
+$NetBSD$
 
 Work around bug in gcc 5.x that makes calloc into a call to itself,
 resulting in an infinite loop.

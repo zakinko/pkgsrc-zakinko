@@ -1,4 +1,4 @@
-$NetBSD: patch-cg,v 1.1 2011/08/01 05:44:26 dholland Exp $
+$NetBSD$
 
 Fix illegal C, caught by clang.
 

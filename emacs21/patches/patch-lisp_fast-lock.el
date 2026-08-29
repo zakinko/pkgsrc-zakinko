@@ -1,4 +1,4 @@
-$NetBSD: patch-aw,v 1.1 2008/06/03 22:17:00 markd Exp $
+$NetBSD$
 
 --- lisp/fast-lock.el.orig	2001-07-16 04:15:34.000000000 +1200
 +++ lisp/fast-lock.el

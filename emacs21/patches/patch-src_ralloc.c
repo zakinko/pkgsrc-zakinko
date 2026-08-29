@@ -1,4 +1,4 @@
-$NetBSD: patch-az,v 1.1 2007/06/11 13:38:43 markd Exp $
+$NetBSD$
 
 The relocating allocator measures the distance between two heap addresses.  On
 LP64 that does not fit in an int, and the excess came out truncated or

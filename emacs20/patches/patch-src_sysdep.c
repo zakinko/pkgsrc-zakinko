@@ -1,4 +1,4 @@
-$NetBSD: patch-ai,v 1.3 2012/12/11 04:54:43 dholland Exp $
+$NetBSD$
 
 On NetBSD ELF the linker provides the start-of-text symbol, so emacs's own
 guess is both unnecessary and wrong.  HAVE_TEXT_START is not set by configure

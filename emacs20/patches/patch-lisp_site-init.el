@@ -1,4 +1,4 @@
-$NetBSD: patch-bc,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 site-init.el is read while emacs is being dumped, so what it sets is baked into
 the binary.  Two things are set here: NetBSD keeps info files under /usr/share,

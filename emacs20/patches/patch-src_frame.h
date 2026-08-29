@@ -1,4 +1,4 @@
-$NetBSD: patch-bh,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 The "nothing" member is there to give the union a size when neither X nor w32
 is compiled in.  int is too small on LP64, so the union came out shorter than

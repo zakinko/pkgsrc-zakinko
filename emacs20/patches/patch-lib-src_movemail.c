@@ -1,4 +1,4 @@
-$NetBSD: patch-ca,v 1.1 2005/02/09 16:09:43 drochner Exp $
+$NetBSD$
 
 error() takes a printf format.  Passing the message as the format string means
 any % in it is read as a conversion, and the text here comes from the POP

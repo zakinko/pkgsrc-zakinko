@@ -1,4 +1,4 @@
-$NetBSD: patch-ai,v 1.1 2007/06/11 13:38:35 markd Exp $
+$NetBSD$
 
 Mac OS X on x86 cannot dump: its dynamic loader does not let a process write
 itself out as an executable.  Build the undumped emacs there instead.

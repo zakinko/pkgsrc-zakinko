@@ -1,4 +1,4 @@
-$NetBSD: patch-az,v 1.2 2016/11/26 03:50:16 dholland Exp $
+$NetBSD$
 
 NetBSD's <sys/exec_elf.h> wants ELFSIZE set before it is included, and defines
 the Elf_* names rather than the SHT_*/PT_* ones the code uses.  Include it

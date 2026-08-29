@@ -1,4 +1,4 @@
-$NetBSD: patch-aj,v 1.1 2007/06/11 13:38:36 markd Exp $
+$NetBSD$
 
 errno is not an int any more; on any system with threads it is a macro over a
 per-thread location.  The old extern declaration shadows that and the value

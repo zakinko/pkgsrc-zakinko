@@ -1,4 +1,4 @@
-$NetBSD: patch-ag,v 1.2 2015/02/19 14:18:52 wiz Exp $
+$NetBSD$
 
 --- src/config.in.orig	2002-07-08 18:23:31.000000000 -0400
 +++ src/config.in	2015-02-16 15:52:16.000000000 -0500

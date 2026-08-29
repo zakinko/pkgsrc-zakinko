@@ -1,4 +1,4 @@
-$NetBSD: patch-aj,v 1.3 2017/07/23 05:22:38 dholland Exp $
+$NetBSD$
 
 IPv6.  Emacs 20 resolves with gethostbyname and can only make AF_INET sockets,
 so open-network-stream cannot reach an IPv6-only host.  Use getaddrinfo where

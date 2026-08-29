@@ -1,4 +1,4 @@
-$NetBSD: patch-bg,v 1.4 2021/12/29 03:40:23 dholland Exp $
+$NetBSD$
 
 The NetBSD half of configure.  Add --with-ipv6 and the getaddrinfo test that
 patch-aj and patch-ag need, and fill in the machine names that were missing or

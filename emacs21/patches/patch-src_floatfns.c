@@ -1,4 +1,4 @@
-$NetBSD: patch-ar,v 1.1 2007/06/11 13:38:38 markd Exp $
+$NetBSD$
 
 Same as patch-aj, in floatfns.c.
 

@@ -1,4 +1,4 @@
-$NetBSD: patch-bs,v 1.3 2012/12/11 04:54:47 dholland Exp $
+$NetBSD$
 
 The varargs list of XtVaSetValues is terminated by a null pointer, not by the
 integer 0.  On LP64 those are different widths, so the callee kept reading past

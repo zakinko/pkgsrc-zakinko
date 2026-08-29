@@ -1,4 +1,4 @@
-$NetBSD: patch-bf,v 1.2 2010/03/30 00:44:48 dholland Exp $
+$NetBSD$
 
 Three NetBSD things.  Pick terminfo or termcap by __NETBSD_USE_TERMCAP__, which
 the package Makefile sets from whether /usr/include/term.h exists -- the base

@@ -1,4 +1,4 @@
-$NetBSD: patch-bm,v 1.4 2011/12/01 05:12:57 dholland Exp $
+$NetBSD$
 
 - use standard headers
 - fix type of __malloc_extra_blocks

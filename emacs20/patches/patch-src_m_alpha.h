@@ -1,4 +1,4 @@
-$NetBSD: patch-br,v 1.2 2021/12/29 03:26:32 dholland Exp $
+$NetBSD$
 
 - Fix extra declarations of allocator functions that are out of sync
 with the rest of the tree.

@@ -1,4 +1,4 @@
-$NetBSD: patch-aa,v 1.4 2016/05/03 09:41:20 wiz Exp $
+$NetBSD$
 
 --- man/Makefile.in.orig	2001-12-21 08:15:45.000000000 +0000
 +++ man/Makefile.in

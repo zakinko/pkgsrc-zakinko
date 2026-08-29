@@ -1,4 +1,4 @@
-$NetBSD: patch-am,v 1.1 2007/06/11 13:38:36 markd Exp $
+$NetBSD$
 
 Same as patch-aj, in xterm.c.
 

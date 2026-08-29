@@ -1,4 +1,4 @@
-$NetBSD: patch-am,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 Same as patch-al, for the other file that calls index() on Solaris.
 

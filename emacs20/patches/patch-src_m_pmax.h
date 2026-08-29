@@ -1,4 +1,4 @@
-$NetBSD: patch-ay,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 pmax (DECstation) on NetBSD and OpenBSD is ELF, so unexelf works and there is
 no reason to give up dumping.  The old settings came from a.out days: they

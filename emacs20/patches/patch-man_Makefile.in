@@ -1,8 +1,13 @@
-$NetBSD: patch-aa,v 1.1.1.1 2003/04/11 00:31:44 uebayasi Exp $
+$NetBSD$
 
-Do not build or install info/info.  It is the Info reader's own manual, and
-textproc/texinfo installs the same file; two packages cannot own it.  Also make
-"all" build the info files, which upstream leaves to a separate "make info".
+Do not build info/info, the Info reader's own manual.  pkgsrc does not install
+it -- the PLIST has the other fifteen manuals and not this one -- and the
+top-level makefile patch drops it from the install glob for the same reason.
+Why it is left out is not recorded: the patch has been at revision 1.1.1.1
+since the package was imported.
+
+Also make "all" build the info files, which upstream leaves to a separate
+"make info".
 
 --- man/Makefile.in.orig	Sat Dec  5 08:33:16 1998
 +++ man/Makefile.in	Fri Aug  6 08:34:06 1999

@@ -1,4 +1,4 @@
-$NetBSD: patch-bj,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 Make Lisp_Object 64 bits wide on LP64, and declare four Lisp functions
 that return one.

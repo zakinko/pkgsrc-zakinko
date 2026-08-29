@@ -1,4 +1,4 @@
-$NetBSD: patch-ba,v 1.1 2007/06/11 13:38:43 markd Exp $
+$NetBSD$
 
 sort-columns hands the field separator to sort(1) after -t, and passed a
 newline.  BSD sort refuses that -- "record/field delimiter clash", since the

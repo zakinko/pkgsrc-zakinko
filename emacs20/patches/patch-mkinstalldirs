@@ -1,4 +1,4 @@
-$NetBSD: patch-ao,v 1.3 2010/02/04 06:40:19 dholland Exp $
+$NetBSD$
 
 Honour DESTDIR.  mkinstalldirs is called from the install rules with paths that
 already have the prefix in them, so with a staged install it made the

@@ -1,4 +1,4 @@
-$NetBSD: patch-bl,v 1.1.1.1 2003/04/11 00:31:45 uebayasi Exp $
+$NetBSD$
 
 64-bit SPARC.  Emacs 20 tags Lisp objects with bits inside a word, so the width
 of EMACS_INT and the position of the mark bit have to be stated for the ABI.

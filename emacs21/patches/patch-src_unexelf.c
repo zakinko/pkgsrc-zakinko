@@ -1,4 +1,4 @@
-$NetBSD: patch-ah,v 1.2 2016/11/26 04:22:40 dholland Exp $
+$NetBSD$
 
 - Set ELFSIZE correctly (from exec_elf.h)
 - not sure what the rest is about (XXX)

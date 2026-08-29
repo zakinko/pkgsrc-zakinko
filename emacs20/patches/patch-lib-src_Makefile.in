@@ -1,4 +1,4 @@
-$NetBSD: patch-ak,v 1.2 2010/02/04 06:40:19 dholland Exp $
+$NetBSD$
 
 Two things.  Honour DESTDIR in the install rules, which predate staged
 installs.  And install the helper programs under emacs- names -- emacs-etags,

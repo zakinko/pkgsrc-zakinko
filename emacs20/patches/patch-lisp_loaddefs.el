@@ -1,4 +1,4 @@
-$NetBSD: patch-cd,v 1.1 2008/07/13 17:28:34 dholland Exp $
+$NetBSD$
 
 fast-lock-cache-directories names directories that fast-lock writes cache files
 into, and a file-local value for it therefore chooses where a buffer's cache is

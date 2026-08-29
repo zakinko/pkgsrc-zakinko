@@ -1,4 +1,4 @@
-$NetBSD: patch-ab,v 1.3 2013/06/19 13:12:01 mef Exp $
+$NetBSD$
 
 Update to include new versions of Emacsen
 

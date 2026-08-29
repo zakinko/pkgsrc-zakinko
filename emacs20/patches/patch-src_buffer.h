@@ -1,4 +1,4 @@
-$NetBSD: patch-bt,v 1.1 2004/03/25 22:13:34 kristerw Exp $
+$NetBSD$
 
 Declare the relocating allocator before it is used.  With no prototype in
 scope the compiler assumes r_alloc returns int, which loses the top half of

@@ -1,4 +1,4 @@
-$NetBSD: patch-ay,v 1.1 2008/06/03 22:17:00 markd Exp $
+$NetBSD$
 
 --- lisp/loaddefs.el.orig	2003-03-19 02:36:18.000000000 +1200
 +++ lisp/loaddefs.el

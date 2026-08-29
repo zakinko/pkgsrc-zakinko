@@ -1,4 +1,4 @@
-$NetBSD: patch-ac,v 1.3 2013/06/19 13:12:01 mef Exp $
+$NetBSD$
 
 Add Version specific module to byte-compile
 

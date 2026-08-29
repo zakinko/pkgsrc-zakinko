@@ -1,4 +1,4 @@
-$NetBSD: patch-av,v 1.2 2016/05/03 09:41:20 wiz Exp $
+$NetBSD$
 
 Two things.  copy_row_except_pointers is used only in this file, so make it
 static -- without that, INLINE leaves an external definition in every object
