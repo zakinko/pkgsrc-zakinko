@@ -103,15 +103,23 @@ coexist-names:
 		${MV} etags emacs23-etags && \
 		${MV} grep-changelog emacs23-grep-changelog && \
 		${MV} rcs-checkin emacs23-rcs-checkin
+	# Emacs の install-man は入れた man をその場で gzip する。configure の
+	# compress-install は既定で on なので、post-install の時点で在るのは
+	# emacs.1 ではなく emacs.1.gz になる。素の名前だけを mv すると
+	# "No such file or directory" で落ちる。pkgsrc があとで .1 へ戻すので、
+	# 改名しない既定の形では誰も踏まない。両方の綴りを見る。
 	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
-		${MV} b2m.1 emacs23-b2m.1 && \
-		${MV} ctags.1 emacs23-ctags.1 && \
-		${MV} ebrowse.1 emacs23-ebrowse.1 && \
-		${MV} emacs.1 emacs23.1 && \
-		${MV} emacsclient.1 emacsclient23.1 && \
-		${MV} etags.1 emacs23-etags.1 && \
-		${MV} grep-changelog.1 emacs23-grep-changelog.1 && \
-		${MV} rcs-checkin.1 emacs23-rcs-checkin.1
+	for m in b2m:emacs23-b2m ctags:emacs23-ctags \
+		 ebrowse:emacs23-ebrowse emacs:emacs23 \
+		 emacsclient:emacsclient23 etags:emacs23-etags \
+		 grep-changelog:emacs23-grep-changelog \
+		 rcs-checkin:emacs23-rcs-checkin; do \
+		o=$${m%%:*}; n=$${m\#*:}; \
+		for e in "" .gz; do \
+			[ -f "$$o.1$$e" ] || continue; \
+			${MV} "$$o.1$$e" "$$n.1$$e"; \
+		done; \
+	done
 	${RM} -rf ${DESTDIR}${PREFIX}/share/applications
 	${RM} -rf ${DESTDIR}${PREFIX}/share/icons
 	${RM} -f  ${DESTDIR}${PREFIX}/bin/emacs

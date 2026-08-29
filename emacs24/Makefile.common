@@ -100,13 +100,21 @@ coexist-names:
 		${MV} emacsclient emacsclient24 && \
 		${MV} etags emacs24-etags && \
 		${MV} grep-changelog emacs24-grep-changelog
+	# Emacs の install-man は入れた man をその場で gzip する。configure の
+	# compress-install は既定で on なので、post-install の時点で在るのは
+	# emacs.1 ではなく emacs.1.gz になる。素の名前だけを mv すると
+	# "No such file or directory" で落ちる。pkgsrc があとで .1 へ戻すので、
+	# 改名しない既定の形では誰も踏まない。両方の綴りを見る。
 	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
-		${MV} ctags.1 emacs24-ctags.1 && \
-		${MV} ebrowse.1 emacs24-ebrowse.1 && \
-		${MV} emacs.1 emacs24.1 && \
-		${MV} emacsclient.1 emacsclient24.1 && \
-		${MV} etags.1 emacs24-etags.1 && \
-		${MV} grep-changelog.1 emacs24-grep-changelog.1
+	for m in ctags:emacs24-ctags ebrowse:emacs24-ebrowse emacs:emacs24 \
+		 emacsclient:emacsclient24 etags:emacs24-etags \
+		 grep-changelog:emacs24-grep-changelog; do \
+		o=$${m%%:*}; n=$${m\#*:}; \
+		for e in "" .gz; do \
+			[ -f "$$o.1$$e" ] || continue; \
+			${MV} "$$o.1$$e" "$$n.1$$e"; \
+		done; \
+	done
 	${RM} -rf ${DESTDIR}${PREFIX}/share/applications
 	${RM} -rf ${DESTDIR}${PREFIX}/share/icons
 	${RM} -f  ${DESTDIR}${PREFIX}/bin/emacs

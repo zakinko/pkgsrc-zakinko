@@ -101,12 +101,20 @@ coexist-names:
 		${MV} emacs-${PKGVERSION_NOREV} emacs27 && \
 		${MV} emacsclient emacsclient27 && \
 		${MV} etags emacs27-etags
+	# Emacs の install-man は入れた man をその場で gzip する。configure の
+	# compress-install は既定で on なので、post-install の時点で在るのは
+	# emacs.1 ではなく emacs.1.gz になる。素の名前だけを mv すると
+	# "No such file or directory" で落ちる。pkgsrc があとで .1 へ戻すので、
+	# 改名しない既定の形では誰も踏まない。両方の綴りを見る。
 	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
-		${MV} ctags.1 emacs27-ctags.1 && \
-		${MV} ebrowse.1 emacs27-ebrowse.1 && \
-		${MV} emacs.1 emacs27.1 && \
-		${MV} emacsclient.1 emacsclient27.1 && \
-		${MV} etags.1 emacs27-etags.1
+	for m in ctags:emacs27-ctags ebrowse:emacs27-ebrowse emacs:emacs27 \
+		 emacsclient:emacsclient27 etags:emacs27-etags; do \
+		o=$${m%%:*}; n=$${m\#*:}; \
+		for e in "" .gz; do \
+			[ -f "$$o.1$$e" ] || continue; \
+			${MV} "$$o.1$$e" "$$n.1$$e"; \
+		done; \
+	done
 	${RM} -rf ${DESTDIR}${PREFIX}/lib/systemd
 	${RM} -rf ${DESTDIR}${PREFIX}/share/applications
 	${RM} -rf ${DESTDIR}${PREFIX}/share/icons

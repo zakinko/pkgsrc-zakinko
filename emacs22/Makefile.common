@@ -184,11 +184,20 @@ coexist-names:
 		${MV} emacs-etags emacs22-etags && \
 		${MV} emacs-grep-changelog emacs22-grep-changelog && \
 		${MV} emacs-rcs-checkin emacs22-rcs-checkin
+	# Emacs の install-man は入れた man をその場で gzip する。configure の
+	# compress-install は既定で on なので、post-install の時点で在るのは
+	# emacs.1 ではなく emacs.1.gz になる。素の名前だけを mv すると
+	# "No such file or directory" で落ちる。pkgsrc があとで .1 へ戻すので、
+	# 改名しない既定の形では誰も踏まない。両方の綴りを見る。
 	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
-		${MV} emacs-ctags.1 emacs22-ctags.1 && \
-		${MV} emacs.1 emacs22.1 && \
-		${MV} emacsclient.1 emacsclient22.1 && \
-		${MV} emacs-etags.1 emacs22-etags.1
+	for m in emacs-ctags:emacs22-ctags emacs:emacs22 \
+		 emacsclient:emacsclient22 emacs-etags:emacs22-etags; do \
+		o=$${m%%:*}; n=$${m\#*:}; \
+		for e in "" .gz; do \
+			[ -f "$$o.1$$e" ] || continue; \
+			${MV} "$$o.1$$e" "$$n.1$$e"; \
+		done; \
+	done
 	${RM} -f  ${DESTDIR}${PREFIX}/bin/emacs
 	${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
 .else
