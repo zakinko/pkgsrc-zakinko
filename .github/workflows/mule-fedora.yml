@@ -98,25 +98,19 @@ jobs:
       - name: 止まった場所を出す
         if: failure()
         run: |
-          tail -40 /tmp/build.log 2>/dev/null || true
-          # struct msgbuf は _DEFAULT_SOURCE でも出てこなかった。何を渡せば
-          # 出るのかを訊く。
-          printf '#include <sys/ipc.h>\n#include <sys/msg.h>\nstruct msgbuf probe;\n' > /tmp/p2.c
-          for d in -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_XOPEN_SOURCE=700 "-D_DEFAULT_SOURCE -D_GNU_SOURCE"; do
-            printf 'msgbuf %s => ' "$d"
-            cc $d -c -o /dev/null /tmp/p2.c 2>/dev/null && echo "出る" || echo "出ない"
-          done
-          printf '__USE_MISC: '; printf '#include <features.h>\n' > /tmp/p3.c
-          cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -dM -E /tmp/p3.c | grep -c '__USE_MISC'
-          # movemail は <fcntl.h> を素で読めば open が通るのに、この file の
-          # 中では通らない。前処理器を通した後に何が残っているかを見る。
+          tail -30 /tmp/build.log 2>/dev/null || true
+          # movemail は <fcntl.h> を読んでいて、前処理後に open の宣言も残る
+          # のに、build の中では暗黙宣言になる。素の cc との差は wrapper が
+          # 足す -std=gnu11 と -I/usr/pkg/include だけなので、それを一つずつ
+          # 足して、どれで宣言が消えるかを見る。
           W=$(find / -path '*mule/lib-src/movemail.c' 2>/dev/null | head -1)
           if [ -n "$W" ]; then
             cd "$(dirname "$W")"
-            echo "=== open の宣言が前処理後に在るか"
-            cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
-               -E movemail.c 2>/dev/null | grep -c 'extern int open'
-            echo "=== open を巨視で触っているか"
-            cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
-               -dM -E movemail.c 2>/dev/null | grep -E '^#define (open|read|write|close)\b' || echo "触っていない"
+            for extra in "" "-std=gnu11" "-I/usr/pkg/include" "-std=gnu11 -I/usr/pkg/include"; do
+              printf '%-34s open の宣言 ' "${extra:-引数なし}"
+              cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src $extra \
+                 -E movemail.c 2>/dev/null | grep -c 'int[ 	]*open[ 	]*('
+            done
+            echo "=== /usr/pkg/include に system と同じ名前の物があるか"
+            ls /usr/pkg/include 2>/dev/null | head -20
           fi
