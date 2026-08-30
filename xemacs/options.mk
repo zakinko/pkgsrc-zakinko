@@ -37,6 +37,7 @@ SUBST_FILES.desktop-file=	etc/xemacs.desktop
 
 INSTALLATION_DIRS+=		share/applications
 
+.PHONY: post-extract-x11 post-install-x11
 post-extract-x11:
 	cp ${FILESDIR}/xemacs.desktop ${WRKSRC}/etc/
 

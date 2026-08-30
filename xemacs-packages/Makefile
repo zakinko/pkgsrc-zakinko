@@ -221,7 +221,7 @@ FTP=		${TOOLS_PATH.ftp:Q}
 XEMACSPKG_SITE=	ftp://ftp.xemacs.org/pub/xemacs
 
 # Make a list of packages from a directory list output
-.PHONY: xemacs-make-package-list
+.PHONY: xemacs-fetch-package-list
 xemacs-fetch-package-list:
 	@${ECHO} ls | ${FTP} ${XEMACSPKG_SITE}/${XEMACSPKG_PATH}/ | \
 	${AWK} '/-pkg\.tar\.gz/ { print $$9; }' \

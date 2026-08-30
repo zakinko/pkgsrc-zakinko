@@ -110,7 +110,7 @@ pre-build:
 post-install:	post-install-x11
 	${INSTALL_DATA} ${WRKSRC}/Installation ${DESTDIR}${LIBDIR}/etc/
 .if defined(MANZ)
-	find ${DESTDIR}${LIBDIR} -name "*.el" -type f -print | xargs ${GZIP_CMD}
+	${RUN} find ${DESTDIR}${LIBDIR} -name "*.el" -type f -exec ${GZIP_CMD} {} +
 .endif
 
 .include "../../databases/gdbm/buildlink3.mk"
