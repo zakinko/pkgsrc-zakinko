@@ -20,6 +20,11 @@ PKG_OPTIONS+=		xaw
 ###
 ### Any of the "toolkit" options implies "x11".
 ###
+### pkglint says a package should not append to PKG_OPTIONS.  It is right in
+### general, but this is how the package says "picking a toolkit means you
+### want X", and the same for the default toolkit below.  Rewriting it to
+### compute the answer in a private variable would change which of these
+### three lines wins in cases nobody has enumerated, so it is left alone.
 .if !empty(PKG_OPTIONS:Mmotif) || !empty(PKG_OPTIONS:Mxaw)
 .  if empty(PKG_OPTIONS:Mx11)
 PKG_OPTIONS+=		x11

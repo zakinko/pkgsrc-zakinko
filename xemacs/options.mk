@@ -3,6 +3,11 @@
 PKG_OPTIONS_VAR=		PKG_OPTIONS.xemacs
 PKG_SUPPORTED_OPTIONS+=		ldap canna debug
 
+# pkglint はこの file だけを見て x11 と xface を「扱っているのに
+# PKG_SUPPORTED_OPTIONS に無い」と言うが、Makefile:9 がこの file を読む
+# 前に足している。X の在る版だけの option なので、共有するこちらには
+# 書けない。
+
 .include "../../mk/bsd.options.mk"
 
 ###
