@@ -103,6 +103,15 @@ fi
 
 DIR=$TREE/$PKGPATH
 echo "--- $PKGPATH ($OS $(uname -r) / $(uname -m) / EMACS_TYPE=$EMACS_TYPE) ---"
+
+# emacs22 から 26 は unexec で、走っている image をそのまま実行形式として
+# 書き出す。番地が randomise されると、dump の最中に落ちる筋がある。落ちる
+# のが 9.4 に寄っているので、版ごとの既定を毎回出しておく。
+if [ "$OS" = NetBSD ]; then
+	sysctl security.pax.aslr.global security.pax.aslr.enabled \
+	       security.pax.mprotect.global 2>/dev/null | sed 's/^/    /'
+	command -v paxctl > /dev/null && echo "    paxctl: $(command -v paxctl)"
+fi
 cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }
 
 # 当て物の SHA1 が distinfo に入っているか。makepatchsum を回し忘れると

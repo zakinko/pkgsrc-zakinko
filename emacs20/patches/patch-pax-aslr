@@ -9,12 +9,21 @@ running image back out as an executable, so the addresses it recorded have to
 be the addresses it gets next time, and NetBSD randomises them by default
 (security.pax.aslr.global = 1).
 
-That reason is not one I could reproduce.  On NetBSD 11.0/amd64 an unexec'd
+Half of that is measured and does not hold.  On NetBSD 11.0/amd64 an unexec'd
 emacs 21.4.1 with no PaX flag started 500 times out of 500 without a fault,
-and so did the same binary with the flag set.  So the flag is kept because it
-is what the package has always done and it costs nothing, not because the
-failure it guards against has been seen here.  i386, where the address space
-is tight enough for randomisation to matter more, was not tested.
+and so did the same binary with the flag set, with
+
+	security.pax.aslr.global = 1
+
+So randomisation does not stop a dumped emacs from running.
+
+The other half -- the run that does the dumping, where temacs writes itself
+out -- is not measured.  That is the one this patch also covers, and it is
+where editors/emacs22 to emacs28 fail on some NetBSD versions.  Testing it
+needs a box of the version that fails; NetBSD 9.4 and i386 were not tried.
+
+So the flag stays: half of what it guards against is untested, and it costs
+nothing.
 
 --- src/Makefile.in.orig	2016-11-26 06:25:26.875919180 +0000
 +++ src/Makefile.in
