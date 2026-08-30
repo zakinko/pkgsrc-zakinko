@@ -1,0 +1,55 @@
+name: emacs24 の dump と ASLR
+
+# emacs24 は NetBSD 9.4 でだけ dump に失敗する (amd64 も i386 も)。
+# 10.1 と 11.0 では通る。ASLR がその原因かどうかを、落ちる command を
+# そのまま二度走らせて切り分ける。
+#
+#	1. temacs に印なしで ./temacs --batch --load loadup bootstrap を 10 回
+#	2. paxctl +a temacs を掛けて同じものを 10 回
+#
+# 使い捨ての実験なので、答えが出たらこの workflow ごと消す。
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'イメージ。既定 amd64-9.4'
+        required: false
+
+concurrency:
+  group: emacs24-aslr
+  cancel-in-progress: true
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    name: emacs24 dump/ASLR
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h / | tail -1
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し"
+
+      - name: 実験する
+        env:
+          UPSTREAM_PKG: >-
+            zakinko/emacs24 zakinko/emacs24-nox11 zakinko/emacs
+          VERIFY_SCRIPT: verify-e24-aslr.sh
+        run: sh .github/ci/run-in-qemu.sh '${{ inputs.image || ''amd64-9.4'' }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/*.console.log 2>/dev/null || true
