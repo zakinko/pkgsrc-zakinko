@@ -48,7 +48,7 @@ jobs:
           UPSTREAM_PKG: >-
             zakinko/emacs24 zakinko/emacs24-nox11 zakinko/emacs
           VERIFY_SCRIPT: verify-e24-aslr.sh
-        run: sh .github/ci/run-in-qemu.sh '${{ inputs.image || ''amd64-9.4'' }}'
+        run: sh .github/ci/run-in-qemu.sh "${{ inputs.image || 'amd64-9.4' }}"
 
       - name: 転けたらコンソールを出す
         if: failure()
