@@ -20,7 +20,7 @@ PKG_SUPPORTED_OPTIONS=	gyp
 # only for x86_64, i386 and aarch64 (_ONLY_FOR_PLATFORMS.openjdk21).  Of
 # those, bazel's own singlejar refuses 32-bit outright:
 #
-#	src/tools/singlejar/port.h
+#	src/tools/singlejar/mapped_file_posix.inc
 #	#error This code for 64 bit Unix.
 #
 # So bazel exists on x86_64 and aarch64 and nowhere else, and everywhere
