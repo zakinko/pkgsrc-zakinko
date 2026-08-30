@@ -2,18 +2,19 @@ $NetBSD$
 
 Turn ASLR off for temacs and for the dumped emacs.
 
-unexec writes the running image back out as an executable, so the addresses it
-recorded have to be the addresses it gets next time.  NetBSD randomises them:
+This is upstream pkgsrc's change, carried since the package was imported; why
+it was needed is not recorded, and editors/emacs20 is the only emacs in the
+tree that does it.  The usual reason given for it is that unexec writes the
+running image back out as an executable, so the addresses it recorded have to
+be the addresses it gets next time, and NetBSD randomises them by default
+(security.pax.aslr.global = 1).
 
-	security.pax.aslr.global = 1
-
-is the default.  What that produces is not a clean failure but a crash at a
-different place every time -- while temacs runs loadup, while the dumped emacs
-byte-compiles, or later at startup.
-
-paxctl marks the flag in the ELF header, so the dumped emacs carries it through
-installation.  || true keeps the build working where paxctl is not there, which
-is every platform except NetBSD.
+That reason is not one I could reproduce.  On NetBSD 11.0/amd64 an unexec'd
+emacs 21.4.1 with no PaX flag started 500 times out of 500 without a fault,
+and so did the same binary with the flag set.  So the flag is kept because it
+is what the package has always done and it costs nothing, not because the
+failure it guards against has been seen here.  i386, where the address space
+is tight enough for randomisation to matter more, was not tested.
 
 --- src/Makefile.in.orig	2016-11-26 06:25:26.875919180 +0000
 +++ src/Makefile.in
