@@ -99,18 +99,21 @@ jobs:
         if: failure()
         run: |
           tail -30 /tmp/build.log 2>/dev/null || true
-          # movemail は <fcntl.h> を読んでいて、前処理後に open の宣言も残る
-          # のに、build の中では暗黙宣言になる。素の cc との差は wrapper が
-          # 足す -std=gnu11 と -I/usr/pkg/include だけなので、それを一つずつ
-          # 足して、どれで宣言が消えるかを見る。
+          # movemail は <fcntl.h> を読んでいて、素の cc なら open の宣言も
+          # 残るのに、build の中では暗黙宣言になる。差は wrapper が足す
+          # -std=gnu11 と -I/usr/pkg/include だけなので、一つずつ足して見る。
+          # grep が 0 件で終わると sh -e が step を止めるので || true を付ける。
           W=$(find / -path '*mule/lib-src/movemail.c' 2>/dev/null | head -1)
           if [ -n "$W" ]; then
             cd "$(dirname "$W")"
             for extra in "" "-std=gnu11" "-I/usr/pkg/include" "-std=gnu11 -I/usr/pkg/include"; do
-              printf '%-34s open の宣言 ' "${extra:-引数なし}"
+              printf '%-32s => ' "${extra:-引数なし}"
               cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src $extra \
-                 -E movemail.c 2>/dev/null | grep -c 'int[ 	]*open[ 	]*('
+                 -E movemail.c 2>/tmp/e | grep -c 'extern int open' || head -1 /tmp/e
             done
-            echo "=== /usr/pkg/include に system と同じ名前の物があるか"
-            ls /usr/pkg/include 2>/dev/null | head -20
+            echo "=== fcntl.h をどこから読んだか (build と同じ引数で)"
+            cc -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
+               -std=gnu11 -I/usr/pkg/include -H -E movemail.c 2>&1 >/dev/null | grep fcntl || true
+            echo "=== /usr/pkg/include の中身"
+            ls /usr/pkg/include 2>/dev/null | head -20 || true
           fi
