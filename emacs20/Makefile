@@ -24,17 +24,19 @@ PATCHFILES+=		emacs20-jumbo-patch-20170723.gz
 SITES.emacs20-jumbo-patch-20170723.gz= \
 			http://www.NetBSD.org/~dholland/patchkits/emacs20/
 
-# All three name the top directory, so one level has to come off:
+# All three PATCHFILES name the top directory, so one level has to come off:
 #
 #	--- emacs-20.7/src/lread.c		(mule)
 #	--- emacs-20.7.orig/src/xfns.c		(xim)
 #	--- a/lib-src/emacsclient.c		(jumbo)
 #
-# Say so rather than relying on the default, which is not the same on every
-# branch: pkgsrc-current has -p1 and pkgsrc-2026Q2 has -p0.  With -p0 patch
-# looks for emacs-20.7/src/lread.c under WRKSRC, does not find it, and asks
-# "File to patch:".  Nothing closes its stdin, so it asks again, forever --
-# a build that never ends and never says why.
+# The tree's own copies do not have this line any more: pkgsrc-current changed
+# PATCH_DIST_STRIP's default to -p1 and dropped it (editors/emacs20 1.67).  The
+# 2026Q2 branch still has -p0 as the default and still carries the line (1.66).
+# This fork follows current's package but is built against whatever branch the
+# CI has, so it has to say it itself.  Without it, on a -p0 tree, patch cannot
+# find emacs-20.7/src/lread.c under WRKSRC and asks "File to patch:" -- and
+# nothing closes its stdin, so it asks forever.
 PATCH_DIST_STRIP=	-p1
 
 MAINTAINER=	dholland@NetBSD.org
