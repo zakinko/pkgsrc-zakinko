@@ -98,22 +98,25 @@ jobs:
       - name: 止まった場所を出す
         if: failure()
         run: |
-          tail -30 /tmp/build.log 2>/dev/null || true
-          # 前処理の出力を grep する試験は当てにならなかった。extern int open
-          # は extern int openat にも当たる。落ちる compile 行をそのまま再現
-          # して、引数を一つずつ外し、どれで通るようになるかを見る。
-          L=$(grep -m1 -- '-o movemail$' /tmp/build.log 2>/dev/null)
+          set +e
+          # /tmp/build.log は誰も作っていなかった。compile 行は make -n から
+          # 取る。前処理の出力を grep する方法は当てにならない
+          # (extern int open は extern int openat にも当たる) ので、実際に
+          # 組んで、引数を一つずつ外し、どれで通るようになるかを見る。
           W=$(find / -path '*mule2/work/mule/lib-src/movemail.c' 2>/dev/null | head -1)
-          if [ -n "$W" ] && [ -n "$L" ]; then
-            cd "$(dirname "$W")"
-            ARGS=$(echo "$L" | sed -e 's/^cc //' -e 's/ -o movemail$//')
-            printf 'そのまま => '
-            cc $ARGS -c -o /dev/null 2>/tmp/e && echo 通る || grep -c 'implicit declaration' /tmp/e
-            for drop in -I. -I../src -no-pie -O2 -fno-pie -fcommon -fno-strict-aliasing -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H; do
-              REST=$(echo "$ARGS" | tr ' ' '\n' | grep -vx -- "$drop" | tr '\n' ' ')
-              printf '%-22s を外す => ' "$drop"
-              cc $REST -c -o /dev/null 2>/tmp/e && echo 通る || grep -c 'implicit declaration' /tmp/e
-            done
-          else
-            echo "compile 行が拾えない: L=[$L]"
-          fi
+          [ -n "$W" ] || { echo "movemail.c が無い"; exit 0; }
+          cd "$(dirname "$W")"
+          L=$(make -n movemail 2>/dev/null | grep -m1 'movemail\.c')
+          echo "compile 行: ${L:-取れない}"
+          [ -n "$L" ] || exit 0
+          ARGS=$(echo "$L" | sed -e 's/^[^ ]* //' -e 's/ -o movemail$//')
+          printf 'そのまま => '
+          cc $ARGS -c -o /dev/null 2>/tmp/e && echo 通る || echo "暗黙宣言 $(grep -c 'implicit declaration' /tmp/e) 件"
+          for drop in -I. -I../src -no-pie -O2 -fno-pie -fcommon -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H; do
+            REST=$(echo "$ARGS" | tr ' ' '\n' | grep -vx -- "$drop" | tr '\n' ' ')
+            printf '%-20s を外す => ' "$drop"
+            cc $REST -c -o /dev/null 2>/tmp/e && echo 通る || echo "暗黙宣言 $(grep -c 'implicit declaration' /tmp/e) 件"
+          done
+          echo "=== 素の一枚は通るか"
+          printf '#include <fcntl.h>\nint main(void){return open("/dev/null",0);}\n' > /tmp/q.c
+          cc $ARGS -c -o /dev/null /tmp/q.c 2>&1 | head -3
