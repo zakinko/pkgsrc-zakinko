@@ -99,22 +99,21 @@ jobs:
         if: failure()
         run: |
           tail -30 /tmp/build.log 2>/dev/null || true
-          # 素の cc に build と同じ引数を渡すと open の宣言は届く。それでも
-          # build の中では暗黙宣言になるので、pkgsrc の wrapper 越しに同じ
-          # ことをして差を見る。wrapper は build の中だけ PATH に居るので、
-          # 絶対 path で呼ぶ。
+          # 素の cc なら open の宣言は届くのに、build の中では暗黙宣言に
+          # なる。差は pkgsrc の wrapper だけなので、それ越しに前処理する。
+          # wrapper は CWRAPPERS_CONFIG_DIR を見るので与えてやる。
           CW=$(find / -path '*mule2/work/.cwrapper/bin/cc' 2>/dev/null | head -1)
+          CD=$(find / -path '*mule2/work/.cwrapper/config' -type d 2>/dev/null | head -1)
           W=$(find / -path '*mule2/work/mule/lib-src/movemail.c' 2>/dev/null | head -1)
-          echo "wrapper: ${CW:-見つからない}"
+          echo "wrapper: ${CW:-無し} / config: ${CD:-無し}"
           if [ -n "$W" ]; then
             cd "$(dirname "$W")"
-            for c in cc "$CW"; do
-              [ -n "$c" ] || continue
-              printf '%-60s => ' "$c"
-              $c -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
-                 -E movemail.c 2>/tmp/e | grep -c 'extern int open' || head -2 /tmp/e
-            done
-            echo "=== wrapper が実際に渡す引数"
-            [ -n "$CW" ] && CWRAPPERS_DEBUG=1 $CW -D_BSD_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src \
-               -E movemail.c 2>&1 >/dev/null | head -5 || true
+            A="-D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src"
+            printf '素の cc      => '; cc $A -E movemail.c 2>/dev/null | grep -c 'extern int open' || true
+            printf 'wrapper 越し => '
+            CWRAPPERS_CONFIG_DIR=$CD $CW $A -E movemail.c 2>/tmp/e | grep -c 'extern int open' || head -2 /tmp/e
+            echo "=== wrapper が gcc に渡す引数"
+            CWRAPPERS_CONFIG_DIR=$CD CWRAPPERS_DEBUG=1 $CW $A -E movemail.c 2>&1 >/dev/null | head -6 || true
+            echo "=== fcntl.h をどこから読むか (wrapper 越し)"
+            CWRAPPERS_CONFIG_DIR=$CD $CW $A -H -E movemail.c 2>&1 >/dev/null | grep -i fcntl | head -4 || true
           fi
