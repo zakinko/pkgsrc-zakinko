@@ -99,21 +99,21 @@ jobs:
         if: failure()
         run: |
           tail -30 /tmp/build.log 2>/dev/null || true
-          # 素の cc なら open の宣言は届くのに、build の中では暗黙宣言に
-          # なる。差は pkgsrc の wrapper だけなので、それ越しに前処理する。
-          # wrapper は CWRAPPERS_CONFIG_DIR を見るので与えてやる。
-          CW=$(find / -path '*mule2/work/.cwrapper/bin/cc' 2>/dev/null | head -1)
-          CD=$(find / -path '*mule2/work/.cwrapper/config' -type d 2>/dev/null | head -1)
+          # 前処理の出力を grep する試験は当てにならなかった。extern int open
+          # は extern int openat にも当たる。落ちる compile 行をそのまま再現
+          # して、引数を一つずつ外し、どれで通るようになるかを見る。
+          L=$(grep -m1 -- '-o movemail$' /tmp/build.log 2>/dev/null)
           W=$(find / -path '*mule2/work/mule/lib-src/movemail.c' 2>/dev/null | head -1)
-          echo "wrapper: ${CW:-無し} / config: ${CD:-無し}"
-          if [ -n "$W" ]; then
+          if [ -n "$W" ] && [ -n "$L" ]; then
             cd "$(dirname "$W")"
-            A="-D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H -I. -I../src"
-            printf '素の cc      => '; cc $A -E movemail.c 2>/dev/null | grep -c 'extern int open' || true
-            printf 'wrapper 越し => '
-            CWRAPPERS_CONFIG_DIR=$CD $CW $A -E movemail.c 2>/tmp/e | grep -c 'extern int open' || head -2 /tmp/e
-            echo "=== wrapper が gcc に渡す引数"
-            CWRAPPERS_CONFIG_DIR=$CD CWRAPPERS_DEBUG=1 $CW $A -E movemail.c 2>&1 >/dev/null | head -6 || true
-            echo "=== fcntl.h をどこから読むか (wrapper 越し)"
-            CWRAPPERS_CONFIG_DIR=$CD $CW $A -H -E movemail.c 2>&1 >/dev/null | grep -i fcntl | head -4 || true
+            ARGS=$(echo "$L" | sed -e 's/^cc //' -e 's/ -o movemail$//')
+            printf 'そのまま => '
+            cc $ARGS -c -o /dev/null 2>/tmp/e && echo 通る || grep -c 'implicit declaration' /tmp/e
+            for drop in -I. -I../src -no-pie -O2 -fno-pie -fcommon -fno-strict-aliasing -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H; do
+              REST=$(echo "$ARGS" | tr ' ' '\n' | grep -vx -- "$drop" | tr '\n' ' ')
+              printf '%-22s を外す => ' "$drop"
+              cc $REST -c -o /dev/null 2>/tmp/e && echo 通る || grep -c 'implicit declaration' /tmp/e
+            done
+          else
+            echo "compile 行が拾えない: L=[$L]"
           fi
