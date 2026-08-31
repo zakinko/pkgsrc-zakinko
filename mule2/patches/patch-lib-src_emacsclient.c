@@ -38,9 +38,14 @@ __USE_MISC to __USE_GNU.  On Fedora 44 neither _DEFAULT_SOURCE nor
 _XOPEN_SOURCE=700 brings it back; only _GNU_SOURCE does.  It has to be
 defined before the first header is read, so it goes at the top.
 
+Fix what only the Linux arm of this file compiles.
+
+These lines are inside #ifdef arms that NetBSD does not take, so nothing
+here shows up when the package is built there.  glibc reaches them.
+
 --- lib-src/emacsclient.c.orig
 +++ lib-src/emacsclient.c
-@@ -19,7 +19,22 @@
+@@ -19,7 +19,23 @@
  
  
  #define NO_SHORTNAMES
@@ -48,8 +53,9 @@ defined before the first header is read, so it goes at the top.
 +/* glibc は struct msgbuf を _GNU_SOURCE の側へ移した。__USE_MISC が立って
 +   いても、_DEFAULT_SOURCE や _XOPEN_SOURCE=700 では出てこない (Fedora 44 で
 +   確かめた)。この file は SysV IPC の枝でだけそれを使うので、ここで頼む。
-+   他の宣言まで変えないよう、s/linux.h ではなくこの file に置く。  */
-+#ifdef __GLIBC__
++   最初のヘッダより前でないと効かない。__GLIBC__ で囲ってはいけない。
++   あれが定義されるのは glibc のヘッダを一枚読んだ後で、ここではまだ偽。  */
++#ifndef _GNU_SOURCE
 +#define _GNU_SOURCE 1
 +#endif
 +
@@ -63,7 +69,7 @@ defined before the first header is read, so it goes at the top.
  #undef read
  #undef write
  #undef open
-@@ -30,7 +45,7 @@
+@@ -30,7 +46,7 @@
  #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
  #include <stdio.h>
  
@@ -72,7 +78,7 @@ defined before the first header is read, so it goes at the top.
       int argc;
       char **argv;
  {
-@@ -54,7 +69,7 @@
+@@ -54,7 +70,7 @@
  
  extern char *strerror ();
  
@@ -81,7 +87,7 @@ defined before the first header is read, so it goes at the top.
       int argc;
       char **argv;
  {
-@@ -85,9 +100,32 @@
+@@ -85,9 +101,32 @@
  #ifndef SERVER_HOME_DIR
    {
      struct stat statbfr;
@@ -115,7 +121,7 @@ defined before the first header is read, so it goes at the top.
  
      if (stat (server.sun_path, &statbfr) == -1)
        {
-@@ -175,7 +213,7 @@
+@@ -175,7 +214,7 @@
  
  char *getwd (), *getcwd (), *getenv ();
  
