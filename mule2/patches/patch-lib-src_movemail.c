@@ -36,9 +36,38 @@ The declarations reached this file through some other header on the systems
 it was built on, but not on glibc, where they are missing outright.  gcc 14
 made an implicit declaration an error, so the build stops here.
 
+Undo the interruptible-system-call remapping before any header is read.
+
+s/linux.h defines read, write, open and close as the sys_* wrappers that
+sysdep.c provides for the Emacs binary.  lib-src does not link against
+sysdep.c, and with the macros in force <fcntl.h> declares sys_open rather
+than open, so the call site is left with no declaration at all.  On Fedora
+44 that is an error and the build stops in movemail.
+
+emacsclient.c and emacsserver.c already undo it at the top; movemail.c and
+timer.c never did.  NetBSD does not remap, so nothing changes there.
+
 --- lib-src/movemail.c.orig
 +++ lib-src/movemail.c
-@@ -59,6 +59,22 @@
+@@ -50,6 +50,17 @@
+ 
+ #define NO_SHORTNAMES   /* Tell config not to load remap.h */
+ #include <../src/config.h>
++
++/* s/linux.h は割り込まれ得る system call を、sysdep.c が持つ再試行つきの
++   sys_* に差し替える。あれは Emacs 本体のための仕掛けで、lib-src の道具は
++   sysdep.c と繋がらない。差し替えたままヘッダを読むと <fcntl.h> が宣言する
++   のは open ではなく sys_open になり、呼ぶ側には宣言も実体も無くなる。
++   最初のヘッダより前で戻す。emacsclient.c と emacsserver.c は元から同じ事を
++   している。  */
++#undef read
++#undef write
++#undef open
++#undef close
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/file.h>
+@@ -59,6 +70,22 @@
  #include <string.h>
  #include <../src/syswait.h>
  
@@ -61,7 +90,7 @@ made an implicit declaration an error, so the build stops here.
  #ifdef MSDOS
  #undef access
  #endif /* MSDOS */
-@@ -109,7 +125,7 @@
+@@ -109,7 +136,7 @@
  /* Nonzero means this is name of a lock file to delete on fatal error.  */
  char *delete_lockname;
  
@@ -70,7 +99,7 @@ made an implicit declaration an error, so the build stops here.
       int argc;
       char **argv;
  {
-@@ -337,7 +353,7 @@
+@@ -337,7 +364,7 @@
        exit (0);
      }
  
@@ -79,7 +108,7 @@ made an implicit declaration an error, so the build stops here.
    if (!WIFEXITED (status))
      exit (1);
    else if (WRETCODE (status) != 0)
-@@ -351,7 +367,7 @@
+@@ -351,7 +378,7 @@
  
  /* Print error message and exit.  */
  
@@ -88,7 +117,7 @@ made an implicit declaration an error, so the build stops here.
       char *s1, *s2;
  {
    if (delete_lockname)
-@@ -362,7 +378,7 @@
+@@ -362,7 +389,7 @@
  
  /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
  
@@ -97,7 +126,7 @@ made an implicit declaration an error, so the build stops here.
       char *s1, *s2, *s3;
  {
    printf ("movemail: ");
-@@ -370,7 +386,7 @@
+@@ -370,7 +397,7 @@
    printf ("\n");
  }
  
@@ -106,7 +135,7 @@ made an implicit declaration an error, so the build stops here.
       char *name;
  {
    extern char *strerror ();
-@@ -380,7 +396,7 @@
+@@ -380,7 +407,7 @@
    fatal (s, name);
  }
  
