@@ -15,14 +15,29 @@ Emacs 20.1 added the same arm as `#elif __FreeBSD__ == 3' and 21.1 widened
 it to `>= 3'; by then the macro had been renamed BSD_SYSTEM.  199506 is the
 value upstream uses.
 
---- src/s/freebsd.h.orig	1994-11-04 11:11:17.000000000 +0000
+Pick the ELF dumper on FreeBSD too.
+
+s/freebsd.h still names the a.out dumper and /usr/lib/crt0.o, which no
+longer exists.  The a.out unexec pulls in start_of_text, which refers to
+_start from crt0.o, so the link of temacs fails before anything runs.
+s/netbsd.h already has the shape for this; use the same one.
+
+--- src/s/freebsd.h.orig
 +++ src/s/freebsd.h
-@@ -81,6 +81,8 @@
- #define BSD 199103
- #elif __FreeBSD__ == 2
- #define BSD 199306
-+#elif __FreeBSD__ >= 3
-+#define BSD 199506
- #endif
+@@ -47,8 +47,16 @@
+ #ifndef NO_SHARED_LIBS
+ #define LD_SWITCH_SYSTEM -e start
+ #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
++/* いまの FreeBSD は ELF で、crt0.o という名前も無い。s/netbsd.h と
++   同じ形で ELF の側を選ぶ。link は cc に任せるので START_FILES を
++   名指しする必要も無い。 */
++#ifdef __ELF__
++#define UNEXEC unexelf.o
++#define ORDINARY_LINK
++#else /* not __ELF__ */
+ #define START_FILES pre-crt0.o /usr/lib/crt0.o
+ #define UNEXEC unexsunos4.o
++#endif /* not __ELF__ */
+ #define RUN_TIME_REMAP
  
- #define WAITTYPE int
+ #ifndef N_TRELOFF
