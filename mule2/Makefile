@@ -66,7 +66,16 @@ CFLAGS+=	-fcommon
 
 CONFIGURE_ARGS+=	${MACHINE_ARCH}--${LOWER_OPSYS}
 CONFIGURE_ARGS+=	--terminal-face --mcpath --canna-libraries=${PREFIX}/lib
-.if ${MACHINE_ARCH} != "alpha" && ${MACHINE_ARCH} != "sparc64"
+# VALBITS は Lisp_Object のうち値に使う幅で、残りが型と mark bit になる。
+# 26 は 32bit 機の値。64bit 機にこれを渡すと、64bit のポインタが 26bit に
+# 切り詰められ、heap が 64MB を越えた所で壊れる。NetBSD/amd64 で今まで
+# 動いていたのは、そこまで伸びなかったからにすぎない。Fedora では起動中に
+# 越えて init_obarray で落ちる。
+#
+# 元は alpha と sparc64 だけを外していた。2000 年当時に知られていた 64bit
+# 機がその二つだったため。pkgsrc は LP64PLATFORMS を持っているので、機種を
+# 数え上げずにそちらを使う。
+.if empty(LP64PLATFORMS:@.P.@${MACHINE_PLATFORM:M${.P.}}@)
 CONFIGURE_ARGS+=	--valbits=26
 .endif
 
