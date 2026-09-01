@@ -135,7 +135,7 @@ echo "########## 1. 当て物ありで建てる ##########"
 ls patches 2>/dev/null
 pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
 { $PKGMAKE $MKARGS install 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-patched.log
-_bin=$(grep -c "Installing binary package of" /tmp/xwpe-patched.log 2>/dev/null || true)
+_bin=$(grep -c "===> Binary install for" /tmp/xwpe-patched.log 2>/dev/null || true)
 _src=$(grep -c "^===> Building for" /tmp/xwpe-patched.log 2>/dev/null || true)
 echo "--- 依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件 ---"
 if [ -n "${BINPKG_SITES:-}" ] && [ "${_bin:-0}" = 0 ]; then
