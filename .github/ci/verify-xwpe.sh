@@ -14,24 +14,36 @@
 # 使っていた) は、1.6.x が autotools へ移ったので消えている。他の 5 本は
 # 上流が取り込んだ。
 #
-# 残す 3 本は、どれもコンパイラの診断である。
+# 残す 3 本は、どれもコンパイラの診断だった。
 #
 #   patch-WeXterm.c      e_X_sw_color の暗黙の宣言
 #   patch-we__xterm.c    WpeMouseRestoreShape への不正なキャスト
 #   patch-we__wayland.c  同上 (1.6.6 で入った Wayland 側)
 #
-# **Debian は 1.6.6-1 で当て物をゼロにしている** (debian/patches/series が
-# 空)。同じ人が上流とメンテナを兼ねているので、要らないから消したように
-# 見える。だが Debian は gcc 既定で組む。gcc の既定ではこの二つは警告で、
-# clang では error である。
+# Debian は 1.6.6-1 で当て物をゼロにしている (debian/patches/series が空)。
+# 同じ人が上流とメンテナを兼ねているので、要らないから消したように見える。
+# こちらは「Debian は gcc 既定で組むから通るだけで、clang では error に
+# なる」と読んで 3 本を残していた。
 #
-#   error: incompatible function pointer types assigning to 'void (*)(void)'
-#          from 'void (*)(WpeMouseShape)' [-Wincompatible-function-pointer-types]
-#   error: call to undeclared function 'e_X_sw_color';
-#          ISO C99 and later do not support implicit function declarations
+# 測ったら外れていた。1.6.9 の Makefile.am:41 が自分で覆っている。
 #
-# pkgsrc は clang の箱でも組むので、当て物を落とすと通らなくなる箱がある。
-# それをここで示す。示せなければ当て物は要らないので、そのときは落とす。
+#   -Wno-incompatible-pointer-types
+#   -Wno-implicit-function-declaration
+#   -Wno-int-conversion
+#   -Wno-old-style-declaration
+#
+# 当て物が直していた診断がそのままここに並んでいる。NetBSD 11.0 の
+# gcc 12.5.0 でも、pkgsrc の clang 21.1.8 でも、3 本を外して通った。
+# clang で走ったことは -Wno-old-style-declaration を知らないという
+# unknown-warning-option が 33 回出たことで分かる。gcc はそれを知っている。
+#
+# だから 3 本は落とした。落としたので、この検査が見るのは「外しても通る」
+# ではなく「もう当て物はこれだけで足りているか」になる。残っているのは
+#
+#   patch-we__render.h   X11 だけで Cairo が無いと link が通らない
+#
+# の一本で、これは上流のバグである。#ifdef NO_XWINDOWS で空実装を選ぶが、
+# 本体を持つ we_render_cairo.c は #ifdef HAVE_CAIRO の中にしか無い。
 #
 # 見るのは三つ。
 #
@@ -126,8 +138,15 @@ cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }
 
 rc=0
 echo "--- $PKG ($OS $(uname -r) / $(uname -m)) ---"
+# base の cc を出しても意味が無い。pkgsrc は cwrappers を噛ませるので、
+# PKGSRC_COMPILER で選んだものが実際に走る。clang で組んだ回に
+# 「cc 12.5.0」と表示していて、記録としては嘘だった。
 echo "--- コンパイラ ---"
-${CC:-cc} --version 2>/dev/null | head -1
+echo "  PKGSRC_COMPILER = ${PKGSRC_COMPILER:-(既定)}"
+case ${PKGSRC_COMPILER:-} in
+clang)	${PREFIX}/bin/clang --version 2>/dev/null | head -1 ;;
+*)	${CC:-cc} --version 2>/dev/null | head -1 ;;
+esac
 
 # ------------------------------------------------------------------
 echo
@@ -262,9 +281,8 @@ mkdir -p /tmp/xwpe-patches && cp patches/* /tmp/xwpe-patches/ 2>/dev/null
 cp distinfo /tmp/xwpe-distinfo.orig
 $PKGMAKE clean > /dev/null 2>&1
 pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
-rm -f patches/patch-WeXterm.c patches/patch-we__xterm.c patches/patch-we__wayland.c
-sed -e '/patch-WeXterm.c/d' -e '/patch-we__xterm.c/d' -e '/patch-we__wayland.c/d' \
-	distinfo > distinfo.new && mv distinfo.new distinfo
+rm -f patches/patch-we__render.h
+sed -e '/patch-we__render.h/d' distinfo > distinfo.new && mv distinfo.new distinfo
 
 { $PKGMAKE $MKARGS build 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-plain.log
 if [ "$(cat /tmp/xwpe-rc)" -eq 0 ]; then

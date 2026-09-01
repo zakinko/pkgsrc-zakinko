@@ -3,7 +3,4 @@ $NetBSD$
 BLAKE2s (xwpe-1.6.9.tar.gz) = e516899d33478e864ef64f8889438e5415f7b94ef978c3642f86fe9e0f9a1e5c
 SHA512 (xwpe-1.6.9.tar.gz) = 9bac04ae59fd084e747be313cddd345b29336b4abb96fafe8664b8cef3749c93f364e4fc7187eee2fa5b2f0aa2a54c211358fafcfc5a158614062a75542c1b43
 Size (xwpe-1.6.9.tar.gz) = 1268565 bytes
-SHA1 (patch-WeXterm.c) = d60a373aafdcc586aad27f25d82b2af53e318e6b
 SHA1 (patch-we__render.h) = b5fcd8a7d25a25ed7920227c69e980e56b9790d1
-SHA1 (patch-we__wayland.c) = f80244dfe46b71e593fd00575111caae389f03b6
-SHA1 (patch-we__xterm.c) = 8d3f1b38387a960fcb66eb90cd4d5a01a16a7d8c
