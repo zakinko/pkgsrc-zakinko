@@ -107,6 +107,7 @@ SHA1 (patch-lwlib_lwlib-Xol.c) = 36a84d7e036c74f9a3f12ebfa6682068e102ca56
 SHA1 (patch-lwlib_lwlib-utils.c) = 046f8720dcbed928b80661d70f9b5051a761267f
 SHA1 (patch-lwlib_lwlib.c) = 5c42ee535cd4bd54f80021dadf06ad23aee55268
 SHA1 (patch-lwlib_xlwmenu.c) = 166c984a5428d26ea914a4db1efd9c35fc3cebbf
+SHA1 (patch-man_Makefile) = 0835215caf903f860e5564c46499517b42181e66
 SHA1 (patch-src_abbrev_c) = 67cf2ec03b36a608f3ed7d3690ef45b70699c110
 SHA1 (patch-src_alloc_c) = 5a3cd708fc085c5c1d5bfa2d3190876f90a8862c
 SHA1 (patch-src_buffer.c) = b99ef562a821cc9f0edcf35f5320a6c8b5c02793

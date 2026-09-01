@@ -1,0 +1,30 @@
+$NetBSD$
+
+Let makeinfo finish on the 1995 texinfo sources.
+
+texinfo 7 treats things the 1990s版 only warned about as errors -- a
+misplaced brace in vip.texi, an @itemx that does not follow an @item.  The
+info files still come out right; --force says to write them anyway and
+--no-validate skips the cross-reference check.  Fedora 44 stops in man
+without this, while NetBSD's makeinfo only warns.
+
+--- man/Makefile.orig
++++ man/Makefile
+@@ -1,7 +1,7 @@
+ #### Makefile for the Emacs User's Manual.
+ #### Just a few targets required by the coding standards.
+ 
+-MAKEINFO = makeinfo
++MAKEINFO = makeinfo --force --no-validate
+ TEXINDEX_OBJS = texindex.o getopt.o
+ INFO_TARGETS = ../info/emacs ../info/cl ../info/forms ../info/vip \
+ 	       ../info/gnus ../info/sc ../info/dired-x
+@@ -105,7 +105,7 @@
+ 	$(TEXI2DVI) gnus.texi
+ 
+ ../etc/GNU: gnu1.texi gnu.texi
+-	makeinfo --no-headers -o ../etc/GNU gnu1.texi
++	makeinfo --force --no-validate --no-headers -o ../etc/GNU gnu1.texi
+ 
+ mostlyclean:
+ 	rm -f *.log *.cp *.fn *.ky *.pg *.vr *.o core
