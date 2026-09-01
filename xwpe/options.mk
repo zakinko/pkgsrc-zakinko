@@ -22,6 +22,14 @@ BUILDLINK_DEPMETHOD.libXt?=	build
 .include "../../x11/libSM/buildlink3.mk"
 .include "../../x11/libX11/buildlink3.mk"
 .include "../../x11/libXt/buildlink3.mk"
+# WeXterm.h includes <X11/extensions/sync.h> and the struct holds an
+# XSyncCounter, so libXext is a hard requirement of the X11 build.  On
+# NetBSD it was found in /usr/X11R7/include, outside the buildlink
+# directory, so nothing complained; on a platform whose X comes from
+# pkgsrc the header is simply not there:
+#
+#   ./WeXterm.h:22:10: fatal error: 'X11/extensions/sync.h' file not found
+.include "../../x11/libXext/buildlink3.mk"
 .else
 CONFIGURE_ARGS+=	--without-x
 .endif

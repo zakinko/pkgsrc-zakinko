@@ -20,7 +20,18 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+/*
+ * openpty(3) と login_tty(3) の在処は libc で違う。BSD と macOS は
+ * <util.h>、glibc は <pty.h> と <utmp.h> である。Debian の job が
+ * 「駆動器を組めなかった。動作は見ていない」で終わったのはこれだった。
+ * package は建っていて、動かす側だけが移植性を欠いていた。
+ */
+#if defined(__linux__)
+#include <pty.h>
+#include <utmp.h>
+#else
 #include <util.h>
+#endif
 
 static void on_alarm(int sig) { (void)sig; _exit(9); }
 
