@@ -24,7 +24,19 @@ s/netbsd.h already has the shape for this; use the same one.
 
 --- src/s/freebsd.h.orig
 +++ src/s/freebsd.h
-@@ -47,8 +47,16 @@
+@@ -33,7 +33,10 @@
+ 
+ #define LIBS_DEBUG
+ #define LIBS_SYSTEM -lutil
+-#define LIBS_TERMCAP -ltermcap
++/* GhostBSD には libtermcap という名前が無い。FreeBSD 系は termcap の
++   API を ncurses が持っているので、そちらを名指しする。FreeBSD 本体でも
++   libtermcap は ncurses への symlink でしかない。 */
++#define LIBS_TERMCAP -lncurses
+ #define LIB_GCC -lgcc
+ 
+ /* Reread the time zone on startup. */
+@@ -47,9 +50,22 @@
  #ifndef NO_SHARED_LIBS
  #define LD_SWITCH_SYSTEM -e start
  #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
@@ -38,10 +50,16 @@ s/netbsd.h already has the shape for this; use the same one.
  #define START_FILES pre-crt0.o /usr/lib/crt0.o
  #define UNEXEC unexsunos4.o
 +#endif /* not __ELF__ */
++/* run_time_remap は unexsunos4.c にある。ELF では unexelf.o を選ぶので
++   実体が来ず、emacs.c がこれを呼んで link が通らない。s/netbsd.h は
++   同じ定義を a.out の側の枠に入れている。 */
++#ifndef __ELF__
  #define RUN_TIME_REMAP
++#endif
  
  #ifndef N_TRELOFF
-@@ -89,3 +97,9 @@
+ #define N_PAGSIZ(x) __LDPGSZ
+@@ -89,3 +105,9 @@
  #include <sys/wait.h>
  #endif
  #define WRETCODE(w) (_W_INT(w) >> 8)
