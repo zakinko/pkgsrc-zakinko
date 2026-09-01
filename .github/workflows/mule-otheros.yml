@@ -27,17 +27,10 @@ name: mule (other OS)
 # どちらも「駄目でした」で終わらせず、どこで止まったかを残すのが目的。
 
 on:
-  push:
-    paths:
-      - 'mule2/**'
-      - '.github/workflows/mule-otheros.yml'
-      - '.github/ci/**'
-      - 'libuuid/**'
-  pull_request:
-    paths:
-      - 'mule2/**'
-      - '.github/ci/**'
-      - 'libuuid/**'
+  # 落ち続けている間、push ごとには回さない。手で回すか、週に一度の
+  # 定時で拾う。直ったら push を戻す。
+  schedule:
+    - cron: '0 18 * * 0'
   workflow_dispatch:
     inputs:
       options:
