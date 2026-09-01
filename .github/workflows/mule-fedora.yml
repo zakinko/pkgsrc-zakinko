@@ -56,7 +56,7 @@ jobs:
             libX11-devel libXt-devel libXaw-devel libXmu-devel libXext-devel \
             libXpm-devel xorg-x11-proto-devel ncurses-devel \
             hostname procps-ng iproute texinfo \
-            byacc	# lib-src/getdate.y を組むのに要る
+            byacc gdb	# byacc は lib-src/getdate.y、gdb は落ちた所を出すため
           # hostname は pkgsrc の native X の検査が見ている。無いと
           #   /usr: X11_TYPE=native but xbase set is not installed
           #   (missing: hostname)
@@ -100,24 +100,12 @@ jobs:
         if: failure()
         run: |
           set +e
-          # /tmp/build.log は誰も作っていなかった。compile 行は make -n から
-          # 取る。前処理の出力を grep する方法は当てにならない
-          # (extern int open は extern int openat にも当たる) ので、実際に
-          # 組んで、引数を一つずつ外し、どれで通るようになるかを見る。
-          W=$(find / -path '*mule2/work/mule/lib-src/movemail.c' 2>/dev/null | head -1)
-          [ -n "$W" ] || { echo "movemail.c が無い"; exit 0; }
-          cd "$(dirname "$W")"
-          L=$(make -n movemail 2>/dev/null | grep -m1 'movemail\.c')
-          echo "compile 行: ${L:-取れない}"
-          [ -n "$L" ] || exit 0
-          ARGS=$(echo "$L" | sed -e 's/^[^ ]* //' -e 's/ -o movemail$//')
-          printf 'そのまま => '
-          cc $ARGS -c -o /dev/null 2>/tmp/e && echo 通る || echo "暗黙宣言 $(grep -c 'implicit declaration' /tmp/e) 件"
-          for drop in -I. -I../src -no-pie -O2 -fno-pie -fcommon -D_BSD_SOURCE -D_DEFAULT_SOURCE -Demacs -DHAVE_CONFIG_H; do
-            REST=$(echo "$ARGS" | tr ' ' '\n' | grep -vx -- "$drop" | tr '\n' ' ')
-            printf '%-20s を外す => ' "$drop"
-            cc $REST -c -o /dev/null 2>/tmp/e && echo 通る || echo "暗黙宣言 $(grep -c 'implicit declaration' /tmp/e) 件"
-          done
-          echo "=== 素の一枚は通るか"
-          printf '#include <fcntl.h>\nint main(void){return open("/dev/null",0);}\n' > /tmp/q.c
-          cc $ARGS -c -o /dev/null /tmp/q.c 2>&1 | head -3
+          # temacs は起動して Lisp を全部読み込み、dump の中で落ちる。
+          # unexelf.c は 1995 年の ELF を前提にしているので、どこで壊れるかを
+          # 見ないと直せない。手元の VM は aarch64 で此処まで来られないため、
+          # x86_64 のこの箱で直に取る。
+          S=$(find / -path '*mule2/work/mule/src/temacs' 2>/dev/null | head -1)
+          [ -n "$S" ] || { echo "temacs が無い"; exit 0; }
+          cd "$(dirname "$S")"
+          gdb -batch -iex 'set auto-load safe-path /' -ex run -ex bt -ex 'info locals' \
+              --args ./temacs -batch -l loadup dump 2>&1 | tail -40
