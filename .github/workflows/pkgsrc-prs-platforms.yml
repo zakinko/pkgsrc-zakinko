@@ -294,5 +294,17 @@ jobs:
       XWPE_OPTIONS: '-x11 -xft'
     steps:
       - uses: actions/checkout@v4
+      # bootstrap は /opt/pkg へ入れるので root が要る。他の箱は
+      # vmactions のゲストも container も root で走るが、macOS の runner は
+      # runner 利用者である。
+      #
+      #   You must be either root to install bootstrap-pkgsrc
+      #   or use the --unprivileged option.
+      #
+      # sudo は passwordless なので全体を root で走らせる。$HOME は sudo で
+      # /var/root に変わるので、置き場は書き下す。
       - name: 建てて確かめる
-        run: PKGS='xwpe' PKGSRC_BASE=$HOME/pkgsrcwork sh .github/ci/build-on-bsd.sh
+        run: |
+          sudo env PKGS='xwpe' XWPE_OPTIONS="$XWPE_OPTIONS" \
+                   PKGSRC_BASE=/Users/runner/pkgsrcwork \
+                   sh .github/ci/build-on-bsd.sh
