@@ -127,11 +127,13 @@ jobs:
 
   xwpe-openbsd:
     if: inputs.target == 'all' || inputs.target == 'xwpe'
-    name: xwpe on OpenBSD
+    name: xwpe on OpenBSD (端末のみ)
     runs-on: ubuntu-latest
     timeout-minutes: 240
+    # X 入りにすると modular xorg を pkgsrc から積むことになり、
+    # x11/xorgproto で落ちた。X は native X を持つ NetBSD で見ている。
     env:
-      XWPE_OPTIONS: 'x11 xft'
+      XWPE_OPTIONS: '-x11 -xft'
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -246,11 +248,12 @@ jobs:
   # 在るので、X 入りで見る。
   xwpe-dragonfly:
     if: inputs.target == 'all' || inputs.target == 'xwpe'
-    name: xwpe on DragonFly
+    name: xwpe on DragonFly (端末のみ)
     runs-on: ubuntu-latest
     timeout-minutes: 240
+    # OpenBSD と同じで、X 入りは x11/libXt で落ちる。
     env:
-      XWPE_OPTIONS: 'x11 xft'
+      XWPE_OPTIONS: '-x11 -xft'
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -279,7 +282,9 @@ jobs:
       - name: 道具を入れる
         run: |
           dnf -y install gcc gcc-c++ make curl git tar gzip perl-core diffutils \
-                         findutils which patch file gawk > /dev/null
+                         findutils which patch file gawk zlib-devel \
+                         ncurses-devel libb2-devel openssl-devel \
+                         libarchive-devel bzip2 xz > /dev/null
       - name: 建てて確かめる
         run: PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
 
@@ -308,3 +313,27 @@ jobs:
           sudo env PKGS='xwpe' XWPE_OPTIONS="$XWPE_OPTIONS" \
                    PKGSRC_BASE=/Users/runner/pkgsrcwork \
                    sh .github/ci/build-on-bsd.sh
+
+  # GhostBSD は FreeBSD 系の desktop 向け。base は clang。X は在るが、
+  # OpenBSD と DragonFly で見たとおり pkgsrc から積むと modular xorg で
+  # 落ちるので端末のみ。
+  xwpe-ghostbsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on GhostBSD (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      XWPE_OPTIONS: '-x11 -xft'
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-ghostbsd-${{ github.run_id }}
+          restore-keys: prs-ghostbsd-
+      - uses: vmactions/ghostbsd-vm@v1
+        with:
+          envs: 'XWPE_OPTIONS'
+          run: PKGS='xwpe' sh .github/ci/build-on-bsd.sh
