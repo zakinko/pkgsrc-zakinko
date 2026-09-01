@@ -13,9 +13,9 @@ LICENSE=	mit
 
 ZIGSTRIP=	no
 
-# lang/zig/application.mk の zig-vendor-packages が post-extract で
-# zig fetch を走らせるので、組む段で網が要る。あちらの TODO
-# ("save to distfiles") が片付くまでは外せない。
+# lang/zig/application.mk fetches ZIG_PACKAGE_DEPENDS with "zig fetch" in
+# post-extract, so the build needs the network.  Its own TODO says these
+# should be saved as distfiles instead; until then this has to stay.
 ALLOW_NETWORK_ACCESS=yes
 
 .include "zig-depends.mk"
