@@ -100,16 +100,14 @@ jobs:
         if: failure()
         run: |
           set +e
-          # temacs は起動して Lisp を全部読み込み、unexec の中で落ちる。
-          # --args では引数が渡らなかったので run に直接書く。素の再現も
-          # 並べて、gdb の下でだけ挙動が変わっていないかを見る。
+          # dump は unexelf.c:952 の memcpy で落ちる。いまのメモリの中身を
+          # 新しい file へ写す所なので、写す先と大きさを見る。
           S=$(find / -path '*mule2/work/mule/src/temacs' 2>/dev/null | head -1)
           [ -n "$S" ] || { echo "temacs が無い"; exit 0; }
           cd "$(dirname "$S")"
-          echo "=== 素で走らせる"
-          ./temacs -batch -l loadup dump < /dev/null > /tmp/d.out 2>&1
-          echo "rc=$?"; tail -5 /tmp/d.out
-          echo "=== gdb の下で"
           gdb -batch -iex 'set auto-load safe-path /' \
-              -ex 'run -batch -l loadup dump < /dev/null' -ex bt -ex 'info locals' \
-              ./temacs 2>&1 | tail -30
+              -ex 'run -batch -l loadup dump < /dev/null' \
+              -ex 'frame 1' -ex 'info locals' -ex 'info args' \
+              ./temacs 2>&1 | tail -45
+          echo "=== temacs の section"
+          readelf -S temacs 2>/dev/null | grep -E 'bss|data|Name|\[' | head -20
