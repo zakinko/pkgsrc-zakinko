@@ -100,12 +100,16 @@ jobs:
         if: failure()
         run: |
           set +e
-          # temacs は起動して Lisp を全部読み込み、dump の中で落ちる。
-          # unexelf.c は 1995 年の ELF を前提にしているので、どこで壊れるかを
-          # 見ないと直せない。手元の VM は aarch64 で此処まで来られないため、
-          # x86_64 のこの箱で直に取る。
+          # temacs は起動して Lisp を全部読み込み、unexec の中で落ちる。
+          # --args では引数が渡らなかったので run に直接書く。素の再現も
+          # 並べて、gdb の下でだけ挙動が変わっていないかを見る。
           S=$(find / -path '*mule2/work/mule/src/temacs' 2>/dev/null | head -1)
           [ -n "$S" ] || { echo "temacs が無い"; exit 0; }
           cd "$(dirname "$S")"
-          gdb -batch -iex 'set auto-load safe-path /' -ex run -ex bt -ex 'info locals' \
-              --args ./temacs -batch -l loadup dump 2>&1 | tail -40
+          echo "=== 素で走らせる"
+          ./temacs -batch -l loadup dump < /dev/null > /tmp/d.out 2>&1
+          echo "rc=$?"; tail -5 /tmp/d.out
+          echo "=== gdb の下で"
+          gdb -batch -iex 'set auto-load safe-path /' \
+              -ex 'run -batch -l loadup dump < /dev/null' -ex bt -ex 'info locals' \
+              ./temacs 2>&1 | tail -30
