@@ -1,8 +1,6 @@
 @comment $NetBSD$
 bin/we
 bin/wpe
-bin/xwe
-bin/xwpe
 info/xwpe.info
 lib/xwpe/help.key
 lib/xwpe/help.xwpe
