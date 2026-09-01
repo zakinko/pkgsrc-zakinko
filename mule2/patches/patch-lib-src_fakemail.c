@@ -53,17 +53,19 @@ here shows up when the package is built there.  glibc reaches them.
  {
  }
  #else /* not BSD 4.2 (or newer) */
-@@ -127,8 +134,8 @@
+@@ -127,8 +134,10 @@
  static boolean no_problems = true;
  
  extern FILE *popen ();
-+extern char *cuserid ();
++/* cuserid は POSIX から外れ、FreeBSD の libc に無い。この file には
++   getpwuid を使う CURRENT_USER の枝があるので、そちらを選ぶ。 */
++#define CURRENT_USER
  extern int fclose (), pclose ();
 -extern char *malloc (), *realloc ();
  
  #ifdef CURRENT_USER
  extern struct passwd *getpwuid ();
-@@ -521,6 +528,7 @@
+@@ -521,6 +530,7 @@
    return size;
  }
  
