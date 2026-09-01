@@ -1,9 +1,11 @@
 $NetBSD$
 
-Add an OS=="netbsd" block to the GYP defaults.
+Add a BSD block to the GYP defaults.
 
 Without it protoc fails to link with an undefined reference to
-pthread_getschedparam, because ldflags carries no -pthread.
+pthread_getschedparam, because ldflags carries no -pthread.  Measured on
+FreeBSD 14.3: the same symbol, the same reason.  NetBSD hides it less
+often because more of pthread lives in libc there.
 
 --- gyp/common.gypi.orig
 +++ gyp/common.gypi
@@ -26,7 +28,7 @@ pthread_getschedparam, because ldflags carries no -pthread.
          'compiler_target': 'gcc',
          'compiler_host': 'gcc',
        }],
-+      ['target_platform=="NetBSD"', {
++      ['target_platform=="NetBSD" or target_platform=="FreeBSD" or target_platform=="OpenBSD" or target_platform=="DragonFly"', {
 +        'compiler_target': 'gcc',
 +        'compiler_target_version_int': 409,  # GCC 4.9 or higher
 +        'compiler_host': 'gcc',
@@ -39,7 +41,7 @@ pthread_getschedparam, because ldflags carries no -pthread.
            '-Wno-deprecated',
          ],
        }],
-+      ['OS=="netbsd"', {
++      ['OS=="netbsd" or OS=="freebsd" or OS=="openbsd" or OS=="dragonfly"', {
 +        'defines': [
 +          'OS_NETBSD',
 +        ],
