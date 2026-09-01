@@ -10,7 +10,14 @@ COMMENT=	Programming environment for UNIX systems
 LICENSE=	gnu-gpl-v2
 
 GNU_CONFIGURE=		yes
-USE_TOOLS+=		pkg-config
+# automake's dependency tracking needs GNU make.  With bmake, config.status
+# stops in the depfiles step:
+#
+#   config.status: error: Something went wrong bootstrapping makefile
+#       fragments for automatic dependency tracking.
+#
+# 1.5.30a did not need this; its Makefile.in was hand-written.
+USE_TOOLS+=		pkg-config gmake
 
 # configure defaults both of these to "auto", so what gets built depends on
 # what happens to be installed on the build host.  Pin them, or the PLIST
