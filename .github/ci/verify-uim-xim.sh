@@ -114,9 +114,13 @@ if [ "$OS" = NetBSD ] && [ -z "${BINPKG_SITES:-}" ]; then
 fi
 if [ -x "$PREFIX/bin/bmake" ]; then PKGMAKE=$PREFIX/bin/bmake
 else PKGMAKE=make; fi
-MKARGS="LIBRSVG_TYPE=c"
+# LIBRSVG_TYPE は既定のまま触らない。Rust の librsvg を避けようとして
+# c を指していたが、gtk4 と qt6 が入る既定の組では依存が librsvg-2.60 を
+# 連れてきて、buildlink が <2.41 を要求して噛み合わずに止まる。バイナリ
+# 集合に 2.60 が在るので素から建てる心配はもともと無い。
+MKARGS=""
 [ -n "${BINPKG_SITES:-}" ] &&
-	MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
+	MKARGS="DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 
 OFF="-xim -gtk2 -gtk3 -gtk4 -qt5 -qt6"
 ON="xim -gtk2 -gtk3 -gtk4 -qt5 -qt6"
