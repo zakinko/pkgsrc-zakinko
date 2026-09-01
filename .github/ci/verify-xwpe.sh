@@ -136,8 +136,14 @@ fi
 # 箱ごとに X が在ったり無かったりするので、そこを外から選べないと
 # 「X の無い箱で X 入りを建てて落ちた」を欠陥と読み違える。
 XWPE_OPTIONS=${XWPE_OPTIONS:-x11 xft}
-MKARGS="$MKARGS PKG_OPTIONS.xwpe=$XWPE_OPTIONS"
 echo "--- PKG_OPTIONS.xwpe=\"$XWPE_OPTIONS\" ---"
+# MKARGS へ足さないこと。あちらは引用符なしで展開するので、"x11 xft" が
+# 空白で割れて xft が make の目標になる。
+#
+#   make: don't know how to make xft. Stop
+#
+# 呼ぶところで一つの引数として渡す。
+_opt() { echo "PKG_OPTIONS.xwpe=$XWPE_OPTIONS"; }
 
 PKGBASE=${PKG##*/}
 DIR=$TREE/$PKG
@@ -160,7 +166,7 @@ echo
 echo "########## 1. 当て物ありで建てる ##########"
 ls patches 2>/dev/null
 pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
-{ $PKGMAKE $MKARGS install 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-patched.log
+{ $PKGMAKE $MKARGS "$(_opt)" install 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-patched.log
 _bin=$(grep -c "===> Binary install for" /tmp/xwpe-patched.log 2>/dev/null || true)
 _src=$(grep -c "^===> Building for" /tmp/xwpe-patched.log 2>/dev/null || true)
 echo "--- 依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件 ---"
@@ -174,6 +180,16 @@ if grep -q 'Ignoring patch file' /tmp/xwpe-patched.log; then
 fi
 if [ "$(cat /tmp/xwpe-rc)" -eq 0 ]; then
 	echo 'RESULT 当て物あり: 通った'
+	# 頼んだ option が configure まで届いたかを見る。届かなくても既定で
+	# 建ってしまうので、緑のまま別の構成を測っていることがある。
+	_want_x11=no; case " $XWPE_OPTIONS " in *" x11 "*) _want_x11=yes ;; esac
+	_got_x11=$(grep -E '^ *X11 *:' /tmp/xwpe-patched.log | tail -1 | awk '{print $NF}')
+	if [ "$_want_x11" = "$_got_x11" ]; then
+		echo "  ok X11 は頼んだとおり $_got_x11"
+	else
+		echo "FAIL: x11 を $_want_x11 で頼んだのに configure は $_got_x11"
+		rc=1
+	fi
 else
 	echo 'RESULT 当て物あり: 落ちた'
 	tail -40 /tmp/xwpe-patched.log
@@ -209,11 +225,20 @@ if [ -x "$PREFIX/bin/we" ]; then
 	else
 		echo "  ok すべて解決 ($(ldd "$PREFIX/bin/we" 2>/dev/null | grep -c '=>') 本)"
 	fi
-	# Xft を引いているのは上流のバグを避けるためなので、本当に繋がって
-	# いることを見る。Makefile から .include を落としても素通りしない。
-	ldd "$PREFIX/bin/we" 2>/dev/null | grep -q libXft &&
-		echo "  ok libXft が繋がっている" ||
-		{ echo "  !! libXft が繋がっていない"; rc=1; }
+	# 頼んだ option と繋がっている library が合っているかを見る。無条件に
+	# libXft を要求していたので、-xft の回が必ず落ちていた。無いことも
+	# 結果なので、要らないと言った側では「無い」を確かめる。
+	_want_xft=no
+	case " $XWPE_OPTIONS " in
+	*" xft "*)	case " $XWPE_OPTIONS " in *" x11 "*) _want_xft=yes ;; esac ;;
+	esac
+	if ldd "$PREFIX/bin/we" 2>/dev/null | grep -q libXft; then
+		[ "$_want_xft" = yes ] && echo "  ok libXft が繋がっている" ||
+			{ echo "  !! xft は要らないと言ったのに libXft が繋がっている"; rc=1; }
+	else
+		[ "$_want_xft" = no ] && echo "  ok libXft は繋がっていない (頼んだとおり)" ||
+			{ echo "  !! libXft が繋がっていない"; rc=1; }
+	fi
 
 	echo "--- bin の四つ ---"
 	for b in we wpe xwe xwpe; do
@@ -287,8 +312,15 @@ fi
 # ------------------------------------------------------------------
 echo
 echo "########## 3. 当て物を外して建て直す ##########"
-# これが箱によって割れる。落ちれば「この箱には要る」、通れば「この箱には
-# 要らない」。どちらも結果であって、失敗ではない。
+# patch-we__render.h を外して、無いと困ることを見る。
+#
+# ただし X を切った構成では元から要らない。NO_XWINDOWS が立つと
+# we_render.h は素のままでも空実装を選ぶので、外しても通る。通ることが
+# 正しいので、見込みを option で分ける。分けずに「落ちるはず」としていた
+# ため、-x11 の回が緑にならなかった。
+_want_fail=no
+case " $XWPE_OPTIONS " in *" x11 "*) _want_fail=yes ;; esac
+echo "--- 外したら落ちるはずか: $_want_fail ---"
 mkdir -p /tmp/xwpe-patches && cp patches/* /tmp/xwpe-patches/ 2>/dev/null
 cp distinfo /tmp/xwpe-distinfo.orig
 $PKGMAKE clean > /dev/null 2>&1
@@ -296,11 +328,24 @@ pkg_delete -f "$PKGBASE" > /dev/null 2>&1 || true
 rm -f patches/patch-we__render.h
 sed -e '/patch-we__render.h/d' distinfo > distinfo.new && mv distinfo.new distinfo
 
-{ $PKGMAKE $MKARGS build 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-plain.log
+{ $PKGMAKE $MKARGS "$(_opt)" build 2>&1; echo $? > /tmp/xwpe-rc; } | tee /tmp/xwpe-plain.log
 if [ "$(cat /tmp/xwpe-rc)" -eq 0 ]; then
-	echo "RESULT 当て物なし: 通った ($OS のこの箱では当て物は要らない)"
+	if [ "$_want_fail" = yes ]; then
+		echo "RESULT 当て物なし: 通った"
+		echo "!! X 入りなのに外して通った。この当て物は要らないことになる。"
+		rc=1
+	else
+		echo "RESULT 当て物なし: 通った (X を切っているので元から要らない)"
+	fi
 else
-	echo "RESULT 当て物なし: 落ちた ($OS のこの箱では当て物が要る)"
+	if [ "$_want_fail" = yes ]; then
+		echo "RESULT 当て物なし: 落ちた (この当て物は要る)"
+	else
+		echo "RESULT 当て物なし: 落ちた"
+		echo "!! X を切っているのに落ちた。当て物と関係のない失敗である。"
+		tail -20 /tmp/xwpe-plain.log
+		rc=1
+	fi
 fi
 echo '--- 診断に出た行 ---'
 grep -nE 'incompatible function pointer|undeclared function|implicit declaration' \

@@ -300,6 +300,7 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 	# PKG_OPTIONS.mule として読む。渡さなければ空で、見ない検査には
 	# 何も起きない。
 	$SSH "BINPKG_SITES='${BINPKG_SITES:-}' UIM_OPTIONS='${UIM_OPTIONS:-}' \
+	XWPE_OPTIONS='${XWPE_OPTIONS:-}' \
 		VERIFY_OPTS='${VERIFY_OPTS:-}' \
 		EMACS_COEXIST_CHECK='${EMACS_COEXIST_CHECK:-}' \
 		sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
