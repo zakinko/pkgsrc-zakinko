@@ -49,15 +49,18 @@ jobs:
   # xwpe: 当て物の要否がコンパイラで割れる。gcc と clang の両方を見る。
   xwpe-netbsd:
     if: inputs.target == 'all' || inputs.target == 'xwpe'
-    name: xwpe on NetBSD ${{ matrix.image }}
+    name: xwpe on NetBSD ${{ matrix.image }} (${{ matrix.options }})
     runs-on: ubuntu-latest
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
         # 9.4 は gcc 10、10.1 は gcc 10、11.0 は gcc 12。NetBSD は版で
-        # base の compiler が動くので、当て物の要否もそこで割れうる。
+        # base の compiler が動く。
         image: ['amd64-9.4', 'amd64-10.1', 'amd64-11.0']
+        # X の在る側と無い側。無い側は上流が --without-x として設計している
+        # 道で、X を持たない箱に入るかどうかがここで決まる。
+        options: ['x11 xft', '-x11 -xft']
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -82,6 +85,7 @@ jobs:
         env:
           UPSTREAM_PKG: zakinko/xwpe
           VERIFY_SCRIPT: verify-xwpe.sh
+          XWPE_OPTIONS: ${{ matrix.options }}
           # 四半期枝に留める。current を引くと公式のバイナリ集合と版が
           # 合わず、perl から全部素で組むことになる。実際それで
           # perl-5.44.0 の Errno_pm.PL が NetBSD 10.1 の <sys/cdefs_elf.h>
@@ -210,3 +214,24 @@ jobs:
         run: |
           PKGS='' TREE_PKGS='net/lua-socket' PKGSRC_BASE=/tmp \
             sh .github/ci/build-on-bsd.sh
+
+  # X を持たない箱に入るか。container に X server も X の library も無いので、
+  # -x11 -xft がそのまま「X 無しの環境」の試験になる。X 入りを建てようとすると
+  # modular xorg を素から積むことになり、見たいものと関係のない時間がかかる。
+  xwpe-linux:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on Debian (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash
+      - name: 建てて確かめる
+        env:
+          XWPE_OPTIONS: '-x11 -xft'
+        run: |
+          PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh

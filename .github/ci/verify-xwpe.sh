@@ -132,6 +132,13 @@ else
 	echo "FAIL: $PREFIX/bin/bmake が無い"; exit 1
 fi
 
+# option の組は呼ぶ側が置く。既定は pkgsrc の既定と同じ。
+# 箱ごとに X が在ったり無かったりするので、そこを外から選べないと
+# 「X の無い箱で X 入りを建てて落ちた」を欠陥と読み違える。
+XWPE_OPTIONS=${XWPE_OPTIONS:-x11 xft}
+MKARGS="$MKARGS PKG_OPTIONS.xwpe=$XWPE_OPTIONS"
+echo "--- PKG_OPTIONS.xwpe=\"$XWPE_OPTIONS\" ---"
+
 PKGBASE=${PKG##*/}
 DIR=$TREE/$PKG
 cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }
@@ -159,6 +166,11 @@ _src=$(grep -c "^===> Building for" /tmp/xwpe-patched.log 2>/dev/null || true)
 echo "--- 依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:-0} 件 ---"
 if [ -n "${BINPKG_SITES:-}" ] && [ "${_bin:-0}" = 0 ]; then
 	echo "::warning::BINPKG_SITES を渡したのに一つも降ろせていない"
+fi
+if grep -q 'Ignoring patch file' /tmp/xwpe-patched.log; then
+	echo 'FAIL: 当て物が無視された。checksum が合っていない。'
+	grep 'Ignoring patch file' /tmp/xwpe-patched.log | sed 's;.*patches/;  ;'
+	rc=1
 fi
 if [ "$(cat /tmp/xwpe-rc)" -eq 0 ]; then
 	echo 'RESULT 当て物あり: 通った'
