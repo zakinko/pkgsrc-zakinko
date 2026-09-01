@@ -81,6 +81,9 @@ INSTALL_MAKE_FLAGS+=	mandir=${DESTDIR}${GNU_CONFIGURE_MANDIR}
 # Remove .orig files in the original tar archive
 post-extract:
 	rm -f ${WRKSRC}/lisp/*.orig
+# OpenBSD 用の s/ が木に無い。configure に腕を足すだけでは足りないので
+# ここで置く。中身は s/netbsd.h を土台に、名前と crypt の扱いだけ変えた物。
+	${CP} ${FILESDIR}/openbsd.h ${WRKSRC}/src/s/openbsd.h
 
 # Remove original versions of patched files so that aren't installed.
 # Recompile the non-dumped lisp we patched (ledit, medit, mailpost,
