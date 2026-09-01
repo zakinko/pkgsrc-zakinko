@@ -55,7 +55,8 @@ jobs:
             perl patch tar gzip xz git diffutils findutils which sudo \
             libX11-devel libXt-devel libXaw-devel libXmu-devel libXext-devel \
             libXpm-devel xorg-x11-proto-devel ncurses-devel \
-            hostname procps-ng iproute texinfo
+            hostname procps-ng iproute texinfo \
+            byacc	# lib-src/getdate.y を組むのに要る
           # hostname は pkgsrc の native X の検査が見ている。無いと
           #   /usr: X11_TYPE=native but xbase set is not installed
           #   (missing: hostname)
