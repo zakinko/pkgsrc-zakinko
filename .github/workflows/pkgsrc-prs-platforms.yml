@@ -281,10 +281,21 @@ jobs:
       - uses: actions/checkout@v4
       - name: 道具を入れる
         run: |
+          # fedora:latest は coreutils-single を積んでいる。install(1) が
+          # pkgsrc の要求に足りず、pkgsrc が自分の sysutils/coreutils を
+          # tool として建てにいく。それが bootstrap の最中に走ると
+          #
+          #   => Tool dependency coreutils>=5.2.1: NOT found
+          #   ERROR: [bsd.pkg.mk] Circular dependency detected
+          #
+          # で止まる。本物の coreutils へ入れ替えておく。
+          dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
+            dnf -y install coreutils > /dev/null
           dnf -y install gcc gcc-c++ make curl git tar gzip perl-core diffutils \
                          findutils which patch file gawk zlib-devel \
                          ncurses-devel libb2-devel openssl-devel \
                          libarchive-devel bzip2 xz > /dev/null
+          echo "install: $(command -v install)  $(install --version 2>&1 | head -1)"
       - name: 建てて確かめる
         run: PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
 
