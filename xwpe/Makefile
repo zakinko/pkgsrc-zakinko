@@ -35,6 +35,18 @@ BUILDLINK_DEPMETHOD.libXt?=	build
 .include "../../graphics/hicolor-icon-theme/buildlink3.mk"
 .include "../../textproc/json-c/buildlink3.mk"
 .include "../../x11/libSM/buildlink3.mk"
+# Xft is what configure calls optional, but the tree does not compile
+# without it.  we_debug.c and we_xterm.c reach into WpeXInfo.backbuf,
+# which WeXterm.h only declares inside #ifdef HAVE_XFT, at four sites
+# that no #ifdef covers; we_render_cairo.c does the same at eight more.
+# Building X11 without Xft stops at
+#
+#   we_debug.c:1269: error: 'WpeXStruct' has no member named 'backbuf'
+#
+# so pull Xft in rather than patch twelve sites for a configuration
+# nobody asks for.  It is also the better of the two: this is where the
+# antialiased fonts come from.
+.include "../../x11/libXft/buildlink3.mk"
 .include "../../x11/libX11/buildlink3.mk"
 .include "../../x11/libXt/buildlink3.mk"
 .include "../../devel/zlib/buildlink3.mk"
