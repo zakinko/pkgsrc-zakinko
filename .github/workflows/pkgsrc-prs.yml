@@ -86,6 +86,10 @@ env:
   OMNIOS: ${{ inputs.release || 'r151056' }}
   UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk3 -gtk4 -qt5 -qt6' }}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lua-socket:
     name: net/lua-socket on OmniOS

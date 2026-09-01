@@ -40,6 +40,10 @@ on:
         options: [all, xwpe, fail2ban, zls, lua-socket]
         default: all
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ------------------------------------------------------------------
   # xwpe: 当て物の要否がコンパイラで割れる。gcc と clang の両方を見る。
