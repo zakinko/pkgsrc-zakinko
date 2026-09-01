@@ -57,11 +57,42 @@ else
 fi
 
 echo "--- 動くか ---"
-if [ -x "$PREFIX/bin/zls" ]; then
-	"$PREFIX/bin/zls" --version < /dev/null 2>&1 | head -3
-	echo "  exit=$?"
-else
+if [ ! -x "$PREFIX/bin/zls" ]; then
 	echo "!! $PREFIX/bin/zls が無い"; rc=1
+else
+	echo "--- 版を名乗るか ---"
+	"$PREFIX/bin/zls" --version < /dev/null 2>&1 | head -3
+
+	# --version は「起動して文字列を出した」までで、language server として
+	# 仕事をするかは分からない。LSP の handshake を実際に通す。stdio で
+	# Content-Length 付きの initialize を投げ、capabilities が返るのを見る。
+	echo "--- LSP の initialize に応えるか ---"
+	REQ='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}'
+	LEN=$(printf '%s' "$REQ" | wc -c | tr -d ' ')
+	printf 'Content-Length: %s\r\n\r\n%s' "$LEN" "$REQ" > /tmp/zls-init.txt
+
+	"$PREFIX/bin/zls" < /tmp/zls-init.txt > /tmp/zls-lsp.log 2>&1 &
+	_pid=$!
+	# 応答を待つ。返ってこないまま居座ることがあるので上限を切る。
+	_n=0
+	while [ $_n -lt 20 ]; do
+		grep -q 'capabilities' /tmp/zls-lsp.log 2>/dev/null && break
+		kill -0 $_pid 2>/dev/null || break
+		sleep 1
+		_n=$((_n + 1))
+	done
+	kill $_pid 2>/dev/null
+	wait $_pid 2>/dev/null
+
+	head -c 400 /tmp/zls-lsp.log
+	echo
+	if grep -q '"capabilities"' /tmp/zls-lsp.log 2>/dev/null; then
+		echo 'RESULT 動作: LSP の initialize に応えた'
+		grep -oE '"name":"[^"]*"|"version":"[^"]*"' /tmp/zls-lsp.log | head -2
+	else
+		echo 'RESULT 動作: initialize に応えなかった'
+		rc=1
+	fi
 fi
 
 echo "--- PLIST どおりか ---"
@@ -73,7 +104,24 @@ done
 
 # ------------------------------------------------------------------
 echo
-echo "########## 2. zig-depends.mk の四行は何を取ったか ##########"
+echo "########## 2. zig-depends.mk は print-zig-depends の出力と一致するか ##########"
+# 「make print-zig-depends が出したもの」と書くなら、pkgsrc の中で実際に
+# 走らせて突き合わせる。手元で awk を回しただけでは、あの target が今も
+# 同じ出力をする保証がない。
+if $PKGMAKE print-zig-depends > /tmp/zls-deps.txt 2>/dev/null; then
+	if diff -u zig-depends.mk /tmp/zls-deps.txt > /tmp/zls-deps.diff 2>&1; then
+		echo "RESULT zig-depends.mk: print-zig-depends の出力と一致"
+	else
+		echo "RESULT zig-depends.mk: 一致しない"
+		cat /tmp/zls-deps.diff | head -20
+		rc=1
+	fi
+else
+	echo "!! print-zig-depends が走らなかった (WRKSRC が要る。build 後に呼ぶこと)"
+fi
+
+echo
+echo "########## 2b. zig fetch は四つとも取ったか ##########"
 # tracy は build.zig.zon で .lazy = true になっている。print-zig-depends は
 # lazy かどうかを見ずに url を全部拾うので、四行のうち一本は使われない
 # 可能性がある。実際に取ったかを見る。
