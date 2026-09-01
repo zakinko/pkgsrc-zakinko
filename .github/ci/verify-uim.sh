@@ -250,6 +250,26 @@ fi
 # ------------------------------------------------------------------
 echo
 echo "########## 4. 入ったものが本当に置かれているか ##########"
+# option を入れた側では、消した 18 行が PLIST_SRC で戻っているかも見る。
+# 消しすぎていれば「置かれているのに PLIST に無い」として出る。pkg_add は
+# 並んでいないものを入れないので、そこは pkg_info では見えない。入った
+# はずのファイルを名指しで確かめる。
+case "$OPTS" in
+*-gtk2*)	;;   # 切っている側は対象外
+*gtk2*)
+	echo "--- gtk2 を入れているので、戻った行が実在するかを見る ---"
+	miss2=0
+	for f in $(grep -v '^@comment' PLIST.gtk2); do
+		[ -e "$PREFIX/$f" ] || { echo "    無い: $PREFIX/$f"; miss2=$((miss2 + 1)); }
+	done
+	if [ $miss2 -eq 0 ]; then
+		echo "PLIST.gtk2 の 9 行は全部置かれている (PLIST_SRC が足し直している)"
+	else
+		echo "FAIL: $miss2 個が置かれていない。消しすぎている。"
+		rc=1
+	fi
+	;;
+esac
 if pkg_info -e uim > /dev/null 2>&1; then
 	miss=0
 	for f in $(pkg_info -qL uim 2>/dev/null); do
