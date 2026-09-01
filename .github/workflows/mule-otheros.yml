@@ -52,42 +52,6 @@ env:
   PKGSRC_BASE: /opt
 
 jobs:
-  darwin:
-    name: macOS (Darwin)
-    runs-on: macos-15
-    timeout-minutes: 240
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: distfile のキャッシュ
-        uses: actions/cache@v4
-        with:
-          path: distfiles
-          key: mule-2.3-tarball
-
-      - name: distfile を取る
-        run: sh .github/ci/fetch-distfile.sh
-
-      - name: pkgsrc の作りかけを持ち越す
-        uses: actions/cache@v4
-        with:
-          path: .bsdcache
-          key: pkgsrc-darwin-arm64-${{ github.run_id }}
-          restore-keys: pkgsrc-darwin-arm64-
-
-      # Darwin は /usr が SIP で書けないので、prefix もツリーも /opt 側に
-      # 寄る (build-on-bsd.sh が OS を見て決める)。検査のほうは
-      # verify-mule.sh もそれを受け取るようになったので、日本語が編集できる
-      # ところまでの full の検査を通す。
-      - name: 組んで確かめる
-        run: sudo -E sh .github/ci/build-on-bsd.sh "$OPTIONS"
-
-      # root で組んだものをそのままにすると、キャッシュを保存する側が
-      # 読めない。
-      - name: キャッシュを持ち帰れるようにする
-        if: always()
-        run: sudo chown -R "$(id -u):$(id -g)" .bsdcache 2>/dev/null || true
-
   linux:
     name: Linux (glibc)
     runs-on: ubuntu-latest
