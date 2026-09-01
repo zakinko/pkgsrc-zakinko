@@ -103,8 +103,19 @@ if [ -x "$PREFIX/bin/bmake" ]; then
 		echo "--- 依存の出どころ: 無し。全部その場で組む ---"
 	fi
 elif [ "$OS" = NetBSD ]; then
+	# NetBSD には base の make が在るので bootstrap しない箱がある。
+	# ここで MKARGS を空にしていたため、bmake の無い NetBSD では依存を
+	# 一つも降ろさず全部その場で組んでいた。落ちずに遅くなるだけなので、
+	# 4 時間の timeout に当たるまで理由が分からない。上の枝と同じものを
+	# 渡す。
 	PKGMAKE=make
-	MKARGS=
+	MKARGS="DEPENDS_TARGET=bin-install"
+	if [ -z "${BINPKG_SITES:-}" ]; then
+		_rel=$(uname -r); _br=${_rel%%.*}.0
+		BINPKG_SITES=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/${_br}_2026Q2
+	fi
+	MKARGS="$MKARGS BINPKG_SITES=$BINPKG_SITES"
+	echo "--- 依存の出どころ: $BINPKG_SITES ---"
 else
 	echo "FAIL: $PREFIX/bin/bmake が無い"; exit 1
 fi
