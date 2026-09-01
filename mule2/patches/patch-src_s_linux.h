@@ -19,6 +19,13 @@ str functions unless the header is read.  The remapping to the sys_*
 wrappers makes the last one worse: with it in force the headers declare
 sys_open and sys_read, so they have to be read here, after the remap.
 
+Keep the added headers out of the Makefile-generating pass.
+
+config.h is read twice: once by the compiler, and once by the cpp run that
+turns Makefile.in into Makefile.  The second one is traditional cpp and
+cannot read a modern glibc header at all, so the includes have to sit
+inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
+
 --- src/s/linux.h.orig
 +++ src/s/linux.h
 @@ -72,6 +72,10 @@
@@ -32,27 +39,61 @@ sys_open and sys_read, so they have to be read here, after the remap.
  /*
   *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
   *	Look in <sys/time.h> for a timeval structure.
-@@ -143,6 +147,20 @@
- #define open sys_open
- #define close sys_close
+@@ -138,14 +142,23 @@
+  to names for our own functions in sysdep.c that do the system call
+  with retries. */
  
-+/* 差し替えた直後にヘッダを読ませる。こうすると <fcntl.h> と
-+   <unistd.h> が宣言するのは sys_open や sys_read になり、sysdep.c
-+   が用意する実体と名前が揃う。読ませないと、呼ぶ側には宣言の無い
-+   sys_open だけが残る。
+-#define read sys_read
+-#define write sys_write
+-#define open sys_open
+-#define close sys_close
+-
+-#define INTERRUPTIBLE_OPEN
+-#define INTERRUPTIBLE_CLOSE
+-#define INTERRUPTIBLE_IO
++/* 1995 年の Linux は signal を捕まえると system call が EINTR で戻ったので、
++   sysdep.c の再試行つきの関数に名前を掏り替えていた。いまの glibc の signal
++   は SA_RESTART つきで、read も write も自分で再開する。掏り替えは要らない。
 +
-+   string と strings と stdlib もここで配る。config.h は BSTRING を
-+   立てて bcopy が在ると言うが、glibc はそれを <strings.h> でしか
-+   宣言しない。1995 年の source は str 系を宣言なしで呼ぶ。 */
++   要らないだけでなく害がある。差し替えたままヘッダを読むと <fcntl.h> が
++   宣言するのは sys_open になり、sysdep.c と繋がらない lib-src では呼ぶ側に
++   宣言も実体も無くなる。 */
++
++#ifndef NOT_C_CODE
++/* glibc は bcopy, bzero, bcmp を <strings.h> でしか宣言しない。config.h は
++   BSTRING を立てて「在る」と言うので、宣言の方をここで配る。str 系も同じで、
++   1995 年の source は宣言なしで呼ぶ。Makefile を作る cpp の段は traditional
++   なので、いまの glibc のヘッダを読めない。だから NOT_C_CODE の外に置く。 */
 +#include <string.h>
 +#include <strings.h>
 +#include <stdlib.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+
- #define INTERRUPTIBLE_OPEN
- #define INTERRUPTIBLE_CLOSE
- #define INTERRUPTIBLE_IO
++#endif /* not NOT_C_CODE */
+ 
+ /* If you mount the proc file system somewhere other than /proc
+    you will have to uncomment the following and make the proper
+@@ -162,14 +175,19 @@
+ #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
+   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
+ #else /* !_IO_STDIO_H */
+-/* old C++ iostream names */
++/* いまの glibc は _IO_STDIO_H を定義しないが、FILE の中身は _IO_write_ptr の
++   ままで、_pptr という名前は 1990 年代の libg++ のもの。同じ式を使う。 */
+ #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
+-  ((FILE)->_pptr - (FILE)->_pbase)
++  ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
+ #endif /* !_IO_STDIO_H */
+ #endif /* emacs */
+ 
+ /* Linux has crt0.o in a non-standard place */
+-#define START_FILES pre-crt0.o /usr/lib/crt0.o
++/* crt0.o という名前は a.out の頃のもので、いまの glibc には無い (crt1.o と
++   crti.o と gcc の crtbegin.o に分かれている)。link は cc に任せていて、
++   cc が正しい順で並べるので、こちらから名指しする必要はない。unexec が
++   data の始まりを知るための pre-crt0.o だけ残す。 */
++#define START_FILES pre-crt0.o
+ 
+ /* As of version 1.1.51, Linux does not actually implement SIGIO.  */
+ /* Here we assume that signal.h is already included.  */
 @@ -221,12 +239,12 @@
  
  #ifdef TERM

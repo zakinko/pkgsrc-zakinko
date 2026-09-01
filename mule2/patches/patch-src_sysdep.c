@@ -22,6 +22,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Keep the added headers out of the Makefile-generating pass.
+
+config.h is read twice: once by the compiler, and once by the cpp run that
+turns Makefile.in into Makefile.  The second one is traditional cpp and
+cannot read a modern glibc header at all, so the includes have to sit
+inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
+
 --- src/sysdep.c.orig
 +++ src/sysdep.c
 @@ -245,7 +245,7 @@
@@ -194,3 +201,19 @@ nothing about what is built.  Only what the source says out loud.
       int fd;
  {
    /* I'm told that TOICREMOTE does not mean control chars
+@@ -2465,6 +2465,7 @@
+ sigset_t old_mask, empty_mask, full_mask, temp_mask;
+ static struct sigaction new_action, old_action;
+ 
++void
+ init_signals ()
+ {
+   sigemptyset (&empty_mask);
+@@ -3160,6 +3161,7 @@
+  *	This function will go away as soon as all the stubs fixed. (fnf)
+  */
+ 
++void
+ croak (badfunc)
+      char *badfunc;
+ {

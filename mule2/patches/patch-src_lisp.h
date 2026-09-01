@@ -16,6 +16,13 @@ declared as -- the same thing the compiler was already assuming, spelled
 out.  Whether those should return void instead is a separate question and
 a separate patch, because it means changing the definitions.
 
+Keep the added headers out of the Makefile-generating pass.
+
+config.h is read twice: once by the compiler, and once by the cpp run that
+turns Makefile.in into Makefile.  The second one is traditional cpp and
+cannot read a modern glibc header at all, so the includes have to sit
+inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
+
 --- src/lisp.h.orig
 +++ src/lisp.h
 @@ -30,6 +30,10 @@
@@ -29,7 +36,7 @@ a separate patch, because it means changing the definitions.
  /* Define the fundamental Lisp data structures */
  
  /* Define an integer type with the same size as Lisp_Object.
-@@ -1550,3 +1554,705 @@
+@@ -1550,3 +1554,710 @@
   
  /* Set up the name of the machine we're running on.  */
  extern void init_system_name ();
@@ -264,11 +271,11 @@ a separate patch, because it means changing the definitions.
 +extern int mc_access ();
 +extern int mc_chdir ();
 +extern int mc_chmod ();
-+extern void mc_execvp ();
++extern int mc_execvp ();
 +extern int mc_link ();
 +extern int mc_lstat ();
 +extern int mc_mkdir ();
-+extern int mc_readlink ();
++extern ssize_t mc_readlink ();
 +extern int mc_rename ();
 +extern int mc_rmdir ();
 +extern int mc_symlink ();
@@ -324,7 +331,7 @@ a separate patch, because it means changing the definitions.
 +extern int property_change_between_p ();
 +
 +/* defined in unexelf.c */
-+extern void unexec ();
++extern int unexec ();
 +
 +/* defined in vm-limit.c */
 +extern void memory_warnings ();
@@ -537,8 +544,8 @@ a separate patch, because it means changing the definitions.
 +
 +/* defined in frame.c */
 +extern int choose_minibuf_frame ();
-+extern int keys_of_frame ();
-+extern int syms_of_frame ();
++extern void keys_of_frame ();
++extern void syms_of_frame ();
 +
 +/* defined in indent.c */
 +extern int invalidate_current_column ();
@@ -735,3 +742,8 @@ a separate patch, because it means changing the definitions.
 +/* defined in xmenu.c */
 +extern Lisp_Object Fx_popup_dialog (), Fx_popup_menu ();
 +#endif /* HAVE_X_WINDOWS */
++
++/* Linux の枝でだけ通る所が呼ぶもの。X を切ると frame.c 側の宣言が
++   届かなくなる。 */
++extern void change_frame_size ();
++extern void init_signals ();

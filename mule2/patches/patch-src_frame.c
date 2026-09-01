@@ -11,6 +11,13 @@ default, so every one of them is now an error:
 The compiler was already treating them as int, so writing int changes
 nothing about what is built.  Only what the source says out loud.
 
+Keep the added headers out of the Makefile-generating pass.
+
+config.h is read twice: once by the compiler, and once by the cpp run that
+turns Makefile.in into Makefile.  The second one is traditional cpp and
+cannot read a modern glibc header at all, so the includes have to sit
+inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
+
 --- src/frame.c.orig
 +++ src/frame.c
 @@ -1728,7 +1728,7 @@
@@ -27,7 +34,7 @@ nothing about what is built.  Only what the source says out loud.
  }
  
 -syms_of_frame ()
-+int syms_of_frame ()
++void syms_of_frame ()
  {
   /*&&& init symbols here &&&*/
    Qframep = intern ("framep");
@@ -36,7 +43,23 @@ nothing about what is built.  Only what the source says out loud.
  }
  
 -keys_of_frame ()
-+int keys_of_frame ()
++void keys_of_frame ()
  {
    initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");
+ }
+@@ -2214,6 +2214,7 @@
+   return Qt;
+ }
+ 
++void
+ syms_of_frame ()
+ {
+ #ifdef TERMINAL_FACE
+@@ -2277,6 +2278,7 @@
+   defsubr (&Sframe_live_p);
+ }
+ 
++void
+ keys_of_frame ()
+ {
  }

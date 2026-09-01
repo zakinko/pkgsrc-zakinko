@@ -20,6 +20,13 @@ warning here now stops the build.  Where the declaration was simply wrong
 it is corrected; where the system call or the library has moved since 1995
 the value is converted at the call.
 
+Keep the added headers out of the Makefile-generating pass.
+
+config.h is read twice: once by the compiler, and once by the cpp run that
+turns Makefile.in into Makefile.  The second one is traditional cpp and
+cannot read a modern glibc header at all, so the includes have to sit
+inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
+
 --- src/mcpath.c.orig
 +++ src/mcpath.c
 @@ -25,6 +25,7 @@
@@ -30,7 +37,22 @@ the value is converted at the call.
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <sys/param.h>
-@@ -425,7 +426,7 @@
+@@ -246,7 +247,7 @@
+   return lstat (decode_path (path, buffer), st_addr);
+ }
+ 
+-int mc_readlink (path, buf, size)
++ssize_t mc_readlink (path, buf, size)
+      unsigned char *path, *buf;
+      int size;
+ {
+@@ -420,12 +421,12 @@
+  * following implement depends this.
+  */
+ #ifndef NO_MC_EXECVP
+-void mc_execvp (path, argv)
++int mc_execvp (path, argv)
+      unsigned char *path, *argv[];
  {
    unsigned char buffer[MC_MAXPATHLEN];
    argv[0] = path = decode_path (path, buffer);
