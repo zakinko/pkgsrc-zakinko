@@ -21,15 +21,15 @@ never entered.
  #include "base/mac/mac_util.h"
  #endif  // __APPLE__
  
-+#ifdef __NetBSD__
++#if defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
 +#include <sys/param.h>   // MAXPATHLEN
 +#include <sys/sysctl.h>
-+#endif  // __NetBSD__
++#endif  // BSD with KERN_PROC_PATHNAME
 +
  #ifdef _WIN32
  // clang-format off
  #include <windows.h>
-@@ -391,6 +396,25 @@
+@@ -391,6 +396,66 @@
    server_pid_ = pid;
  #endif  // __APPLE__
  
@@ -51,6 +51,47 @@ never entered.
 +  server_path_ = path;
 +  server_pid_ = pid;
 +#endif  // __NetBSD__
++
++#if defined(__FreeBSD__) || defined(__DragonFly__)
++  // FreeBSD and DragonFly do not mount procfs by default either, and their
++  // MIB is not the one NetBSD uses: KERN_PROC comes second and the pid
++  // last.  sysctl can succeed and return nothing -- passing NetBSD's order
++  // here is one way to get that -- so the length is checked as well.
++  //
++  // On DragonFly this branch is not reached today: IsPeerValid() cannot
++  // obtain a peer pid there, so IsValidServer() returns early.  It is kept
++  // because the MIB does work, and because leaving DragonFly out would
++  // break it the day its xucred grows a cr_pid.
++  {
++    int name[] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME,
++                  static_cast<int>(pid)};
++    char path[MAXPATHLEN];
++    size_t path_len = sizeof(path);
++    memset(path, 0, sizeof(path));
++    if (sysctl(name, std::size(name), path, &path_len, nullptr, 0) < 0 ||
++        path_len == 0) {
++      LOG(ERROR) << "sysctl KERN_PROC_PATHNAME failed";
++      return false;
++    }
++    // path_len counts the terminating NUL.
++    server_path_.assign(path, path_len - 1);
++    server_pid_ = pid;
++  }
++#endif  // __FreeBSD__ || __DragonFly__
++
++#ifdef __OpenBSD__
++  // OpenBSD has no KERN_PROC_PATHNAME and mounts no procfs, so the
++  // executable behind a pid cannot be recovered.  The peer pid *is*
++  // available here (SO_PEERCRED, see unix_ipc.cc) but there is nothing to
++  // compare it against.
++  //
++  // Return without touching server_pid_ or server_path_.  Falling through
++  // would compare the caller's path against the string cleared above and
++  // refuse every connection; caching the pid would make the second call
++  // take the early return at the top of this function and refuse from then
++  // on.  On OpenBSD the uid check in IsPeerValid() is the only guard.
++  return true;
++#endif  // __OpenBSD__
 +
  #ifdef __linux__
    // load from /proc/<pid>/exe

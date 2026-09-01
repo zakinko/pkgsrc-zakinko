@@ -21,20 +21,19 @@ support that pkgsrc has been carrying since 2024.
 
    Client and server truncate identically, so this never broke anything
    visibly.  offsetof(struct sockaddr_un, sun_path) is correct on both
-   platforms and generates identical code on Linux.
-
---- ipc/unix_ipc.cc.orig
+   platforms and generates identical code on Linux.--- ipc/unix_ipc.cc.orig
 +++ ipc/unix_ipc.cc
-@@ -28,7 +28,7 @@
+@@ -28,7 +28,8 @@
  // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  // __linux__ only. Note that __ANDROID__/__wasm__ don't reach here.
 -#if defined(__linux__)
-+#if defined(__linux__) || defined(__NetBSD__)
++#if defined(__linux__) || defined(__NetBSD__) || defined(__FreeBSD__) || \
++    defined(__OpenBSD__) || defined(__DragonFly__)
  
  #include <fcntl.h>
  #include <sys/select.h>
-@@ -36,6 +36,8 @@
+@@ -36,6 +37,8 @@
  #include <sys/stat.h>
  #include <sys/time.h>
  #include <sys/un.h>
@@ -43,7 +42,7 @@ support that pkgsrc has been carrying since 2024.
  #include <unistd.h>
  
  #include <cerrno>
-@@ -121,6 +123,7 @@
+@@ -121,6 +124,7 @@
  bool IsPeerValid(int socket, pid_t *pid) {
    *pid = 0;
  
@@ -51,10 +50,65 @@ support that pkgsrc has been carrying since 2024.
    struct ucred peer_cred;
    int peer_cred_len = sizeof(peer_cred);
    if (getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &peer_cred,
-@@ -135,7 +138,23 @@
+@@ -135,7 +139,78 @@
    }
  
    *pid = peer_cred.pid;
++#elif defined(__FreeBSD__)
++  // FreeBSD has no SO_PEERCRED.  LOCAL_PEERCRED fills in struct xucred,
++  // whose cr_pid shares a union with an older unused member and is valid
++  // when cr_version is XUCRED_VERSION.  LOCAL_PEERCRED is declared in
++  // <sys/un.h>, not <sys/ucred.h>.
++  struct xucred peer_cred;
++  socklen_t peer_cred_len = sizeof(peer_cred);
++  if (getsockopt(socket, 0, LOCAL_PEERCRED, &peer_cred, &peer_cred_len) < 0) {
++    LOG(ERROR) << "cannot get peer credential. Not a Unix socket?";
++    return false;
++  }
++
++  if (peer_cred.cr_version != XUCRED_VERSION) {
++    LOG(ERROR) << "unexpected xucred version " << peer_cred.cr_version;
++    return false;
++  }
++
++  if (peer_cred.cr_uid != ::geteuid()) {
++    LOG(WARNING) << "uid mismatch." << peer_cred.cr_uid << "!=" << ::geteuid();
++    return false;
++  }
++
++  *pid = peer_cred.cr_pid;
++#elif defined(__DragonFly__)
++  // DragonFly has LOCAL_PEERCRED and struct xucred, but its xucred lacks
++  // the cr_pid union member FreeBSD added, so the peer pid cannot be had.
++  // *pid stays 0, which IPCPathManager::IsValidServer() already handles.
++  struct xucred peer_cred;
++  socklen_t peer_cred_len = sizeof(peer_cred);
++  if (getsockopt(socket, 0, LOCAL_PEERCRED, &peer_cred, &peer_cred_len) < 0) {
++    LOG(ERROR) << "cannot get peer credential. Not a Unix socket?";
++    return false;
++  }
++
++  if (peer_cred.cr_uid != ::geteuid()) {
++    LOG(WARNING) << "uid mismatch." << peer_cred.cr_uid << "!=" << ::geteuid();
++    return false;
++  }
++#elif defined(__OpenBSD__)
++  // OpenBSD does have SO_PEERCRED; its struct is sockpeercred rather than
++  // ucred.  getpeereid(2) exists too but yields only uid and gid.
++  struct sockpeercred peer_cred;
++  socklen_t peer_cred_len = sizeof(peer_cred);
++  if (getsockopt(socket, SOL_SOCKET, SO_PEERCRED, &peer_cred,
++                 &peer_cred_len) < 0) {
++    LOG(ERROR) << "cannot get peer credential. Not a Unix socket?";
++    return false;
++  }
++
++  if (peer_cred.uid != ::geteuid()) {
++    LOG(WARNING) << "uid mismatch." << peer_cred.uid << "!=" << ::geteuid();
++    return false;
++  }
++
++  *pid = peer_cred.pid;
 +#elif defined(__NetBSD__)
 +  struct unpcbid peer_cred;
 +  int peer_cred_len = sizeof(peer_cred);
@@ -75,7 +129,7 @@ support that pkgsrc has been carrying since 2024.
    return true;
  }
  
-@@ -265,7 +284,8 @@
+@@ -265,7 +340,8 @@
      address.sun_family = AF_UNIX;
      absl::SNPrintF(address.sun_path, sizeof(address.sun_path), "%s",
                     server_address);
@@ -85,7 +139,7 @@ support that pkgsrc has been carrying since 2024.
      pid_t pid = 0;
      if (::connect(socket_, reinterpret_cast<const sockaddr *>(&address),
                    sun_len) != 0 ||
-@@ -378,7 +398,8 @@
+@@ -378,7 +454,8 @@
    int on = 1;
    ::setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&on),
                 sizeof(on));
