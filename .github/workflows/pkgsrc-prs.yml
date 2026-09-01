@@ -55,6 +55,9 @@ on:
       - '.github/ci/verify-lua-socket.sh'
       - '.github/ci/verify-uim.sh'
       - '.github/ci/verify-pkg.sh'
+      - '.github/ci/verify-zls.sh'
+      - '.github/ci/verify-fail2ban.sh'
+      - '.github/ci/verify-xwpe.sh'
       - 'zls/**'
       - 'fail2ban/**'
       # 建てる土台も入れる。ここを直したのに回らず、前の結果を見て
@@ -247,7 +250,7 @@ jobs:
       - name: NetBSD で建てて確かめる
         env:
           UPSTREAM_PKG: zakinko/fail2ban
-          VERIFY_SCRIPT: verify-pkg.sh
+          VERIFY_SCRIPT: verify-fail2ban.sh
           BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
@@ -291,7 +294,7 @@ jobs:
       - name: NetBSD で建てて確かめる
         env:
           UPSTREAM_PKG: zakinko/zls
-          VERIFY_SCRIPT: verify-pkg.sh
+          VERIFY_SCRIPT: verify-zls.sh
           BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'

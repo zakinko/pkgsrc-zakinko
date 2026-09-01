@@ -249,6 +249,29 @@ fi
 
 # ------------------------------------------------------------------
 echo
+echo "########## 3.5 動くか ##########"
+# 建って PLIST が合っても、動かなければ「直った」とは言えない。uim は
+# 変換エンジンなので、載せ替えた PLIST が実体と食い違っていれば plugin が
+# 見つからない形で出る。
+if [ -x "$PREFIX/bin/uim-module-manager" ]; then
+	echo "--- 入っている module ---"
+	"$PREFIX/bin/uim-module-manager" --path "$PREFIX/share/uim" --list 2>&1 |
+		head -8
+	echo "  exit=$?"
+else
+	echo "!! uim-module-manager が無い"; rc=1
+fi
+if [ -x "$PREFIX/bin/uim-sh" ]; then
+	# uim-sh は Scheme を食う。uim 自身が初期化できるかを見るのに使う。
+	echo "--- uim-sh に式を食わせる ---"
+	echo '(display (uim-version))' | "$PREFIX/bin/uim-sh" 2>&1 | head -3
+	echo "  exit=$?"
+else
+	echo "!! uim-sh が無い"; rc=1
+fi
+
+# ------------------------------------------------------------------
+echo
 echo "########## 4. 入ったものが本当に置かれているか ##########"
 # option を入れた側では、消した 18 行が PLIST_SRC で戻っているかも見る。
 # 消しすぎていれば「置かれているのに PLIST に無い」として出る。pkg_add は

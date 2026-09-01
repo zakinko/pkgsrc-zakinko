@@ -144,9 +144,25 @@ echo "########## 2. 建った実体を動かす ##########"
 # X も端末も無いので編集まではできない。起動して名乗って終われるところ
 # までを見る。組めても即座に落ちる、を弾くための最低限。
 if [ -x "$PREFIX/bin/we" ]; then
+	# 全画面の editor なので端末なしでは編集まで踏めない。ここで見るのは
+	# 「起動して、名乗って、終われる」までである。それ以上を主張しない。
 	"$PREFIX/bin/we" -h < /dev/null > /tmp/xwpe-run.log 2>&1
 	echo "  we -h の終了状態: $?"
 	head -5 /tmp/xwpe-run.log
+	# 四つの名前が同じ実体を指しているか。install-exec-hook が張る symlink で、
+	# PLIST が四つとも並べている。
+	echo "--- bin の四つ ---"
+	for b in we wpe xwe xwpe; do
+		printf '  %-6s ' "$b"
+		ls -l "$PREFIX/bin/$b" 2>&1 | sed 's|.*/bin/||'
+	done
+	# 実行時に読むデータが在るか。PLIST に並べた lib/xwpe/* がこれである。
+	echo "--- 実行時に読むもの ---"
+	for f in syntax_def help.xwpe help.key; do
+		printf '  %-12s ' "$f"
+		[ -s "$PREFIX/lib/xwpe/$f" ] && echo "あり ($(wc -c < "$PREFIX/lib/xwpe/$f") bytes)" ||
+			{ echo "無い"; rc=1; }
+	done
 	for f in "$PREFIX/lib/xwpe/syntax_def" "$PREFIX/lib/xwpe/help.xwpe" \
 	         "$PREFIX/share/applications/xwpe.desktop"; do
 		[ -e "$f" ] && echo "  ok $f" || { echo "  無い: $f"; rc=1; }
