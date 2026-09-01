@@ -94,7 +94,7 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
  
  /* As of version 1.1.51, Linux does not actually implement SIGIO.  */
  /* Here we assume that signal.h is already included.  */
-@@ -221,12 +239,12 @@
+@@ -221,16 +239,28 @@
  
  #ifdef TERM
  #define LIBS_MACHINE -lclient
@@ -109,3 +109,28 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
  #endif
  
  #define HAVE_SYSVIPC
+ 
++/* いまの Linux は ELF で、a.out の頃の dump は使えない。s/netbsd.h が
++   同じ形で ELF の側を選んでいるので、それに倣う。HAVE_TEXT_START は
++   start_of_text を作らせないためのもので、あれは crt0.o の _start を
++   参照する。ELF の unexelf.c はそれを要らない。 */
++#ifdef __ELF__
++
++#define HAVE_TEXT_START
++#define UNEXEC unexelf.o
++#define ORDINARY_LINK
++
++#else /* not __ELF__ */
++
+ #ifdef LINUX_QMAGIC
+ 
+ #define HAVE_TEXT_START
+@@ -246,6 +276,8 @@
+ 
+ #endif /* not LINUX_QMAGIC */
+ 
++#endif /* not __ELF__ */
++
+ #if 0
+ /* In 19.23 and 19.24, configure sometimes fails to define these.
+    It has to do with the fact that configure uses CFLAGS when linking
