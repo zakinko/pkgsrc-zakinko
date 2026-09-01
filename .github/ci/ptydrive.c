@@ -29,6 +29,8 @@
 #if defined(__linux__)
 #include <pty.h>
 #include <utmp.h>
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
+#include <libutil.h>
 #else
 #include <util.h>
 #endif

@@ -6,4 +6,5 @@ Size (xwpe-1.6.9.tar.gz) = 1268565 bytes
 SHA1 (patch-WeXterm.h) = 72e441a1de5755ae266e79353368699ea0799ad0
 SHA1 (patch-we__debug.c) = 5c16f98b48e95c9f26442e27d94dd5337df45b31
 SHA1 (patch-we__render.h) = b5fcd8a7d25a25ed7920227c69e980e56b9790d1
+SHA1 (patch-we__unix.c) = 55f846e296a3037fedd1222b47c78f403b72d83e
 SHA1 (patch-we__xterm.c) = 0b9805f915be55faeeacfb8bade02a80f799a7f8
