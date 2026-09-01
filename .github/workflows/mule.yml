@@ -57,6 +57,19 @@ on:
   schedule:
     - cron: '0 18 * * 6'
 
+# 押し直した分は前の世代を消す。40 分に六回押されて、そのたびに前を残した
+# まま新しく立つと、世代がそのまま積み上がって account 全体の枠を握る。
+# 実際 29 本待ちのうち 23 本が追い越された commit の上に載っていた。
+#
+# ただし手で回した回 (workflow_dispatch) は group を分けて、消されない
+# ようにする。あれは何かを確かめるために投げたもので、他人の push で
+# 消えると測り直しになる。
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}-${{
+      github.event_name == 'workflow_dispatch' && github.run_id || 'auto' }}
+  cancel-in-progress: true
+
 jobs:
   plan:
     runs-on: ubuntu-latest
