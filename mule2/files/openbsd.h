@@ -32,3 +32,16 @@ Boston, MA 02111-1307, USA.  */
 
 /* Every OpenBSD that pkgsrc still builds for is ELF.  netbsd.h already
    picks unexelf.o under __ELF__; this is here to say so out loud.  */
+tail -6 $C/mule2/files/openbsd.h | cut -c1-70
+
+/* OpenBSD は union wait を捨てた。syswait.h は BSD が定義されていると
+   WAITTYPE を union wait にするので、先にこちらで決めて止める。中身は
+   syswait.h の POSIX 側と同じもの。  */
+#define WAITTYPE int
+#define WIFSTOPPED(w) (((w) & 0377) == 0177)
+#define WIFSIGNALED(w) (((w) & 0377) != 0177 && ((w) & ~0377) == 0)
+#define WIFEXITED(w) (((w) & 0377) == 0)
+#define WRETCODE(w) ((w) >> 8)
+#define WSTOPSIG(w) ((w) >> 8)
+#define WTERMSIG(w) ((w) & 0377)
+#define WCOREDUMP(w) (((w) & 0200) != 0)

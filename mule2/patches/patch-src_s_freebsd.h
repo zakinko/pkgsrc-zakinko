@@ -41,3 +41,13 @@ s/netbsd.h already has the shape for this; use the same one.
  #define RUN_TIME_REMAP
  
  #ifndef N_TRELOFF
+@@ -89,3 +97,9 @@
+ #include <sys/wait.h>
+ #endif
+ #define WRETCODE(w) (_W_INT(w) >> 8)
++
++/* いまの FreeBSD の getpgrp は POSIX の形で、引数を取らない。systty.h は
++   GETPGRP_NO_ARG が立っていないと 4.2BSD の getpgrp(pid) を呼ぶ。  */
++#ifndef GETPGRP_NO_ARG
++#define GETPGRP_NO_ARG
++#endif
