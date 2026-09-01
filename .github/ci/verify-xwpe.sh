@@ -152,32 +152,102 @@ fi
 # ------------------------------------------------------------------
 echo
 echo "########## 2. 建った実体を動かす ##########"
-# X も端末も無いので編集まではできない。起動して名乗って終われるところ
-# までを見る。組めても即座に落ちる、を弾くための最低限。
+# 組めたことと動くことは別である。全画面 editor なので端末が要る。
+# script(1) は NetBSD では -c を付けても転写が空だったので、openpty(3) を
+# 直に叩く駆動器を組んで、その向こうで本当に file を開いて書いて保存する。
+#
+# 画面から escape を落としてから探すこと。強調は E<esc>[0;1;7mdit のように
+# 語の途中へ入るので、生のまま grep すると menu が「無い」と出る。
+_strip() {
+	LC_ALL=C sed -e 's/\x1b\[[0-9;?]*[a-zA-Z]//g' -e 's/\x1b[()][A-Z0-9]//g' \
+		-e 's/\x1b\][0-9;]*[a-zA-Z]*//g' -e 's/\x1b[=>]//g' -e 's/\x1b//g' "$1" |
+	LC_ALL=C tr -d '\000-\010\013\014\016-\037'
+}
+_hex() { printf '%s' "$1" | od -An -tx1 | tr -d ' \n'; }
+
 if [ -x "$PREFIX/bin/we" ]; then
-	# 全画面の editor なので端末なしでは編集まで踏めない。ここで見るのは
-	# 「起動して、名乗って、終われる」までである。それ以上を主張しない。
-	"$PREFIX/bin/we" -h < /dev/null > /tmp/xwpe-run.log 2>&1
-	echo "  we -h の終了状態: $?"
-	head -5 /tmp/xwpe-run.log
-	# 四つの名前が同じ実体を指しているか。install-exec-hook が張る symlink で、
-	# PLIST が四つとも並べている。
+	echo "--- 名乗るか ---"
+	"$PREFIX/bin/we" --version < /dev/null 2>&1 | head -2
+	echo "  --version の終了状態: $?"
+	"$PREFIX/bin/we" --help < /dev/null 2>&1 | head -3
+
+	echo "--- 繋がっている library ---"
+	if ldd "$PREFIX/bin/we" 2>/dev/null | grep -q 'not found'; then
+		echo "  !! 解決していないものが在る"
+		ldd "$PREFIX/bin/we" | grep 'not found'; rc=1
+	else
+		echo "  ok すべて解決 ($(ldd "$PREFIX/bin/we" 2>/dev/null | grep -c '=>') 本)"
+	fi
+	# Xft を引いているのは上流のバグを避けるためなので、本当に繋がって
+	# いることを見る。Makefile から .include を落としても素通りしない。
+	ldd "$PREFIX/bin/we" 2>/dev/null | grep -q libXft &&
+		echo "  ok libXft が繋がっている" ||
+		{ echo "  !! libXft が繋がっていない"; rc=1; }
+
 	echo "--- bin の四つ ---"
 	for b in we wpe xwe xwpe; do
 		printf '  %-6s ' "$b"
 		ls -l "$PREFIX/bin/$b" 2>&1 | sed 's|.*/bin/||'
 	done
-	# 実行時に読むデータが在るか。PLIST に並べた lib/xwpe/* がこれである。
 	echo "--- 実行時に読むもの ---"
 	for f in syntax_def help.xwpe help.key; do
 		printf '  %-12s ' "$f"
 		[ -s "$PREFIX/lib/xwpe/$f" ] && echo "あり ($(wc -c < "$PREFIX/lib/xwpe/$f") bytes)" ||
 			{ echo "無い"; rc=1; }
 	done
-	for f in "$PREFIX/lib/xwpe/syntax_def" "$PREFIX/lib/xwpe/help.xwpe" \
-	         "$PREFIX/share/applications/xwpe.desktop"; do
-		[ -e "$f" ] && echo "  ok $f" || { echo "  無い: $f"; rc=1; }
-	done
+
+	echo "--- pty の向こうで開いて、書いて、保存して、終わる ---"
+	_drv=$(dirname "$0")/ptydrive
+	if [ ! -x "$_drv" ] && [ -f "$(dirname "$0")/ptydrive.c" ]; then
+		cc -O2 -o "$_drv" "$(dirname "$0")/ptydrive.c" -lutil 2>/dev/null
+	fi
+	if [ -x "$_drv" ]; then
+		cat > /tmp/xwpe-hello.c <<'CEOF'
+#include <stdio.h>
+int main(void) { printf("hello\n"); return 0; }
+CEOF
+		_before=$(cksum < /tmp/xwpe-hello.c)
+		# 書く -> 改行 -> F2 で保存 -> Alt-X で終了 -> 聞かれたら Enter。
+		# F2 の並びは端末から引く。決め打ちにすると TERM を変えた途端に
+		# 「保存できていない」を「動かない」と読み違える。
+		_f2=$(TERM=vt100 tput kf2 2>/dev/null | od -An -tx1 | tr -d ' \n')
+		_keys="$(_hex '/* touched */')0d${_f2}1b780d"
+		TERM=vt100 "$_drv" /tmp/xwpe-screen.raw 30 "$_keys" \
+			"$PREFIX/bin/we" /tmp/xwpe-hello.c
+		_rc=$?
+		if [ $_rc -eq 9 ]; then
+			echo "  !! 時限で降りた。editor が終わらなかった"; rc=1
+		elif [ $_rc -ne 0 ]; then
+			echo "  !! 駆動器が $_rc で降りた"; rc=1
+		else
+			echo "  ok Alt-X で終わった"
+		fi
+		echo "  画面 $(wc -c < /tmp/xwpe-screen.raw) bytes"
+		_s=$(_strip /tmp/xwpe-screen.raw | tr -d '\n')
+		for w in File Edit Search Block Options Window Help; do
+			case $_s in
+			*"$w"*)	printf '  ok   menu %s\n' "$w" ;;
+			*)	printf '  !!   menu %s が出ていない\n' "$w"; rc=1 ;;
+			esac
+		done
+		case $_s in
+		*'xwpe-hello.c'*)	echo "  ok   title に file 名が出ている" ;;
+		*)			echo "  !!   file 名が出ていない"; rc=1 ;;
+		esac
+		case $_s in
+		*'stdio.h'*)	echo "  ok   file の中身が画面に出ている" ;;
+		*)		echo "  !!   中身が出ていない"; rc=1 ;;
+		esac
+		_after=$(cksum < /tmp/xwpe-hello.c)
+		echo "  file: $_before -> $_after"
+		if grep -q 'touched' /tmp/xwpe-hello.c; then
+			echo "  ok   打った文字が保存されている"
+		else
+			echo "  !!   保存されていない"; rc=1
+		fi
+	else
+		echo "  !! 駆動器を組めなかった。動作は見ていない"; rc=1
+	fi
 else
 	echo "!! $PREFIX/bin/we が無い"
 	rc=1

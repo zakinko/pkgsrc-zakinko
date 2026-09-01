@@ -19,6 +19,13 @@ GNU_CONFIGURE=		yes
 # 1.5.30a did not need this; its Makefile.in was hand-written.
 USE_TOOLS+=		pkg-config gmake
 
+# docs/Makefile.am has info_TEXINFOS, so an info file is installed.
+# Without INFO_FILES, mk/configure/gnu-configure.mk does not pass
+# --infodir at all -- the line is inside .if defined(INFO_FILES) --
+# so automake falls back to its own ${datarootdir}/info and the file
+# lands in share/info, with an unregistered dir file beside it.
+INFO_FILES=		yes
+
 # configure defaults both of these to "auto", so what gets built depends on
 # what happens to be installed on the build host.  Pin them, or the PLIST
 # stops matching.
