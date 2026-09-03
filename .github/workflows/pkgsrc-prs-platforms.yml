@@ -306,6 +306,16 @@ jobs:
           [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
           echo "install: /usr/bin/install -> $(readlink -f /usr/bin/install 2>/dev/null)"
           /usr/bin/install --version 2>&1 | head -1
+          # pkgsrc が sysutils/coreutils を tool として引くのは、
+          # tools.Linux.mk が探す道具のどれかが見つからないときである。
+          # どれが無いのかを出す。当てずっぽうで dnf に足すのをやめる。
+          echo "--- pkgsrc が Linux で探す道具 ---"
+          for t in install readlink realpath nproc seq env printf expr \
+                   tsort nice sha1sum sha512sum md5sum cut tr sort uniq \
+                   basename dirname mkdir rm cp mv ln chmod chown touch \
+                   head tail wc date id pwd echo test; do
+            printf '  %-10s %s\n' "$t" "$(command -v $t || echo '無い')"
+          done
       - name: 建てて確かめる
         run: PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
 
