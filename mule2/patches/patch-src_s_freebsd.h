@@ -36,9 +36,16 @@ s/netbsd.h already has the shape for this; use the same one.
  #define LIB_GCC -lgcc
  
  /* Reread the time zone on startup. */
-@@ -47,9 +50,22 @@
+@@ -45,11 +48,29 @@
+ #undef BSD_PGRPS
+ 
  #ifndef NO_SHARED_LIBS
++/* -e start は a.out の入口名。ELF では _start で、link を cc に
++   任せるなら指定そのものが要らない。指定すると ld が
++   "cannot find entry symbol start" と言って入口を設定しない。 */
++#ifndef __ELF__
  #define LD_SWITCH_SYSTEM -e start
++#endif
  #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
 +/* いまの FreeBSD は ELF で、crt0.o という名前も無い。s/netbsd.h と
 +   同じ形で ELF の側を選ぶ。link は cc に任せるので START_FILES を
@@ -59,7 +66,7 @@ s/netbsd.h already has the shape for this; use the same one.
  
  #ifndef N_TRELOFF
  #define N_PAGSIZ(x) __LDPGSZ
-@@ -89,3 +105,9 @@
+@@ -89,3 +110,9 @@
  #include <sys/wait.h>
  #endif
  #define WRETCODE(w) (_W_INT(w) >> 8)
