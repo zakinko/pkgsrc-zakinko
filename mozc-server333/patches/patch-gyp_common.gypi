@@ -1,11 +1,25 @@
 $NetBSD$
 
-Add a BSD block to the GYP defaults.
+Add a BSD block to the GYP defaults, keyed on target_platform.
 
 Without it protoc fails to link with an undefined reference to
 pthread_getschedparam, because ldflags carries no -pthread.  Measured on
 FreeBSD 14.3: the same symbol, the same reason.  NetBSD hides it less
 often because more of pthread lives in libc there.
+
+The condition is on target_platform rather than OS.  gyp derives OS from
+GetFlavor() in third_party/gyp/pylib/gyp/common.py, which knows freebsd,
+openbsd, netbsd, sunos, aix and zos and returns 'linux' for anything else.
+Measured:
+
+  FreeBSD 15    sys.platform freebsd15   flavor freebsd
+  OpenBSD 7     sys.platform openbsd7    flavor openbsd
+  DragonFly 6   sys.platform dragonfly6  flavor linux
+  GhostBSD      sys.platform freebsd15   flavor freebsd
+
+So OS=="dragonfly" never matches, and DragonFly would fall into the linux
+arm with no -pthread.  target_platform is mozc's own value and is right on
+all four.  GhostBSD needs nothing extra: it reports itself as FreeBSD.
 
 --- gyp/common.gypi.orig
 +++ gyp/common.gypi
@@ -41,7 +55,7 @@ often because more of pthread lives in libc there.
            '-Wno-deprecated',
          ],
        }],
-+      ['OS=="netbsd" or OS=="freebsd" or OS=="openbsd" or OS=="dragonfly"', {
++      ['target_platform=="NetBSD" or target_platform=="FreeBSD" or target_platform=="OpenBSD" or target_platform=="DragonFly"', {
 +        'defines': [
 +          'OS_NETBSD',
 +        ],
