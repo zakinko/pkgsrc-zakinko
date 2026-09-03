@@ -100,14 +100,19 @@ jobs:
         if: failure()
         run: |
           set +e
-          # dump は unexelf.c:952 の memcpy で落ちる。いまのメモリの中身を
-          # 新しい file へ写す所なので、写す先と大きさを見る。
+          # unexelf.c は .bss の終わりから sbrk(0) までを丸ごと「写すべき
+          # 中身」と見なす。Linux は brk の開始位置を乱数でずらすので、その
+          # 隙間まで数えて、割り当てられていない番地を読みに行く。
+          # ASLR を切って走らせれば、その筋かどうかが一度で分かる。
           S=$(find / -path '*mule2/work/mule/src/temacs' 2>/dev/null | head -1)
           [ -n "$S" ] || { echo "temacs が無い"; exit 0; }
           cd "$(dirname "$S")"
+          echo "=== そのまま"
+          ./temacs -batch -l loadup dump < /dev/null > /dev/null 2>&1; echo "rc=$?"
+          echo "=== setarch -R (ASLR を切る)"
+          setarch -R ./temacs -batch -l loadup dump < /dev/null > /tmp/d2.out 2>&1
+          echo "rc=$?"; tail -3 /tmp/d2.out; ls -l emacs 2>/dev/null | awk '{print "emacs: "$5" byte"}'
+          echo "=== 隙間の実際"
           gdb -batch -iex 'set auto-load safe-path /' \
               -ex 'run -batch -l loadup dump < /dev/null' \
-              -ex 'frame 1' -ex 'info locals' -ex 'info args' \
-              ./temacs 2>&1 | tail -45
-          echo "=== temacs の section"
-          readelf -S temacs 2>/dev/null | grep -E 'bss|data|Name|\[' | head -20
+              -ex 'info proc mappings' ./temacs 2>&1 | grep -E 'heap|\[ ]*0x' | head -12
