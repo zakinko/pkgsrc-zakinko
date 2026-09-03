@@ -272,7 +272,17 @@ CEOF
 		# 書く -> 改行 -> F2 で保存 -> Alt-X で終了 -> 聞かれたら Enter。
 		# F2 の並びは端末から引く。決め打ちにすると TERM を変えた途端に
 		# 「保存できていない」を「動かない」と読み違える。
+		# terminfo の無い箱では tput が空を返す。そのまま進むと F2 を
+		# 一つも送らないまま「保存されていない」と出て、editor が壊れて
+		# いるように見える。Debian の container がそれだった。引けなければ
+		# vt100 の並びを直に使い、どちらを使ったかを出す。
 		_f2=$(TERM=vt100 tput kf2 2>/dev/null | od -An -tx1 | tr -d ' \n')
+		if [ -z "$_f2" ]; then
+			_f2=1b4f51
+			echo "  (tput で F2 が引けない。vt100 の ESC O Q を直に使う)"
+		else
+			echo "  F2 = $_f2 (tput)"
+		fi
 		_keys="$(_hex '/* touched */')0d${_f2}1b780d"
 		TERM=vt100 "$_drv" /tmp/xwpe-screen.raw 30 "$_keys" \
 			"$PREFIX/bin/we" /tmp/xwpe-hello.c

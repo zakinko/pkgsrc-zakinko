@@ -295,7 +295,17 @@ jobs:
                          findutils which patch file gawk zlib-devel \
                          ncurses-devel libb2-devel openssl-devel \
                          libarchive-devel bzip2 xz > /dev/null
-          echo "install: $(command -v install)  $(install --version 2>&1 | head -1)"
+          # 本物の coreutils を入れても install(1) が /usr/sbin にしか
+          # 現れないことがある。pkgsrc は /usr/bin/install を探すので
+          # 見つからず、自分の sysutils/coreutils を tool として建てに
+          # いって bootstrap の最中に輪になる。
+          #
+          #   install: /usr/sbin/install  install (GNU coreutils) 9.10
+          #   => Tool dependency coreutils>=5.2.1: NOT found
+          #   ERROR: [bsd.pkg.mk] Circular dependency detected
+          [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
+          echo "install: /usr/bin/install -> $(readlink -f /usr/bin/install 2>/dev/null)"
+          /usr/bin/install --version 2>&1 | head -1
       - name: 建てて確かめる
         run: PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
 
