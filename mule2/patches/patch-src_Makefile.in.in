@@ -1,0 +1,24 @@
+$NetBSD$
+
+Dump with address-space randomization turned off where that is possible.
+
+unexelf.c treats everything from the end of .bss up to sbrk (0) as the data
+to write into the new file.  Linux places the start of the brk heap at a
+random distance from .bss -- 173MB in one run here, 420MB in the next -- so
+the copy walks into unmapped memory and the dump dies in memcpy.  The heap
+itself is under a megabyte.
+
+setarch -R turns that off for one command.  Where it is absent, or not
+permitted, the dump runs as before.
+
+--- src/Makefile.in.in.orig
++++ src/Makefile.in.in
+@@ -796,7 +796,7 @@
+ #ifdef HAVE_SHM
+ 	./temacs -nl -batch -l loadup dump
+ #else /* ! defined (HAVE_SHM) */
+-	./temacs -batch -l loadup dump
++	{ setarch -R true >/dev/null 2>&1 && setarch -R ./temacs -batch -l loadup dump; } || ./temacs -batch -l loadup dump
+ #endif /* ! defined (HAVE_SHM) */
+ #endif /* ! defined (CANNOT_DUMP) */
+ #ifdef HAVE_SHM

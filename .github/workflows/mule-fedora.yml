@@ -47,6 +47,9 @@ jobs:
         pkg: [mule, mule2]
     container:
       image: fedora:44
+      # setarch -R (personality ADDR_NO_RANDOMIZE) は Docker の既定の
+      # seccomp に止められる。dump がそれを要るので緩める。
+      options: --security-opt seccomp=unconfined
     steps:
       - name: 道具を入れる
         run: |
