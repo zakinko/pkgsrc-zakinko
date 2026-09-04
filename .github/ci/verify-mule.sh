@@ -77,10 +77,22 @@ JIS_NIHONGO=1b2442467c4b5c386c1b2842
 
 build_install() {
 	_dir=$1; shift
-	( cd "$_dir" && make "$@" MAKE_JOBS="$JOBS" install && echo __BUILD_OK__ ) \
+	( cd "$_dir" && $PKGMAKE "$@" MAKE_JOBS="$JOBS" $MKARGS install && echo __BUILD_OK__ ) \
 		2>&1 | tail -40 | tee /tmp/build.log
 	grep -q '^__BUILD_OK__$' /tmp/build.log
 }
+
+# NetBSD 以外には公式のバイナリ集合が無く、base の make も pkgsrc には
+# 使えない。bootstrap が入れた bmake を呼び、依存は pkgsrc に組ませる。
+# verify-mule2.sh と同じ形。これが無いと Linux で GNU make が pkgsrc の
+# Makefile を読んで "missing separator" と言って止まる。
+if [ "$(uname -s)" = NetBSD ]; then
+	MKARGS=
+	PKGMAKE=make
+else
+	MKARGS="DEPENDS_TARGET=package-install"
+	PKGMAKE=${PREFIX:-/usr/pkg}/bin/bmake
+fi
 
 echo "--- 依存をバイナリで入れる ---"
 PKG_PATH="http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${ARCH}/${REL}/All/"
@@ -166,8 +178,8 @@ if want canna; then
 		pkg_add -U Canna-server Canna-dict > /dev/null 2>&1 || true
 	if [ ! -x $PREFIX/sbin/cannaserver ]; then
 		# バイナリが無ければ組む。その前に group と user を作っておく。
-		CG=$(cd $TREE/inputmethod/canna-server && make show-var VARNAME=CANNA_GROUP 2>/dev/null)
-		CU=$(cd $TREE/inputmethod/canna-server && make show-var VARNAME=CANNA_USER 2>/dev/null)
+		CG=$(cd $TREE/inputmethod/canna-server && $PKGMAKE show-var VARNAME=CANNA_GROUP 2>/dev/null)
+		CU=$(cd $TREE/inputmethod/canna-server && $PKGMAKE show-var VARNAME=CANNA_USER 2>/dev/null)
 		[ -n "$CG" ] && { grep -q "^$CG:" /etc/group  || groupadd "$CG" || true; }
 		[ -n "$CU" ] && { grep -q "^$CU:" /etc/passwd || useradd -g "$CG" -d /nonexistent -s /sbin/nologin "$CU" || true; }
 		for d in canna-server canna-dict; do
