@@ -74,7 +74,8 @@ jobs:
       - name: 組む
         env:
           PKGS: ${{ matrix.pkg }}
-          VERIFY: basic
+          # 建って入るところまでは通った。ここからは動くかどうかを見る。
+          VERIFY: full
           # VERIFY=basic は verify-pkg.sh を呼ぶ。あちらは PKG_OPTIONS を
           # 渡さないので、OPTS だけでは option が package に届かない。
           # PKG_DEFAULT_OPTIONS は環境変数として bmake が拾うので、こちらで
