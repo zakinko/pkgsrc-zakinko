@@ -94,7 +94,7 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
  
  /* As of version 1.1.51, Linux does not actually implement SIGIO.  */
  /* Here we assume that signal.h is already included.  */
-@@ -221,16 +239,28 @@
+@@ -221,16 +239,35 @@
  
  #ifdef TERM
  #define LIBS_MACHINE -lclient
@@ -108,6 +108,13 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
 +#define C_SWITCH_SYSTEM -D_BSD_SOURCE -D_DEFAULT_SOURCE
  #endif
  
++/* libc の malloc を使う。Emacs 自前の malloc は sbrk で heap を伸ばし、
++   その状態ごと dump するので、実行時に brk の開始位置が乱数でずれると
++   成立しない。tsutsui さんの Mule 1.1 の s-linux.h も同じ理由で
++   SYSTEM_MALLOC を立てており、あちらは setarch 無しで dump できて、
++   出来た binary も動く。 */
++#define SYSTEM_MALLOC
++
  #define HAVE_SYSVIPC
  
 +/* いまの Linux は ELF で、a.out の頃の dump は使えない。s/netbsd.h が
@@ -125,7 +132,7 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
  #ifdef LINUX_QMAGIC
  
  #define HAVE_TEXT_START
-@@ -246,6 +276,8 @@
+@@ -246,6 +283,8 @@
  
  #endif /* not LINUX_QMAGIC */
  
