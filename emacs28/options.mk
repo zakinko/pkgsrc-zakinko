@@ -109,6 +109,11 @@ CONFIGURE_ARGS+=	--without-xaw3d
 ###
 ### Toolkit selection
 ###
+### pkglint says gtk3 should be handled below in an .if block.  It is: the
+### toolkit block is written the other way round, testing for the absence of
+### the others so that gtk3 is what you get when you pick none.  That is what
+### "gtk3 is default in the logic below" above means, and turning it into an
+### explicit .if would need a second rule for "none of them chosen" anyway.
 .  if (empty(PKG_OPTIONS:Mxaw) && \
        empty(PKG_OPTIONS:Mgtk) && \
        empty(PKG_OPTIONS:Mgtk2) && \

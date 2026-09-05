@@ -16,6 +16,10 @@ PKG_SUGGESTED_OPTIONS.Darwin=		nextstep
 #                          gtk3, lucid or athena, motif, no)
 # gtk in next line implies gtk2, xaw = athena = lucid
 PKG_OPTIONS_GROUP.toolkit=		gtk gtk2 gtk3 motif xaw lucid
+### pkglint says lucid is undocumented.  It is handled below, in the same
+### block as xaw; what is missing is an entry in pkgsrc's own
+### mk/defaults/options.description, which a package outside the tree cannot
+### add.  xaw, athena and lucid are three names for the same toolkit.
 # gtk2 and gtk has the same effect
 # gtk3 is default in the logic below (even not included in SUGGESTED_=
 # gconf, gtk* and xft2 will be ignored for nextstep even shown as selected.
@@ -122,6 +126,11 @@ CONFIGURE_ARGS+=	--without-xft --without-libotf --without-m17n-flt
 ###
 ### Toolkit selection
 ###
+### pkglint says gtk3 should be handled below in an .if block.  It is: the
+### toolkit block is written the other way round, testing for the absence of
+### the others so that gtk3 is what you get when you pick none.  That is what
+### "gtk3 is default in the logic below" above means, and turning it into an
+### explicit .if would need a second rule for "none of them chosen" anyway.
 .  if (empty(PKG_OPTIONS:Mxaw) && empty(PKG_OPTIONS:Mlucid) && \
        empty(PKG_OPTIONS:Mgtk) && empty(PKG_OPTIONS:Mgtk2) && \
        empty(PKG_OPTIONS:Mmotif))
