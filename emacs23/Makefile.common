@@ -37,7 +37,7 @@ CATEGORIES=	zakinko editors
 MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
 
 MAINTAINER=	zakinko@snowrabbit.org
-HOMEPAGE=	http://www.gnu.org/software/emacs/emacs.html
+HOMEPAGE=	https://www.gnu.org/software/emacs/emacs.html
 COMMENT=	GNU editing macros (editor)
 LICENSE=	gnu-gpl-v3
 
@@ -52,7 +52,7 @@ CONFIGURE_ARGS+=	--srcdir=${WRKSRC}
 CONFIGURE_ARGS+=	--localstatedir=${VARBASE}
 CONFIGURE_ENV+=		GAMEOWN=${GAMES_USER}
 
-SETGIDGAME=	yes
+USE_GAMESGROUP=		yes
 
 BUILD_DEFS+=		VARBASE
 BUILD_DEFS+=		GAMEDATAMODE
@@ -163,6 +163,7 @@ CFLAGS.Darwin+=		-fno-pie
 pre-configure: fake-libgcc
 
 LDFLAGS+=	-L${PREFIX}/lib
+.PHONY: fake-libgcc
 fake-libgcc:
 	${AR} q ${BUILDLINK_DIR}/lib/libgcc.a
 .endif

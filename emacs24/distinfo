@@ -1,11 +1,10 @@
 $NetBSD$
 
-SHA1 (emacs-24.5.tar.gz) = 806e80eefa2ca89d2f8c0917f8b61c5c87af4f2d
-RMD160 (emacs-24.5.tar.gz) = 50a778a959db89b127970c1173dbe351671eb48b
+BLAKE2s (emacs-24.5.tar.gz) = 4d37c4fff56a3526048c700fa71686e67f3dc189d1282e16cf6c89f2e69f8ab4
 SHA512 (emacs-24.5.tar.gz) = fa08dd1f08bf59746e120118cfa0657dec357868570d073d28a173f32df2472be97eece4cb6d8886ef17b5fc12f7f8cc0070cfbc7be5a7089069d01eb5548129
 Size (emacs-24.5.tar.gz) = 59216034 bytes
-SHA1 (patch-gnu_readlinkat.c) = 9252c92290ccf1d4094bbd3972d8309ebf9e57d6
 SHA1 (patch-lib-src_etags.c) = 8e6e9fbb345442f1d63dc2a86efb99346a4a9449
+SHA1 (patch-lib_readlinkat.c) = 9252c92290ccf1d4094bbd3972d8309ebf9e57d6
 SHA1 (patch-lisp_files.el) = 2dc8d1b12628cab9f45a3e2c676d45f6ecb8eb26
 SHA1 (patch-lisp_gnus_mm-view.el) = 92bc6fa87645763d6bf9ad49caed6882894d7ff6
 SHA1 (patch-lisp_htmlfontify.el) = c14f50863eab98518d228ec55fb52f9d58f95794

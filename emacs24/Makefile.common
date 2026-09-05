@@ -37,7 +37,7 @@ CATEGORIES=	zakinko editors
 MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
 
 MAINTAINER=	zakinko@snowrabbit.org
-HOMEPAGE=	http://www.gnu.org/software/emacs/emacs.html
+HOMEPAGE=	https://www.gnu.org/software/emacs/emacs.html
 COMMENT=	GNU editing macros (editor)
 LICENSE=	gnu-gpl-v3
 

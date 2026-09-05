@@ -40,7 +40,7 @@ LICENSE=	gnu-gpl-v3
 WRKSRC=		${WRKDIR}/${DISTNAME:S/b$//}
 
 # use makeinfo from pkgsrc/deve/gtexinfo
-TEXINFO_REQD=	4.13
+TEXINFO_REQD+=	4.13
 
 GNU_CONFIGURE=	yes
 INFO_FILES=	yes

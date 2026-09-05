@@ -21,6 +21,7 @@ reaching any of this, so the temporary file was never created and the fix was
 not in effect.  The same patch had also broken the shell command in two by
 putting a newline inside the format string, between "pnmscale" and its
 "-width" argument.  Neither is upstream's; both are gone.
+
 --- lisp/gnus/gnus-fun.el.orig
 +++ lisp/gnus/gnus-fun.el
 @@ -260,20 +260,21 @@
