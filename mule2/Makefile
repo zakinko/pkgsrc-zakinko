@@ -53,7 +53,7 @@ FORCE_C_STD=		gnu11
 # pkgsrc の MKPIE_SUPPORTED=no は「pkgsrc の側が -fPIE を足さない」という
 # 意味しか持たず、コンパイラ既定の PIE までは止めない。ここで明示する。
 .if ${OPSYS} == "Linux"
-CFLAGS+=	-fno-pie
+CFLAGS+=	-fno-pie -no-pie
 LDFLAGS+=	-no-pie
 .endif
 

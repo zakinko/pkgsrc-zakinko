@@ -58,6 +58,9 @@ jobs:
             pm: dnf
     container:
       image: ${{ matrix.image }}
+      # dump は setarch -R (personality) を使う。Docker の既定の seccomp が
+      # それを止めるので緩める。Fedora の workflow と同じ。
+      options: --security-opt seccomp=unconfined
     steps:
       # コンテナに git が無いと checkout は tarball 取得に落ちる。それでも
       # 中身は揃うが、あったほうが速いので先に入れる。
@@ -69,10 +72,12 @@ jobs:
             apt-get update -qq
             apt-get install -y -qq --no-install-recommends \
               build-essential curl ca-certificates file perl patch \
-              tar gzip xz-utils git sudo
+              tar gzip xz-utils git sudo \
+              byacc texinfo hostname util-linux
           else
             dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
-              perl patch tar gzip xz git diffutils findutils which sudo
+              perl patch tar gzip xz git diffutils findutils which sudo \
+              byacc texinfo hostname util-linux
           fi
           cc --version | head -1
           ldd --version | head -1
