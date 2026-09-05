@@ -17,13 +17,14 @@ No CVE was ever filed for this -- the package predates the practice -- but it
 is the same shape as CVE-2008-1694 (emacs's vcdiff) and CVE-2008-2142
 (fast-lock), which pkgsrc patched in editors/emacs20 and emacs21 in 2008.
 
-Two changes.  make-temp-file creates the file as it names it, so nothing can
-get in between; it is used where it exists.  Emacs 20.7 and XEmacs 21.4 have
-no such primitive, so the files are moved out of the shared directory
-altogether, into ~/.calc-tmp made 0700 first.  editors/emacs20's fast-lock
-patch takes the same way out, dropping "." from the cache directories.
+The first kind of change is to how the name is chosen.  make-temp-file
+creates the file as it names it, so nothing can get in between; it is used
+where it exists.  Emacs 20.7 and XEmacs 21.4 have no such primitive, so the
+files are moved out of the shared directory altogether, into ~/.calc-tmp
+made 0700 first.  editors/emacs20's fast-lock patch takes the same way out,
+dropping "." from the cache directories.
 
-Two more changes follow from that.  The temporary file name reaches a shell
+The second kind follows from that.  The temporary file name reaches a shell
 in two places, and neither quotes it.  While the name was /tmp/calc... it
 could not contain anything the shell would look at; a path under the user's
 home can.
