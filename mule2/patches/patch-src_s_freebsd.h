@@ -29,10 +29,10 @@ s/netbsd.h already has the shape for this; use the same one.
  #define LIBS_DEBUG
  #define LIBS_SYSTEM -lutil
 -#define LIBS_TERMCAP -ltermcap
-+/* GhostBSD には libtermcap という名前が無い。FreeBSD 系は termcap の
-+   API を ncurses が持っているので、そちらを名指しする。FreeBSD 本体でも
-+   libtermcap は ncurses への symlink でしかない。 */
-+#define LIBS_TERMCAP -lncurses
++/* GhostBSD には libtermcap という名前が無く、-lncurses も箱によっては
++   無い。どれが在るかは pkgsrc が知っているので、この印を置いて
++   mule2/Makefile の SUBST に埋めさせる。 */
++#define LIBS_TERMCAP @CURSES_LIBS@
  #define LIB_GCC -lgcc
  
  /* Reread the time zone on startup. */
