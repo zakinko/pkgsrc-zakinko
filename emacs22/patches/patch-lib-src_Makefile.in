@@ -1,5 +1,16 @@
 $NetBSD$
 
+Install the helper programs under emacs- names -- emacs-etags, emacs-ctags,
+emacs-b2m, emacs-ebrowse, emacs-rcs-checkin, emacs-grep-changelog -- because
+the base system has programs of the same name in the same bindir.  emacsclient
+keeps its name; nothing else claims it.  patch-Makefile.in renames the manual
+pages to match, and patch-etc_ctags.1 fixes the .so link between two of them.
+
+The chmod a+rx lines go with the rename: the install already sets the mode, and
+the chmod was still naming the unprefixed path.
+
+editors/emacs21 carries the same change.
+
 --- lib-src/Makefile.in.orig	2008-10-10 10:35:49.000000000 +0900
 +++ lib-src/Makefile.in
 @@ -335,12 +335,14 @@ install: $(DESTDIR)${archlibdir}

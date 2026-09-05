@@ -1,5 +1,18 @@
 $NetBSD$
 
+Three things in the install rules, the same three as editors/emacs22.
+
+Drop "info" from INFO_FILES: info/info is the Info reader's own manual, which
+this package does not install.  Drop the loop that registers the installed
+manuals in the dir file, because pkgsrc runs install-info itself from the
+PLIST and the entries would go in twice.  Drop the chmod a+r that followed
+each INSTALL_DATA, and the "-" that made the recursive one ignore failures;
+INSTALL_DATA already sets the mode.
+
+Also guard MV_DIRS with "test -e".  It is used to move the built subdirectories
+into place, and with a DESTDIR install some of them are not there, so the
+unguarded "mv" failed the whole target.
+
 --- Makefile.in.orig	2010-04-04 07:26:08.000000000 +0900
 +++ Makefile.in	2010-05-14 21:51:03.000000000 +0900
 @@ -141,7 +141,7 @@

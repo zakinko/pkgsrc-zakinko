@@ -1,5 +1,24 @@
 $NetBSD$
 
+Replace src/m/mips.h with the version from Emacs 23.1.  22.3's file still
+describes DECstations, RISCOS and NEWS-OS, chooses unexmips.o, and defines
+LOAD_AVE_TYPE, KERNEL_FILE and a pile of USG and BSD-with-elf settings that no
+mips NetBSD has anything to do with; configure was pointed at m/pmax.h before
+patch-configure moved it here, and none of it applies.  23.1's file is the same
+one cut down to what GNU/Linux and NetBSD need.
+
+Three things differ from 23.1 as taken, all of them deliberate:
+
+  - the NOTE line says GNU/Linux and netbsd, where 23.1 says only GNU/Linux
+  - NO_UNION_TYPE stays, because that is 22.3's spelling; 23 renamed it to
+    USE_LISP_UNION_TYPE and the rest of this tree does not know the new name
+  - DATA_START is excluded for __NetBSD__ as well as GNU_LINUX, the same
+    exclusion patch-src_m_alpha.h makes for alpha
+
+The copyright and licence text move with the file, which is why the diff is
+mostly that.  24.1 deleted src/m, so this is the last version of the file
+upstream had.
+
 --- src/m/mips.h.orig	2008-01-08 13:04:32.000000000 +0900
 +++ src/m/mips.h
 @@ -1,13 +1,13 @@

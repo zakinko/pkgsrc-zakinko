@@ -1,5 +1,23 @@
 $NetBSD$
 
+Three things in the install rules.
+
+Drop "info" from INFO_FILES, and drop the loop that registers the installed
+manuals in the dir file.  info/info is the Info reader's own manual, which
+this package does not install -- see patch-man_Makefile.in -- and pkgsrc runs
+install-info itself from the PLIST, so doing it here would put every entry in
+twice.
+
+Install etags.1 and ctags.1 as emacs-etags.1 and emacs-ctags.1, to match the
+programs, which patch-lib-src_Makefile.in renames the same way.  emacs.1 and
+emacsclient.1 keep their names.
+
+Drop the chmod a+r that followed each INSTALL_DATA, and the "-" that made the
+recursive one ignore failures.  INSTALL_DATA already sets the mode, and the
+chmod named the unprefixed path, which after the rename is not there.
+
+editors/emacs21 carries the same three changes.
+
 --- Makefile.in.orig	2008-10-10 10:35:49.000000000 +0900
 +++ Makefile.in
 @@ -141,7 +141,7 @@ man1dir=$(mandir)/man1

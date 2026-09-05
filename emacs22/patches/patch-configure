@@ -1,6 +1,32 @@
 $NetBSD$
 
-* Fix giflib detection with 5.0.
+Five changes to the generated configure.  configure.in gets the matching one
+where there is one; see patch-configure.in.
+
+gameuser was hard-coded to "games".  Take it from GAMEOWN instead, which the
+package passes in CONFIGURE_ENV, so that the score files end up owned by
+whatever GAMES_USER is on this system.
+
+mips NetBSD selected m/pmax.h, the DECstation description.  Point it at
+m/mips.h; patch-src_m_mips.h puts a usable file there.  This is the half that
+matters for building -- configure.in has the same change so that the two do
+not drift.
+
+Recognise *-dragonfly* as opsys=dragonfly.  The package supplies
+files/dragonfly.h as src/s/dragonfly.h.
+
+Look for EGifPutExtensionTrailer in -lgif rather than EGifPutExtensionLast in
+-lungif.  libungif is gone and giflib 5 renamed the function; without this,
+configure decides there is no GIF support.
+
+Ask for cpp -traditional unconditionally.  The test above it only checks that
+the preprocessor leaves ".." alone, and a cpp that passes that can still ruin
+the generated Makefile: without -traditional it splices a backslash-newline
+and then splits the line again to keep the line numbering, and the backslash
+does not come back.  Every continued variable and recipe in Makefile.in then
+arrives as two lines, and GNU make 4 stops with "recipe commences before first
+target".  The reasoning is repeated in the hunk itself, where someone reading
+the generated configure will find it.
 
 --- configure.orig	2008-09-05 16:21:51.000000000 +0000
 +++ configure
@@ -65,3 +91,19 @@ $NetBSD$
    ;
    return 0;
  }
+@@ -23556,7 +23556,14 @@
+ _ACEOF
+ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+   $EGREP "yes..yes" >/dev/null 2>&1; then
+-  CPP_NEED_TRADITIONAL=no
++  # A cpp that leaves two dots alone can still break the Makefile.  Without
++  # -traditional it splices a backslash-newline and then splits the line
++  # again to keep the line numbering, and the backslash is gone: every
++  # continued variable definition and recipe in Makefile.in comes out as
++  # two lines, and GNU make 4 stops before building anything with
++  # "recipe commences before first target".  Ask for -traditional either
++  # way; it is what this Makefile.in has always been preprocessed with.
++  CPP_NEED_TRADITIONAL=yes
+ else
+   CPP_NEED_TRADITIONAL=yes
+ fi
