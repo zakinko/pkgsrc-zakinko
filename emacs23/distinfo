@@ -6,6 +6,7 @@ Size (emacs-23.4.tar.gz) = 47721193 bytes
 SHA1 (patch-Makefile.in) = 68b7bffe4d9d0207ccfba62b6975e8c9b4d02263
 SHA1 (patch-configure) = d8b8cdaf3cc63be042a9972392740c5eccc06d49
 SHA1 (patch-configure.in) = 57c7f47843ee17a8761678b38701d6236108a6e0
+SHA1 (patch-doc_lispintro_Makefile.in) = ee25e89816a8f3aa3677180d231840c7b6f48f10
 SHA1 (patch-lib-src_etags.c) = 3c7dd70b1a52e97633647dea71717f6405ed3db5
 SHA1 (patch-lisp_cus-dep.el) = 438387209525d70ee949a8ef884dd6434d84a554
 SHA1 (patch-lisp_emacs-lisp_find-gc.el) = f6531e8c44789392527792e819ab3b23e53c4e60
