@@ -12,6 +12,7 @@ SHA1 (patch-lib-src_Makefile.in) = 8d640bf8f16bb0396c51626d611ad472fa0b9f9c
 SHA1 (patch-lib-src_emacsclient.c) = 21627a4528d28b666aa0f708359a617bf3253aaa
 SHA1 (patch-lib-src_etags.c) = edf6b56efa2eda205b482790fd952eefb552cc5a
 SHA1 (patch-lisp_emacs-lisp_find-gc.el) = 1c50239793a7c540d32a8d75c3725491108ee811
+SHA1 (patch-lisp_gnus_gnus-fun.el) = b1e8356775a6b87e37b345aff96ccb5eadb24bf8
 SHA1 (patch-lisp_gnus_mm-view.el) = 53743fa17c27c64afdaedd61bbada04d882c8433
 SHA1 (patch-lisp_international_titdic-cnv.el) = cbd95417dce23d6b0f8f848a02d3e7c3e57d806a
 SHA1 (patch-lisp_man.el) = f8bb9778af17a1964e6d27cffae83e480b467b4e
