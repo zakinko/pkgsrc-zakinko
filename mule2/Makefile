@@ -106,11 +106,12 @@ post-extract:
 
 # Remove original versions of patched files so that aren't installed.
 # Recompile the non-dumped lisp we patched (ledit, medit, mailpost,
-# find-gc): the build only rebuilds the dumped .elc set, so the shipped
+# find-gc, man): the build only rebuilds the dumped .elc set, so the shipped
 # .elc would shadow our patched .el at load time.
 post-build:
 	cd ${WRKSRC}/src && ./emacs -batch -q -f batch-byte-compile \
-		../lisp/ledit.el ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el
+		../lisp/ledit.el ../lisp/medit.el ../lisp/mailpost.el \
+		../lisp/find-gc.el ../lisp/man.el
 	${FIND} ${WRKSRC} -name "*.orig" | ${XARGS} ${RM} -f
 
 # Fix character mapping for pkgsrc/fonts/intlfonts
