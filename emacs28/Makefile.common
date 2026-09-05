@@ -148,7 +148,7 @@ coexist-names:
 	${RM} -rf ${DESTDIR}${PREFIX}/lib/systemd
 	${RM} -f  ${DESTDIR}${PREFIX}/include/emacs-module.h
 	${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
-${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/site-start.el
+	${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/site-start.el
 .else
 PLIST.plain=		yes
 EMACS_INFOSUB=		# 無印のまま
