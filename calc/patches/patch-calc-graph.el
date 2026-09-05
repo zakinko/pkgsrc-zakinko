@@ -18,20 +18,30 @@ is the same shape as CVE-2008-1694 (emacs's vcdiff) and CVE-2008-2142
 (fast-lock), which pkgsrc patched in editors/emacs20 and emacs21 in 2008.
 
 Two changes.  make-temp-file creates the file as it names it, so nothing can
-get in between; it is used where it exists (Emacs 21.1 and later).  Emacs 20
-has no such primitive, so the files are moved out of the shared directory
+get in between; it is used where it exists.  Emacs 20.7 and XEmacs 21.4 have
+no such primitive, so the files are moved out of the shared directory
 altogether, into ~/.calc-tmp made 0700 first.  editors/emacs20's fast-lock
 patch takes the same way out, dropping "." from the cache directories.
 
-A third change follows from the second.  calc-graph-show-tty pastes the
-output file name into a shell command without quoting it:
+Two more changes follow from that.  The temporary file name reaches a shell
+in two places, and neither quotes it.  While the name was /tmp/calc... it
+could not contain anything the shell would look at; a path under the user's
+home can.
 
-	"-c" (format "cat %s >/dev/tty; rm %s" output output)
+	calc-graph-show-tty
+	  "-c" (format "cat %s >/dev/tty; rm %s" output output)
 
-With "auto" or "tty" output that name is the temporary file, so it used to be
-/tmp/calc... and could not contain anything the shell would look at.  A path
-under the user's home can, so it is quoted now.  shell-quote-argument is in
-20.7 and 21.4.
+	calc-graph-plot, which calc-graph-print calls with printing set,
+	through calc-gnuplot-command "!" -- gnuplot's own shell escape
+	  (format command (or tempoutfile calc-gnuplot-print-output))
+	  where command is calc-gnuplot-print-command, "lp %s" by default
+
+The other three places the name reaches gnuplot -- "load" at :504 and "set
+output" at :373 and :945 -- already wrap it with prin1-to-string, which is
+what gnuplot wants, so they are left alone.
+
+shell-quote-argument and set-file-modes are in Emacs 20.7 and 21.4 and in
+XEmacs 21.4.25 and 21.5.36, which are the Lisps this package accepts.
 
 --- calc-graph.el.orig
 +++ calc-graph.el
@@ -49,7 +59,26 @@ under the user's home can, so it is quoted now.  shell-quote-argument is in
  
  (defvar calc-gnuplot-default-device "default")
  (defvar calc-gnuplot-default-output "STDOUT")
-@@ -851,12 +856,26 @@
+@@ -516,10 +521,16 @@
+ 				   'calc-graph-show-tty)))))
+ 	   (if command
+ 	       (if (stringp command)
++		   ;; command is a user variable holding a shell command with
++		   ;; a %s in it ("lp %s" by default), and calc-gnuplot-command
++		   ;; hands it to gnuplot as "!", which is gnuplot's own shell
++		   ;; escape.  The name filled in is the temporary file, so it
++		   ;; needs the same quoting as calc-graph-show-tty.
+ 		   (calc-gnuplot-command
+ 		    "!" (format command
+-				(or tempoutfile
+-				    calc-gnuplot-print-output)))
++				(shell-quote-argument
++				 (or tempoutfile
++				     calc-gnuplot-print-output))))
+ 		 (if (symbolp command)
+ 		     (funcall command output)
+ 		   (eval command)))))))))
+@@ -851,12 +862,26 @@
  	    (setq blank t)))))
  )
  
@@ -77,7 +106,7 @@ under the user's home can, so it is quoted now.  shell-quote-argument is in
  			  (concat calc-gnuplot-tempfile
  				  (if (<= num 0)
  				      (char-to-string (- ?A num))
-@@ -883,9 +902,15 @@
+@@ -883,9 +908,15 @@
  (defun calc-graph-show-tty (output)
    "Default calc-gnuplot-plot-command for \"tty\" output mode.
  This is useful for tek40xx and other graphics-terminal types."
