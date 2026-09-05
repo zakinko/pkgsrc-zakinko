@@ -289,6 +289,13 @@ must upcase   same
 # "a" "b" 日本語 を並べ替えた先頭。日本語の行があっても sort が落ちないこと。
 must sort a
 
+# CVE-2025-1244 の当て物が、建てた mule で実際に踏まれているか。配布物は
+# lisp/man.elc を同梱していて Emacs は .elc を先に読むので、当てただけでは
+# 何も起きない。post-build の建て直しが外れたらここで落ちる。
+must man-quote '\;id'
+# 括ったせいで正しい参照を壊していないこと。
+must man-plain '-k foo'
+
 # skip_chars と get_local_map は、宣言が無いと LP64 で戻り値が切り詰められる。
 # get_local_map が返すのは keymap で、整数と違って落ちれば必ず壊れる。
 must skipchars 3,4

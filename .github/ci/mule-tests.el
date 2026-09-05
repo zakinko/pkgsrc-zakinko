@@ -268,6 +268,27 @@
         "NOELC")))))
 
 
+;;; --- E. 当て物が実際に踏まれているか ------------------------------
+
+;; CVE-2025-1244。man の参照は Man-getpage-in-background で "sh -c" に渡る
+;; ので、shell の記号は括られていないといけない。ここで測るのは当て物の
+;; 中身ではなく、建てた mule が何を読んでいるか。配布物は lisp/man.elc を
+;; 同梱していて、Emacs は .elc を先に読む。post-build の建て直しが効いて
+;; いなければ、当てた .el が在っても素通りする。
+(ci-try "man-quote"
+  (function (lambda ()
+    (load "man" nil t)
+    (Man-translate-references ";id"))))
+
+;; 括ったせいで正しい参照まで壊していないこと。"-k foo" は "chmod(2V)" にも
+;; "2v chmod" にも当てはまらないので同じ枝を通る。語ごとに括るので、語の中に
+;; shell の記号が無ければ字面は変わらない。
+(ci-try "man-plain"
+  (function (lambda ()
+    (load "man" nil t)
+    (Man-translate-references "-k foo"))))
+
+
 ;;; --- 書き出し ------------------------------------------------------
 
 (ci-put "DONE" "1")
