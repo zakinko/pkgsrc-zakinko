@@ -30,7 +30,7 @@ RELRO_SUPPORTED=	no
 FORTIFY_SUPPORTED=	no
 
 WRKSRC=			${WRKDIR}/${GITHUB_PROJECT}-${SNAPSHOTDATE}
-USE_TOOLS=		gmake pax
+USE_TOOLS=		gmake pax yacc
 
 # this chunk should be before SUBST_CLASSES= pref
 SUBST_CLASSES+=		path

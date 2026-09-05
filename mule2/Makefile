@@ -22,7 +22,7 @@ CHECK_WRKREF_SKIP+=	bin/mule
 CHECK_WRKREF_SKIP+=	bin/mule-19.28
 
 WRKSRC=			${WRKDIR}/mule
-USE_TOOLS+=		gmake makeinfo
+USE_TOOLS+=		gmake makeinfo yacc
 GNU_CONFIGURE=		yes
 GNU_CONFIGURE_MANDIR=	${PREFIX}/${PKGMANDIR}/man1
 GNU_CONFIGURE_STRICT=	no # everything ok, just ancient
