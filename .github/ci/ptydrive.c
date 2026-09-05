@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <poll.h>
 #include <termios.h>
 #include <unistd.h>
 /*
@@ -73,14 +74,57 @@ main(int argc, char **argv)
 	signal(SIGALRM, on_alarm);
 	alarm((unsigned)atoi(argv[2]));
 
-	/* 起動して画面を描くまで少し待ってから鍵を送る。 */
-	sleep(2);
+	/*
+	 * 鍵を送るのは、画面が出たのを見てからにする。固定の sleep(2) では
+	 * 遅い箱で editor がまだ読んでいない。Debian の container がそれで、
+	 * menu も中身も描けているのに打った文字も F2 も Alt-X も一つも
+	 * 効かず、時限で降りていた。速い箱では出ていたので、余計に厄介だった。
+	 *
+	 * 最初の出力が来て、それが途切れるまで待つ。描き終われば読める。
+	 */
+	{
+		struct pollfd pfd;
+		char b[4096];
+		int got = 0, quiet = 0;
+
+		pfd.fd = master;
+		pfd.events = POLLIN;
+		while (quiet < 3) {
+			int r = poll(&pfd, 1, 500);
+			if (r > 0) {
+				n = read(master, b, sizeof(b));
+				if (n <= 0)
+					break;
+				(void)write(outfd, b, (size_t)n);
+				got += n;
+				quiet = 0;
+			} else if (r == 0) {
+				if (got > 0)
+					quiet++;      /* 描き終わって静かになった */
+				else if (++quiet > 40)
+					break;        /* 20 秒何も出ない。諦める */
+			} else
+				break;
+		}
+	}
+
+	/* 鍵は一つずつ。送るたびに画面を吸わないと pty が詰まる。 */
 	for (i = 0; argv[3][i] && argv[3][i+1]; i += 2) {
 		char h[3] = { argv[3][i], argv[3][i+1], 0 };
 		unsigned char c = (unsigned char)strtol(h, NULL, 16);
+		struct pollfd pfd;
+		char b[4096];
+
 		if (write(master, &c, 1) != 1)
 			break;
-		usleep(200000);
+		pfd.fd = master;
+		pfd.events = POLLIN;
+		while (poll(&pfd, 1, 200) > 0) {
+			n = read(master, b, sizeof(b));
+			if (n <= 0)
+				break;
+			(void)write(outfd, b, (size_t)n);
+		}
 	}
 
 	while ((n = read(master, buf, sizeof(buf))) > 0)
