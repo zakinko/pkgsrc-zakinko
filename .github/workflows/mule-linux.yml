@@ -73,11 +73,14 @@ jobs:
             apt-get install -y -qq --no-install-recommends \
               build-essential curl ca-certificates file perl patch \
               tar gzip xz-utils git sudo \
-              hostname util-linux || true
+              hostname util-linux
           else
-            dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+            # curl は頼まない。RHEL9 系の image は curl-minimal を持っていて、
+            # curl はそれと衝突する。頼むと transaction ごと中止され、gcc まで
+            # 入らずに bootstrap が「C compiler が無い」で落ちる。
+            dnf install -y -q gcc gcc-c++ make ca-certificates file \
               perl patch tar gzip xz git diffutils findutils which sudo \
-              hostname util-linux || true
+              hostname util-linux
           fi
           cc --version | head -1
           ldd --version | head -1
