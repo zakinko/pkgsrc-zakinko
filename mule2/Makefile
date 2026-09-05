@@ -22,7 +22,17 @@ CHECK_WRKREF_SKIP+=	bin/mule
 CHECK_WRKREF_SKIP+=	bin/mule-19.28
 
 WRKSRC=			${WRKDIR}/mule
-USE_TOOLS+=		gmake makeinfo yacc
+# makeinfo は要らない。配布物が info/ を作り済みで持っていて、install が
+# 入れるのはそちらだから。man/ を建てて上書きしていたのは pkgsrc の
+# patch-an で、その一行だけ外した。texinfo 7 は 1995 年の texi を通すのに
+# --force --no-validate が要る上、node の前後関係で百行ほど警告を出すので、
+# 1995 年の makeinfo が作った物のほうが確かでもある。Mule 自身の手引き
+# (mule, CCL, ISO2022 ...) は元から作り直していない。
+#
+# 外すと devel/gtexinfo が依存から消える。FreeBSD では gtexinfo の木
+# (help2man, gettext-tools, python313) に 45000 行を使って四時間で打ち切られ、
+# DragonFly と MidnightBSD はその python313 で落ちていた。
+USE_TOOLS+=		gmake yacc
 GNU_CONFIGURE=		yes
 GNU_CONFIGURE_MANDIR=	${PREFIX}/${PKGMANDIR}/man1
 GNU_CONFIGURE_STRICT=	no # everything ok, just ancient

@@ -1,21 +1,10 @@
 $NetBSD: patch-an,v 1.2 2005/12/01 18:13:24 wiz Exp $
 
-man is not in SUBDIR, so the info files are never built.  Add it.
-
-The file glob that installs them also matched info*, which picked up the
-standalone info reader's own manual; that one is not ours to install.
+The file glob that installs the info files also matched info*, which picked
+up the standalone info reader's own manual; that one is not ours to install.
 
 --- Makefile.in.orig	1994-12-20 03:01:54.000000000 +0100
 +++ Makefile.in
-@@ -186,7 +186,7 @@ INSTALL_DATA = @INSTALL_DATA@
- # Subdirectories to make recursively.  `lisp' is not included
- # because the compiled lisp files are part of the distribution
- # and you cannot remake them without installing Emacs first.
--SUBDIR = lib-src src
-+SUBDIR = lib-src src man
- 
- # The makefiles of the directories in $SUBDIR.
- SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile
 @@ -341,7 +341,7 @@ install-arch-indep: mkdir
  	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
  	     (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
