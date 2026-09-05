@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# 当て物を作り直す道具。既にある当て物を落とさずに済ませる。
+#
+#	mkpatch prepare <pkgdir> <木の中の path> <作業場>
+#	  ... 作業場/edit を好きに直す ...
+#	mkpatch finish  <pkgdir> <木の中の path> <作業場>
+#
+# 例:
+#	mkpatch prepare /usr/pkgsrc/zakinko/mule2 src/sysdep.c /tmp/w
+#	vi /tmp/w/edit
+#	mkpatch finish  /usr/pkgsrc/zakinko/mule2 src/sysdep.c /tmp/w
+#
+# 手で diff を取ると二つの所で間違える。どちらも実際にやった。
+#
+# 一つ目。同じ file を触る当て物は一つとは限らない。src/unexelf.c には
+# patch-ab が 815 行の物を 1289 行に丸ごと置き換える当て物として在り、
+# 素の配布物から diff を取ると当たらない。prepare は名前順で先に来る物を
+# 全部当ててから土台を作る。
+#
+# 二つ目。書き足す先は「その file を触る当て物のうち名前順で最後の物」で
+# あって、path から機械的に作った名前ではない。src/term.c には
+# patch-src_term_c が在り、patch-src_term.c を新しく作ると "." が "_" より
+# 前なのでそちらが先に当たり、土台が食い違う。finish は最後に来る名前へ書く。
+#
+set -e
+
+usage() { sed -n '3,12p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+[ $# -eq 4 ] || usage
+op=$1 pkgdir=$2 rel=$3 work=$4
+
+cd "$pkgdir" || exit 1
+pkgdir=$(pwd)
+make=make; command -v bmake >/dev/null 2>&1 && make=bmake
+distdir=$($make show-var VARNAME=DISTDIR 2>/dev/null | tail -1)
+distfile=$($make show-var VARNAME=DISTFILES 2>/dev/null | tail -1 | awk '{print $1}')
+[ -f "$distdir/$distfile" ] || { echo "配布物が無い: $distdir/$distfile" >&2; exit 1; }
+
+canon=patch-$(echo "$rel" | sed 's|/|_|g')
+last=$(cd patches 2>/dev/null && grep -l "^+++ $rel\$" * 2>/dev/null | LC_ALL=C sort | tail -1)
+name=$(printf '%s\n%s\n' "$canon" "${last:-$canon}" | LC_ALL=C sort | tail -1)
+
+case $op in
+prepare)
+	rm -rf "$work"; mkdir -p "$work"; cd "$work"
+	tar xzf "$distdir/$distfile" "*/$rel" 2>/dev/null ||
+		tar xzf "$distdir/$distfile" 2>/dev/null
+	src=$(find . -path "*/$rel" | head -1)
+	[ -n "$src" ] || { echo "配布物の中に $rel が無い" >&2; exit 1; }
+	top=$(echo "$src" | sed "s|/$rel\$||")
+	for q in $(cd "$pkgdir/patches" && grep -l "^+++ $rel\$" * 2>/dev/null | LC_ALL=C sort); do
+		[ "$q" = "$name" ] && continue
+		( cd "$top" && patch -s -p0 < "$pkgdir/patches/$q" ) ||
+			{ echo "先に当てる $q が当たらない" >&2; exit 1; }
+		echo "先に当てた: $q"
+	done
+	cp "$src" "$work/base"
+	[ -f "$pkgdir/patches/$name" ] &&
+		( cd "$top" && patch -s -p0 < "$pkgdir/patches/$name" )
+	cp "$src" "$work/edit"
+	echo "土台 $work/base / 直す先 $work/edit / 書く先 $name"
+	;;
+finish)
+	[ -f "$work/base" ] && [ -f "$work/edit" ] || { echo "prepare していない" >&2; exit 1; }
+	out=$work/$name
+	if [ -f "$pkgdir/patches/$name" ]; then
+		sed -n '1,/^--- /p' "$pkgdir/patches/$name" | sed '$d' > "$out"
+	else
+		printf '$NetBSD$\n\n' > "$out"
+	fi
+	diff -u "$work/base" "$work/edit" |
+		sed -e "1s|.*|--- $rel.orig|" -e "2s|.*|+++ $rel|" >> "$out"
+	echo "出来た: $out  (説明を頭に足してから patches/ へ置き、make mps)"
+	;;
+*) usage ;;
+esac
