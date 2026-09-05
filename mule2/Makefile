@@ -118,4 +118,18 @@ post-install:
 		${DESTDIR}${PREFIX}/lib/mule/19.28/lisp/eggrc
 .endif
 
+# termcap の API を持つ library を pkgsrc に用意させる。s/linux.h は
+# -ltermcap -lcurses を、s/freebsd.h は -ltermcap を名指ししていたが、
+# Debian の箱にも GhostBSD にもその名前は無い。curses.buildlink3.mk は
+# 在るものを使い、無ければ devel/ncurses を建てて path も通す。
+.include "../../mk/curses.buildlink3.mk"
+
+# termcap の library の名前は系によって違う。s/linux.h は -ltermcap と
+# -lcurses を、s/freebsd.h は -ltermcap を直書きしているが、Debian の箱にも
+# GhostBSD にもその名前は無い。curses.buildlink3.mk が決めた名前を埋める。
+SUBST_CLASSES+=		curses
+SUBST_STAGE.curses=	pre-configure
+SUBST_MESSAGE.curses=	Use the curses library pkgsrc picked
+SUBST_FILES.curses=	src/s/linux.h src/s/freebsd.h
+SUBST_SED.curses=	-e 's|^\#define LIBS_TERMCAP .*|\#define LIBS_TERMCAP ${BUILDLINK_LDADD.curses}|'
 .include "../../mk/bsd.pkg.mk"
