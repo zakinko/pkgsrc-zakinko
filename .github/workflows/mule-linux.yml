@@ -106,3 +106,22 @@ jobs:
       # コンテナの中は root なので、BSD と同じに扱える。
       - name: 組んで確かめる
         run: sh .github/ci/build-on-bsd.sh "$OPTIONS"
+
+      # ダンプした emacs が一本 byte-compile した直後に落ちる箱がある。
+      # Fedora では起きず、log には Segmentation fault の一行しか出ない。
+      # 落ちた木はそのまま残っているので、同じことを gdb の下でやり直して
+      # どこで落ちたかを見る。落ちたときだけ走る。
+      - name: 落ちた所を見る
+        if: failure()
+        run: |
+          S=/pkgsrc-ci/obj/zakinko/mule2/work/mule/src
+          [ -x "$S/emacs" ] || { echo "emacs がまだ無い。ここではない"; exit 0; }
+          if [ "${{ matrix.pm }}" = apt ]; then
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -qq gdb
+          else
+            dnf install -y -q gdb
+          fi
+          cd "$S"
+          gdb -batch -ex run -ex bt -ex 'info registers' \
+            --args ./emacs -batch -q -f batch-byte-compile \
+              ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el 2>&1 | tail -40
