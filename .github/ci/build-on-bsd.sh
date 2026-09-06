@@ -51,7 +51,20 @@ STAGE=開始
 stage() { STAGE=$1; echo; echo "=== $STAGE ==="; }
 report() {
 	rc=$?
-	[ $rc -eq 0 ] || echo "=== ここで止まった: $STAGE (exit=$rc) ==="
+	[ $rc -eq 0 ] || {
+		echo "=== ここで止まった: $STAGE (exit=$rc) ==="
+		# lib-src/Makefile と src/Makefile は Makefile.in.in を system の
+		# cpp に通して作る。cpp が違えば出来る物も違い、make が読めない形に
+		# なる箱がある。行番号だけ言われても手元では再現しないので、
+		# 落ちたときは実物を出す。TAB が見えないと意味がないので cat -t。
+		for m in "$REAL"/obj/zakinko/mule*/work/mule/lib-src/Makefile \
+			 "$REAL"/obj/zakinko/mule*/work/mule/src/Makefile; do
+			[ -f "$m" ] || continue
+			echo "--- $m の 100-135 行 ---"
+			sed -n '100,135p' "$m" | cat -t 2>/dev/null ||
+				sed -n '100,135p' "$m"
+		done
+	}
 	exit $rc
 }
 trap report EXIT
