@@ -159,3 +159,18 @@ pre-configure:
 
 .include "../../lang/python/tool.mk"
 .include "../../mk/atomic64.mk"
+
+# bazel の道で python の genrule (base:gen_config_file_stream_data) を引く
+# target は、python toolchain が登録されていないと
+#
+#	No matching toolchains found for types:
+#	  @@bazel_tools//tools/python:toolchain_type
+#
+# で analysis が落ちる。rules_python が配る interpreter に BSD 向けが無い
+# ため。system の python3 を使う runtime_env toolchain を足し、その名で
+# 見つかるよう tools に python3 を作る (箱には python3.13 しか無い)。
+# server は python の genrule を引かないので気づけず、elisp/tool/renderer
+# だけが落ちた。
+BAZEL_ARGS+=		--extra_toolchains=@rules_python//python/runtime_env_toolchains:all
+TOOLS_CREATE+=		python3
+TOOLS_PATH.python3=	${PYTHONBIN}
