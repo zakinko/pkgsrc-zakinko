@@ -82,6 +82,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [emacs-ilisp/](emacs-ilisp/) | `devel/emacs-ilisp` | GPL でない独自許諾の文面を files/ に用意。当て物 4 本の説明 |
 | [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない。積み残しの CVE 二本も当てる |
 | [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
+| [emacs29/](emacs29/) / [emacs29-nox11/](emacs29-nox11/) | `editors/emacs29` | **上流が 30.1 でしか直していない CVE-2025-1244 (man.el) を当てる**。29.4 は `pkg_admin audit` にも挙がらない |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
 | [iiimecf/](iiimecf/) | `inputmethod/iiimecf` | LICENSE と category の順。shell を ${RUN} で書く |
 | [jde/](jde/) | `editors/jde` | 効いていなかった PKGSRC_MAKE_ENV+= EMACS=${EMACS} を直す。LICENSE |
