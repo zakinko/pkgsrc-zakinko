@@ -94,7 +94,7 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
  
  /* As of version 1.1.51, Linux does not actually implement SIGIO.  */
  /* Here we assume that signal.h is already included.  */
-@@ -221,16 +239,35 @@
+@@ -221,16 +239,36 @@
  
  #ifdef TERM
  #define LIBS_MACHINE -lclient
@@ -113,7 +113,8 @@ inside #ifndef NOT_C_CODE, the way s/irix4-0.h does it.
 +   成立しない。tsutsui さんの Mule 1.1 の s-linux.h も同じ理由で
 +   SYSTEM_MALLOC を立てており、あちらは setarch 無しで dump できて、
 +   出来た binary も動く。 */
-+#define SYSTEM_MALLOC
++/* 測定用: この一行を外すと Emacs 自前の gmalloc を使う。 */
++#undef SYSTEM_MALLOC
 +
  #define HAVE_SYSVIPC
  
