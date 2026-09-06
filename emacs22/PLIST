@@ -114,7 +114,7 @@ share/emacs/${PKGVERSION}/etc/COPYING
 share/emacs/${PKGVERSION}/etc/DEBUG
 share/emacs/${PKGVERSION}/etc/DEVEL.HUMOR
 share/emacs/${PKGVERSION}/etc/DISTRIB
-share/emacs/${PKGVERSION}/etc/DOC-${PKGVERSION}.1
+share/emacs/${PKGVERSION}/etc/DOC-${PKGVERSION}.2
 share/emacs/${PKGVERSION}/etc/ERC-NEWS
 share/emacs/${PKGVERSION}/etc/ETAGS.EBNF
 share/emacs/${PKGVERSION}/etc/ETAGS.README
@@ -2391,7 +2391,8 @@ share/emacs/${PKGVERSION}/lisp/shell.el.gz
 share/emacs/${PKGVERSION}/lisp/shell.elc
 share/emacs/${PKGVERSION}/lisp/simple.el.gz
 share/emacs/${PKGVERSION}/lisp/simple.elc
-share/emacs/${PKGVERSION}/lisp/site-init.el
+share/emacs/${PKGVERSION}/lisp/site-init.el.gz
+share/emacs/${PKGVERSION}/lisp/site-init.elc
 share/emacs/${PKGVERSION}/lisp/skeleton.el.gz
 share/emacs/${PKGVERSION}/lisp/skeleton.elc
 share/emacs/${PKGVERSION}/lisp/smerge-mode.el.gz

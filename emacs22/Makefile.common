@@ -65,6 +65,23 @@ BUILD_DEFS+=		GAMEDATAMODE
 # いたので誰も困っていなかったが、版の出どころが二つあるのは筋が悪い。23 から
 # 28 と同じ形にする。CI の「名乗る版が合っているか」もこれを見ていて、空だった
 # ために i386 の三つが落ちていた。
+# 配布物は .el の隣に .elc を同梱していて、Emacs は .elc を先に読む。既定の
+# BUILD_TARGET=all は lisp を建て直さないので、lisp への当て物は入っても実行時
+# には効かない。2008 年の byte code が勝つ。man.el に shell-quote-argument が
+# 在るのに man.elc には無く、建てた emacs で Man-translate-references ";id" が
+# ";id" のまま返る、という形で測れた。CVE-2014-3422 と CVE-2014-3423 の当て物も
+# 同じ理由で効いていなかった。
+#
+# emacs23 から emacs28 はこれを持っているので無事だった。22 だけ落ちていた。
+#
+# 一部の .elc だけ消して建て直す手は使えない。files.elc は dump される側で、
+# src/Makefile が ../etc/DOC を作るのに要求するが、all にはそれを作る規則が
+# 無い。消すと "No rule to make target .../lisp/files.elc" で止まる。
+#
+# 二度 dump するので DOC の連番が一つ進み、site-init.el も compile と圧縮の
+# 対象に入る。PLIST の三行はそのため。
+BUILD_TARGET=		bootstrap
+
 EMACS_VERSION=		${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
 
 # build PATH in the dumped emacs is not a problem
@@ -125,6 +142,22 @@ post-install:
 .for file in leim leim/ja-dic leim/quail
 	${CHMOD} 755 ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/${file}
 .endfor
+
+# bootstrap は二度 dump するので、etc に DOC-22.3.1 と DOC-22.3.2 が出来る。
+# 中身は同じで (cksum が両方 786476988、cmp も差を出さない)、dumped emacs が
+# 見に行くのは後のほうである。
+#
+#	emacs -Q --batch --eval '(princ internal-doc-file-name)'
+#	→ DOC-22.3.2
+#
+# install-arch-indep は "tar -chf - DOC*" で両方を写す。上流も Makefile.in に
+# "Should only install the DOC- file appropriate to this build, not DOC-*."
+# と書いたまま直していない。2.1MB の重複なので、使われないほうを落とす。
+# emacs23 以降は DOC を一つしか作らないので、この始末は 22 だけに要る。
+.PHONY: rm-bootstrap-doc
+post-install: rm-bootstrap-doc
+rm-bootstrap-doc:
+	${RM} -f ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/etc/DOC-${PKGVERSION_NOREV}.1
 
 .include "../../mk/oss.buildlink3.mk"
 .include "../../mk/termcap.buildlink3.mk"
