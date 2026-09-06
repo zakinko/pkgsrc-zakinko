@@ -15,7 +15,7 @@ DragonFly is 4.4BSD-Lite2 derived, so it gets the same 199506 that Emacs
 
 --- /dev/null	2006-01-04 20:13:24.000000000 +0000
 +++ src/s/dragonfly.h
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,74 @@
 +/* Get most of the stuff from bsd4.3 */
 +#include "bsd4-3.h"
 +
@@ -30,7 +30,9 @@ DragonFly is 4.4BSD-Lite2 derived, so it gets the same 199506 that Emacs
 +
 +#define LIBS_DEBUG
 +#define LIBS_SYSTEM -lutil -lcrypt
-+#define LIBS_TERMCAP -ltermcap
++/* freebsd.h と同じ理由で決め打ちにしない。どの curses が在るかは箱ごとに
++   違うので、mule2/Makefile の SUBST に埋めさせる。 */
++#define LIBS_TERMCAP @CURSES_LIBS@
 +#define LIB_GCC -lgcc
 +
 +/* Reread the time zone on startup. */
@@ -80,3 +82,11 @@ DragonFly is 4.4BSD-Lite2 derived, so it gets the same 199506 that Emacs
 +#if defined(__i386__)
 +#define DATA_SEG_BITS 0x08000000
 +#endif /* __i386__ */
++
++/* DragonFly の getpgrp は POSIX の形で、引数を取らない。systty.h は
++   GETPGRP_NO_ARG が立っていないと 4.2BSD の getpgrp(pid) を呼び、
++   too many arguments to function 'getpgrp' で止まる。freebsd.h には
++   同じものが在るが、この file を写したときに落ちていた。  */
++#ifndef GETPGRP_NO_ARG
++#define GETPGRP_NO_ARG
++#endif
