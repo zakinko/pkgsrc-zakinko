@@ -122,6 +122,8 @@ jobs:
             dnf install -y -q gdb
           fi
           cd "$S"
-          gdb -batch -ex run -ex bt -ex 'info registers' \
+          # bt は内側から出るので、切るなら尻。tail で採ると main の側だけが
+          # 残り、どこで落ちたかが消える。一度それで見損なった。
+          gdb -batch -ex run -ex 'bt 25' \
             --args ./emacs -batch -q -f batch-byte-compile \
-              ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el 2>&1 | tail -40
+              ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el 2>&1 | head -60
