@@ -30,9 +30,9 @@ Boston, MA 02111-1307, USA.  */
 #undef LIBS_SYSTEM
 #define LIBS_SYSTEM
 
-/* Every OpenBSD that pkgsrc still builds for is ELF.  netbsd.h already
-   picks unexelf.o under __ELF__; this is here to say so out loud.  */
-tail -6 $C/mule2/files/openbsd.h | cut -c1-70
+/* Every OpenBSD that pkgsrc still builds for is ELF, and the netbsd.h this
+   file includes picks unexelf.o under __ELF__, so there is nothing to add
+   here.  */
 
 /* OpenBSD は union wait を捨てた。syswait.h は BSD が定義されていると
    WAITTYPE を union wait にするので、先にこちらで決めて止める。中身は
