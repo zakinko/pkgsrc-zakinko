@@ -88,8 +88,8 @@ BUILD_DEFS+=		GAMEDATAMODE
 # 止まることを実測した (落ちる target が Makefile:783 bootstrap から
 # Makefile:304 src に変わるだけ)。DragonFly は configure が
 # x86_64-pc-dragonfly を知らない。OpenBSD 7.9 は依存の archivers/bzip2 が
-# package 化できず (生成される PLIST に dd(1) の stderr が混入する)
-# emacs まで到達しない。
+# package 化できず emacs まで到達しない (pkg_create に渡る file 一覧に
+# dd(1) の統計行が混じる。何が dd を走らせているかは分かっていない)。
 #
 # つまり DOC の連番と site-init.el.gz が他の platform でどう出るかは
 # 未測である。22.3 がそれらの platform で建つようになったら、PLIST の
