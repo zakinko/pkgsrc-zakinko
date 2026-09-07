@@ -28,17 +28,45 @@ CONFLICTS+=	bazel-[0-9]*
 # (_ONLY_FOR_PLATFORMS.openjdk21).  Of those, bazel's own singlejar refuses
 # 32-bit outright:
 #
-#	src/tools/singlejar/port.h
+#	src/tools/singlejar/mapped_file_posix.inc
+#	#if !((defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
+#	       defined(__OpenBSD__)) && __SIZEOF_POINTER__ == 8)
 #	#error This code for 64 bit Unix.
 #
+# Two things are in that condition.  __NetBSD__ is not in the list at all,
+# which is why the patches here add it; and __SIZEOF_POINTER__ == 8 is what
+# stops a 32-bit build, so adding __NetBSD__ does not help i386.  port.h
+# only asserts that off64_t is 64 bits, which holds on i386 as well because
+# NetBSD's off_t does not vary with the architecture.
+#
 # So x86_64 and aarch64 are the only platforms where this can be built at
-# all.  Saying so directly is clearer than NOT_FOR_PLATFORM=${LP32PLATFORMS},
-# which claims sparc64 and powerpc64 would work; they have no JDK, so the
-# build stops later with a confusing "no acceptable JVM found".
+# all.  Both lines below are needed to say that, for different reasons.
+# ONLY_FOR_PLATFORM names the two positively, because NOT_FOR_PLATFORM on
+# its own would claim sparc64 and powerpc64 work; they have no JDK, so the
+# build would stop later with a confusing "no acceptable JVM found".
 #
 # Only x86_64 has been built.  aarch64 is listed because the JDK and the
 # 64-bit requirement are both satisfied, not because anyone has built it.
+#
+# NOT_FOR_PLATFORM is not redundant with the line above and must not be
+# tidied away.  java-vm.mk appends to ONLY_FOR_PLATFORM rather than
+# replacing it:
+#
+#	mk/java-vm.mk:199
+#	.for _jvm_ in ${PKG_JVMS_ACCEPTED}
+#	ONLY_FOR_PLATFORM+=	${_ONLY_FOR_PLATFORMS.${_jvm_}}
+#
+# and _ONLY_FOR_PLATFORMS.openjdk21 names i386.  The list is a union, so
+# i386 matches through that entry and the line above never excludes it.
+# Read the file and it looks right; run
+#
+#	make show-var VARNAME=ONLY_FOR_PLATFORM
+#
+# and i386 is in the value.  NOT_FOR_PLATFORM is subtractive, so it is what
+# actually keeps a 32-bit build from starting and running as far as
+# singlejar before it stops.
 ONLY_FOR_PLATFORM=	NetBSD-*-x86_64 NetBSD-*-aarch64
+NOT_FOR_PLATFORM=	${LP32PLATFORMS}
 
 # What breaks on -current is not bazel but the abseil it fetches: the
 # __NetBSD__ branch in absl/debugging/internal/elf_mem_image.cc dereferences
@@ -62,6 +90,49 @@ PKG_JVMS_ACCEPTED=	openjdk21
 # needed at build time.
 TOOL_DEPENDS+=	go-[0-9]*:../../lang/go
 
+# rules_go looks for a Go SDK to build the toolchain from.  There is no
+# published SDK for NetBSD, so //toolchain_local points it at the one
+# installed here, which means GOROOT has to be passed.  lang/go is a meta
+# package; the directory is named for the version it points at.
+.include "../../lang/go/version.mk"
+GOROOT=		${TOOLBASE}/go${GOVERSSUFFIX}
+
+# cwrappers appends -pie to anything it takes for a link of an executable
+# (mk/cwrappers.mk, append_executable), and it cannot see inside the @params
+# files bazel writes.  Every shared library is therefore linked with both the
+# -shared that is in the params and a -pie appended after it; -pie wins and
+# the link stops at
+#
+#	ld: /usr/lib/crt0.o: in function `___start':
+#	undefined reference to `main'
+#
+# lang/go/version.mk happens to set this too, but relying on that would make
+# the build depend on an include that is here for GOROOT.
+# The scripts in the distribution archive start with #!/bin/bash, which the
+# git tree does not (it uses /usr/bin/env bash), and NetBSD has no /bin/bash.
+# Only the ones a build actually runs are listed; the rest are for the test
+# suite.
+#
+# REPLACE_BASH cannot be used here.  It hangs off do-configure-pre-hook, and
+# mk/configure/bsd.configure.mk wraps the configure machinery in
+# .if !defined(NO_CONFIGURE), so with NO_CONFIGURE=yes the replacement is
+# never reached and the variable is silently ignored.  The shebangs survive
+# into the build and the first genrule that runs one dies with
+#
+#	/usr/pkg/bin/bash: src/main/cpp/generate_jvm_module_options.sh:
+#	    /bin/bash: bad interpreter: No such file or directory
+#
+# 5,132 actions in.  Do the replacement at pre-build instead, where the other
+# two SUBST classes here already run.
+SUBST_CLASSES+=		bash
+SUBST_STAGE.bash=	pre-build
+SUBST_MESSAGE.bash=	Pointing the scripts at ${TOOLS_PATH.bash}
+SUBST_FILES.bash+=	src/main/cpp/generate_jvm_module_options.sh
+SUBST_FILES.bash+=	tools/buildstamp/get_workspace_status
+SUBST_FILES.bash+=	scripts/packages/bazel.sh
+SUBST_SED.bash=		-e '1s,/bin/bash,${TOOLS_PATH.bash},'
+
+MKPIE_SUPPORTED=		no
 CHECK_PIE_SUPPORTED=		no
 CHECK_PORTABILITY_SKIP+=	*
 
@@ -122,6 +193,27 @@ EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_bootstrap_v
 EXTRA_BAZEL_ARGS+=	--repo_env=GOROOT=${GOROOT}
 EXTRA_BAZEL_ARGS+=	--host_linkopt=-lm
 EXTRA_BAZEL_ARGS+=	--linkopt=-lm
+# bazel runs every action with "env -" and hands it PATH and nothing else.
+# pkgsrc compiles through a wrapper that reads its configuration from the
+# environment, so the first compile stops with
+#
+#	gcc: CWRAPPERS_CONFIG_DIR is missing from environment
+#
+# The exec configuration needs it too, and --action_env does not reach
+# there, hence both spellings.
+# --repo_env as well as --action_env.  cc_configure probes the compiler
+# from a repository rule, which does not see --action_env, and a probe that
+# fails is not an error: the feature is simply recorded as unsupported.
+# Without it the toolchain decides the linker cannot make shared objects and
+# links libzstd-jni.so as a program, which stops at
+#
+#	ld: /usr/lib/crt0.o: undefined reference to `main'
+EXTRA_BAZEL_ARGS+=	--repo_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR}
+EXTRA_BAZEL_ARGS+=	--repo_env=PATH=${PATH:Q}
+EXTRA_BAZEL_ARGS+=	--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR}
+EXTRA_BAZEL_ARGS+=	--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR}
+EXTRA_BAZEL_ARGS+=	--action_env=PATH=${PATH:Q}
+EXTRA_BAZEL_ARGS+=	--host_action_env=PATH=${PATH:Q}
 EXTRA_BAZEL_ARGS+=	--jobs=${MAKE_JOBS:U1}
 MAKE_ENV+=		EXTRA_BAZEL_ARGS=${EXTRA_BAZEL_ARGS:Q}
 
