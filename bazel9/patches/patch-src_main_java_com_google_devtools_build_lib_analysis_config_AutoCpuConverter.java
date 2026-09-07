@@ -7,11 +7,12 @@ each use their own name rather than a CPU name; do the same.
 
 --- src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java
-@@ -39,6 +39,7 @@ public class AutoCpuConverter extends Co
+@@ -39,6 +39,8 @@ public class AutoCpuConverter extends Co
                default -> "unknown";
              };
          case FREEBSD -> "freebsd";
-+        case NETBSD, DRAGONFLY -> "netbsd";
++        case NETBSD -> "netbsd";
++        case DRAGONFLY -> "dragonfly";
          case OPENBSD -> "openbsd";
          case WINDOWS ->
              switch (CPU.getCurrent()) {

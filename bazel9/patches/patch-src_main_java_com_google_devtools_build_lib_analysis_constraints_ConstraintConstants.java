@@ -9,12 +9,16 @@ toolchain fails to resolve.
 
 --- src/main/java/com/google/devtools/build/lib/analysis/constraints/ConstraintConstants.java.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/main/java/com/google/devtools/build/lib/analysis/constraints/ConstraintConstants.java
-@@ -60,6 +60,10 @@ public final class ConstraintConstants {
+@@ -60,6 +60,14 @@ public final class ConstraintConstants {
            OS.FREEBSD,
            ConstraintValueInfo.create(
                OS_CONSTRAINT_SETTING,
 +              Label.parseCanonicalUnchecked("@platforms//os:netbsd")),
-+          OS.NETBSD, OS.DRAGONFLY,
++          OS.NETBSD,
++          ConstraintValueInfo.create(
++              OS_CONSTRAINT_SETTING,
++              Label.parseCanonicalUnchecked("@platforms//os:dragonfly")),
++          OS.DRAGONFLY,
 +          ConstraintValueInfo.create(
 +              OS_CONSTRAINT_SETTING,
                Label.parseCanonicalUnchecked("@platforms//os:openbsd")),
