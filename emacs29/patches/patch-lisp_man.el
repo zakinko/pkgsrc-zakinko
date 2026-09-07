@@ -36,15 +36,20 @@ that are dd(1)'s statistics output:
 reproducible after cleaning the obj tree here.  What runs dd was not
 determined; pkgsrc's own mk/ has no dd on the paths that build the list.
 
-Do not read that as a pkgsrc bug.  A peer session has since reproduced a
-similar contamination on the same box and found the head of .PLIST-1src
-holding find(1)'s stderr, about seventy NUL bytes, and an OutOfMemoryError
-from a JVM belonging to another session's build.  find cannot emit a JVM
-message, so that looks like a damaged file rather than pkgsrc mixing
-streams -- and the box was running a JDK build with 16GB of added swap
-throughout, while the first attempt here was killed outright (exit 137).
-Cleaning the obj tree cleaned this side of it, not the machine.  Whether
-any of it reproduces on a quiet box is untested.
+This is not a pkgsrc bug.  A peer session reproduced the same shape on that
+box and settled it: od -c on .PLIST-1src showed find(1)'s stderr, then about
+a kilobyte of NUL, then an OutOfMemoryError from another session's JVM, and
+only then the correct PLIST.  A shell pipeline does not produce runs of NUL,
+so nothing in mk/plist wrote that file.  The box's /var/log/messages had
+
+	UVM: pid 5530 (bmake), uid 0 killed: out of swap
+
+with 16GB of RAM against 256MB of swap, 95% full, while a Java build ran
+alongside.  The lines are what an OOM-killed process left half-written, not
+anything pkgsrc emitted.  The first attempt here died the same way (exit
+137).  So emacs was never reached, for want of memory on a shared machine --
+if the same wall turns up again, look at /var/log/messages and the swap size
+before suspecting the package.
 
 The DragonFly box became unreachable partway through and did not come back.
 

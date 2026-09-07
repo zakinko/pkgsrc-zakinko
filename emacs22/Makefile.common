@@ -88,10 +88,12 @@ BUILD_DEFS+=		GAMEDATAMODE
 # 止まることを実測した (落ちる target が Makefile:783 bootstrap から
 # Makefile:304 src に変わるだけ)。DragonFly は configure が
 # x86_64-pc-dragonfly を知らない。OpenBSD 7.9 は依存の archivers/bzip2 が
-# package 化できず emacs まで到達しない (pkg_create に渡る file 一覧に
-# 余分な行が混じる。pkgsrc の bug とは限らない。同じ箱で別の build が動いて
-# いる最中の観測で、peer が再現した分には他プロセスの JVM の message まで
-# 入っていた。静かな箱では未確認)。
+# package 化できず emacs まで到達しない。原因は pkgsrc ではなく箱の memory
+# 逼迫だった。16GB の RAM に対し swap が 256MB しか無く、別の Java build と
+# 同居していて、OOM killer が bmake を殺していた (/var/log/messages に
+# "UVM: pid 5530 (bmake) killed: out of swap")。書きかけの file が半端に
+# 残り、それを pkg_create が読んでいた。peer が od -c で NUL の穴を見つけて
+# 決着させた分。
 #
 # つまり DOC の連番と site-init.el.gz が他の platform でどう出るかは
 # 未測である。22.3 がそれらの platform で建つようになったら、PLIST の
