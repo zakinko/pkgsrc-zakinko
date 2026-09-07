@@ -51,7 +51,14 @@ anything pkgsrc emitted.  The first attempt here died the same way (exit
 if the same wall turns up again, look at /var/log/messages and the swap size
 before suspecting the package.
 
-The DragonFly box became unreachable partway through and did not come back.
+Two DragonFly 6.4 boxes were tried and both stopped responding partway
+through, the second while pkgsrc was still being unpacked.  155 packets over
+45 minutes drew no reply and port 22 stayed closed.  Why is not known: the
+OpenBSD box stayed up and kept its logs, but these went away entirely, so
+there is nothing to read.  The second box was looked at before anything was
+started -- 16GB of RAM and no swap configured at all -- and 16GB of swap was
+added first; swap use was 0% when it went.  That rules out the OpenBSD
+failure mode and names no other.
 
 --- lisp/man.el.orig
 +++ lisp/man.el
