@@ -33,12 +33,18 @@ that are dd(1)'s statistics output:
 	pkg_create: can't stat `.../pkg/1+0 records out'
 	pkg_create: can't stat `.../pkg/4096 bytes transferred in 0.000 secs (...)'
 
-reproducible with a cleaned obj tree, so it is not leftover state from an
-earlier run here.  What runs dd, and at which step those lines enter the
-list, was not determined -- neither mk/install/install.mk's manual page
-step nor mk/plist/doc-compress contains dd, and a peer session reports
-finding none in mk/ or archivers/bzip2 either (they read the source; they
-did not reproduce it).  So the mechanism is open.
+reproducible after cleaning the obj tree here.  What runs dd was not
+determined; pkgsrc's own mk/ has no dd on the paths that build the list.
+
+Do not read that as a pkgsrc bug.  A peer session has since reproduced a
+similar contamination on the same box and found the head of .PLIST-1src
+holding find(1)'s stderr, about seventy NUL bytes, and an OutOfMemoryError
+from a JVM belonging to another session's build.  find cannot emit a JVM
+message, so that looks like a damaged file rather than pkgsrc mixing
+streams -- and the box was running a JDK build with 16GB of added swap
+throughout, while the first attempt here was killed outright (exit 137).
+Cleaning the obj tree cleaned this side of it, not the machine.  Whether
+any of it reproduces on a quiet box is untested.
 
 The DragonFly box became unreachable partway through and did not come back.
 
