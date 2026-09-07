@@ -127,3 +127,12 @@ jobs:
           gdb -batch -ex run -ex 'bt 25' \
             --args ./emacs -batch -q -f batch-byte-compile \
               ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el 2>&1 | head -60
+          # 壊れているのが tcache かどうかを分ける。tcache は thread local に
+          # 置かれた鎖で、dump した image がその先を指したまま起動すると、
+          # glibc は初期化済みだと思って dump 前の chunk を辿る。切って通るなら
+          # 犯人はそこ。切っても落ちるなら arena そのもの。
+          echo "=== tcache を切って同じことをする ==="
+          GLIBC_TUNABLES=glibc.malloc.tcache_count=0 \
+            ./emacs -batch -q -f batch-byte-compile \
+              ../lisp/medit.el ../lisp/mailpost.el ../lisp/find-gc.el 2>&1 | tail -20
+          echo "tcache 無しの exit=$?"
