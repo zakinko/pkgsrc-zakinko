@@ -8,13 +8,13 @@ rather than in the nested kp_proc.p_pid the Darwin layout has.  The mib is
 longer as well: KERN_PROC2 takes the record size and the record count as
 two further elements, so it is six ints where KERN_PROC is four.
 
---- src/main/tools/process-tools-darwin.cc.orig
+--- src/main/tools/process-tools-darwin.cc.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/main/tools/process-tools-darwin.cc
 @@ -24,6 +24,12 @@
  #include "src/main/tools/logging.h"
  #include "src/main/tools/process-tools.h"
  
-+#if defined(__NetBSD__)
++#if defined(__NetBSD__) || defined(__DragonFly__)
 +// NetBSD declares struct kinfo_proc for the kernel only.  Userland asks
 +// KERN_PROC2 instead and gets struct kinfo_proc2, whose pid lives in p_pid.
 +#define kinfo_proc kinfo_proc2
@@ -23,11 +23,11 @@ two further elements, so it is six ints where KERN_PROC is four.
  namespace {
  
  int WaitForProcessToTerminate(uintptr_t ident) {
-@@ -72,7 +78,15 @@
+@@ -72,7 +78,15 @@ int WaitForProcessToTerminate(pid_t pid)
  }
  
  int WaitForProcessGroupToTerminate(pid_t pgid) {
-+#if defined(__NetBSD__)
++#if defined(__NetBSD__) || defined(__DragonFly__)
 +  // KERN_PROC2 takes the record size and the record count in the mib itself.
 +  int name[] = {CTL_KERN, KERN_PROC2, KERN_PROC_PGRP, pgid,
 +                static_cast<int>(sizeof(struct kinfo_proc)), 0};
@@ -39,7 +39,7 @@ two further elements, so it is six ints where KERN_PROC is four.
  
    for (;;) {
      // Query the list of processes in the group by using sysctl(3).
-@@ -84,11 +98,14 @@
+@@ -84,11 +98,14 @@ int WaitForProcessGroupToTerminate(pid_t
      size_t nprocs = 0;
      do {
        size_t len;
@@ -47,7 +47,7 @@ two further elements, so it is six ints where KERN_PROC is four.
 +      if (sysctl(name, name_len, 0, &len, nullptr, 0) == -1) {
          return -1;
        }
-+#if defined(__NetBSD__)
++#if defined(__NetBSD__) || defined(__DragonFly__)
 +      name[5] = len / sizeof(struct kinfo_proc);
 +#endif
        procs = (struct kinfo_proc *)malloc(len);
@@ -56,12 +56,12 @@ two further elements, so it is six ints where KERN_PROC is four.
          if (errno != ENOMEM) {
            DIE("Unexpected error code %d", errno);
          }
-@@ -105,7 +122,7 @@
+@@ -105,7 +122,7 @@ int WaitForProcessGroupToTerminate(pid_t
      if (nprocs == 1) {
        // Found only one process, which must be the leader because we have
        // purposely expect it as a zombie with WaitForProcess.
 -#if defined(__OpenBSD__)
-+#if defined(__OpenBSD__) || defined(__NetBSD__)
++#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
        if (procs->p_pid != pgid) {
  #else
        if (procs->kp_proc.p_pid != pgid) {

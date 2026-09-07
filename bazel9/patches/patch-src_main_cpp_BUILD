@@ -7,9 +7,9 @@ here as well.  The link options stay empty: -lprocstat in the FreeBSD arm
 is for libprocstat, which NetBSD does not have, and nothing else in that
 arm is needed.
 
---- src/main/cpp/BUILD.orig
+--- src/main/cpp/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/main/cpp/BUILD
-@@ -29,6 +29,10 @@
+@@ -29,6 +29,14 @@ cc_library(
              "blaze_util_bsd.cc",
              "blaze_util_posix.cc",
          ],
@@ -17,23 +17,31 @@ arm is needed.
 +            "blaze_util_bsd.cc",
 +            "blaze_util_posix.cc",
 +        ],
++        "//src/conditions:dragonfly": [
++            "blaze_util_bsd.cc",
++            "blaze_util_posix.cc",
++        ],
          "//src/conditions:openbsd": [
              "blaze_util_bsd.cc",
              "blaze_util_posix.cc",
-@@ -52,6 +56,8 @@
+@@ -52,6 +60,10 @@ cc_library(
          ],
          "//src/conditions:freebsd": [
          ],
 +        "//src/conditions:netbsd": [
 +        ],
++        "//src/conditions:dragonfly": [
++        ],
          "//src/conditions:openbsd": [
          ],
          "//src/conditions:windows": WIN_LINK_OPTS,
-@@ -116,6 +122,8 @@
+@@ -116,6 +128,10 @@ cc_binary(
              "-lprocstat",
              "-lm",
          ],
 +        "//src/conditions:netbsd": [
++        ],
++        "//src/conditions:dragonfly": [
 +        ],
          "//src/conditions:openbsd": [
          ],

@@ -4,13 +4,14 @@ Add the NetBSD arm of a select() that has one arm per system.
 
 Without an entry the default arm is taken, which is the Linux one.
 
---- third_party/BUILD.orig
+--- third_party/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
 +++ third_party/BUILD
-@@ -520,6 +520,7 @@
+@@ -520,6 +520,8 @@ UNNECESSARY_DYNAMIC_LIBRARIES = select({
      "//src/conditions:linux_aarch64": "*.so *.jnilib *.dll *.pyd",
      "//src/conditions:linux_ppc": "*.so *.jnilib *.dll *.pyd",
      "//src/conditions:freebsd": "*.so *.jnilib *.dll *.pyd",
 +    "//src/conditions:netbsd": "*.so *.jnilib *.dll *.pyd",
++    "//src/conditions:dragonfly": "*.so *.jnilib *.dll *.pyd",
      "//src/conditions:openbsd": "*.so *.jnilib *.dll *.pyd",
      # Default is to play it safe -- better have a big binary than a slow binary
      #   The empty string means nothing is to be removed from the library;

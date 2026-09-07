@@ -5,14 +5,14 @@ Get the byte-order macros from where NetBSD keeps them.
 <endian.h> is a glibc header.  The BSDs put htole32 and friends in
 <sys/endian.h>, and NetBSD belongs with them.
 
---- src/main/cpp/util/md5.h.orig
+--- src/main/cpp/util/md5.h.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/main/cpp/util/md5.h
 @@ -26,7 +26,7 @@
  
  #if defined(__linux__)
  #include <endian.h>
 -#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
++#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
  #include <sys/endian.h>
  #elif defined(__APPLE__) || defined(_WIN32)
  // Hopefully OSX and Windows will keep running solely on little endian CPUs, so:

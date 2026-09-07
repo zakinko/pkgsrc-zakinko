@@ -6,12 +6,17 @@ BUILD.tools is the copy that ships inside the bazel binary and is used
 when building the tools that come with it, so it needs the same setting as
 src/conditions/BUILD.
 
---- src/conditions/BUILD.tools.orig
+--- src/conditions/BUILD.tools.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/conditions/BUILD.tools
-@@ -5,6 +5,12 @@
+@@ -5,6 +5,17 @@ config_setting(
  )
  
  config_setting(
++    name = "dragonfly",
++    constraint_values = ["@platforms//os:dragonfly"],
++)
++
++config_setting(
 +    name = "netbsd",
 +    constraint_values = ["@platforms//os:netbsd"],
 +    visibility = ["//visibility:public"],

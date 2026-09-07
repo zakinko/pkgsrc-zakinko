@@ -7,17 +7,18 @@ no -r flag, so neither md5_darwin_freebsd.sh nor md5_openbsd.sh parses its
 output; files/md5_netbsd.sh is added for it.  The packaging script is
 rewritten to run the bash pkgsrc installs, because there is none in base.
 
---- src/BUILD.orig
+--- src/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
 +++ src/BUILD
-@@ -21,6 +21,7 @@
+@@ -21,6 +21,8 @@ sh_binary(
      srcs = select({
          "//src/conditions:darwin": ["md5_darwin_freebsd.sh"],
          "//src/conditions:freebsd": ["md5_darwin_freebsd.sh"],
 +        "//src/conditions:netbsd": ["md5_netbsd.sh"],
++        "//src/conditions:dragonfly": ["md5_darwin_freebsd.sh"],
          "//src/conditions:openbsd": ["md5_openbsd.sh"],
          "//conditions:default": ["md5_default.sh"],
      }),
-@@ -329,6 +330,7 @@
+@@ -329,6 +331,7 @@ genrule(
      outs = ["package-bazel-on-host-platform.sh"],
      cmd = select({
          "//src/conditions:freebsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/local/bin/bash@' > $@",
