@@ -80,6 +80,20 @@ BUILD_DEFS+=		GAMEDATAMODE
 #
 # 二度 dump するので DOC の連番が一つ進み、site-init.el も compile と圧縮の
 # 対象に入る。PLIST の三行はそのため。
+#
+# 測ったのは NetBSD 11.0/amd64 だけである。他の BSD では確かめようが無かった。
+# FreeBSD 15.1 と GhostBSD 26.1 では、この変更の有無にかかわらず 22.3 が
+# 建たない --- FreeBSD 15 が <utmp.h> を廃したので src/filelock.c が
+# 'utmp.h' file not found で落ちる。BUILD_TARGET=all に戻しても同じ所で
+# 止まることを実測した (落ちる target が Makefile:783 bootstrap から
+# Makefile:304 src に変わるだけ)。DragonFly は configure が
+# x86_64-pc-dragonfly を知らない。OpenBSD 7.9 は依存の archivers/bzip2 が
+# package 化できず (生成される PLIST に dd(1) の stderr が混入する)
+# emacs まで到達しない。
+#
+# つまり DOC の連番と site-init.el.gz が他の platform でどう出るかは
+# 未測である。22.3 がそれらの platform で建つようになったら、PLIST の
+# 三行を確かめ直すこと。
 BUILD_TARGET=		bootstrap
 
 EMACS_VERSION=		${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
