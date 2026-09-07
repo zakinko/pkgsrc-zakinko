@@ -36,20 +36,22 @@ that are dd(1)'s statistics output:
 reproducible after cleaning the obj tree here.  What runs dd was not
 determined; pkgsrc's own mk/ has no dd on the paths that build the list.
 
-This is not a pkgsrc bug.  A peer session reproduced the same shape on that
-box and settled it: od -c on .PLIST-1src showed find(1)'s stderr, then about
-a kilobyte of NUL, then an OutOfMemoryError from another session's JVM, and
-only then the correct PLIST.  A shell pipeline does not produce runs of NUL,
-so nothing in mk/plist wrote that file.  The box's /var/log/messages had
+Whether pkgsrc is at fault is not settled.  A peer session ran od -c on
+.PLIST-1src from the failing run: find(1)'s stderr, then about a kilobyte of
+NUL, then an OutOfMemoryError from another session's JVM, and only then the
+correct PLIST.  That box had 16GB of RAM against 256MB of swap, 95% full,
+with a Java build alongside, and /var/log/messages recorded
 
 	UVM: pid 5530 (bmake), uid 0 killed: out of swap
 
-with 16GB of RAM against 256MB of swap, 95% full, while a Java build ran
-alongside.  The lines are what an OOM-killed process left half-written, not
-anything pkgsrc emitted.  The first attempt here died the same way (exit
-137).  So emacs was never reached, for want of memory on a shared machine --
-if the same wall turns up again, look at /var/log/messages and the swap size
-before suspecting the package.
+The same peer re-ran it once the box was quiet -- load 0.94, nothing else
+building, no new "out of swap" during the run.  The NUL and the JVM text
+were gone; find(1)'s stderr was still there, ahead of the @comment line the
+PLIST starts with.  So memory pressure accounts for the NUL and the foreign
+text but not for the stray stderr, and what writes a non-filename line into
+that file is still unknown.  Those two runs are the peer's measurements; the
+dd lines above are what was measured here.  The first attempt here died of
+memory too (exit 137), so emacs was never reached either way.
 
 Two DragonFly 6.4 boxes were tried and both stopped responding partway
 through, the second while pkgsrc was still being unpacked.  155 packets over
