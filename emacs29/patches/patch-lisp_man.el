@@ -11,7 +11,7 @@ commit
 which was released only in 30.1, so 29.4 does not have it.  See debbugs
 66390.
 
-Measured on four platforms.  On each, the built emacs was asked for
+Measured on five platforms.  On each, the built emacs was asked for
 Man-translate-references ";id", against a control run that loaded the
 unpatched 29.4 man.el into the same binary:
 
@@ -20,8 +20,10 @@ unpatched 29.4 man.el into the same binary:
 	GhostBSD 26.1 (FreeBSD 15.0-RELEASE-p10)
 	                          "\\;id"   control ";id"
 	OpenBSD 7.9/amd64         "\\;id"   control ";id"
+	DragonFly 6.4-RELEASE/x86_64
+	                          "\\;id"   control ";id"
 
-man.elc carries shell-quote-argument in all four, so the patch is in the byte
+man.elc carries shell-quote-argument in all five, so the patch is in the byte
 code that actually runs and not only in the source.  Man-build-man-command is
 not a useful check on this branch: 29.4 returns a template with %s where the
 page name goes, the same string on both sides, and substitutes the name later
@@ -43,18 +45,16 @@ from.  Not a pkgsrc bug, and not the memory pressure it was first put down to.
 If a PLIST ever carries lines that are not filenames, look at `ls -l /dev/null'
 first.
 
-Not measured: DragonFly 6.4.  Two boxes were tried and both stopped responding
-partway through, the second while pkgsrc was still being unpacked; 155 packets
-over 45 minutes drew no reply and port 22 stayed closed.  Why is not known --
-unlike the OpenBSD box, which stayed up and kept its logs, these went away
-entirely.  The second was looked at before anything was started, had 16GB of
-RAM and no swap configured at all, and was given 16GB of swap first; swap use
-was 0% when it went.
+The DragonFly row took seven boxes.  Six stopped responding partway through
+and went away entirely, taking their logs with them, so why is still not
+known; the seventh built emacs29-nox11 and its dependencies in under an hour.
+devel/libuuid does not build on DragonFly and lang/python313 needs it, so that
+build also carried the one-line configure fix (ac_cv_type_cpu_set_t=no) sent
+to gnats-bugs as a pkgsrc problem report.
 
-This header has been rewritten several times while the OpenBSD failure was
-being diagnosed, so the file's checksum is no longer the one the first three
-rows were measured against.  The patch body below is unchanged throughout --
-one line removed and five added, at lisp/man.el:684.
+This header has been rewritten several times, so the file's checksum is no
+longer the one the earlier rows were measured against.  The patch body below
+is unchanged throughout -- one line removed and five added, at lisp/man.el:684.
 
 --- lisp/man.el.orig
 +++ lisp/man.el
