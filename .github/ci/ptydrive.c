@@ -85,12 +85,15 @@ main(int argc, char **argv)
 	{
 		struct pollfd pfd;
 		char b[4096];
-		int got = 0, quiet = 0;
+		int got = 0, quiet = 0, spent = 0;
 
 		pfd.fd = master;
 		pfd.events = POLLIN;
-		while (quiet < 3) {
+		/* 静かにならない箱で永久に待たない。15 秒で切り上げて送る。 */
+		while (quiet < 3 && spent < 30) {
 			int r = poll(&pfd, 1, 500);
+
+			spent++;
 			if (r > 0) {
 				n = read(master, b, sizeof(b));
 				if (n <= 0)
@@ -125,6 +128,13 @@ main(int argc, char **argv)
 				break;
 			(void)write(outfd, b, (size_t)n);
 		}
+		/*
+		 * 間は捨てられない。吸うだけにして usleep を外したら、出力の
+		 * 無い鍵が続くときに間が消えて、NetBSD も FreeBSD も GhostBSD も
+		 * 一つも効かなくなった。それまで通っていた箱を全部落としている。
+		 * 吸うのは pty を詰まらせないためで、待つ代わりではない。
+		 */
+		usleep(200000);
 	}
 
 	while ((n = read(master, buf, sizeof(buf))) > 0)
