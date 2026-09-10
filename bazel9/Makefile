@@ -191,8 +191,6 @@ EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_bootstrap
 EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_runtime_v
 EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_bootstrap_v
 EXTRA_BAZEL_ARGS+=	--repo_env=GOROOT=${GOROOT}
-EXTRA_BAZEL_ARGS+=	--host_linkopt=-lm
-EXTRA_BAZEL_ARGS+=	--linkopt=-lm
 # bazel runs every action with "env -" and hands it PATH and nothing else.
 # pkgsrc compiles through a wrapper that reads its configuration from the
 # environment, so the first compile stops with

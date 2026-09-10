@@ -24,7 +24,6 @@ SHA1 (patch-src_main_native_unix__jni.h) = df5b16ecf84879d191c29d5fd62828597c78c
 SHA1 (patch-src_main_native_unix__jni__bsd.cc) = a9cb8c51835b62e3fee3ec57de7b539bdb8a2bbe
 SHA1 (patch-src_main_tools_BUILD) = 06ea9fe45355a88de9cb22d206ac8dbe5692d7b2
 SHA1 (patch-src_main_tools_process-tools-darwin.cc) = b8f134fc9b98f71ba2212a5a08b21969777c2648
-SHA1 (patch-src_tools_singlejar_BUILD) = ee7d8506a4f5320202f7bc1ec2d94feecea72e6f
 SHA1 (patch-src_tools_singlejar_diag.h) = 4f36de6df9817ca15d8da4fe7da49f798de1dce8
 SHA1 (patch-src_tools_singlejar_mapped__file__posix.inc) = f7bf3af01a0aeacd2ad8d866a57d552549939a23
 SHA1 (patch-src_tools_singlejar_port.h) = 1e28188d9cb1ac0f88663267fcce735e1aa675ed
