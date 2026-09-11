@@ -3,11 +3,22 @@ load("@rules_python//python:py_runtime_pair.bzl", "py_runtime_pair")
 
 package(default_visibility = ["//visibility:public"])
 
+# These are the module patches applied through single_version_override in
+# MODULE.bazel.  The name carries the upstream pull request, so that when one
+# lands the patch stops applying and the build says so, instead of the fix
+# being carried twice.
+#
+#   platforms-pr142-pr143  bazelbuild/platforms#142 (netbsd in _translate_os)
+#                          bazelbuild/platforms#143 (dragonfly, and os/BUILD)
+#   rules_java-pr381       bazelbuild/rules_java#381 (jni_md_header)
+#   rules_go-pr4711        bazel-contrib/rules_go#4711, merged 2026-09-09;
+#                          drop this when the pinned version carries it
+#   zstd_jni-netbsd        no upstream pull request
 exports_files([
-    "platforms_netbsd.patch",
-    "rules_java_netbsd.patch",
-    "rules_go_netbsd.patch",
-    "zstd_jni_netbsd.patch",
+    "platforms-pr142-pr143.patch",
+    "rules_java-pr381.patch",
+    "rules_go-pr4711.patch",
+    "zstd_jni-netbsd.patch",
 ])
 
 # There is no remote JDK for NetBSD, so whichever remote JDK the build asks

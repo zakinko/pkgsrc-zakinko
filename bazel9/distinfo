@@ -3,7 +3,7 @@ $NetBSD$
 BLAKE2s (bazel-9.2.0-dist.zip) = 89db603e4ccb211e1cb4d2e72d231de3d2a0bcb3e2cc7ee730686b66edc51225
 SHA512 (bazel-9.2.0-dist.zip) = 40af06a2ca95ddf6dc92099a17c72ed330168284051d8ebc29a652d5d308edd0fc049a5c0c0aeaa7b285e86db0563bf2f52a27651255580254c8b097f1647fe9
 Size (bazel-9.2.0-dist.zip) = 221376908 bytes
-SHA1 (patch-MODULE.bazel) = 8461cf8f99cd9b1ef67a199b0df4221b3649c85f
+SHA1 (patch-MODULE.bazel) = fe640f920d55ec2b58b05031784f0f0622204baa
 SHA1 (patch-scripts_bootstrap_buildenv.sh) = 4d902926e792e764747ed82c67699b4da23ca859
 SHA1 (patch-scripts_packages_BUILD) = 768db2a0ceacc4eaec8cb0530b4685dad6176339
 SHA1 (patch-scripts_packages_template__bin.sh) = 0fe206329a8bf3a4adad7c23f4d1923bdaf78281

@@ -27,7 +27,7 @@ Go that is already installed.
 -    patches = ["//third_party:zstd-jni.patch"],
 +    patches = [
 +        "//third_party:zstd-jni.patch",
-+        "//toolchain_local:zstd_jni_netbsd.patch",
++        "//toolchain_local:zstd_jni-netbsd.patch",
 +    ],
  )
  
@@ -45,19 +45,19 @@ Go that is already installed.
 +single_version_override(
 +    module_name = "platforms",
 +    patch_strip = 1,
-+    patches = ["//toolchain_local:platforms_netbsd.patch"],
++    patches = ["//toolchain_local:platforms-pr142-pr143.patch"],
 +)
 +
 +single_version_override(
 +    module_name = "rules_java",
 +    patch_strip = 1,
-+    patches = ["//toolchain_local:rules_java_netbsd.patch"],
++    patches = ["//toolchain_local:rules_java-pr381.patch"],
 +)
 +
 +single_version_override(
 +    module_name = "rules_go",
 +    patch_strip = 1,
-+    patches = ["//toolchain_local:rules_go_netbsd.patch"],
++    patches = ["//toolchain_local:rules_go-pr4711.patch"],
 +    version = "0.59.0",
 +)
 +
