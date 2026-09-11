@@ -64,9 +64,10 @@ CONFLICTS+=	bazel-[0-9]*
 #
 # and i386 is in the value.  NOT_FOR_PLATFORM is subtractive, so it is what
 # actually keeps a 32-bit build from starting and running as far as
-# singlejar before it stops.
+# singlejar before it stops.  lang/go/version.mk assigns NOT_FOR_PLATFORM
+# with "=", so ours has to be appended after that include (below), not set
+# here where it would be overwritten.
 ONLY_FOR_PLATFORM=	NetBSD-*-x86_64 NetBSD-*-aarch64
-NOT_FOR_PLATFORM=	${LP32PLATFORMS}
 
 # What breaks on -current is not bazel but the abseil it fetches: the
 # __NetBSD__ branch in absl/debugging/internal/elf_mem_image.cc dereferences
@@ -83,6 +84,8 @@ USE_TOOLS+=	bash:run pkg-config unzip zip
 
 USE_JAVA=		yes
 USE_JAVA2=		21
+# openjdk21 is the only JDK pkgsrc offers on the platforms above; openjdk17
+# and earlier are gone, and there is no newer one packaged for NetBSD yet.
 PKG_JVMS_ACCEPTED=	openjdk21
 
 # rules_go fetches a Go SDK to match go.mod, and no Go SDK is distributed
@@ -96,6 +99,10 @@ TOOL_DEPENDS+=	go-[0-9]*:../../lang/go
 # package; the directory is named for the version it points at.
 .include "../../lang/go/version.mk"
 GOROOT=		${TOOLBASE}/go${GOVERSSUFFIX}
+
+# Keep 32-bit out (see the ONLY_FOR_PLATFORM note above): append rather than
+# assign, so this survives lang/go/version.mk having just set it.
+NOT_FOR_PLATFORM+=	${LP32PLATFORMS}
 
 # cwrappers appends -pie to anything it takes for a link of an executable
 # (mk/cwrappers.mk, append_executable), and it cannot see inside the @params
