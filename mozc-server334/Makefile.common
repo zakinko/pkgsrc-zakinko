@@ -160,10 +160,13 @@ do-configure:
 .endif
 
 CHECK_PIE_SUPPORTED=	no
+# data の四本は dist/ から読ませるだけで写さない。DIST_SUBDIR の下に居るので
+# symlink もそれを名指しする必要がある。${DISTDIR} だけを指すと、版の入らない
+# 古い写しが残っている箱でだけ解決してしまう。
 pre-configure:
 	${MKDIR} ${WRKSRC}/dist
 .for d in ${MOZC_DISTS}
-	${LN} -s ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
+	${LN} -s ${DISTDIR}/${DIST_SUBDIR}/${d} ${WRKSRC}/dist/${d}
 .endfor
 	${RM} -r ${WRKDIR}/.cwrapper
 
