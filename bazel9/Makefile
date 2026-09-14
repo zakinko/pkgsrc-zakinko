@@ -139,7 +139,6 @@ SUBST_FILES.bash+=	tools/buildstamp/get_workspace_status
 SUBST_FILES.bash+=	scripts/packages/bazel.sh
 SUBST_SED.bash=		-e '1s,/bin/bash,${TOOLS_PATH.bash},'
 
-MKPIE_SUPPORTED=		no
 CHECK_PIE_SUPPORTED=		no
 CHECK_PORTABILITY_SKIP+=	*
 
