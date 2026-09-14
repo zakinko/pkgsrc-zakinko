@@ -9,9 +9,20 @@ started doing regrettable things with backslash-escaped newlines.
 * Fix build on NetBSD 6.99.23, gcc -E -traditional-cpp with native X
   results syntax error. Use -traditional-cpp for Makefile generation only.
 
+* Give x86_64 a machine of its own when the operating system is not one of
+  the two spelled out above.  configure already learned `opsys=dragonfly'
+  from the hunk further down, but nothing set `machine', so DragonFly stopped
+  at
+
+	configure: error: Emacs hasn't been ported to `x86_64-pc-dragonfly'
+	systems.
+
+  editors/emacs20 carries the same arm; this one was left behind.  The netbsd
+  and openbsd cases are earlier in the same switch, so they still win.
+
 --- configure.orig	2003-03-18 09:19:12.000000000 -0500
-+++ configure	2015-02-16 21:19:13.000000000 -0500
-@@ -821,10 +821,18 @@ case "${canonical}" in
++++ configure
+@@ -821,10 +821,18 @@
        powerpc-*-netbsd*) machine=macppc ;;
        sparc*-*-netbsd*)	machine=sparc ;;
        vax-*-netbsd*)	machine=vax ;;
@@ -31,7 +42,7 @@ started doing regrettable things with backslash-escaped newlines.
    ## OpenBSD ports
    *-*-openbsd* )
      opsys=openbsd
-@@ -909,6 +917,10 @@ case "${canonical}" in
+@@ -909,6 +917,20 @@
      machine=macppc opsys=gnu-linux
    ;;
  
@@ -39,10 +50,20 @@ started doing regrettable things with backslash-escaped newlines.
 +    machine=amd64 opsys=gnu-linux
 +  ;;
 +
++  ## AMD/Intel x86_64 machines where we don't care about the manufacturer
++  x86_64-*-* )
++    machine=amd64
++    case "${canonical}" in
++      *-freebsd* )		opsys=freebsd ;;
++      *-dragonfly* )		opsys=dragonfly ;;
++      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
++    esac
++  ;;
++
    ## Altos 3068
    m68*-altos-sysv* )
      machine=altos opsys=usg5-2
-@@ -1659,6 +1671,7 @@ case "${canonical}" in
+@@ -1659,6 +1681,7 @@
        *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
        *-386bsd* )	        opsys=386bsd ;;
        *-freebsd* )	        opsys=freebsd ;;
@@ -50,7 +71,7 @@ started doing regrettable things with backslash-escaped newlines.
        *-nextstep* )             opsys=nextstep ;;
        ## Otherwise, we'll fall through to the generic opsys code at the bottom.
      esac
-@@ -2052,15 +2065,20 @@ else
+@@ -2052,15 +2075,20 @@
    CPP="${CC-cc} -E"
    # On the NeXT, cc -E runs the code through the compiler's parser,
    # not just through cpp.
@@ -73,7 +94,7 @@ started doing regrettable things with backslash-escaped newlines.
  if test -z "$ac_err"; then
    :
  else
-@@ -2068,16 +2086,19 @@ else
+@@ -2068,16 +2096,19 @@
    echo "configure: failed program was:" >&5
    cat conftest.$ac_ext >&5
    rm -rf conftest*
@@ -96,7 +117,7 @@ started doing regrettable things with backslash-escaped newlines.
  if test -z "$ac_err"; then
    :
  else
-@@ -2091,10 +2112,13 @@ else
+@@ -2091,10 +2122,13 @@
  #include "confdefs.h"
  #include <assert.h>
  Syntax Error
@@ -112,7 +133,7 @@ started doing regrettable things with backslash-escaped newlines.
  if test -z "$ac_err"; then
    :
  else
-@@ -2416,7 +2440,7 @@ ac_link="$ac_link $ld_switch_machine $ld
+@@ -2416,7 +2450,7 @@
  if test x"${OVERRIDE_CPPFLAGS}" != x; then
    CPPFLAGS="${OVERRIDE_CPPFLAGS}"
  else
@@ -121,7 +142,7 @@ started doing regrettable things with backslash-escaped newlines.
  fi
  
  
-@@ -5583,24 +5607,24 @@ if eval "test \"`echo '$ac_cv_header_'$a
+@@ -5583,24 +5617,24 @@
    echo "$ac_t""yes" 1>&6
    # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
  # Earlier versions can crash Emacs.
@@ -152,10 +173,14 @@ started doing regrettable things with backslash-escaped newlines.
  ; return 0; }
  EOF
  if { (eval echo configure:5607: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-@@ -9124,6 +9148,60 @@ EOF
- fi
- 
- 
+@@ -9120,9 +9154,63 @@
+   cat >> confdefs.h <<\EOF
+ #define size_t unsigned
+ EOF
++
++fi
++
++
 +# NETBSD: NetBSD's newer run-time linker fix.
 +if test $opsys = netbsd; then
 +  if test -f /usr/lib/crti.o; then
@@ -184,7 +209,7 @@ started doing regrettable things with backslash-escaped newlines.
 +main(void)
 +{
 +	int fd;
-+
+ 
 +	fd = posix_openpt(O_RDWR);
 +	if (fd == -1)
 +		return 1;
@@ -200,20 +225,28 @@ started doing regrettable things with backslash-escaped newlines.
 +  cat conftest.$ac_ext >&5
 +  rm -fr conftest*
 +  ac_cv_have_ptyfs=no
-+fi
+ fi
 +rm -fr conftest*
-+
+ 
 +echo "$ac_t""$ac_cv_have_ptyfs" 1>&6
 +if test $ac_cv_have_ptyfs = yes; then
 +  cat >> confdefs.h <<\EOF
 +#define HAVE_PTYFS 1
 +EOF
 +fi
-+
+ 
  # Set up the CFLAGS for real compilation, so we can substitute it.
  CFLAGS="$REAL_CFLAGS"
- CPPFLAGS="$REAL_CPPFLAGS"
-@@ -9735,7 +9813,7 @@ echo creating lib-src/Makefile
+@@ -9392,6 +9480,8 @@
+ do
+   case "\$ac_option" in
+   -recheck | --recheck | --rechec | --reche | --rech | --rec | --re | --r)
++	: Avoid regenerating within pkgsrc
++	exit 0
+     echo "running \${CONFIG_SHELL-/bin/sh} $0 $ac_configure_args --no-create --no-recursion"
+     exec \${CONFIG_SHELL-/bin/sh} $0 $ac_configure_args --no-create --no-recursion ;;
+   -version | --version | --versio | --versi | --vers | --ver | --ve | --v)
+@@ -9735,7 +9825,7 @@
    sed -e '1,/start of cpp stuff/d'\
        -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
        < Makefile.c > junk.c
@@ -222,7 +255,7 @@ started doing regrettable things with backslash-escaped newlines.
        sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
    cat junk1.c junk2.c > Makefile.new
    rm -f junk.c junk1.c junk2.c
-@@ -9751,7 +9829,7 @@ echo creating src/Makefile
+@@ -9751,7 +9841,7 @@
    sed -e '1,/start of cpp stuff/d'\
        -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
        < Makefile.c > junk.c

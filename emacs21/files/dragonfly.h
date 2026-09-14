@@ -41,13 +41,33 @@ Boston, MA 02111-1307, USA.  */
 #undef BSD_PGRPS
 #define GETPGRP_NO_ARG
 
-#ifdef DFLY_CRT_USRLIB
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/gcc44/crtbegin.o
-#define LIB_STANDARD -L/usr/lib/gcc44 -lgcc -lc -lgcc /usr/lib/gcc44/crtend.o /usr/lib/crtn.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/gcc41/crt1.o /usr/lib/gcc41/crti.o /usr/lib/gcc41/crtbegin.o
-#define LIB_STANDARD -L/usr/lib/gcc41 -lgcc -lc -lgcc /usr/lib/gcc41/crtend.o /usr/lib/gcc41/crtn.o
-#endif
+/* Link with the compiler driver, the way s/netbsd.h does for its own ELF
+   case.  What stood here named the crt files under /usr/lib/gcc44 and
+   /usr/lib/gcc41 -- the compilers DragonFly shipped around 2007 and 2009.
+   6.4 has gcc 8, neither directory exists, and the build stopped before
+   compiling a single file of src:
+
+	gmake[1]: *** No rule to make target '/usr/lib/gcc44/crtbegin.o',
+	needed by 'temacs'.
+
+   Naming today's directory instead would only move the problem to the next
+   compiler bump.  Under ORDINARY_LINK src/Makefile.in sets LD=$(CC) and cc
+   supplies its own start files, so there is nothing here to keep up to date.
+   START_FILES and LIB_STANDARD go with it rather than staying unused:
+   Makefile.in still honours START_FILES under ORDINARY_LINK ("config.h might
+   want to force START_FILES anyway"), so leaving them would hand cc a second
+   copy of crt1.o.
+
+   DFLY_CRT_USRLIB, which the package Makefile defines when /usr/lib/crtn.o
+   exists, only chose between the two spellings and has no other use here.
+
+   editors/emacs20 needed the same change; that one named gcc41.  */
+#define ORDINARY_LINK
+
+/* DragonFly replaced utmp with utmpx and no longer ships <utmp.h>, which
+   filelock.c includes outside any guard.  Nothing there needs it -- see
+   patch-src_filelock.c.  */
+#define NO_UTMP_H
 
 #define LD_SWITCH_SYSTEM_1
 #define UNEXEC unexelf.o
