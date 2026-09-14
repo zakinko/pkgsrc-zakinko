@@ -19,6 +19,10 @@
 
 DISTNAME=	mozc-3.34.6239
 CATEGORIES=	inputmethod
+# 版の入らない名前の distfile を八本取る。ken_all.zip と jigyosyo.zip は
+# 郵便局が毎月同じ名前で差し替えるので、distfiles/ に素で置くと次の版と
+# 衝突する。icon の png/svg も名前に版を持たない。
+DIST_SUBDIR=	${DISTNAME}
 MASTER_SITES=	${MASTER_SITE_GITHUB:=google/}
 GITHUB_PROJECT=	mozc
 GITHUB_TAG=	${PKGVERSION_NOREV}
@@ -47,8 +51,6 @@ MOZC_GYP_DISTFILE=	mozc-${MOZC_GYP_VERSION}.tar.gz
 SITES.${MOZC_GYP_DISTFILE}=	-https://github.com/google/mozc/archive/${MOZC_GYP_VERSION}.tar.gz
 DISTFILES+=	${MOZC_GYP_DISTFILE}
 
-EXTRACT_ONLY=	${DEFAULT_DISTFILES} ${_GITHUB_DEFAULT_DISTFILES} ${MOZC_GYP_DISTFILE}
-
 MOZC_DISTS+=	dictionary.png
 SITES.dictionary.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/chrome_reader_mode/materialiconsoutlined/48dp/1x/outline_chrome_reader_mode_black_48dp.png
 
@@ -76,6 +78,12 @@ SITES.jigyosyo.zip=	https://www.post.japanpost.jp/zipcode/dl/jigyosyo/zip/
 .for d in ${MOZC_DISTS}
 DISTFILES+=	${d}
 .endfor
+
+# MOZC_DISTS は展開する物ではない。png と svg は書庫ではなく、zip の二本は
+# post-configure が dictionary/ の下で開く。残り — 本体と GYP の足場と
+# GITHUB_SUBMODULES が足す tarball — は全部展開する。DISTFILES から
+# MOZC_DISTS を引く形にしてあるので、上の一覧に足せばここは追わなくてよい。
+EXTRACT_ONLY=	${DISTFILES:${MOZC_DISTS:@d@N${d}@:ts:}}
 
 WRKSRC=		${WRKDIR}/${DISTNAME}/src
 MOZC_GYP_SRC=	${WRKDIR}/mozc-${MOZC_GYP_VERSION}/src
@@ -115,16 +123,24 @@ SUBST_VARS.prefix+=	X11BASE
 # 3.33.6089 から GYP の足場を被せる。3.34 に同じ名前のファイルがあるときは
 # 3.34 を残す — 持ってきたいのは建て方であって、中身ではない。build_tools は
 # 共有のものが 3.34 側で直っているので、この向きでないと古いものが勝つ。
+#
+# 一覧を file へ落としてから読むのは、pipe の左に置くと ${FIND} の exitcode が
+# 捨てられるからである。木が空でも while は素通りし、足場が一本も入らないまま
+# do-configure まで進んで、build_mozc.py が無いという顔で落ちる。
 post-extract:
-	cd ${MOZC_GYP_SRC} && ${FIND} . -type f -print | while read f; do		\
+	${RUN} cd ${MOZC_GYP_SRC};						\
+	${FIND} . -type f -print > ${WRKDIR}/.mozc-gyp-files;			\
+	while read f; do							\
 		case "$$f" in							\
-		*.gyp|*.gypi|./gyp/*|./protobuf/*|./build_mozc.py|./build_tools/*) ;; \
+		*.gyp|*.gypi|./gyp/*|./protobuf/*|./build_mozc.py|./build_tools/*) \
+			;;							\
 		*)	continue ;;						\
 		esac;								\
-		[ -e "${WRKSRC}/$$f" ] && continue;				\
-		${MKDIR} "${WRKSRC}/`dirname $$f`";				\
+		if ${TEST} -e "${WRKSRC}/$$f"; then continue; fi;		\
+		${MKDIR} "${WRKSRC}/$${f%/*}";					\
 		${CP} -p "$$f" "${WRKSRC}/$$f";					\
-	done
+	done < ${WRKDIR}/.mozc-gyp-files;					\
+	${RM} -f ${WRKDIR}/.mozc-gyp-files
 
 OPSYSVARS+=	OSDEST
 .if empty(PKG_OPTIONS:Mgyp)
@@ -168,9 +184,9 @@ pre-configure:
 #
 # で analysis が落ちる。rules_python が配る interpreter に BSD 向けが無い
 # ため。system の python3 を使う runtime_env toolchain を足し、その名で
-# 見つかるよう tools に python3 を作る (箱には python3.13 しか無い)。
+# 見つかるよう python3 という名前が PATH に要る (箱には python3.13 しか
+# 無い)。上の lang/python/tool.mk が ${BUILDLINK_DIR}/bin に python と
+# python3 の両方を張るので、package 側で作る物は無い。
 # server は python の genrule を引かないので気づけず、elisp/tool/renderer
 # だけが落ちた。
 BAZEL_ARGS+=		--extra_toolchains=@rules_python//python/runtime_env_toolchains:all
-TOOLS_CREATE+=		python3
-TOOLS_PATH.python3=	${PYTHONBIN}

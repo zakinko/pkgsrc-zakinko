@@ -36,9 +36,9 @@ PKG_SUGGESTED_OPTIONS+=	gyp
 # option の選び方が違うようには見えない。
 .if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
-PKG_FAIL_REASON+=	"The bazel build needs zakinko/bazel9, which builds"	\
-			"only on NetBSD x86_64 and aarch64."			\
-			"Set PKG_OPTIONS.mozc=gyp to build mozc here."
+PKG_FAIL_REASON+=	"The bazel build needs zakinko/bazel9, which builds"
+PKG_FAIL_REASON+=	"only on NetBSD x86_64 and aarch64."
+PKG_FAIL_REASON+=	"Set PKG_OPTIONS.mozc=gyp to build mozc here."
 .endif
 
 # gyp の道が届く範囲は build_mozc.py が決める。当て物で NetBSD を足したので

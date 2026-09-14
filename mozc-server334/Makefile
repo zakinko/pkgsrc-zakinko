@@ -24,8 +24,8 @@ do-build:
 			--jobs=${MAKE_JOBS:U1} \
 			--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
 			--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
-			--host_action_env=PATH=${PATH} \
-			--action_env=PATH=${PATH} \
+			--host_action_env=PATH=${PATH:Q} \
+			--action_env=PATH=${PATH:Q} \
 			--verbose_failures \
 			${BAZEL_ARGS} \
 			--config oss_linux --config release_build

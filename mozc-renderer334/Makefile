@@ -34,7 +34,7 @@ MAKE_ENV+=	BAZEL_CXXOPTS=-std=gnu++17:-I${PREFIX}/include:-I${X11BASE}/include
 # ${PREFIX}/qt6/lib に居て buildlink は LDFLAGS で -L を渡すが、bazel は
 # env - で環境を捨て、cc_configure は LDFLAGS を読まない。読むのは
 # BAZEL_LINKOPTS なので、そこから toolchain に焼き込む。
-MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:-Wl,-R${PREFIX}/qt6/lib:-L${PREFIX}/lib:-Wl,-R${PREFIX}/lib:-L${X11BASE}/lib:-Wl,-R${X11BASE}/lib
+MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:${COMPILER_RPATH_FLAG}${PREFIX}/qt6/lib:-L${PREFIX}/lib:${COMPILER_RPATH_FLAG}${PREFIX}/lib:-L${X11BASE}/lib:${COMPILER_RPATH_FLAG}${X11BASE}/lib
 
 .include "../../zakinko/mozc-server334/options.mk"
 
@@ -48,8 +48,8 @@ do-build:
 			--jobs=${MAKE_JOBS:U1} \
 			--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
 			--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
-			--host_action_env=PATH=${PATH} \
-			--action_env=PATH=${PATH} \
+			--host_action_env=PATH=${PATH:Q} \
+			--action_env=PATH=${PATH:Q} \
 			--verbose_failures \
 			${BAZEL_ARGS} \
 			--config oss_linux --config release_build

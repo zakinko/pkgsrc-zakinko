@@ -1,7 +1,6 @@
 # $NetBSD$
 
 PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/mozc-/mozc-elisp-/}
-CATEGORIES=	inputmethod editors
 
 # helper 自身は変換をしない。mozc_server と話すだけで、client は版の文字列が
 # 違う server を拒む (client.cc の CheckVersionOrRestartServer)。package では
@@ -33,8 +32,8 @@ do-build:
 			--jobs=${MAKE_JOBS:U1} \
 			--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
 			--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
-			--host_action_env=PATH=${PATH} \
-			--action_env=PATH=${PATH} \
+			--host_action_env=PATH=${PATH:Q} \
+			--action_env=PATH=${PATH:Q} \
 			--verbose_failures \
 			${BAZEL_ARGS} \
 			--config oss_linux --config release_build && \
@@ -67,4 +66,9 @@ do-install:
 .endif
 
 .include "../../zakinko/mozc-server334/Makefile.common"
+
+# Makefile.common が CATEGORIES を代入で置くので、足すのはその後でなければ
+# ならない。前に書くと editors が黙って消える。
+CATEGORIES+=	editors
+
 .include "../../mk/bsd.pkg.mk"
