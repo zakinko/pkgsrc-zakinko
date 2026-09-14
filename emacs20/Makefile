@@ -46,7 +46,7 @@ COMMENT=	GNU editing macros (editor)
 LICENSE=	gnu-gpl-v2
 
 # configure: error: Emacs hasn't been ported to `x86_64-apple-darwin17' systems.
-BROKEN_ON_PLATFORM=	Darwin-*-* DragonFly-*-*
+BROKEN_ON_PLATFORM=	Darwin-*-*
 
 CONFLICTS=	mule2-[0-9]*
 
@@ -97,6 +97,31 @@ CFLAGS+=	-fno-zero-initialized-in-bss
 .if !empty(PKGSRC_COMPILER:Mclang)
 TOOL_DEPENDS+=	tradcpp-[0-9]*:../../devel/tradcpp
 MAKEFILECPP=	${PREFIX}/bin/tradcpp
+# On FreeBSD 14.4 with clang 19, -O2 makes the dump loop forever.  loadup.el's
+#
+#	(condition-case () (delete-file "emacs") (file-error nil))
+#
+# never finishes: truss counts unlink("emacs") returning ENOENT 129145 times in
+# three seconds, so the body of the condition-case is being re-entered rather
+# than its handler.  -O1 dumps and the result runs; -fno-strict-aliasing at -O2
+# does not help, so it is not that.  The pass responsible has not been
+# identified -- what is written here is what was measured.
+.if ${OPSYS} == "FreeBSD"
+# CFLAGS+= would leave -O2 -O1 on the line; the last one wins, but say it once.
+BUILDLINK_TRANSFORM+=	opt:-O2:-O1
+.endif
+
+# emacs 20.7 was written against GNU89, where a plain `inline' definition also
+# emits an out-of-line copy.  Under the C99 rule it does not, so any call the
+# compiler chooses not to expand is left dangling:
+#
+#	ld: error: undefined symbol: dec_bytepos
+#
+# clang 19 leaves one such call to src/syntax.c's INLINE dec_bytepos.  The flag
+# restores the semantics the source expects rather than annotating each of the
+# INLINE functions, some of which (intervals.h's temp_set_point_both) are
+# declared extern in a header and so cannot simply become static.
+CFLAGS+=	-fgnu89-inline
 .else
 MAKEFILECPP=	${CPP} -traditional-cpp
 .endif

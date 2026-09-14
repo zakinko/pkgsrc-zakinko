@@ -41,13 +41,25 @@ Boston, MA 02111-1307, USA.  */
 #undef BSD_PGRPS
 #define GETPGRP_NO_ARG
 
-#ifdef DFLY_CRT_USRLIB
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/gcc41/crtbegin.o
-#define LIB_STANDARD -L/usr/lib/gcc41 -lgcc -lc -lgcc /usr/lib/gcc41/crtend.o /usr/lib/crtn.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/gcc41/crt1.o /usr/lib/gcc41/crti.o /usr/lib/gcc41/crtbegin.o
-#define LIB_STANDARD -L/usr/lib/gcc41 -lgcc -lc -lgcc /usr/lib/gcc41/crtend.o /usr/lib/gcc41/crtn.o
-#endif
+/* Link with the compiler driver, the way s/netbsd.h does for its own ELF
+   case.  What stood here named the crt files under /usr/lib/gcc41 -- gcc 4.1,
+   which DragonFly shipped around 2007.  6.4 has gcc 8, that directory does not
+   exist, and the build stopped before compiling a single file of src:
+
+	gmake[1]: *** No rule to make target '/usr/lib/gcc41/crtbegin.o',
+	needed by 'temacs'.
+
+   Naming today's directory instead would only move the problem to the next
+   compiler bump.  Under ORDINARY_LINK src/Makefile.in sets LD=$(CC) and cc
+   supplies its own start files, so there is nothing here to keep up to date.
+   START_FILES and LIB_STANDARD go with it rather than staying unused:
+   Makefile.in still honours START_FILES under ORDINARY_LINK ("config.h might
+   want to force START_FILES anyway"), so leaving them would hand cc a second
+   copy of crt1.o.
+
+   DFLY_CRT_USRLIB, which the package Makefile defines when /usr/lib/crtn.o
+   exists, only chose between the two spellings and has no other use here.  */
+#define ORDINARY_LINK
 
 #define LD_SWITCH_SYSTEM_1
 #define UNEXEC unexelf.o
@@ -106,3 +118,29 @@ Boston, MA 02111-1307, USA.  */
    be seen again in a later read(2), without the CRs.  */
 
 #define BROKEN_PTY_READ_AFTER_EAGAIN 1
+
+/* DragonFly replaced utmp with utmpx and no longer ships <utmp.h>, which
+   filelock.c includes.  Nothing there needs it -- see
+   patch-src_filelock.c.  */
+#define NO_UTMP_H
+
+/* Do not put the relocating allocator in front of malloc.  With REL_ALLOC on,
+   ralloc.c takes over __morecore, and its obtain() insists that each new
+   chunk start exactly where the last one ended:
+
+	if ((*real_morecore) (get) != last_heap->end)
+	  return 0;
+
+   Once anything else has moved the break, that test fails, the allocation
+   returns 0, and emacs reports it as running out of memory.  Here it did so
+   while dumping, with plenty of room left -- the data limit was 32G, the box
+   had 2G free, and a standalone sbrk() grew the break by 65M without
+   complaint:
+
+	memory_full <- lisp_malloc <- allocate_vectorlike <- Fmake_vector
+	  <- make_sub_char_table <- Faset <- map_char_table <- set_case_table
+
+   With this undef the same tree dumps and installs, and the dumped emacs runs
+   (10 starts out of 10).  s/gnu-linux.h turns REL_ALLOC off for the same kind
+   of reason where glibc's malloc uses mmap.  */
+#undef REL_ALLOC
