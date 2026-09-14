@@ -14,9 +14,40 @@ windows_env alone, so dropping the override costs nothing here.
 googletest and the rules_android/rules_go pair reached through protobuf are
 the same versions upstream moved to for bazel 9 in 3.34.
 
+The abseil-cpp override carries abseil/abseil-cpp#2160.  bzlmod takes
+abseil from the registry rather than from third_party/, so the
+patches/patch-abseil2160-* that fix the gyp build never reach this one;
+the same change is applied here from toolchain_local/, which post-extract
+copies into the workspace.
+
 --- MODULE.bazel.orig
 +++ MODULE.bazel
-@@ -49,7 +49,7 @@
+@@ -37,6 +37,24 @@
+     repo_name = "com_google_absl",
+ )
+ 
++# abseil/abseil-cpp#2160: DragonFly is on none of the platform lists, and
++# the one in raw_logging.cc lacks NetBSD as well, so ABSL_RAW_LOG writes
++# nothing there.  The gyp build gets the same change from patches/.
++# 20250814.1, not the .0 named above: .0 has no load() for cc_library
++# and bazel 9 rejects it, and .1 is what the graph resolves to anyway.
++single_version_override(
++    module_name = "abseil-cpp",
++    version = "20250814.1",
++    patch_strip = 1,
++    patches = [
++        "//toolchain_local:abseil2160-absl_base_config.h.patch",
++        "//toolchain_local:abseil2160-absl_base_internal_raw__logging.cc.patch",
++        "//toolchain_local:abseil2160-absl_base_internal_sysinfo.cc.patch",
++        "//toolchain_local:abseil2160-absl_debugging_internal_vdso__support.cc.patch",
++        "//toolchain_local:abseil2160-absl_time_internal_cctz_src_time__zone__format.cc.patch",
++    ],
++)
++
+ # protobuf: 32.0 2025-08-15
+ # https://github.com/protocolbuffers/protobuf
+ bazel_dep(
+@@ -49,7 +67,7 @@
  # https://github.com/google/googletest
  bazel_dep(
      name = "googletest",
@@ -25,7 +56,7 @@ the same versions upstream moved to for bazel 9 in 3.34.
      repo_name = "com_google_googletest",
  )
  
-@@ -123,18 +123,26 @@
+@@ -123,18 +141,26 @@
  # https://github.com/bazelbuild/rules_cc/
  bazel_dep(
      name = "rules_cc",

@@ -65,6 +65,7 @@ WRKSRC=		${WRKDIR}/${DISTNAME}/src
 
 DISTINFO_FILE=	${.CURDIR}/../../inputmethod/mozc-server333/distinfo
 PATCHDIR=	${.CURDIR}/../../inputmethod/mozc-server333/patches
+FILESDIR=	${.CURDIR}/../../inputmethod/mozc-server333/files
 
 PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
@@ -86,6 +87,23 @@ TOOL_DEPENDS+=	bazel>=9.0.0:../../devel/bazel9
 # dependencies while building, so lining up tarballs under --distdir the way
 # the 2.29 packages do does not close the build.
 ALLOW_NETWORK_ACCESS=	yes
+
+# bzlmod takes abseil-cpp from the registry, not from third_party/, so the
+# patches/patch-abseil2160-* the gyp build applies never reach it.  The
+# same change goes in as a single_version_override patch, and the file it
+# names has to be inside the workspace.  The BUILD next to it also
+# registers a python toolchain: rules_python has no interpreter for
+# NetBSD, and without one analysis stops at the first py_binary.
+post-extract:
+	${CP} -R ${FILESDIR}/toolchain_local ${WRKSRC}/toolchain_local
+
+SUBST_CLASSES+=		python
+SUBST_STAGE.python=	pre-build
+SUBST_MESSAGE.python=	Pointing the python toolchain at ${PYTHONBIN}
+SUBST_FILES.python+=	toolchain_local/BUILD
+SUBST_VARS.python+=	PYTHONBIN
+
+BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:python3_toolchain
 .else
 TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
 TOOL_DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
