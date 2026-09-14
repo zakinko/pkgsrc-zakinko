@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD を platform の一覧に足す。
+Add NetBSD to the list of platforms.
 
 --- build_tools/util.py.orig
 +++ build_tools/util.py

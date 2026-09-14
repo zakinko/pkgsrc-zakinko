@@ -1,6 +1,6 @@
 $NetBSD$
 
-codec_factory は codec に畳まれた。
+codec_factory was folded into codec.
 
 --- dictionary/file/dictionary_file_test.gyp.orig
 +++ dictionary/file/dictionary_file_test.gyp

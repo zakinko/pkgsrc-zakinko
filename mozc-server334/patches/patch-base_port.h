@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD と FreeBSD を platform の一覧に足す。
+Add NetBSD and FreeBSD to the list of platforms.
 
 --- base/port.h.orig
 +++ base/port.h

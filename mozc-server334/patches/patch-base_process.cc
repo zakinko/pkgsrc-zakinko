@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD を Linux と同じ枝に入れる。xdg-open は pkgsrc の下に入る。
+Put NetBSD on the same branch as Linux.  xdg-open lives under pkgsrc.
 
 --- base/process.cc.orig
 +++ base/process.cc

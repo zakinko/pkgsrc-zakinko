@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD の CPU 使用率は sysctl KERN_CP_TIME で取る。
+On NetBSD, CPU usage comes from sysctl KERN_CP_TIME.
 
 --- base/cpu_stats.cc.orig
 +++ base/cpu_stats.cc

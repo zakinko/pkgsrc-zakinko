@@ -5,24 +5,24 @@ PKG_SUPPORTED_OPTIONS=	gyp
 
 .include "../../mk/bsd.prefs.mk"
 
-# 3.34.6239 に gyp は入っていない。src/build_mozc.py も src/gyp/ も .gyp も
-# 一本も無く、建て方は bazel だけである。消えたのは 3.34 ではなく 3.33.6133
-# で、その一つ前の 3.33.6089 が gyp を積んだ最後のタグになる。gyp option は
-# その足場を 3.33.6089 の tarball から持ってきて使う (Makefile.common の
-# post-extract)。
+# 3.34.6239 ships no GYP: no src/build_mozc.py, no src/gyp/, not one .gyp file.
+# Bazel is the only way upstream builds it.  GYP went away in 3.33.6133, not in
+# 3.34, so 3.33.6089 is the last tag that still has it, and the gyp option
+# brings that scaffolding across from the 3.33.6089 tarball (see post-extract
+# in Makefile.common).
 #
-# bazel の道は zakinko/bazel9 が要る。bazel は bootstrap に JVM が要り、
-# mk/java-vm.mk が NetBSD で openjdk21 を出すのは x86_64 と i386 と aarch64
-# だけで、そのうち i386 は bazel 自身が拒む:
+# The Bazel path needs zakinko/bazel9.  Bazel needs a JVM to bootstrap, and
+# mk/java-vm.mk offers openjdk21 on NetBSD only for x86_64, i386 and aarch64.
+# Of those, Bazel itself turns i386 away:
 #
 #	src/tools/singlejar/mapped_file_posix.inc
-#	#error This code for 64 bit Unix.	(__SIZEOF_POINTER__ == 8 を要求)
+#	#error This code for 64 bit Unix.	(wants __SIZEOF_POINTER__ == 8)
 #
-# 残るのは x86_64 と aarch64 の二つ。それ以外では bazel が建たないので、
-# gyp を既定にする。
+# That leaves x86_64 and aarch64.  Everywhere else Bazel will not build, so
+# gyp is the default there.
 #
-# 実測したのは NetBSD/x86_64 だけである。aarch64 を数に入れているのは JDK と
-# 64bit の条件が両方満たされるからで、誰かが建てたからではない。
+# Only NetBSD/x86_64 has actually been measured.  aarch64 is counted because
+# both conditions -- a JDK and 64 bits -- hold, not because anyone built it.
 .if ${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
 PKG_SUGGESTED_OPTIONS+=	gyp
@@ -30,10 +30,10 @@ PKG_SUGGESTED_OPTIONS+=	gyp
 
 .include "../../mk/bsd.options.mk"
 
-# 既定を外して bazel を頼まれたときの止め方。ここが無いと
-# zakinko/bazel9 の ONLY_FOR_PLATFORM に当たって「bazel-9.2.0 is not
-# available for this platform」で止まり、package が足りないように見えて、
-# option の選び方が違うようには見えない。
+# How it stops when the default is overridden and Bazel is asked for anyway.
+# Without this the build walks into the ONLY_FOR_PLATFORM of zakinko/bazel9
+# and stops with "bazel-9.2.0 is not available for this platform", which reads
+# as a missing package rather than as the wrong choice of option.
 .if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
 PKG_FAIL_REASON+=	"The bazel build needs zakinko/bazel9, which builds"
@@ -41,12 +41,13 @@ PKG_FAIL_REASON+=	"only on NetBSD x86_64 and aarch64."
 PKG_FAIL_REASON+=	"Set PKG_OPTIONS.mozc=gyp to build mozc here."
 .endif
 
-# gyp の道が届く範囲は build_mozc.py が決める。当て物で NetBSD を足したので
-# NetBSD と、上流が元から見ている Linux では通る。FreeBSD や SunOS では
+# How far the gyp path reaches is build_mozc.py's decision.  A patch adds
+# NetBSD, so NetBSD works, as does the Linux upstream already handles.  On
+# FreeBSD or SunOS it stops with
 #
 #	CRITICAL: target_platform FreeBSD is invalid.
 #
-# で止まる。理由が明示されるので、ここでは platform を狭めていない。
+# which says why, so no platform list is narrowed here.
 
-# どちらで建てても版の文字列は同じなので、実行時には入れ替えが利く。
-# なぜそれを言う必要があるかは patch-build__tools_mozc__version.py を参照。
+# Either path produces the same version string, so the two are interchangeable
+# at run time.  patch-build__tools_mozc__version.py says why that needs saying.

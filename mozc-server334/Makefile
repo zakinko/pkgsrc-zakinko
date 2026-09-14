@@ -6,7 +6,7 @@ INSTALLATION_DIRS+=	libexec
 
 .include "../../zakinko/mozc-server334/options.mk"
 
-# GUI を建てないので Qt は要らない。
+# No GUI is built here, so Qt is not needed.
 MOZC_GYP_ARGS=	--noqt
 
 post-configure:

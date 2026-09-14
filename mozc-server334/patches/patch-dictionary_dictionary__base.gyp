@@ -1,13 +1,13 @@
 $NetBSD$
 
-3.34 の user_pos は 3.33.6089 に無かったものを二つ要る。
+user_pos in 3.34 needs two things that 3.33.6089 did not have.
 
-一つは protocol/user_dictionary_storage.pb.h で、user_pos.h が読むように
-なった。もう一つは dictionary/pos_cost_map.inc で、これは 3.34 で新しく
-現れた生成物である。作り方は隣の gen_pos_map と同じ形で、data/rules の
-user_pos.def から gen_pos_cost_map.py が起こす。
+One is protocol/user_dictionary_storage.pb.h, which user_pos.h now includes.
+The other is dictionary/pos_cost_map.inc, a generated file that is new in
+3.34; it is produced the same way as gen_pos_map next to it, by
+gen_pos_cost_map.py out of data/rules/user_pos.def.
 
-どちらも BUILD.bazel の同名の target が並べているものに合わせてある。
+Both match what the target of the same name in BUILD.bazel lists.
 
 --- dictionary/dictionary_base.gyp.orig
 +++ dictionary/dictionary_base.gyp

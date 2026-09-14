@@ -1,8 +1,9 @@
 $NetBSD$
 
-time_zone_name_win.cc は abseil 20260107.1 で現れた Windows 専用の source で、
-glob がそのまま拾ってしまう。3.34 が指している abseil は 3.33.6089 のものより
-新しいので、GYP の側の除外一覧はそのぶん追いつかせる必要がある。
+time_zone_name_win.cc is a Windows-only source that appeared in abseil
+20260107.1, and the glob picks it up regardless.  The abseil 3.34 points at is
+newer than the one 3.33.6089 used, so the exclusion list on the GYP side has
+to catch up by that much.
 
 --- base/absl.gyp.orig
 +++ base/absl.gyp

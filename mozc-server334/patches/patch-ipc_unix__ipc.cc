@@ -1,11 +1,11 @@
 $NetBSD$
 
-NetBSD で unix domain socket の相手を確かめる。
+Check the peer of a unix domain socket on NetBSD.
 
-peer の credential は LOCAL_PEEREID と struct unpcbid で取る。あわせて
-sockaddr_un の長さを offsetof で数える。sizeof(sun_family) は sun_path の
-offset ではない。NetBSD の sun_family は 1 バイトで前に sun_len があるので、
-一文字短い path を bind してしまう。
+The peer credentials come from LOCAL_PEEREID and struct unpcbid.  The length
+of the sockaddr_un is counted with offsetof at the same time: sizeof(sun_family)
+is not the offset of sun_path.  NetBSD's sun_family is one byte with sun_len in
+front of it, so the old arithmetic binds a path one character short.
 
 --- ipc/unix_ipc.cc.orig
 +++ ipc/unix_ipc.cc

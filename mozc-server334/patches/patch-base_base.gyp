@@ -1,10 +1,11 @@
 $NetBSD$
 
-3.34 は Singleton をやめ、singleton.h ごと落とした。GYP の側にはまだ
-singleton だけを建てる target が残っているので外す。
+3.34 gave up on Singleton and dropped singleton.h with it.  The GYP side still
+has a target that builds nothing but singleton, so it goes.
 
-入れ替わりに置く protobuf_util は 3.34 で現れたもので、renderer_style_handler
-が要る。依存は BUILD.bazel の同名の target に合わせてある。
+What replaces it, protobuf_util, is new in 3.34 and is needed by
+renderer_style_handler.  Its dependencies match the target of the same name in
+BUILD.bazel.
 
 --- base/base.gyp.orig
 +++ base/base.gyp

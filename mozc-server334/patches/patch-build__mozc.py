@@ -1,10 +1,10 @@
 $NetBSD$
 
-NetBSD を platform の一覧に足す。
+Add NetBSD to the list of platforms.
 
-あわせて版の定義の在処を直す。3.34 は data/version/mozc_version_template.bzl
-をやめて version.bzl にした。中身は同じ形なので、写しを置かずに参照先だけ
-変える。
+Also fix where the version definition is read from.  3.34 replaced
+data/version/mozc_version_template.bzl with version.bzl.  The contents have
+the same shape, so only the reference changes; no copy is kept here.
 
 --- build_mozc.py.orig
 +++ build_mozc.py

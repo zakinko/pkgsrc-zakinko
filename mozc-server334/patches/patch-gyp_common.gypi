@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD を target_platform と OS の条件に足す。
+Add NetBSD to the target_platform and OS conditions.
 
 --- gyp/common.gypi.orig
 +++ gyp/common.gypi

@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD の Qt は pkgsrc の下に入る。
+On NetBSD, Qt lives under pkgsrc.
 
 --- gui/qt_tool_dir.gypi.orig
 +++ gui/qt_tool_dir.gypi

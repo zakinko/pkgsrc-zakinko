@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD を Linux と同じ枝に入れる。
+Put NetBSD on the same branch as Linux.
 
 --- base/file/recursive.cc.orig
 +++ base/file/recursive.cc

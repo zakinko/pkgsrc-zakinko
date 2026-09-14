@@ -1,11 +1,11 @@
 $NetBSD$
 
-NetBSD で server の path を sysctl から取る。
+Get the server path from sysctl on NetBSD.
 
-NetBSD の procfs は noauto なので、素の箱では /proc/<pid>/exe が読めない。
-FreeBSD の枝は既に sysctl を叩いているのに、NetBSD だけ Linux の枝に相乗り
-していた。MIB の並びは FreeBSD と違い、pid が三番目で KERN_PROC_PATHNAME が
-四番目になる。
+NetBSD mounts procfs noauto, so /proc/<pid>/exe cannot be read on a stock
+machine.  The FreeBSD branch already asks sysctl, but NetBSD was riding along
+on the Linux one.  The MIB is not laid out as on FreeBSD: the pid is third and
+KERN_PROC_PATHNAME fourth.
 
 --- ipc/ipc_path_manager.cc.orig
 +++ ipc/ipc_path_manager.cc

@@ -1,9 +1,10 @@
 $NetBSD$
 
-NetBSD を Linux と同じ枝に入れ、置き場を pkgsrc のものにする。
+Put NetBSD on the same branch as Linux, and point the locations at pkgsrc.
 
-3.34 は MOZC_SERVER_DIR を build 時に渡せるようになったが、gyp から文字列
-マクロを渡すのは引用符の始末が要る。既定値の側を書き換える方が短い。
+3.34 lets MOZC_SERVER_DIR be passed in at build time, but handing a string
+macro through GYP means dealing with the quoting.  Rewriting the default is
+shorter.
 
 --- base/system_util.cc.orig
 +++ base/system_util.cc

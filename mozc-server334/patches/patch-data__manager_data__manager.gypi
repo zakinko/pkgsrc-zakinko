@@ -1,6 +1,6 @@
 $NetBSD$
 
-版の定義の移動。patch-build__mozc.py と同じ理由。
+The version definition moved; same reason as patch-build__mozc.py.
 
 --- data_manager/data_manager.gypi.orig
 +++ data_manager/data_manager.gypi

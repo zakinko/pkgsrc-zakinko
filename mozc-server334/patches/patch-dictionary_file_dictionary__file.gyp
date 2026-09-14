@@ -1,7 +1,7 @@
 $NetBSD$
 
-3.34 は codec_factory.cc と codec_util.cc を codec.cc へ畳んだ。どちらも
-その一本しか source を持たない target なので、target ごと落とす。
+3.34 folded codec_factory.cc and codec_util.cc into codec.cc.  Each was the
+only source of its target, so both targets go.
 
 --- dictionary/file/dictionary_file.gyp.orig
 +++ dictionary/file/dictionary_file.gyp

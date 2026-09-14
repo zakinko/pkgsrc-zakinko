@@ -1,7 +1,7 @@
 $NetBSD$
 
-singleton_test.cc と strings/zstring_view_test.cc は 3.34 に無い。
-zstring_view_test は他に source を持たないので target ごと落とす。
+singleton_test.cc and strings/zstring_view_test.cc are not in 3.34.
+zstring_view_test has no other source, so the whole target goes.
 
 --- base/base_test.gyp.orig
 +++ base/base_test.gyp

@@ -1,8 +1,9 @@
 $NetBSD$
 
-NetBSD を platform の一覧に足す。番号は Linux と同じ 2 にしてある。ここは
-版の文字列に入る数字で、gyp で建てたものと bazel で建てたものが同じ版として
-扱われる必要がある。bazel 側は oss_linux として建てるので 2 になる。
+Add NetBSD to the list of platforms.  The number is 2, the same as Linux.
+It goes into the version string, and a build made with GYP has to be treated
+as the same version as one made with Bazel.  The Bazel side builds as
+oss_linux, which is 2.
 
 --- build_tools/mozc_version.py.orig
 +++ build_tools/mozc_version.py

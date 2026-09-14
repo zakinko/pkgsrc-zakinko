@@ -1,9 +1,9 @@
 $NetBSD$
 
-NetBSD の renderer は X11 を pkgsrc の下から引く。
+The renderer on NetBSD gets X11 from under pkgsrc.
 
-あわせて renderer_style_handler に protobuf_util を繋ぐ。3.34 で
-base/protobuf_util.h を読むようになった。
+It also wires protobuf_util into renderer_style_handler, which started
+including base/protobuf_util.h in 3.34.
 
 --- renderer/renderer.gyp.orig
 +++ renderer/renderer.gyp

@@ -7,33 +7,36 @@ INSTALLATION_DIRS+=	libexec share/icons
 DEPENDS+=	xdg-utils-[0-9]*:../../misc/xdg-utils
 DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server334
 
-# 上流の renderer/renderer.gyp は mozc_renderer を OS=="win" と OS=="mac" の
-# 条件節の中でしか定義しない。source は renderer/qt/ に全部在り、
-# renderer/qt/BUILD.bazel が建てるので、欠けているのは target の定義であって
-# code ではない。patch-renderer_renderer.gyp がそれを足す。
-# 3.34 に gyp は無いが、Makefile.common の post-extract が 3.33.6089 から
-# 足場を持ってくる。
+# Upstream's renderer/renderer.gyp defines mozc_renderer only inside the
+# OS=="win" and OS=="mac" conditionals.  The sources are all there under
+# renderer/qt/ and renderer/qt/BUILD.bazel builds them, so what is missing is
+# the target definition, not the code; patch-renderer_renderer.gyp adds it.
+# 3.34 has no GYP of its own, but post-extract in Makefile.common brings the
+# scaffolding across from 3.33.6089.
 
-# Qt6 の QtGui は qopengl.h 越しに GL/gl.h を引く。MesaLib を依存に挙げて
-# いないと buildlink が GL を compiler へ見せず、
+# Qt6 QtGui reaches GL/gl.h through qopengl.h.  Without MesaLib among the
+# dependencies, buildlink never shows GL to the compiler and the build stops
+# at
 #
 #	renderer/qt/qt_ipc_thread.cc
 #	qopengl.h:115:13: fatal error: GL/gl.h: No such file or directory
 #
-# で止まる。header は在って見えないだけである。gyp で建てていた 333 では
-# 露見しなかった。bazel へ生の -I を渡す手は execution root の外を指すと
-# 拒まれるので、cc_configure に渡す。BAZEL_CXXOPTS を見て toolchain を組む
-# ときに compiler の search path を読むので、そこに入った場所は
-# cxx_builtin_include_directories に載り、sandbox にも mount される。
-# buildlink だけでは compiler からは見えても sandbox の中には現れない。
+# The header is there, it is just not visible.  333, built with GYP, never hit
+# this.  Handing Bazel a bare -I does not work -- it refuses paths outside the
+# execution root -- so the include goes to cc_configure instead.  cc_configure
+# reads the compiler search path while assembling the toolchain from
+# BAZEL_CXXOPTS, so whatever lands there ends up in
+# cxx_builtin_include_directories and is mounted into the sandbox as well.
+# buildlink alone makes it visible to the compiler but not inside the sandbox.
 .include "../../graphics/MesaLib/buildlink3.mk"
 
 MAKE_ENV+=	BAZEL_CXXOPTS=-std=gnu++17:-I${PREFIX}/include:-I${X11BASE}/include
-# link も同じ穴で、mozc の pkg_config_repository は --libs-only-l で -l しか
-# 集めない (Linux では Qt が既定の path に居る)。pkgsrc の Qt6 は
-# ${PREFIX}/qt6/lib に居て buildlink は LDFLAGS で -L を渡すが、bazel は
-# env - で環境を捨て、cc_configure は LDFLAGS を読まない。読むのは
-# BAZEL_LINKOPTS なので、そこから toolchain に焼き込む。
+# Linking has the same hole: mozc's pkg_config_repository calls --libs-only-l
+# and so collects only -l flags (on Linux Qt sits on the default path).  The
+# pkgsrc Qt6 lives in /qt6/lib and buildlink passes -L through
+# LDFLAGS, but Bazel throws the environment away with env - and cc_configure
+# does not read LDFLAGS.  It reads BAZEL_LINKOPTS, so the paths are baked into
+# the toolchain from there.
 MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:${COMPILER_RPATH_FLAG}${PREFIX}/qt6/lib:-L${PREFIX}/lib:${COMPILER_RPATH_FLAG}${PREFIX}/lib:-L${X11BASE}/lib:${COMPILER_RPATH_FLAG}${X11BASE}/lib
 
 .include "../../zakinko/mozc-server334/options.mk"

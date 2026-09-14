@@ -2,9 +2,10 @@
 
 PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/mozc-/mozc-elisp-/}
 
-# helper 自身は変換をしない。mozc_server と話すだけで、client は版の文字列が
-# 違う server を拒む (client.cc の CheckVersionOrRestartServer)。package では
-# なく版で釘を刺す。
+# The helper does no conversion itself; it only talks to mozc_server, and the
+# client refuses a server whose version string differs
+# (CheckVersionOrRestartServer in client.cc).  So the dependency is pinned by
+# version, not by package.
 DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server334
 
 .include "../../zakinko/mozc-server334/options.mk"
@@ -67,8 +68,8 @@ do-install:
 
 .include "../../zakinko/mozc-server334/Makefile.common"
 
-# Makefile.common が CATEGORIES を代入で置くので、足すのはその後でなければ
-# ならない。前に書くと editors が黙って消える。
+# Makefile.common assigns CATEGORIES, so this has to come after the include.
+# Put it before and editors is silently dropped.
 CATEGORIES+=	editors
 
 .include "../../mk/bsd.pkg.mk"

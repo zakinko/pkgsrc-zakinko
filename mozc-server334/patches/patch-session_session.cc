@@ -1,6 +1,6 @@
 $NetBSD$
 
-NetBSD を Linux と同じ枝に入れる。
+Put NetBSD on the same branch as Linux.
 
 --- session/session.cc.orig
 +++ session/session.cc
