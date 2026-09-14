@@ -12,6 +12,8 @@ path has nothing to write with.  Nothing points at the missing output.
 
 Submitted upstream as abseil/abseil-cpp#2160.  Written out for the
 abseil mozc pins, where the list is wrapped across different lines.
+inputmethod/mozc-server (2.29) carries the NetBSD half of this in its
+own patch to the same file, appended after __ASYLO__ instead.
 
 --- third_party/abseil-cpp/absl/base/internal/raw_logging.cc.orig
 +++ third_party/abseil-cpp/absl/base/internal/raw_logging.cc
