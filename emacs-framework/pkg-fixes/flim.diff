@@ -1,0 +1,11 @@
+--- devel/flim/Makefile.orig
++++ devel/flim/Makefile
+@@ -66,7 +66,7 @@
+ .include "../../editors/emacs/modules.mk"
+ 
+ .if (${EMACS_FLAVOR} != "xemacs")
+-BUILDLINK_API_DEPENDS.apel+=	apel>=10.8
++BUILDLINK_API_DEPENDS.apel+=	${EMACS_PKGNAME_PREFIX}apel>=10.8
+ .include "../../devel/apel/buildlink3.mk"
+ .endif
+ 

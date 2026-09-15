@@ -1,0 +1,10 @@
+--- devel/zig-mode/Makefile.orig
++++ devel/zig-mode/Makefile
+@@ -5,6 +5,7 @@
+ PKGREVISION=	1
+ CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=ziglang/}
++GITHUB_PROJECT=	zig-mode
+ GITHUB_TAG=	aa20d630b8c413dab8d6bd120ec3ed5db5c9da70
+ 
+ MAINTAINER=	pkgsrc-users@NetBSD.org

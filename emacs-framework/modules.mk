@@ -404,7 +404,12 @@ PRINT_PLIST_AWK+=	{ gsub(/${EMACS_LISPPREFIX:S|${PREFIX}/||:S|/|\\/|g}/, \
 .if defined(EMACS_BUILDLINK)
 _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
 # A development version usually claims three digits, say, 27.0.50 etc.
-ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/site-lisp
+# The lisp of other packages now lives under the version directory, so
+# the build-time load path has to name it too; ${_EMACS_DIR}/site-lisp
+# alone finds nothing and the byte-compile fails with "Cannot open load
+# file".  The shared directory stays last for anything still installed
+# there.
+ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp:${_EMACS_DIR}/site-lisp
 .include	"${_EMACS_PKGDIR}/buildlink3.mk"
 .endif
 
