@@ -1,0 +1,91 @@
+--- emacs-framework/modules.mk.orig	2026-09-15 23:18:42
++++ emacs-framework/modules.mk	2026-09-15 23:20:10
+@@ -233,10 +233,13 @@
+ # Constants
+ #
+ 
++# Newest first: a package that does not name its own set gets the newest
++# Emacs, and ${EMACS_VERSIONS_ACCEPTED:[1]} above means "the package's
++# first choice".
+ _EMACS_VERSIONS_ALL= \
+-	emacs20 emacs29 emacs29nox  \
+-	emacs30 emacs30nox emacs31 emacs31nox \
+-	xemacs214 xemacs214nox xemacs215 xemacs215nox
++	emacs31 emacs31nox emacs30 emacs30nox \
++	emacs29 emacs29nox emacs20 \
++	xemacs215 xemacs215nox xemacs214 xemacs214nox
+ 
+ _EMACS_PKGDIR_MAP= \
+ 	emacs20@../../editors/emacs20 \
+@@ -253,7 +256,10 @@
+ 
+ _EMACS_ETCDIR.emacs=		share
+ _EMACS_INFODIR.emacs=		${PKGINFODIR}
+-_EMACS_LISPDIR.emacs=		share/emacs/site-lisp
++# Put the lisp under the version directory of the Emacs it was built
++# for.  Emacs already searches share/emacs/<version>/site-lisp, so what
++# lands there is seen by that Emacs and by no other.
++_EMACS_LISPDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
+ _EMACS_PKGNAME_PREFIX.emacs=
+ 
+ _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
+@@ -276,14 +282,42 @@
+ #		abort;
+ #
+ 
+-_EMACS_TYPE=	${EMACS_TYPE}
++EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
+ 
+-EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
+-.if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
+-PKG_FAIL_REASON+=		"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
+-PKG_FAIL_REASON+=		"No valid Emacs version installed found"
++# The Emacs this machine uses when the package does not care.  EMACS_TYPE
++# is the name this has always had; keep honouring it.
++EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
++
++# Which Emacs to build for.  The same three steps lang/python takes:
++#
++#   - EMACS_VERSION_REQD names one version.  Use it, and refuse if the
++#     package does not accept it, so a bulk build walking the set leaves
++#     the package alone in that pass rather than building it for some
++#     other version.
++#   - otherwise EMACS_VERSION_DEFAULT, if the package accepts it.
++#   - otherwise the first version the package accepts.  Like
++#     PYTHON_VERSIONS_ACCEPTED, the order is significant and the list is
++#     written newest first.
++#
++.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
++_EMACS_TYPE=		${EMACS_VERSION_REQD}
++.  if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
++PKG_FAIL_REASON+=	"This package does not build with ${_EMACS_TYPE}"
++PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
++.  endif
++.elif !empty(EMACS_VERSIONS_ACCEPTED:M${EMACS_VERSION_DEFAULT})
++_EMACS_TYPE=		${EMACS_VERSION_DEFAULT}
++.else
++_EMACS_TYPE=		${EMACS_VERSIONS_ACCEPTED:[1]}
+ .endif
+ 
++# A version the framework has never heard of has no package directory to
++# map to, so say that rather than failing later on an empty path.
++.if empty(_EMACS_VERSIONS_ALL:M${_EMACS_TYPE})
++PKG_FAIL_REASON+=	"${_EMACS_TYPE} is not an Emacs that pkgsrc has"
++PKG_FAIL_REASON+=	"Known versions are: ${_EMACS_VERSIONS_ALL}"
++.endif
++
+ _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
+ 
+ .include "${_EMACS_PKGDIR}/version.mk"
+@@ -313,7 +347,10 @@
+ EMACS_ETCPREFIX=	${PREFIX}/${_EMACS_ETCDIR.${_EMACS_FLAVOR}}
+ EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
+ EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
+-EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.${_EMACS_FLAVOR}}
++# Which Emacs a package was built for belongs in its name, the way
++# PYPKGPREFIX carries the Python version, so the set can be built and
++# told apart.
++EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE}-
+ 
+ GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
+ 
