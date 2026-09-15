@@ -84,8 +84,23 @@ USE_TOOLS+=	bash:run pkg-config unzip zip
 
 USE_JAVA=		yes
 USE_JAVA2=		21
-# openjdk21 is the only JDK pkgsrc offers on the platforms above; openjdk17
-# and earlier are gone, and there is no newer one packaged for NetBSD yet.
+# Pinned to 21, and it has to stay pinned once a newer JDK is packaged.
+#
+# The bootstrap compiles Bazel with javac directly, and JDK 23 stopped
+# running annotation processors found on the classpath unless asked.  The
+# AutoValue processor then never runs, none of the generated classes exist,
+# and the build stops with 178 of these:
+#
+#	DependencyError.java:135: error: cannot find symbol
+#	  symbol: variable AutoOneOf_DependencyError
+#
+# Upstream fixed that after this release -- scripts/bootstrap/compile.sh on
+# master names the processors with -processor instead of relying on the
+# default -- but the fix is not in the 9.2.0 distribution this package
+# builds.  Measured on OpenBSD 7.9, which packages jdk 25.0.2.
+#
+# So this is not "21 because nothing newer is packaged".  Raising it breaks
+# the build, and the error says nothing about Java versions.
 PKG_JVMS_ACCEPTED=	openjdk21
 
 # rules_go fetches a Go SDK to match go.mod, and no Go SDK is distributed
