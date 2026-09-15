@@ -61,6 +61,16 @@
 #		Default value:
 #			<undefined>
 #
+#	EMACS_VERSIONS_INCOMPATIBLE
+#		Description:
+#			Versions the ELP does not work with, subtracted
+#			from EMACS_VERSIONS_ACCEPTED.  The same shape as
+#			PYTHON_VERSIONS_INCOMPATIBLE.
+#		Possible values:
+#			any of the values below
+#		Default value:
+#			empty
+#
 #	EMACS_VERSIONS_ACCEPTED
 #		Description:
 #			Versions the ELP accepts (supports).
@@ -310,9 +320,16 @@ EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
 # packages that named it are left pointing at nothing until they are
 # updated, and selecting one of those leaves _EMACS_PKGDIR empty, which
 # turns a clean refusal into a fatal error further down.
+# EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel and, before this, no
+# line of this file read it.  pyversion.mk and rubyversion.mk honour
+# their equivalents, so subtracting it here is one of the places where
+# this framework was thinner than theirs.
+EMACS_VERSIONS_INCOMPATIBLE?=	# empty
+
 _EMACS_VERSIONS_OK=	# empty
 .for _ev_ in ${EMACS_VERSIONS_ACCEPTED}
-.  if !empty(_EMACS_VERSIONS_ALL:M${_ev_})
+.  if !empty(_EMACS_VERSIONS_ALL:M${_ev_}) && \
+      empty(EMACS_VERSIONS_INCOMPATIBLE:M${_ev_})
 _EMACS_VERSIONS_OK+=	${_ev_}
 .  endif
 .endfor

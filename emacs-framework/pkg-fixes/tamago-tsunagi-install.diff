@@ -1,0 +1,10 @@
+--- inputmethod/tamago-tsunagi/Makefile.orig
++++ inputmethod/tamago-tsunagi/Makefile
+@@ -15,6 +15,7 @@
+ CONFLICTS+=	tamago-[0-9]*
+ 
+ GNU_CONFIGURE=		yes
++INSTALL_MAKE_FLAGS+=	lispdir=${EMACS_LISPPREFIX}
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
