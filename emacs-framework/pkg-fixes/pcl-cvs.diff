@@ -1,0 +1,5 @@
+--- devel/pcl-cvs/Makefile
++++ devel/pcl-cvs/Makefile
+@@ -24,6 +24,7 @@
+ INSTALL_MAKE_FLAGS+=	PREFIX=${DESTDIR:Q}${PREFIX:Q}
++INSTALL_MAKE_FLAGS+=	lispdir=${DESTDIR:Q}${EMACS_LISPPREFIX:Q}

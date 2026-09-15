@@ -169,3 +169,32 @@ load-path に在るかが分かれ目。bootstrap の emacs 20.7.1 で測った
 
 **autoload が実際に登録される。**建つかどうかでは測れない型なので、
 `commandp` まで撃って確かめた。
+
+## 2026-09-16: emacs20 を選ぶ 13 個を建てた
+
+`EMACS_TYPE=emacs30nox` を与え、枠組みが emacs20 を選んだ 13 個を、root を
+使わない bootstrap (fork の emacs20-20.7nb27 入り) で建てた。
+
+	9 個 建った   Mule-UCS anthy-elisp calc emacs-ilisp iiimecf
+	              pcl-cvs speedbar tamago w3
+	4 個 建たない emacs-jabber semantic elscreen lookup
+
+**建たない 4 個は、どれもこの変更とは関係が無い。**
+
+	chat/emacs-jabber  emacs20 で byte-compile が通らない
+	                   (jabber-replace-in-string が無い)。package の
+	                   EMACS_VERSIONS_ACCEPTED が実態と合っていない
+	devel/semantic     eieio-base が無い
+	misc/elscreen      依存物の CXX の test が通らない
+	misc/lookup        同上 (libunistring)
+
+**この変更のせいで落ちたのは二つで、どちらも install 先の配線。**
+`pkg-fixes/` に一行ずつの差分を置いた。直したら両方とも rc=0 で建つ。
+
+	emacs20-pcl-cvs-2.9.9nb4.tgz
+	emacs20-tamago-20020909nb5.tgz
+
+**切り分けに使った手。**最初 5 個が落ちたので、その 5 個を **HEAD の版**で
+取り直して撃ち直した。`emacs-ilisp` はそれだけで通った (木が 9/2 で、
+wiz さんが 9/12 に PLIST の `${FOR_emacs21}` 二行を消した後の版が要った)。
+**古い木で出た失敗を自分の変更のせいと読まないこと。**
