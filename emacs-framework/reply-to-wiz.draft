@@ -25,13 +25,17 @@ package accepts.  _EMACS_VERSIONS_ALL is newest first, so "first
 accepted" means the package's first choice, the way
 PYTHON_VERSIONS_ACCEPTED is written.
 
-Choosing from EMACS_VERSIONS_ACCEPTED alone is not safe, which I did
-not expect.  A package can name a version that has since gone -- after
-emacs21 left 1.42, fifteen packages in my tree still ask for it -- and
+Choosing from EMACS_VERSIONS_ACCEPTED alone turned out not to be safe.
+A package can name a version that is no longer in the table, and
 selecting it leaves _EMACS_PKGDIR empty, so the include dies with
-"Cannot open /version.mk" instead of failing cleanly.  The choice is
-now made from the intersection of what the package accepts and what
-modules.mk still lists, and a version that exists is kept so the
+"Cannot open /version.mk" -- a fatal error that stops the make rather
+than failing the one package.  Nothing in pkgsrc is in that state
+today; you took jde, leim21, bbdb2 and nxml-mode out along with
+emacs21, and I checked that no package on trunk still names it.  But
+my tree here is from 2 September and fifteen packages in it do, which
+is what the window looks like each time a version is retired.  So the
+choice is made from the intersection of what the package accepts and
+what modules.mk still lists, and a version that exists is kept so the
 includes resolve while PKG_FAIL_REASON says what happened:
 
   devel/apel, EMACS_VERSION_REQD=emacs21
@@ -43,10 +47,7 @@ includes resolve while PKG_FAIL_REASON says what happened:
     "Accepted versions are: emacs29 emacs29nox ... emacs31nox"
 
 Those two have different causes and different places to look, so they
-do not share a sentence.  This is the case in your first point, seen
-from the other side: www/emacs-w3m says it takes emacs21 while the
-apel it depends on does not, and with this the build says so rather
-than stopping the make.
+do not share a sentence.
 
 Install location and name.  The lisp goes to
 share/emacs/<version>/site-lisp, which Emacs already searches, and
@@ -57,50 +58,65 @@ emacs30-apel and so on, as you described.
 pbulk.  Three lines in mk/pbulk/pbulk-index.mk, the same shape as the
 python and ruby entries.
 
-What it costs.  I count 92 packages that read modules.mk, leaving out
-wip and the emacs and xemacs packages themselves.
+What it costs.  The figures below are from trunk, not from my tree: I
+fetched the Makefile and PLIST of each package that reads modules.mk,
+leaving out wip and the emacs and xemacs packages themselves, which is
+87 packages.
 
-The install location is nearly free.  Of the 91 with a PLIST, 80
-already write ${EMACS_LISPPREFIX}; seven write the path by hand and
-want changing (cqual, rsltc, jde, tamago-tsunagi, mailutils,
-twittering-mode, emacs-dict-client).  Of the 32 that pass a lisp
-directory into their own build, 31 already pass the variable.
+The install location is nearly free.  Of the 86 with a PLIST, 77
+already write ${EMACS_LISPPREFIX}; six write the path by hand and want
+changing (cqual, rsltc, tamago-tsunagi, mailutils, twittering-mode,
+emacs-dict-client).  Of the 26 that pass a lisp directory into their
+own build, 25 already pass the variable; only chat/zenicb does not.
 
 The name is where the work is, and most of it is not in modules.mk.
 EMACS_PKGNAME_PREFIX only takes effect where the package spells it in
-PKGNAME, and 22 of the 92 do not, so they still build as plain
-dash-el, cqual, po-mode.  Adding it then moves PKGBASE, and two things
-follow from that which I only found by building:
+PKGNAME, and 22 of the 87 do not, so they still build as plain
+dash-el, cqual, po-mode.  Adding it moves PKGBASE, and six variables
+under mk/ take ${PKGBASE} as their default:
 
-  Six packages take their distfile from GitHub without setting
-  GITHUB_PROJECT, which defaults to ${PKGBASE}.  The fetch then asks
-  for github.com/ziglang/emacs30nox-zig-mode and gets a 404, and
-  WRKSRC points somewhere the archive does not unpack.  One line each
-  fixes it: ecb, lua-mode, zig-mode, emacs-neotree, howm,
-  markdown-mode.
+  PKGWILDCARD and PKG_SYSCONFVAR in bsd.pkg.mk, FILEBASE in
+  pkgformat/pkg/package.mk, and GITHUB_PROJECT, GITLAB_PROJECT and
+  CODEBERG_PROJECT in mk/fetch.
 
-  Six lines in the tree name a renamed package without the prefix and
-  can then never be satisfied -- devel/flim adds an unprefixed
-  apel>=10.8 to BUILDLINK_API_DEPENDS.apel while apel's own
-  buildlink3.mk already says ${EMACS_PKGNAME_PREFIX}apel>=10.  Three
-  of the six are under wip.
+GITHUB_PROJECT is the one that bites: ten of the 87 take their
+distfile from GitHub without setting it, so the fetch asks for
+github.com/ziglang/emacs30nox-zig-mode and gets a 404, and WRKSRC
+points where the archive does not unpack.  One line each fixes it.  No
+package in this set uses gitlab or codeberg.
 
-I also had to fix two things in my own modules.mk that only building
-showed.  EMACSLOADPATH for the build still named the old shared
-site-lisp, so anything byte-compiling against another elisp package
-stopped with "Cannot open load file"; and the EMACS_VERSION_REQD path
-had the same empty-_EMACS_PKGDIR fatal I thought I had already fixed.
+Nine packages spell ${PKGBASE} themselves, and that is a second way
+for the same move to break them.  PKGBASE is in PLIST_SUBST, so a
+package that uses it on both sides stays consistent; one that uses it
+on one side does not.  I have looked at four so far: editors/gnuserv
+lists share/doc/${PKGBASE} in INSTALLATION_DIRS while installing to
+share/doc/gnuserv, so README ends up as a file of that name rather
+than in a directory; editors/matlab-mode creates the directory as
+${PKGBASE:C|^xemacs-||} and installs into ${PKGBASE}, which means it
+has been broken under xemacs all along; misc/color-theme has
+${PKGBASE} in MASTER_SITES, so its Savannah fetch moves too; and
+www/emacs-w3m sets WRKSRC to ${WRKDIR}/${PKGBASE}-${GITHUB_TAG}.
+
+Six lines in the tree name a renamed package without the prefix and
+can then never be satisfied -- devel/flim adds an unprefixed
+apel>=10.8 to BUILDLINK_API_DEPENDS.apel while apel's own
+buildlink3.mk already says ${EMACS_PKGNAME_PREFIX}apel>=10.  Three of
+the six are under wip.
+
+Two of the things I had to fix were in my own modules.mk, and only
+building showed them.  EMACSLOADPATH for the build still named the old
+shared site-lisp, so anything byte-compiling against another elisp
+package stopped with "Cannot open load file"; and the
+EMACS_VERSION_REQD path had the same empty-_EMACS_PKGDIR fatal I
+thought I had already fixed on the other branch.
 
 The part that cannot be found by reading at all is a package whose
 PLIST uses the variable but whose install writes the path itself.
 devel/pcl-cvs is one: nothing in its Makefile says lispdir, and the
-bundled makefile has lispdir = $(datadir)/emacs/site-lisp.  So far
-that is pcl-cvs, tamago, gnuserv and matlab-mode; the last two had
-been writing the same directory two different ways for years, and
-only agreed because the two spellings happened to produce the same
-string.  I tried to find these by reading, with a filter over PLIST
-and Makefile, and it gave both misses and false alarms and called 62
-packages suspect, so I dropped it and built instead.
+bundled makefile has lispdir = $(datadir)/emacs/site-lisp.  I tried to
+find these with a filter over PLIST and Makefile and it gave both
+misses and false alarms and called 62 packages suspect, so I dropped
+it and built instead.
 
 <<SWEEP RESULTS>>
 
