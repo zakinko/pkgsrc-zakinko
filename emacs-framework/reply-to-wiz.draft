@@ -1,0 +1,59 @@
+Subject: Re: possible pkgsrc emacs framework improvements?
+To: Thomas Klausner <wiz@NetBSD.org>
+
+(DRAFT -- not sent.  Numbers to be filled in from the emacs30 sweep.)
+
+Hi Thomas,
+
+Yes, I would like to work on this.  I have a prototype of all three
+and have built with it, so rather than say "sounds good" here is what
+it does and what it costs.
+
+Version selection.  modules.mk now does what lang/python does:
+EMACS_VERSION_REQD picks one version and refuses if the package does
+not accept it, so a bulk pass leaves it alone instead of building it
+for something else; otherwise EMACS_VERSION_DEFAULT (EMACS_TYPE keeps
+working, it is just the default now); otherwise the first version the
+package accepts.  _EMACS_VERSIONS_ALL is now newest first so that
+"first accepted" means the package's first choice, the way
+PYTHON_VERSIONS_ACCEPTED is written.
+
+One thing I did not expect.  Choosing from EMACS_VERSIONS_ACCEPTED
+alone is not safe: a package can name a version that has since been
+removed.  After emacs21 went, fifteen packages in my tree still asked
+for it, and picking emacs21 leaves _EMACS_PKGDIR empty and the include
+dies with "Cannot open /version.mk" rather than failing cleanly.  So
+the choice is made from the intersection of what the package accepts
+and what pkgsrc still has, and when that is empty the package says so
+and fails properly.  My first cut had this wrong and the sweep below
+is what caught it.
+
+Install location and name.  The lisp goes to
+share/emacs/<version>/site-lisp, which Emacs already searches, and
+EMACS_PKGNAME_PREFIX is ${_EMACS_TYPE}-, so pcl-cvs is
+emacs20-pcl-cvs and apel is emacs29-apel, emacs29nox-apel,
+emacs30-apel and so on, as you described.
+
+pbulk.  Three lines in mk/pbulk/pbulk-index.mk, the same shape as the
+python and ruby entries.
+
+What it costs.  Less than I feared.  Of the 106 packages that read
+modules.mk, 85 of 98 PLISTs already use ${EMACS_LISPPREFIX} and 28 of
+the 29 that pass a lisp directory to their build already pass
+${EMACS_LISPPREFIX}.  Six PLISTs write the path out by hand and want
+changing: cqual, rsltc, tamago-tsunagi, mailutils, twittering-mode
+and emacs-dict-client.
+
+The part that cannot be found by reading is a package whose PLIST uses
+the variable but whose install writes the path itself.  devel/pcl-cvs
+is one: nothing in its Makefile says lispdir, and the bundled makefile
+has lispdir = $(datadir)/emacs/site-lisp.  The PLIST follows the
+variable, so the file check catches it -- building is the test.  I
+built to find them.
+
+<<SWEEP RESULTS>>
+
+Happy to split this up however suits you, and to put the framework
+part up first so it can be looked at on its own.
+
+Showta

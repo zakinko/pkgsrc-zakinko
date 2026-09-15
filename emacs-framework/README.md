@@ -198,3 +198,30 @@ load-path に在るかが分かれ目。bootstrap の emacs 20.7.1 で測った
 取り直して撃ち直した。`emacs-ilisp` はそれだけで通った (木が 9/2 で、
 wiz さんが 9/12 に PLIST の `${FOR_emacs21}` 二行を消した後の版が要った)。
 **古い木で出た失敗を自分の変更のせいと読まないこと。**
+
+## 2026-09-16: 静的な当たり付けは作れなかった (負の結果)
+
+67 個の build が `devel/cqual` の依存で **python313** を建て始めたので、安く
+済ませられないかと検査を作った。**「PLIST が `${EMACS_LISPPREFIX}` を使い、かつ
+Makefile が build/install へ渡していない」= 疑い**という形。
+
+**既知の答えで検算したら両方向に外れた。**
+
+	package            検査    実測
+	pcl-cvs            素直    要配線   ← 見逃し
+	tamago             素直    要配線   ← 見逃し
+	calc               疑い    建った   ← 空振り
+	iiimecf            疑い    建った
+	mule-ucs           疑い    建った
+	emacs-ilisp        疑い    建った
+	speedbar           疑い    建った
+	anthy-elisp        疑い    建った
+
+62 個が「疑い」に出る時点で絞れていない。**採用しない。**
+
+見逃しの一因は、pcl-cvs と tamago を既に直した後の Makefile を読んでいたこと。
+空振りの方は、install 規則の中で `${DESTDIR}${EMACS_LISPPREFIX}` を使う形を
+取りこぼしている。どちらも直せるが、**直したところで「install が実際にどこへ
+書くか」は make を走らせないと分からない**という筋は変わらない。
+
+**建てるのが検査。**時間はかかるが、それ以外に無い。
