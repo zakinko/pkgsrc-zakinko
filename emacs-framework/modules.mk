@@ -233,9 +233,10 @@ BUILD_DEFS_EFFECTS+=	${_SYS_VARS.emacs}
 # Constants
 #
 
-# Newest first: a package that does not name its own set gets the newest
-# Emacs, and ${EMACS_VERSIONS_ACCEPTED:[1]} above means "the package's
-# first choice".
+# Newest first.  A package that names no set of its own gets this list
+# as EMACS_VERSIONS_ACCEPTED, so the order here is the default
+# preference; where a package does name its own, that list's order is
+# what counts.
 _EMACS_VERSIONS_ALL= \
 	emacs31 emacs31nox emacs30 emacs30nox \
 	emacs29 emacs29nox emacs20 \
@@ -295,18 +296,23 @@ EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
 #     the package alone in that pass rather than building it for some
 #     other version.
 #   - otherwise EMACS_VERSION_DEFAULT, if the package accepts it.
-#   - otherwise the first version the package accepts.  Like
-#     PYTHON_VERSIONS_ACCEPTED, the order is significant and the list is
-#     written newest first.
+#   - otherwise the first version the package accepts, reading its list
+#     in the order it was written.  Like PYTHON_VERSIONS_ACCEPTED the
+#     order is the package's preference, so the list is written newest
+#     first.
 #
-# The versions this package accepts that pkgsrc still has, kept in the
-# order _EMACS_VERSIONS_ALL lists them.  A package can name a version
-# that has since been removed -- when emacs21 went, fifteen packages
-# still asked for it -- and choosing one of those leaves nothing to
-# depend on.
+# The versions this package accepts that pkgsrc still has, in the order
+# the package wrote them, the way pyversion.mk walks
+# PYTHON_VERSIONS_ACCEPTED: the order is the package's preference and is
+# meant to be honoured.
+#
+# The filter is not decoration.  Every time a version is retired, the
+# packages that named it are left pointing at nothing until they are
+# updated, and selecting one of those leaves _EMACS_PKGDIR empty, which
+# turns a clean refusal into a fatal error further down.
 _EMACS_VERSIONS_OK=	# empty
-.for _ev_ in ${_EMACS_VERSIONS_ALL}
-.  if !empty(EMACS_VERSIONS_ACCEPTED:M${_ev_})
+.for _ev_ in ${EMACS_VERSIONS_ACCEPTED}
+.  if !empty(_EMACS_VERSIONS_ALL:M${_ev_})
 _EMACS_VERSIONS_OK+=	${_ev_}
 .  endif
 .endfor

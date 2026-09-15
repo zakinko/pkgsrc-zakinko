@@ -21,9 +21,10 @@ EMACS_VERSION_REQD picks one version and refuses if the package cannot
 use it, so a bulk pass leaves it alone instead of building it for
 something else; otherwise EMACS_VERSION_DEFAULT (EMACS_TYPE keeps
 working, it is just the default now); otherwise the first version the
-package accepts.  _EMACS_VERSIONS_ALL is newest first, so "first
-accepted" means the package's first choice, the way
-PYTHON_VERSIONS_ACCEPTED is written.
+package accepts, reading its list in the order it was written, the way
+pyversion.mk walks PYTHON_VERSIONS_ACCEPTED.  _EMACS_VERSIONS_ALL is
+newest first so that a package naming no list of its own gets the
+newest Emacs.
 
 Choosing from EMACS_VERSIONS_ACCEPTED alone turned out not to be safe.
 A package can name a version that is no longer in the table, and
