@@ -1,7 +1,7 @@
 Subject: Re: possible pkgsrc emacs framework improvements?
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.  <<REDO>> still to be filled in.)
+(DRAFT -- not sent.)
 
 Hi Thomas,
 
@@ -46,7 +46,25 @@ pointed at the old place.  Separately, the EMACS_VERSION_REQD path
 still had the empty-_EMACS_PKGDIR fatal I thought I had fixed, because
 I had only fixed it on the EMACS_VERSIONS_ACCEPTED side.
 
-<<REDO>>
+A third was in something I had already told you was done.  I wrote
+that the choice reads the package's list in the order it was written,
+the way pyversion.mk walks PYTHON_VERSIONS_ACCEPTED, and that was the
+intent but not the code: the loop that intersects the two lists walked
+modules.mk's, so the package's order never reached the answer.
+misc/mailcrypt writes emacs20 first and still got emacs31.  The loop
+runs the other way now, and moving mailcrypt's line moves what it
+picks, which is how I checked.
+
+Nine of the fifteen unrelated failures never reached the elisp package
+at all.  All nine stopped in the same place, www/curl, several levels
+down -- under ruby34, cmake, meson or luatex -- and that failure was
+mine rather than the tree's: I had two sweeps of my own running
+against one WRKOBJDIR for a while, and curl was left with a
+half-configured work directory.  Cleaning it out and building again
+gave curl 8.21.0.  So those nine say nothing either way and I have not
+counted them for or against the change.  Three of them I am building
+again now that curl is there; the other six sit behind rust or
+texlive, which I would rather not ask this machine for.
 
 Three failures are distfiles that no longer fetch (cobol-mode,
 flyspell, ispell-emacs), one is a dependency marked broken on x86_64
@@ -88,12 +106,12 @@ for a mess sitting there today.
 Since my earlier figures came from that copy, I took them again from
 trunk, fetching each Makefile and PLIST.  The build results above are
 still from the copy, with the current modules.mk dropped in; every
-package I name still exists on trunk with the same lines.  87 packages read modules.mk,
-leaving out wip and the emacs and xemacs packages themselves.  Of the
-86 with a PLIST, 77 already write ${EMACS_LISPPREFIX} and six write
-the path by hand -- the same six I named before.  Of the 26 that pass
-a lisp directory into their build, 25 pass the variable; only
-chat/zenicb does not.
+package I name still exists on trunk with the same lines.  87 packages
+read modules.mk, leaving out wip and the emacs and xemacs packages
+themselves.  Of the 86 with a PLIST, 77 already write
+${EMACS_LISPPREFIX} and six write the path by hand -- the same six I
+named before.  Of the 26 that pass a lisp directory into their build,
+25 pass the variable; only chat/zenicb does not.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
@@ -108,6 +126,17 @@ themselves, and since PKGBASE is in PLIST_SUBST a package that uses it
 on both sides stays consistent while one that uses it on a single side
 does not.  misc/color-theme has it in MASTER_SITES, so its Savannah
 fetch would move too.
+
+One last thing, which is not about placement at all.
+EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
+modules.mk reads it, while pyversion.mk and rubyversion.mk both
+subtract their equivalent from what they will choose from.  Now that
+the selection walks the package's own list, leaving it out is one more
+condition in the same loop, so I have done that.  mail/mu picks
+emacs31 here and emacs31nox when given EMACS_VERSIONS_INCOMPATIBLE=
+emacs31.  apel's own line names emacs20, which it does not accept
+anyway, so nothing moves there -- that line has been doing nothing
+twice over.
 
 Happy to send the framework part on its own first, with the package
 fixes following in whatever grouping suits you.
