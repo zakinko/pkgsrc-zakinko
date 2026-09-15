@@ -49,7 +49,11 @@ export EMACS_TYPE
 # --batch を渡すようにする。
 BATCH=1; export BATCH
 PKGMAKE="make"
-MKARGS="EMACS_TYPE=$EMACS_TYPE"
+# EMACS_TYPE はこの機械の既定であって、指定ではない。package がその版を
+# 受け付けなければ別の版が選ばれる余地がある。ここで測りたいのは「この版で
+# 建つか」なので、版を名指しする側の変数も渡す。これを解さない modules.mk
+# では未使用の変数が一つ増えるだけで、EMACS_TYPE がそのまま効く。
+MKARGS="EMACS_TYPE=$EMACS_TYPE EMACS_VERSION_REQD=$EMACS_TYPE"
 [ -n "${BINPKG_SITES:-}" ] && MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 
 # build の出力は log へ流すので、走っている間 job は無音になる。emacs20 が
@@ -95,6 +99,7 @@ LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 eval "LIST=\$LIST_$EMACS_V"
 
 ok=0; ng=0; skip=0
+calc_d=
 for p in $LIST; do
 	d=$TREE/$p
 	[ -d "$d" ] || { echo "  --- $p  ★ ツリーに無い"; skip=$((skip+1)); continue; }
@@ -127,6 +132,10 @@ for p in $LIST; do
 			done
 		fi
 		ok=$((ok+1))
+		# 下の site-start.d の検査は、calc が入ったときにだけ意味を持つ。
+		# 「入らなかった」と「入ったのに効かない」を混ぜないよう、入った
+		# 事実を dir ごと持ち回る。
+		case $p in */calc) calc_d=$d ;; esac
 	else
 		echo "★ 転けた"
 		tail -20 "/tmp/$(basename $p).log" | sed 's/^/        /'
@@ -137,12 +146,30 @@ done
 echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip ==="
 
 # site-start.d が効いているか。calc が入ったときだけ見る。
-if [ -f "$PREFIX/share/emacs/site-lisp/site-start.d/20-calc.el" ]; then
-	echo "--- site-start.d が効くか ---"
-	if "$PREFIX/bin/emacs" --batch --no-init-file \
+#
+# 置き場を直書きしてはいけない。calc は ${EMACS_LISPPREFIX}/site-start.d/ へ
+# 入れる (calc/Makefile) 一方、それを読む site-start.el は
+# share/emacs/site-lisp/ へ直書きで入り (emacs20/Makefile,
+# emacs21/Makefile.common)、site-start.d を自分の隣で探す。この二つが分かれた
+# 瞬間に autoload は登録されなくなるが、PLIST は変数なので file-check は通り、
+# make package は rc=0 で通る。建つかどうかでは測れない。
+#
+# ここを旧 path で直書きしていたときは、置き場が動けば [ -f ] が偽になって
+# 検査ごと黙って飛び、run は緑のままだった。壊れるのと検査が消えるのが同じ
+# 変更で起きる。だから package に訊き、訊けなければ落とす。
+if [ -n "$calc_d" ]; then
+	lisp=$(cd "$calc_d" && $PKGMAKE $MKARGS show-var VARNAME=EMACS_LISPPREFIX 2>/dev/null)
+	echo "--- site-start.d が効くか (${lisp:-EMACS_LISPPREFIX が空}) ---"
+	if [ -z "$lisp" ]; then
+		echo "    ★ EMACS_LISPPREFIX が引けない"; ng=$((ng+1))
+	elif [ ! -f "$lisp/site-start.d/20-calc.el" ]; then
+		echo "    ★ $lisp/site-start.d/20-calc.el が無い"; ng=$((ng+1))
+	elif "$PREFIX/bin/emacs" --batch --no-init-file \
 	     --eval '(kill-emacs (if (commandp (quote calc-dispatch)) 0 1))' 2>/dev/null
 	then echo "    calc-dispatch が autoload 済み"
-	else echo "    ★ calc-dispatch が居ない"; ng=$((ng+1)); fi
+	else echo "    ★ calc-dispatch が居ない ($lisp に在るのに読まれていない)"; ng=$((ng+1)); fi
+else
+	echo "--- site-start.d の検査は飛ばす (calc が入っていない) ---"
 fi
 
 [ "$ng" = 0 ] || exit 1
