@@ -1,0 +1,11 @@
+--- editors/gnuserv/Makefile.orig
++++ editors/gnuserv/Makefile
+@@ -22,7 +22,7 @@
+ EL_FILES=		devices.el gnuserv.el gnuserv-compat.el
+ 
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX} share/applications	\
+-			share/doc/${PKGBASE}
++			share/doc/gnuserv
+ 
+ .PHONY: el-install doc-install
+ 

@@ -1,0 +1,12 @@
+--- editors/matlab-mode/Makefile.orig
++++ editors/matlab-mode/Makefile
+@@ -34,7 +34,7 @@
+ 	done
+ 
+ do-install:
+-	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||}
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
++	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
+ 
+ .include "../../mk/bsd.pkg.mk"
