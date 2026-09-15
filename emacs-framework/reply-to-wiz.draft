@@ -1,44 +1,57 @@
 Subject: Re: possible pkgsrc emacs framework improvements?
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.  Numbers to be filled in from the emacs30 sweep.)
+(DRAFT -- not sent.  The sweep line is still to be filled in.)
 
 Hi Thomas,
 
 Yes, I would like to work on this.  I have a prototype of all three
-and have built with it, so rather than say "sounds good" here is what
-it does and what it costs.
+and have been building with it, so rather than say "sounds good" here
+is what it does and what it turned out to cost.
 
   https://github.com/zakinko/pkgsrc-zakinko/tree/emacs-framework
 
 I should say up front that I work in Japanese and am not strong in
 English, so I write these with the help of a translation.  If
 something reads oddly, or if I have misunderstood you, please tell me
-plainly and I will fix it.
+plainly and I will rework it.
 
 Version selection.  modules.mk now does what lang/python does:
-EMACS_VERSION_REQD picks one version and refuses if the package does
-not accept it, so a bulk pass leaves it alone instead of building it
-for something else; otherwise EMACS_VERSION_DEFAULT (EMACS_TYPE keeps
+EMACS_VERSION_REQD picks one version and refuses if the package cannot
+use it, so a bulk pass leaves it alone instead of building it for
+something else; otherwise EMACS_VERSION_DEFAULT (EMACS_TYPE keeps
 working, it is just the default now); otherwise the first version the
-package accepts.  _EMACS_VERSIONS_ALL is now newest first so that
-"first accepted" means the package's first choice, the way
+package accepts.  _EMACS_VERSIONS_ALL is newest first, so "first
+accepted" means the package's first choice, the way
 PYTHON_VERSIONS_ACCEPTED is written.
 
-One thing I did not expect.  Choosing from EMACS_VERSIONS_ACCEPTED
-alone is not safe: a package can name a version that has since been
-removed.  After emacs21 went, fifteen packages in my tree still asked
-for it, and picking emacs21 leaves _EMACS_PKGDIR empty and the include
-dies with "Cannot open /version.mk" rather than failing cleanly.  So
-the choice is made from the intersection of what the package accepts
-and what pkgsrc still has, and when that is empty the package says so
-and fails properly.  My first cut had this wrong and the sweep below
-is what caught it.
+Choosing from EMACS_VERSIONS_ACCEPTED alone is not safe, which I did
+not expect.  A package can name a version that has since gone -- after
+emacs21 left 1.42, fifteen packages in my tree still ask for it -- and
+selecting it leaves _EMACS_PKGDIR empty, so the include dies with
+"Cannot open /version.mk" instead of failing cleanly.  The choice is
+now made from the intersection of what the package accepts and what
+modules.mk still lists, and a version that exists is kept so the
+includes resolve while PKG_FAIL_REASON says what happened:
+
+  devel/apel, EMACS_VERSION_REQD=emacs21
+    "pkgsrc no longer has emacs21"
+    "pkgsrc has: emacs31 emacs31nox ... xemacs214nox"
+
+  devel/apel, EMACS_VERSION_REQD=emacs20
+    "This package does not build with emacs20"
+    "Accepted versions are: emacs29 emacs29nox ... emacs31nox"
+
+Those two have different causes and different places to look, so they
+do not share a sentence.  This is the case in your first point, seen
+from the other side: www/emacs-w3m says it takes emacs21 while the
+apel it depends on does not, and with this the build says so rather
+than stopping the make.
 
 Install location and name.  The lisp goes to
 share/emacs/<version>/site-lisp, which Emacs already searches, and
-EMACS_PKGNAME_PREFIX is ${_EMACS_TYPE}-, so pcl-cvs is
-emacs20-pcl-cvs and apel is emacs29-apel, emacs29nox-apel,
+EMACS_PKGNAME_PREFIX is ${_EMACS_TYPE}-, so pcl-cvs becomes
+emacs20-pcl-cvs and apel becomes emacs29-apel, emacs29nox-apel,
 emacs30-apel and so on, as you described.
 
 pbulk.  Three lines in mk/pbulk/pbulk-index.mk, the same shape as the
@@ -47,35 +60,47 @@ python and ruby entries.
 What it costs.  I count 92 packages that read modules.mk, leaving out
 wip and the emacs and xemacs packages themselves.
 
-Of the 91 of those that have a PLIST, 80 already write
-${EMACS_LISPPREFIX} and follow the move for free.  Seven write the
-lisp path out by hand and want changing: cqual, rsltc, jde,
-tamago-tsunagi, mailutils, twittering-mode and emacs-dict-client.
+The install location is nearly free.  Of the 91 with a PLIST, 80
+already write ${EMACS_LISPPREFIX}; seven write the path by hand and
+want changing (cqual, rsltc, jde, tamago-tsunagi, mailutils,
+twittering-mode, emacs-dict-client).  Of the 32 that pass a lisp
+directory into their own build, 31 already pass the variable.
 
-Of the 32 that pass a lisp directory into their own build, 31 already
-pass ${EMACS_LISPPREFIX}.  Only chat/zenicb does not.
+The name is where the work is, and most of it is not in modules.mk.
+EMACS_PKGNAME_PREFIX only takes effect where the package spells it in
+PKGNAME, and 22 of the 92 do not, so they still build as plain
+dash-el, cqual, po-mode.  Adding it then moves PKGBASE, and two things
+follow from that which I only found by building:
 
-The prefix is the part with real work in it.  EMACS_PKGNAME_PREFIX
-only takes effect where the package spells it in PKGNAME, and 22 of
-the 92 do not, so they still build as plain dash-el, cqual, po-mode
-and so on.  Making them all carry the version means a line in each:
+  Six packages take their distfile from GitHub without setting
+  GITHUB_PROJECT, which defaults to ${PKGBASE}.  The fetch then asks
+  for github.com/ziglang/emacs30nox-zig-mode and gets a 404, and
+  WRKSRC points somewhere the archive does not unpack.  One line each
+  fixes it: ecb, lua-mode, zig-mode, emacs-neotree, howm,
+  markdown-mode.
 
-  chat/emacs-jabber   devel/cflow-mode   devel/cqual   devel/dash-el
-  devel/js2-mode      devel/rainbow-delimiters-el      devel/rsltc
-  editors/manued      graphics/graphviz-dot-mode       lang/ats2
-  lang/bigloo         mail/mailutils     mail/mu       math/texdrive
-  misc/color-theme    misc/emacs-wiki    misc/emacspeak
-  misc/mic-paren      net/twittering-mode
-  textproc/flycheck-mode  textproc/nxml-mode  textproc/po-mode
+  Six lines in the tree name a renamed package without the prefix and
+  can then never be satisfied -- devel/flim adds an unprefixed
+  apel>=10.8 to BUILDLINK_API_DEPENDS.apel while apel's own
+  buildlink3.mk already says ${EMACS_PKGNAME_PREFIX}apel>=10.  Three
+  of the six are under wip.
 
-The part that cannot be found by reading is a package whose PLIST uses
-the variable but whose install writes the path itself.  devel/pcl-cvs
-is one: nothing in its Makefile says lispdir, and the bundled makefile
-has lispdir = $(datadir)/emacs/site-lisp.  The PLIST follows the
-variable, so the file check catches it -- building is the test.  I
-tried to find these by reading instead, with a filter over PLIST and
-Makefile, and it produced both misses and false alarms and called 62
-packages suspect, so I dropped it and built.
+I also had to fix two things in my own modules.mk that only building
+showed.  EMACSLOADPATH for the build still named the old shared
+site-lisp, so anything byte-compiling against another elisp package
+stopped with "Cannot open load file"; and the EMACS_VERSION_REQD path
+had the same empty-_EMACS_PKGDIR fatal I thought I had already fixed.
+
+The part that cannot be found by reading at all is a package whose
+PLIST uses the variable but whose install writes the path itself.
+devel/pcl-cvs is one: nothing in its Makefile says lispdir, and the
+bundled makefile has lispdir = $(datadir)/emacs/site-lisp.  So far
+that is pcl-cvs, tamago, gnuserv and matlab-mode; the last two had
+been writing the same directory two different ways for years, and
+only agreed because the two spellings happened to produce the same
+string.  I tried to find these by reading, with a filter over PLIST
+and Makefile, and it gave both misses and false alarms and called 62
+packages suspect, so I dropped it and built instead.
 
 <<SWEEP RESULTS>>
 
