@@ -9,6 +9,13 @@ Yes, I would like to work on this.  I have a prototype of all three
 and have built with it, so rather than say "sounds good" here is what
 it does and what it costs.
 
+  https://github.com/zakinko/pkgsrc-zakinko/tree/emacs-framework
+
+I should say up front that I work in Japanese and am not strong in
+English, so I write these with the help of a translation.  If
+something reads oddly, or if I have misunderstood you, please tell me
+plainly and I will fix it.
+
 Version selection.  modules.mk now does what lang/python does:
 EMACS_VERSION_REQD picks one version and refuses if the package does
 not accept it, so a bulk pass leaves it alone instead of building it
@@ -37,19 +44,38 @@ emacs30-apel and so on, as you described.
 pbulk.  Three lines in mk/pbulk/pbulk-index.mk, the same shape as the
 python and ruby entries.
 
-What it costs.  Less than I feared.  Of the 106 packages that read
-modules.mk, 85 of 98 PLISTs already use ${EMACS_LISPPREFIX} and 28 of
-the 29 that pass a lisp directory to their build already pass
-${EMACS_LISPPREFIX}.  Six PLISTs write the path out by hand and want
-changing: cqual, rsltc, tamago-tsunagi, mailutils, twittering-mode
-and emacs-dict-client.
+What it costs.  I count 92 packages that read modules.mk, leaving out
+wip and the emacs and xemacs packages themselves.
+
+Of the 91 of those that have a PLIST, 80 already write
+${EMACS_LISPPREFIX} and follow the move for free.  Seven write the
+lisp path out by hand and want changing: cqual, rsltc, jde,
+tamago-tsunagi, mailutils, twittering-mode and emacs-dict-client.
+
+Of the 32 that pass a lisp directory into their own build, 31 already
+pass ${EMACS_LISPPREFIX}.  Only chat/zenicb does not.
+
+The prefix is the part with real work in it.  EMACS_PKGNAME_PREFIX
+only takes effect where the package spells it in PKGNAME, and 22 of
+the 92 do not, so they still build as plain dash-el, cqual, po-mode
+and so on.  Making them all carry the version means a line in each:
+
+  chat/emacs-jabber   devel/cflow-mode   devel/cqual   devel/dash-el
+  devel/js2-mode      devel/rainbow-delimiters-el      devel/rsltc
+  editors/manued      graphics/graphviz-dot-mode       lang/ats2
+  lang/bigloo         mail/mailutils     mail/mu       math/texdrive
+  misc/color-theme    misc/emacs-wiki    misc/emacspeak
+  misc/mic-paren      net/twittering-mode
+  textproc/flycheck-mode  textproc/nxml-mode  textproc/po-mode
 
 The part that cannot be found by reading is a package whose PLIST uses
 the variable but whose install writes the path itself.  devel/pcl-cvs
 is one: nothing in its Makefile says lispdir, and the bundled makefile
 has lispdir = $(datadir)/emacs/site-lisp.  The PLIST follows the
 variable, so the file check catches it -- building is the test.  I
-built to find them.
+tried to find these by reading instead, with a filter over PLIST and
+Makefile, and it produced both misses and false alarms and called 62
+packages suspect, so I dropped it and built.
 
 <<SWEEP RESULTS>>
 
