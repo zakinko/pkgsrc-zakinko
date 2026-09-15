@@ -312,10 +312,25 @@ _EMACS_VERSIONS_OK+=	${_ev_}
 .endfor
 
 .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
+.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 _EMACS_TYPE=		${EMACS_VERSION_REQD}
-.  if empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE})
-PKG_FAIL_REASON+=	"This package does not build with ${_EMACS_TYPE}"
+.  else
+# The version asked for cannot be used.  Refuse, but leave _EMACS_TYPE
+# at a version that exists: _EMACS_PKGDIR is looked up from it a few
+# lines below, and an empty one turns this clean refusal into "Cannot
+# open /version.mk", a fatal error that stops the whole make instead of
+# failing the one package.
+_EMACS_TYPE=		${_EMACS_VERSIONS_ALL:[1]}
+# Two different things send us here, and a bulk build wants to tell them
+# apart: the package will not take that Emacs, or pkgsrc no longer has
+# it at all.
+.    if empty(_EMACS_VERSIONS_ALL:M${EMACS_VERSION_REQD})
+PKG_FAIL_REASON+=	"pkgsrc no longer has ${EMACS_VERSION_REQD}"
+PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
+.    else
+PKG_FAIL_REASON+=	"This package does not build with ${EMACS_VERSION_REQD}"
 PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
+.    endif
 .  endif
 .elif !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_DEFAULT})
 _EMACS_TYPE=		${EMACS_VERSION_DEFAULT}
