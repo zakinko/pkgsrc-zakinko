@@ -85,12 +85,12 @@ main(int argc, char **argv)
 	{
 		struct pollfd pfd;
 		char b[4096];
-		int got = 0, quiet = 0, spent = 0;
+		int got = 0, quiet = 0, spent = 0, idle = 0;
 
 		pfd.fd = master;
 		pfd.events = POLLIN;
-		/* 静かにならない箱で永久に待たない。15 秒で切り上げて送る。 */
-		while (quiet < 3 && spent < 30) {
+		/* 静かにならない箱で永久に待たない。30 秒で切り上げて送る。 */
+		while (quiet < 3 && spent < 60) {
 			int r = poll(&pfd, 1, 500);
 
 			spent++;
@@ -102,9 +102,16 @@ main(int argc, char **argv)
 				got += n;
 				quiet = 0;
 			} else if (r == 0) {
+				/*
+				 * 静かさを数えるのは、何か出てからである。出る前から
+				 * 数えると、遅い箱では画面が出る前に 1.5 秒で抜けて、
+				 * editor がまだ居ないところへ鍵を送る。qemu の箱が全部
+				 * それで、速い macOS だけ通っていた。古い sleep(2) の
+				 * ほうが長かったので、直したつもりで短くしていた。
+				 */
 				if (got > 0)
 					quiet++;      /* 描き終わって静かになった */
-				else if (++quiet > 40)
+				else if (++idle > 40)
 					break;        /* 20 秒何も出ない。諦める */
 			} else
 				break;
