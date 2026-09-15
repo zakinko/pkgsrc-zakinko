@@ -98,7 +98,7 @@ LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 
 eval "LIST=\$LIST_$EMACS_V"
 
-ok=0; ng=0; skip=0; rot=0
+ok=0; ng=0; skip=0; rot=0; lpng=0
 calc_d=
 for p in $LIST; do
 	d=$TREE/$p
@@ -167,9 +167,45 @@ for p in $LIST; do
 		tail -20 "/tmp/$(basename $p).log" | sed 's/^/        /'
 		ng=$((ng+1))
 	fi
+
+	# lisp の置き場が、build 時の EMACSLOADPATH に載っているか。
+	#
+	# modules.mk は EMACSLOADPATH を ALL_ENV へ
+	#	.../share/emacs/<版>/lisp:.../share/emacs/site-lisp
+	# と綴る。置き場のほうだけを share/emacs/<版>/site-lisp へ移すと、
+	# **自分は建つが、自分の lisp に対して byte-compile する package が
+	# 相手を見つけられずに落ちる。**依存を持たない package しか建てない
+	# 周回では緑のままなので、build の成否では出てこない。
+	#
+	# 入っている emacs は同じ旗 (-batch -q -no-site-file) でも見つける
+	# ので、site-start.d の検査も show-var も通る。ずれているのは環境変数
+	# だけで、そこを名指しで見ないと分からない。
+	#
+	# EMACSLOADPATH は make の変数ではなく ALL_ENV の中の文字列なので、
+	# show-var VARNAME=EMACSLOADPATH では引けない。ALL_ENV から抜く。
+	ae=$(cd "$d" && $PKGMAKE $MKARGS show-var VARNAME=ALL_ENV 2>/dev/null)
+	elp=$(printf '%s\n' $ae | sed -n 's/^EMACSLOADPATH=//p' | head -1)
+	if [ -n "$elp" ]; then
+		lpfx=$(cd "$d" && $PKGMAKE $MKARGS show-var VARNAME=EMACS_LISPPREFIX 2>/dev/null)
+		rel=${lpfx#$PREFIX/}
+		hit=no
+		if [ -n "$rel" ]; then
+			oIFS=$IFS; IFS=:
+			for e in $elp; do
+				case $e in *"/$rel") hit=yes ;; esac
+			done
+			IFS=$oIFS
+		fi
+		if [ "$hit" != yes ]; then
+			echo "        ★ EMACSLOADPATH が lisp の置き場を含まない"
+			echo "            置き場     $rel"
+			echo "            loadpath   $elp"
+			lpng=$((lpng+1)); ng=$((ng+1))
+		fi
+	fi
 done
 
-echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip / 版に追従していない $rot ==="
+echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip / 版に追従していない $rot / loadpath がずれている $lpng ==="
 
 # site-start.d が効いているか。calc が入ったときだけ見る。
 #
