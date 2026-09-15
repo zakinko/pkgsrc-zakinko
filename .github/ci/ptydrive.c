@@ -75,47 +75,65 @@ main(int argc, char **argv)
 	alarm((unsigned)atoi(argv[2]));
 
 	/*
-	 * 鍵を送るのは、画面が出たのを見てからにする。固定の sleep(2) では
-	 * 遅い箱で editor がまだ読んでいない。Debian の container がそれで、
-	 * menu も中身も描けているのに打った文字も F2 も Alt-X も一つも
-	 * 効かず、時限で降りていた。速い箱では出ていたので、余計に厄介だった。
+	 * 鍵を送るのは、editor が読める状態になったのを見てからにする。
 	 *
-	 * 最初の出力が来て、それが途切れるまで待つ。描き終われば読める。
+	 * 時間で待つ (sleep(2)) と遅い箱で足りない。出力が途切れたことで
+	 * 待つと、pty の癖に振られる。NetBSD の pty は相手が slave を開く前に
+	 * poll が POLLHUP を返すことがあり、read が 0 か -1 になって、何も
+	 * 出ていないのに「途切れた」と読んで即座に送っていた。三回書き換えて
+	 * 三回とも同じ 3142 バイトで止まったのは、そのせいだと見ている。
+	 *
+	 * 印を待つ。PTYDRIVE_READY に文字列が在れば、それが出力に現れるまで
+	 * 待つ。editor が menu を描き終えて主 loop に入った印になる。無ければ
+	 * 出力が途切れるまで、で妥協する。read が 0 か -1 でも子が生きている
+	 * なら諦めず、少し待って読み直す。
 	 */
 	{
 		struct pollfd pfd;
 		char b[4096];
-		int got = 0, quiet = 0, spent = 0, idle = 0;
+		static char seen[65536];
+		size_t sl = 0;
+		const char *ready = getenv("PTYDRIVE_READY");
+		int got = 0, quiet = 0, spent = 0, idle = 0, found = 0;
 
+		if (ready && !*ready)
+			ready = NULL;
 		pfd.fd = master;
 		pfd.events = POLLIN;
-		/* 静かにならない箱で永久に待たない。30 秒で切り上げて送る。 */
-		while (quiet < 3 && spent < 60) {
+		/* 印が出るまで、あるいは 30 秒。印が無ければ静かになるまで。 */
+		while (spent < 60) {
 			int r = poll(&pfd, 1, 500);
 
 			spent++;
 			if (r > 0) {
 				n = read(master, b, sizeof(b));
-				if (n <= 0)
+				if (n <= 0) {
+					if (kill(pid, 0) == 0) { usleep(100000); continue; }
 					break;
+				}
 				(void)write(outfd, b, (size_t)n);
+				if (sl + (size_t)n < sizeof(seen)) {
+					memcpy(seen + sl, b, (size_t)n);
+					sl += (size_t)n;
+					seen[sl] = 0;
+				}
 				got += n;
 				quiet = 0;
+				if (ready && !found && strstr(seen, ready))
+					found = 1;
 			} else if (r == 0) {
-				/*
-				 * 静かさを数えるのは、何か出てからである。出る前から
-				 * 数えると、遅い箱では画面が出る前に 1.5 秒で抜けて、
-				 * editor がまだ居ないところへ鍵を送る。qemu の箱が全部
-				 * それで、速い macOS だけ通っていた。古い sleep(2) の
-				 * ほうが長かったので、直したつもりで短くしていた。
-				 */
-				if (got > 0)
-					quiet++;      /* 描き終わって静かになった */
-				else if (++idle > 40)
-					break;        /* 20 秒何も出ない。諦める */
+				if (found) {
+					if (++quiet >= 2) break;     /* 印が出て 1 秒静か */
+				} else if (!ready && got > 0) {
+					if (++quiet >= 3) break;     /* 印なし: 1.5 秒静か */
+				} else if (got == 0) {
+					if (++idle > 40) break;      /* 20 秒何も出ない */
+				}
 			} else
 				break;
 		}
+		if (ready && !found)
+			(void)write(2, "ptydrive: ready marker not seen\n", 32);
 	}
 
 	/* 鍵は一つずつ。送るたびに画面を吸わないと pty が詰まる。 */

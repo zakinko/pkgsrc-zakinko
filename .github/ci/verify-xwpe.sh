@@ -284,7 +284,10 @@ CEOF
 			echo "  F2 = $_f2 (tput)"
 		fi
 		_keys="$(_hex '/* touched */')0d${_f2}1b780d"
-		TERM=vt100 "$_drv" /tmp/xwpe-screen.raw 30 "$_keys" \
+		# menu の最後の語が描かれたら editor は主 loop に居る。それを見て
+		# から鍵を送る。時間や pty の静けさで待つと箱ごとに振られた。
+		# 時限は 45 秒。印を待つ上限 30 秒と鍵 17 個 × 0.2 秒が入る。
+		PTYDRIVE_READY=Help TERM=vt100 "$_drv" /tmp/xwpe-screen.raw 45 "$_keys" \
 			"$PREFIX/bin/we" /tmp/xwpe-hello.c
 		_rc=$?
 		if [ $_rc -eq 9 ]; then
