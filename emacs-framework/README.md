@@ -79,3 +79,42 @@ Emacs は元からその場所を探すので、追加の仕掛けは要らな�
 原型を試した場所は techne の `/usr/pkgsrc/zakinko/e-emacs`、`e-pcl`、`e-apel`
 (木の外へ出す写し。`editors/emacs` は触っていない)。建てたのは
 `~/w/claude/6a6d47e0/e13/pkg` の bootstrap。
+
+## 2026-09-16: 106 個を一周させて、自分の regression を見つけた
+
+木の写し (`~/w/claude/6a6d47e0/fw/tree`、`/usr/pkgsrc` の 2026-09-02 の複製) の
+`editors/emacs/modules.mk` を差し替え、106 個に `EMACS_TYPE=emacs30nox` を与えて
+どの版を選ぶかを引いた。
+
+**一周目で 15 個が make ごと落ちた。**
+
+	make: modules.mk:323: Cannot open /version.mk
+
+原因は自分の実装だった。`EMACS_VERSIONS_ACCEPTED= emacs21 emacs21nox emacs20` と
+**もう pkgsrc に無い版**を名指す package に対し、「受ける先頭」として emacs21 を
+選び、`_EMACS_PKGDIR` が空になって include が落ちる。**元の modules.mk なら
+PKG_FAIL_REASON できれいに落ちていた所を、make の fatal error に悪化させていた。**
+
+emacs21 は 2026-09-12 に消えたばかりで、この木にはまだ 15 個が名指しで残っている。
+**版が消えるのは実際に起きる**ので、そこを踏まないことが要る。
+
+直し方は、選ぶ先を「package が受ける版」ではなく **「package が受けて、かつ
+pkgsrc がまだ持っている版」** の交わりにすること。交わりが空なら、存在する版を
+入れて include を生かしたうえで PKG_FAIL_REASON を三行立てる。
+
+### 直したあとの一周 (106 個)
+
+	68  emacs30nox   既定を受けるもの
+	13  emacs20      ← 前は「静かに建たない」だったもの
+	 4  emacs31
+	 3  emacs29
+	 2  xemacs215
+	13  該当なし     emacs / xemacs 本体そのもの
+	 3  空欄         lang/ats2, lang/bigloo, mail/mailutils (option でのみ使う)
+	 5  きれいに落ちる  jde, leim21, bbdb2, nxml-mode (emacs21 しか受けない。
+	                    いずれも上流では削除済み)、devel/pvs
+
+	make ごと落ちたもの  0  (一周目は 15)
+
+**wiz さんの一点目が数で出た。**`EMACS_TYPE=emacs30nox` の bulk で、いまは
+黙って建たない 13 個が建つようになる。

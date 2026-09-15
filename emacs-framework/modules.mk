@@ -299,23 +299,36 @@ EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
 #     PYTHON_VERSIONS_ACCEPTED, the order is significant and the list is
 #     written newest first.
 #
+# The versions this package accepts that pkgsrc still has, kept in the
+# order _EMACS_VERSIONS_ALL lists them.  A package can name a version
+# that has since been removed -- when emacs21 went, fifteen packages
+# still asked for it -- and choosing one of those leaves nothing to
+# depend on.
+_EMACS_VERSIONS_OK=	# empty
+.for _ev_ in ${_EMACS_VERSIONS_ALL}
+.  if !empty(EMACS_VERSIONS_ACCEPTED:M${_ev_})
+_EMACS_VERSIONS_OK+=	${_ev_}
+.  endif
+.endfor
+
 .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 _EMACS_TYPE=		${EMACS_VERSION_REQD}
-.  if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
+.  if empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE})
 PKG_FAIL_REASON+=	"This package does not build with ${_EMACS_TYPE}"
 PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
 .  endif
-.elif !empty(EMACS_VERSIONS_ACCEPTED:M${EMACS_VERSION_DEFAULT})
+.elif !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_DEFAULT})
 _EMACS_TYPE=		${EMACS_VERSION_DEFAULT}
+.elif !empty(_EMACS_VERSIONS_OK)
+_EMACS_TYPE=		${_EMACS_VERSIONS_OK:[1]}
 .else
-_EMACS_TYPE=		${EMACS_VERSIONS_ACCEPTED:[1]}
-.endif
-
-# A version the framework has never heard of has no package directory to
-# map to, so say that rather than failing later on an empty path.
-.if empty(_EMACS_VERSIONS_ALL:M${_EMACS_TYPE})
-PKG_FAIL_REASON+=	"${_EMACS_TYPE} is not an Emacs that pkgsrc has"
-PKG_FAIL_REASON+=	"Known versions are: ${_EMACS_VERSIONS_ALL}"
+# Everything the package asks for has been removed from pkgsrc.  Say so,
+# and pick a version that exists so that the includes below still have a
+# directory to read; the package is failing anyway.
+_EMACS_TYPE=		${_EMACS_VERSIONS_ALL:[1]}
+PKG_FAIL_REASON+=	"No Emacs that pkgsrc still has is accepted here"
+PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
+PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
 .endif
 
 _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
