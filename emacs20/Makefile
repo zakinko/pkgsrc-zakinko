@@ -148,15 +148,21 @@ pre-install:
 post-install:
 	${CHOWN} -R ${SHAREOWN}:${SHAREGRP} ${DESTDIR}${PREFIX}/share/emacs
 
-# Emacs reads site-lisp/site-start.el at startup, before ~/.emacs, because
-# site-run-file is "site-start" and site-lisp is on load-path.  pkgsrc has had
-# no such file, so every elisp package told the user to paste autoloads into
-# their own .emacs by hand.  This one loads whatever packages left in
-# site-lisp/site-start.d, so they can register themselves instead.
+# Emacs reads site-start.el at startup, before ~/.emacs, because
+# site-run-file is "site-start" and this Emacs's own site-lisp is on load-path
+# ahead of the shared one.  pkgsrc has had no such file, so every elisp package
+# told the user to paste autoloads into their own .emacs by hand.  This one
+# loads whatever packages left in site-start.d beside it, so they can register
+# themselves instead.
+#
+# It goes under share/emacs/<version> rather than the shared share/emacs so it
+# stays next to the site-start.d that EMACS_LISPPREFIX now points at.  This
+# package cannot say ${EMACS_LISPPREFIX}: it is the Emacs, so it does not read
+# editors/emacs/modules.mk and the variable does not exist here.
 post-install: site-start
 .PHONY: site-start
 site-start:
 	${INSTALL_DATA} ${FILESDIR}/site-start.el \
-		${DESTDIR}${PREFIX}/share/emacs/site-lisp/site-start.el
+		${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 
 .include "../../mk/bsd.pkg.mk"

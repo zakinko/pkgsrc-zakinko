@@ -118,3 +118,54 @@ pkgsrc がまだ持っている版」** の交わりにすること。交わり�
 
 **wiz さんの一点目が数で出た。**`EMACS_TYPE=emacs30nox` の bulk で、いまは
 黙って建たない 13 個が建つようになる。
+
+## 2026-09-16: site-start.d が黙って無効になる件を直した
+
+netbsd-i386-16 の指摘。**lisp を版の下へ動かすと、書く側と読む側が別の場所に
+なる。**calc は `${EMACS_LISPPREFIX}/site-start.d/` へ入れるが、loader の
+`site-start.el` は `share/emacs/site-lisp/` に直書きで置かれ、自分の隣の
+`site-start.d` を見る。**build では出ない。**calc の PLIST も変数なので
+file-check は通り、`make package` は rc=0 で tarball も出る。
+
+この仕掛けは **fork 固有**で上流には無い (上流の `editors/emacs20` は
+site-start を 0 件しか持たない)。**wiz さんへ出す差分はこの件では壊れない。**
+
+### 先に測った
+
+`site-run-file` は load-path から引かれるので、版の下の site-lisp が
+load-path に在るかが分かれ目。bootstrap の emacs 20.7.1 で測った
+(batch の出力は `send-string-to-terminal`。emacs20 は princ が届かない)。
+
+	load-path の先頭   share/emacs/20.7/site-lisp   ← 版の下。しかも先頭
+	                   share/emacs/site-lisp
+	site-run-file      "site-start"
+
+版の下は load-path に在り、共有より先。**寄せてよい。**
+
+### 直した所と、途中で踏んだこと
+
+最初 `${EMACS_LISPPREFIX}` を使ったら PLIST で置換されずに落ちた。
+
+	ERROR: .../${EMACS_LISPPREFIX}/site-start.el
+
+**emacs 本体は自分が emacs なので `editors/emacs/modules.mk` を読まない。**
+`EMACS_LISPPREFIX` はそこに無い。本体側で版 directory を綴る作法は
+`${PKGVERSION}` で、既存の `subdirs.el` の行がそうなっている。
+
+	emacs20/PLIST        share/emacs/${PKGVERSION}/site-lisp/site-start.el
+	emacs20/Makefile     ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/
+	emacs21 も同じ (Makefile.common と PLIST)
+
+### 通しで測った
+
+	emacs20-20.7nb27                                   rc=0
+	  share/emacs/20.7/site-lisp/site-start.el         読む側
+	emacs20-calc-2.02fnb5                              rc=0
+	  share/emacs/20.7/site-lisp/site-start.d/20-calc.el   書く側
+	  share/emacs/20.7/site-lisp/calc/...
+
+	emacs -batch -q -eval '(commandp (quote calc-dispatch))'
+	  => t
+
+**autoload が実際に登録される。**建つかどうかでは測れない型なので、
+`commandp` まで撃って確かめた。
