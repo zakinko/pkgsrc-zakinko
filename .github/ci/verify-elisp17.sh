@@ -98,7 +98,7 @@ LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 
 eval "LIST=\$LIST_$EMACS_V"
 
-ok=0; ng=0; skip=0
+ok=0; ng=0; skip=0; rot=0
 calc_d=
 for p in $LIST; do
 	d=$TREE/$p
@@ -106,7 +106,24 @@ for p in $LIST; do
 	acc=$(cd "$d" && $PKGMAKE $MKARGS show-var VARNAME=EMACS_VERSIONS_ACCEPTED 2>/dev/null)
 	case " $acc " in
 	*" $EMACS_TYPE "*|"  ") : ;;
-	*) echo "  --- $p  受け付けない ($acc)"; skip=$((skip+1)); continue ;;
+	*)
+		# 「この周回では建てない」と「もう直すべき状態」は別物で、
+		# 混ぜると後者が緑で通る。pkgsrc がまだ持っている版を一つも
+		# 受けない package は、版が消えたのに追従していないということ
+		# なので、飛ばさずに落とす。emacs21 が消えたとき、名指しで
+		# 残っていた package が実際にこれに当たった。
+		all=$(cd "$d" && $PKGMAKE $MKARGS show-var VARNAME=_EMACS_VERSIONS_ALL 2>/dev/null)
+		live=
+		for a in $acc; do
+			case " $all " in *" $a "*) live="$live $a" ;; esac
+		done
+		if [ -n "$all" ] && [ -z "$live" ]; then
+			echo "  --- $p  ★ pkgsrc に在る版を一つも受けない ($acc)"
+			rot=$((rot+1)); ng=$((ng+1))
+		else
+			echo "  --- $p  受け付けない ($acc)"; skip=$((skip+1))
+		fi
+		continue ;;
 	esac
 	printf "  --- %-24s " "$p"
 	( cd "$d" && $PKGMAKE $MKARGS clean ) > /dev/null 2>&1
@@ -143,7 +160,7 @@ for p in $LIST; do
 	fi
 done
 
-echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip ==="
+echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip / 版に追従していない $rot ==="
 
 # site-start.d が効いているか。calc が入ったときだけ見る。
 #
