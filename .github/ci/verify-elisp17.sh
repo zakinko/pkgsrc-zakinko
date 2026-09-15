@@ -137,7 +137,16 @@ for p in $LIST; do
 		# byte-compile の警告を数える。当て物で .el を書き換えたなら、
 		# 増えていないことまで見ないと「通った」と言えない。当て物が
 		# 触った file の名前を含む行は、数だけでなく中身も出す。
-		w=$(grep -c '^Warning:\|^In .*:$' "/tmp/$(basename $p).log" 2>/dev/null || echo 0)
+		# grep -c は該当が無くても 0 を出したうえで終了状態 1 を返す。
+		# そこへ || echo 0 を足していたので、警告が無いときだけ値が
+		# "0\n0" になり、"ok (byte-compile の警告 0" と "0)" に行が割れて
+		# いた。0 のときに限って壊れるので、run の log を読むまで出ない。
+		# grep -c は常に数を出すので || は要らない。
+		#
+		# log が無いときは grep が何も出さず値が空になる。表示が崩れるので
+		# 0 に倒す。
+		w=$(grep -cE '^Warning:|^In .*:$' "/tmp/$(basename $p).log" 2>/dev/null)
+		w=${w:-0}
 		echo "ok (byte-compile の警告 $w)"
 		if [ -d "$d/patches" ]; then
 			for pf in "$d"/patches/patch-*; do
