@@ -1,0 +1,115 @@
+Subject: Re: possible pkgsrc emacs framework improvements?
+To: Thomas Klausner <wiz@NetBSD.org>
+
+(DRAFT -- not sent.  <<REDO>> still to be filled in.)
+
+Hi Thomas,
+
+The rest of the sweep finished, so here are the numbers I owed you.
+Of the 67 packages that select emacs30nox, 40 build, 2 I did not try,
+and 25 fail -- ten because of this change and fifteen for reasons that
+have nothing to do with it.
+
+The ten fall into three shapes, and each takes one line to fix.
+
+Seven have a PLIST that follows ${EMACS_LISPPREFIX} while the install
+writes the path itself, so the file check catches the mismatch:
+gnuserv, matlab-mode, twittering-mode, dictem, emacs-dict-client,
+xslide and emacs-w3m.  Two of these are worth a word.  editors/gnuserv
+lists share/doc/${PKGBASE} in INSTALLATION_DIRS while installing to
+share/doc/gnuserv, so README ends up as a file of that name rather
+than inside a directory; and editors/matlab-mode creates its directory
+as ${PKGBASE:C|^xemacs-||} but installs into ${PKGBASE}, which means
+it has been broken under xemacs all along and nobody noticed because
+the two spellings agreed under emacs.  I fixed both and they build.
+
+Two get a 404 fetching their distfile, because mk/fetch/github.mk has
+GITHUB_PROJECT?= ${PKGBASE} and the prefix moves PKGBASE, so the fetch
+asks for github.com/ziglang/emacs30nox-zig-mode: emacs-neotree and
+markdown-mode.  I fixed zig-mode and lua-mode the same way earlier and
+both build, so the one line is enough.
+
+One names a renamed package without the prefix and can then never be
+satisfied: misc/emacs-wiki asks for semi>=1.14.6.  devel/flim was the
+same, with an unprefixed apel>=10.8 next to an apel buildlink3.mk that
+already says ${EMACS_PKGNAME_PREFIX}apel>=10; I fixed that one and it
+builds.
+
+Two of the things that had to be fixed were in my own modules.mk, and
+only building found them.  EMACSLOADPATH for the build still named the
+old shared site-lisp, so anything byte-compiling against another elisp
+package stopped with "Cannot open load file" -- devel/flim could not
+require apel's install.el.  Nothing in the checks I had showed this:
+EMACS_LISPPREFIX was right, and the installed Emacs finds install.elc
+with the same flags the build uses.  Only the environment variable
+pointed at the old place.  Separately, the EMACS_VERSION_REQD path
+still had the empty-_EMACS_PKGDIR fatal I thought I had fixed, because
+I had only fixed it on the EMACS_VERSIONS_ACCEPTED side.
+
+<<REDO>>
+
+Three failures are distfiles that no longer fetch (cobol-mode,
+flyspell, ispell-emacs), one is a dependency marked broken on x86_64
+(rsltc), one is a ruby package that does not build here
+(migemo-elisp), and two I did not try at all because they build bazel
+first and that has nothing to do with where the lisp goes
+(mozc-elisp, mozc-elisp333).
+
+One failure is the change refusing, which is what you asked for.
+mail/vm in my copy depends on misc/bbdb2, which accepts only emacs21,
+and the build stops with
+
+  ERROR: No Emacs that pkgsrc still has is accepted here
+  ERROR: Accepted versions are: emacs21 emacs21nox
+  ERROR: pkgsrc has: emacs31 emacs31nox ... xemacs214nox
+
+rather than with "Cannot open /version.mk".  I have to say plainly
+that this cannot happen on trunk: you took bbdb2 out with emacs21, and
+mail/vm rev 1.47 no longer includes its buildlink3.mk.  The same goes
+for something else I wrote last time -- I said fifteen packages still
+ask for emacs21, and that is true of my 2 September copy and not of
+pkgsrc, since jde, leim21, bbdb2 and nxml-mode went with the version.
+Nothing on trunk names it.
+
+So the refusal is worth showing with EMACS_VERSION_REQD instead, where
+the two reasons stay apart:
+
+  devel/apel, EMACS_VERSION_REQD=emacs21
+    "pkgsrc no longer has emacs21"
+    "pkgsrc has: emacs31 emacs31nox ... xemacs214nox"
+
+  devel/apel, EMACS_VERSION_REQD=emacs20
+    "This package does not build with emacs20"
+    "Accepted versions are: emacs29 emacs29nox ... emacs31nox"
+
+The intersection is worth taking for the next retirement rather than
+for a mess sitting there today.
+
+Since my earlier figures came from that copy, I took them again from
+trunk, fetching each Makefile and PLIST.  The build results above are
+still from the copy, with the current modules.mk dropped in; every
+package I name still exists on trunk with the same lines.  87 packages read modules.mk,
+leaving out wip and the emacs and xemacs packages themselves.  Of the
+86 with a PLIST, 77 already write ${EMACS_LISPPREFIX} and six write
+the path by hand -- the same six I named before.  Of the 26 that pass
+a lisp directory into their build, 25 pass the variable; only
+chat/zenicb does not.
+
+The name is the expensive half, and most of it is outside modules.mk.
+EMACS_PKGNAME_PREFIX only does anything where the package spells it in
+PKGNAME, and 22 of the 87 do not.  Adding it moves PKGBASE, and six
+variables under mk/ take ${PKGBASE} as their default -- PKGWILDCARD
+and PKG_SYSCONFVAR in bsd.pkg.mk, FILEBASE in
+pkgformat/pkg/package.mk, and GITHUB_PROJECT, GITLAB_PROJECT and
+CODEBERG_PROJECT in mk/fetch -- so anything resting on the default
+moves with it.  Ten of the 87 fetch from GitHub without setting
+GITHUB_PROJECT; none uses gitlab or codeberg.  Nine spell ${PKGBASE}
+themselves, and since PKGBASE is in PLIST_SUBST a package that uses it
+on both sides stays consistent while one that uses it on a single side
+does not.  misc/color-theme has it in MASTER_SITES, so its Savannah
+fetch would move too.
+
+Happy to send the framework part on its own first, with the package
+fixes following in whatever grouping suits you.
+
+Showta
