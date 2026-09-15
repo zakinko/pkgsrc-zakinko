@@ -1,0 +1,10 @@
+--- www/emacs-w3m/Makefile.orig
++++ www/emacs-w3m/Makefile
+@@ -20,6 +20,7 @@
+ 
+ HAS_CONFIGURE=		yes
+ CONFIGURE_ARGS+=	--with-emacs=${EMACS_BIN:Q}
++CONFIGURE_ARGS+=	--with-lispdir=${EMACS_LISPPREFIX:Q}/w3m
+ CONFIGURE_ARGS+=	--with-icondir=${ICONDIR}
+ CONFIGURE_ARGS+=	--infodir=${PREFIX}/info
+ BUILD_TARGET=		default
