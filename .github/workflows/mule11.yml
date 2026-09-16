@@ -101,7 +101,19 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+          # trigger は非同期。settle で待ち、駄目なら chmod する。待たずに -w を
+          # 読んで負けると TCG に落ち、そのまま何時間も回る (run 35069883047 は
+          # 四つの job が違う答えを出し、負けた二つが 3h20m と 3h30m かかった)。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+          fi
 
       - name: 組んで確かめる
         env:

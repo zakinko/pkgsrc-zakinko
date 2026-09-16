@@ -150,8 +150,18 @@ MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 # vmactions の netbsd-vm では X のセットが無く、配布セットを足した上で
 # X11_TYPE=native にすると fonts/fontconfig が .x11-buildlink を触りに
 # いって落ちた。modular に逃がすと今度は 4 時間で 8 パッケージしか組めず
-# timeout に当たった。あちらは KVM が効かず TCG になるためで、こちらの
-# イメージなら KVM で動く。
+# timeout に当たった。
+#
+# その遅さを「あちらは KVM が効かず TCG になるため」と書いていたが、誤り
+# だったので 2026-09-17 に直した。/dev/kvm は GitHub の runner に在り、
+# amd64 ゲストは KVM で走る (vmactions の action 自身が chmod 666 して
+# いる)。TCG になるのはホストと arch が違うゲストだけである。遅かった
+# 本当の原因は、udevadm trigger が非同期なせいで KVM を取り損ねる競争に
+# 負けていた可能性が高い。同じ形が木の中の workflow 10 箇所に在り、
+# そちらは settle で待つ形へ直してある。
+#
+# こちらのイメージを使う理由は速さではなく、vmactions に NetBSD/i386 の
+# image が無いことと、X のセットが入っていることである。
 
 DIR=$TREE/$PKG
 cd "$DIR" || { echo "FAIL: $DIR が無い"; exit 1; }

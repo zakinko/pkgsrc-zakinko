@@ -153,12 +153,30 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+          # trigger は非同期。settle で待ち、駄目なら chmod する。待たずに -w を
+          # 読んで負けると TCG に落ち、そのまま何時間も回る (run 35069883047 は
+          # 四つの job が違う答えを出し、負けた二つが 3h20m と 3h30m かかった)。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+          fi
 
-      # vmactions/netbsd-vm ではなく netbsd-ci-images を使う。あちらは
-      # GitHub の runner で KVM を使えず TCG になり、uim を回したら 4 時間で
-      # 8 パッケージしか組めずに timeout へ当たった。こちらはホストが
-      # x86_64 なので amd64 ゲストに KVM が効く。X のセットも入っている。
+      # vmactions/netbsd-vm ではなく netbsd-ci-images を使う。理由は
+      # vmactions に NetBSD/i386 の image が無いことと、X のセットが入って
+      # いることである。amd64 だけなら vmactions でも足りる。
+      #
+      # 以前ここには「あちらは GitHub の runner で KVM を使えず TCG になる」
+      # と書いてあったが誤りで、2026-09-17 に直した。同じ段落の中で「こちらは
+      # ホストが x86_64 なので KVM が効く」と続けていて、同じ runner の話なのに
+      # 前半と後半が食い違っていた。/dev/kvm は runner に在り、amd64 ゲストは
+      # どちらでも KVM で走る。uim が 4 時間で 8 パッケージだったのは事実だが、
+      # 原因は udevadm trigger の競争に負けて TCG に落ちていた可能性が高い。
       - name: NetBSD で建てて確かめる
         env:
           UPSTREAM_PKG: inputmethod/uim
@@ -253,7 +271,19 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+          # trigger は非同期。settle で待ち、駄目なら chmod する。待たずに -w を
+          # 読んで負けると TCG に落ち、そのまま何時間も回る (run 35069883047 は
+          # 四つの job が違う答えを出し、負けた二つが 3h20m と 3h30m かかった)。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+          fi
 
       # python と sphinx は四半期のバイナリ集合に在るので bin-install で
       # 降りてくる。PLIST は手で組み立てたものなので、食い違ったら
@@ -297,7 +327,19 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+          # trigger は非同期。settle で待ち、駄目なら chmod する。待たずに -w を
+          # 読んで負けると TCG に落ち、そのまま何時間も回る (run 35069883047 は
+          # 四つの job が違う答えを出し、負けた二つが 3h20m と 3h30m かかった)。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+          fi
 
       # zig は 0.16.0 が公式のバイナリ集合に在るので bin-install で降りて
       # くる。LLVM を素から積まずに済む。zls 自身は BROKEN のせいで集合に
