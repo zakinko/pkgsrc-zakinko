@@ -97,7 +97,11 @@ echo "ツリー: $PKGSRC_URL"
 #
 # ホスト側は runner の素の回線なので速い。落としたものは actions/cache に
 # 載るので、二度目からは download すら要らない。
-TARBALL=$WORK/$(echo "$PKGSRC_URL" | sed 's|.*/||')
+# 名前は URL の末尾二つから作る。末尾だけだと current も四半期枝も
+# pkgsrc.tar.gz で、actions/cache から前の run の四半期枝が戻ってきて
+# current を頼んだ job が Q2 の木で走った。croc の job がそれで
+# ../../lang/go127 does not exist と言った (run 35083263808)。
+TARBALL=$WORK/$(echo "$PKGSRC_URL" | sed 's|.*/\([^/]*\)/\([^/]*\)$|\1-\2|')
 if [ ! -s "$TARBALL" ]; then
 	echo "--- $PKGSRC_URL を落とす ---"
 	curl -fsSL -o "$TARBALL" "$PKGSRC_URL"

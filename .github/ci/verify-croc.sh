@@ -79,8 +79,14 @@ if $PKGMAKE $MKARGS install > "$T/croc-install.log" 2>&1; then
 	echo "  ok install"
 else
 	echo "FAIL: install が落ちた"; rc=1
-	grep -n 'constraints exclude\|error\|ERROR\|\*\*\*' "$T/croc-install.log" | head -12
-	tail -20 "$T/croc-install.log"
+	# どの依存の中で落ちたかが要る。checking や Checksum の行は捨てる。
+	echo "  -- 依存の連鎖"
+	grep -n '===> Installing dependencies for\|NOT found' "$T/croc-install.log" | sed 's/^/     /'
+	echo "  -- error らしい行"
+	grep -n 'constraints exclude\|ERROR\|error:\|fatal\|cannot\|Cannot\|No such\|not supported\|\*\*\* \[' "$T/croc-install.log" |
+		grep -v 'checking\|Checksum\|unused' | head -20 | sed 's/^/     /'
+	echo "  -- 末尾"
+	grep -v 'Checksum\|=> Fetching\|^checking' "$T/croc-install.log" | tail -30 | sed 's/^/     /'
 fi
 if [ $rc -eq 0 ]; then
 	if $PKGMAKE $MKARGS package > "$T/croc-package.log" 2>&1; then
@@ -141,7 +147,7 @@ else
 		grep -n 'constraints exclude\|^package \|imports ' "$T/croc-dotdotdot.log" | head -6 | sed 's/^/     /'
 	else
 		echo "  ./... は別の理由で落ちた:"
-		grep -n 'error\|\*\*\*' "$T/croc-dotdotdot.log" | head -6 | sed 's/^/     /'
+		grep -n 'ERROR\|error:\|\*\*\* \[' "$T/croc-dotdotdot.log" | grep -v 'checking\|Checksum' | head -6 | sed 's/^/     /'
 	fi
 fi
 $PKGMAKE clean > /dev/null 2>&1
