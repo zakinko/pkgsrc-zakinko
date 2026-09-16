@@ -38,7 +38,7 @@ Emacs は元からその場所を探すので、追加の仕掛けは要らな�
 
 **名前**は `EMACS_PKGNAME_PREFIX= ${_EMACS_TYPE}-`。
 
-## 測った結果 (techne、root を使わない bootstrap に emacs20 を入れて)
+## 測った結果 (NetBSD 11.0/amd64、root を使わない bootstrap に emacs20 を入れて)
 
 	== devel/pcl-cvs (emacs20 のみ受ける)
 	  指定なし          前: 落ちる   後: emacs20-pcl-cvs-2.9.9nb4  share/emacs/20.7/site-lisp
@@ -76,13 +76,13 @@ Emacs は元からその場所を探すので、追加の仕掛けは要らな�
 
 ## 置き場
 
-原型を試した場所は techne の `/usr/pkgsrc/zakinko/e-emacs`、`e-pcl`、`e-apel`
-(木の外へ出す写し。`editors/emacs` は触っていない)。建てたのは
-`~/w/claude/6a6d47e0/e13/pkg` の bootstrap。
+原型は、木の外へ出した package の写しで試した (`editors/emacs` 自体は触って
+いない)。建てたのは root を使わない bootstrap の prefix で、いずれも作業機の
+中だけに在る。
 
 ## 2026-09-16: 106 個を一周させて、自分の regression を見つけた
 
-木の写し (`~/w/claude/6a6d47e0/fw/tree`、`/usr/pkgsrc` の 2026-09-02 の複製) の
+木の写し (pkgsrc の 2026-09-02 の複製) の
 `editors/emacs/modules.mk` を差し替え、106 個に `EMACS_TYPE=emacs30nox` を与えて
 どの版を選ぶかを引いた。
 
