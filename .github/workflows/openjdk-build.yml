@@ -60,6 +60,10 @@ jobs:
 
       - name: NetBSD で建てる
         uses: vmactions/netbsd-vm@v1.5.0
+        # envs: は「この名前を VM へ渡す」であって、値を作る指定では
+        # ない。ここで入れないと VM 側は空を受け取る。
+        env:
+          PKG: ${{ inputs.pkg || 'openjdk21' }}
         with:
           release: ${{ inputs.release || '10.1' }}
           mem: 8192
@@ -90,7 +94,14 @@ jobs:
           run: |
             set -e
             export PATH=/usr/pkg/bin:/usr/pkg/sbin:$PATH
-            : "${PKG:=openjdk21}"
+            # 既定値を置かない。置くと「渡っていない」が「openjdk21 を
+            # 建てた」に化ける。実際そうなって、四本の run が四本とも 21 を
+            # 建てていた。log の頭に PKGNAME が出るので気付けるが、気付く前に
+            # 一時間使う。
+            if [ -z "$PKG" ]; then
+              echo "PKG が渡っていない。envs: と env: の両方が要る"
+              exit 1
+            fi
             # cd したあとに $PWD を使うと別の場所を指す。先に控える。
             WS="$PWD"
 
@@ -143,6 +154,11 @@ jobs:
             cd /usr/pkgsrc/zakinko/$PKG
             echo "=== 何を建てるか ==="
             make show-var VARNAME=PKGNAME
+            # 頼んだ package と、いま解けている PKGNAME が同じ線か
+            case "`make show-var VARNAME=PKGNAME`" in
+              "$PKG"-*) ;;
+              *) echo "$PKG を頼んだのに別の物が解けている"; exit 1 ;;
+            esac
             make show-var VARNAME=DISTNAME
             make show-var VARNAME=PATCHFILES
 
