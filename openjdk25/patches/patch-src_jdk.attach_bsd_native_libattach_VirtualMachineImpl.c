@@ -1,5 +1,12 @@
 $NetBSD: patch-src_jdk.attach_bsd_native_libattach_VirtualMachineImpl.c,v 1.1 2025/11/15 12:17:12 ryoon Exp $
 
+Build the attach provider on NetBSD.
+
+NetBSD has no <sys/user.h>, and its kinfo_proc keeps the signal masks in a
+struct of its own rather than in a sigset_t, so sigismember refuses them
+without a cast.  Neither shows up on the other BSDs, which is why the port
+carries the file unguarded.
+
 --- src/jdk.attach/bsd/native/libattach/VirtualMachineImpl.c.orig	2025-11-01 06:31:36.000000000 +0000
 +++ src/jdk.attach/bsd/native/libattach/VirtualMachineImpl.c
 @@ -31,7 +31,9 @@
