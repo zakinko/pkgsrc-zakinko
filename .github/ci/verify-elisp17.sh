@@ -228,8 +228,14 @@ for p in $LIST; do
 		# 診断に要る証拠を自分で捨てていた。**
 		#
 		# 依存の版と configure の結論だけ先に抜いてから、末尾を出す。
+		# Tool の "found" は落とす。mktools と cwrappers と gmake が
+		# 段ごとに出るので、54 行のうち 28 行がそれだった。診断に効くのは
+		# Full dependency と、見つからなかった Tool と、Configuring。
+		# emacs-w3m の失敗では 54 -> 26 行になり、apel>=10: NOT found が
+		# 埋もれなくなる。
 		grep -E '^=> (Full|Build|Tool) dependency|^===> Configuring' \
-		    "/tmp/$(basename $p).log" 2>/dev/null | sed 's/^/        /'
+		    "/tmp/$(basename $p).log" 2>/dev/null \
+		  | grep -vE '^=> Tool dependency .*: found' | sed 's/^/        /'
 		tail -40 "/tmp/$(basename $p).log" | sed 's/^/        /'
 		ng=$((ng+1))
 	fi
