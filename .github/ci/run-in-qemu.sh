@@ -16,11 +16,22 @@
 #
 #   UPSTREAM_PKG=zakinko/fail2ban sh run-in-qemu.sh amd64-10.1
 #
-# ここを使うのは、vmactions の netbsd-vm が GitHub の runner では KVM を
-# 使えず TCG になるため。uim を回したら 4 時間で 8 パッケージしか組めず
-# timeout に当たった。こちらのイメージはホストが x86_64 なので i386 でも
-# amd64 でも KVM が効く。X のセットも入っているので X11_TYPE=native で
-# 済み、modular X を積む必要もない。
+# ここを使うのは、vmactions に NetBSD/i386 のイメージが無いため。builder に
+# も action にも i386 の conf が無く、release の asset にも一つも無い
+# (2026-09-17 に確認)。あちらが作っているのは amd64 と aarch64、riscv64、
+# sparc64、それに 11.0 の microvm だけである。
+#
+# 速さの話ではない。以前ここには「vmactions は GitHub の runner で KVM を
+# 使えず TCG になるため」と書いてあったが、誤りだったので直した。実際には
+# /dev/kvm は runner に在り (netbsd-vm 自身が chmod 666 している)、amd64 の
+# ゲストは KVM で走る。i386 のゲストも x86_64 のホストなら KVM で走る。TCG に
+# なるのはホストと arch が違うゲスト (aarch64, riscv64, sparc64 など) で、
+# netbsd-vm の isSlowEmulatedArch() は accel を選んでおらず rsync の timeout を
+# 調整しているだけである。uim が 4 時間で 8 パッケージしか進まなかったのは
+# 事実だが、その原因をこの文が取り違えていた。
+#
+# こちらのイメージは i386 でも amd64 でも KVM が効く。X のセットも入っている
+# ので X11_TYPE=native で済み、modular X を積む必要もない。
 #
 # イメージは公式には配られていないので (配布物はインストーラが主で、
 # インストール済みのものは amd64 の 10.0 以降しかない)、anita で組んだ
