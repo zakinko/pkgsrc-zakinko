@@ -154,8 +154,23 @@ moves with it.  Ten of the 87 fetch from GitHub without setting
 GITHUB_PROJECT; none uses gitlab or codeberg.  Nine spell ${PKGBASE}
 themselves, and since PKGBASE is in PLIST_SUBST a package that uses it
 on both sides stays consistent while one that uses it on a single side
-does not.  misc/color-theme has it in MASTER_SITES, so its Savannah
-fetch would move too.
+does not.
+
+Since none of that shows up until a package gains the prefix, I took
+one of the 22 that do not have it -- misc/color-theme -- added the
+PKGNAME line, and built it.  It breaks in two places at once.  Its
+MASTER_SITES is https://download.savannah.gnu.org/releases/${PKGBASE}/,
+which becomes .../releases/emacs30nox-color-theme/ and gives a 404 (the
+build here only got past it because the distfile was already in
+DISTDIR).  And its install is ELISPDIR=${EMACS_LISPPREFIX}/${PKGBASE}
+while its PLIST spells ${EMACS_LISPPREFIX}/color-theme, so the file
+check stops it:
+
+  ERROR: .../site-lisp/emacs30nox-color-theme/themes/color-theme.elc
+
+That is one package of the 22, and I only looked because it was in the
+list of nine that spell ${PKGBASE}.  So I would not want to say the
+remaining 22 are a line each until they have been through a build.
 
 One last thing, which is not about placement at all.
 EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
