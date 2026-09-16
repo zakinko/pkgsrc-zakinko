@@ -1,9 +1,9 @@
 Subject: elisp packages that cannot be built as they stand
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.  The diffs the last paragraph promises are not in
-this file yet; they are in emacs-framework/pkg-fixes/.  They have to be
-pasted in and re-checked against trunk on the day it goes out.)
+(DRAFT -- not sent.  Held until Thomas answers the first mail.  The
+diffs below are pasted in from emacs-framework/pkg-fixes/; re-check
+that they still apply on the day it goes out.)
 
 Hi Thomas,
 
@@ -219,3 +219,193 @@ that one is a change to an existing patch rather than a new one, and
 its distinfo line moves with it.
 
 Showta
+
+--- devel/ecb/Makefile.orig
++++ devel/ecb/Makefile
+@@ -25,14 +25,14 @@
+ 
+ INSTALLATION_DIRS+=	\
+ 	${PKGINFODIR} \
+-	${EMACS_LISPPREFIX}/${PKGBASE}
++	${EMACS_LISPPREFIX}/ecb
+ 
+ do-install:
+-	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
+-	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/ecb
++	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/ecb
+ 	${INSTALL_DATA} ${WRKSRC}/info-help/ecb.info* ${DESTDIR}${PREFIX}/${PKGINFODIR}
+ 	${TAR} -cf - -C ${WRKSRC} ecb-images | \
+-		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/ecb
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+
+--- editors/gnuserv/Makefile.orig
++++ editors/gnuserv/Makefile
+@@ -10,7 +10,7 @@
+ HOMEPAGE=	https://www.emacswiki.org/emacs/GnuClient
+ COMMENT=	Improved version of emacsserver for GNU Emacs
+ 
+-CONFLICTS+=	xemacs-[0-9]* xemacs-current-[0-9]* # bin/gnuattach; bin/gnuclient
++CONFLICTS+=	xemacs-[0-9]* xemacs-nox11-[0-9]* # bin/gnuattach; bin/gnuclient
+ GNU_CONFIGURE=	YES
+ 
+ CONFIGURE_ARGS+=	--with-x	# X support
+@@ -22,7 +22,7 @@
+ EL_FILES=		devices.el gnuserv.el gnuserv-compat.el
+ 
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX} share/applications	\
+-			share/doc/${PKGBASE}
++			share/doc/gnuserv
+ 
+ .PHONY: el-install doc-install
+ 
+
+--- textproc/dictem/Makefile.orig
++++ textproc/dictem/Makefile
+@@ -16,7 +16,7 @@
+ SRCS=			dictem.el
+ DOCS=			README NEWS COPYING # ChangeLog
+ 
+-INSTALLATION_DIRS+=	share/doc/${PKGBASE} ${EMACS_LISPPREFIX}
++INSTALLATION_DIRS+=	share/doc/dictem ${EMACS_LISPPREFIX}
+ 
+ do-build:
+ .for f in ${SRCS}
+@@ -29,7 +29,7 @@
+ 	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc}	\
+ 			${DESTDIR}${EMACS_LISPPREFIX};		\
+ 	cd ${WRKSRC} && ${INSTALL_DATA} ${DOCS}				\
+-			${DESTDIR}${PREFIX}/share/doc/${PKGBASE}
++			${DESTDIR}${PREFIX}/share/doc/dictem
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+
+--- editors/matlab-mode/Makefile.orig
++++ editors/matlab-mode/Makefile
+@@ -23,6 +23,9 @@
+ EMACS=	emacs
+ .else
+ EMACS=	xemacs
++# matlab.el requires tempo, which lives in xemacs-packages rather
++# than in XEmacs itself, so the byte-compile below cannot find it.
++DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
+ .endif
+ 
+ SRCS=	matlab.el
+@@ -34,7 +37,7 @@
+ 	done
+ 
+ do-install:
+-	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||}
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
++	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
+ 
+ .include "../../mk/bsd.pkg.mk"
+
+--- textproc/xslide/Makefile.orig
++++ textproc/xslide/Makefile
+@@ -17,6 +17,9 @@
+ EMACS=	emacs
+ .else
+ EMACS=	xemacs
++# The byte-compile below loads sendmail, which lives in
++# xemacs-packages rather than in XEmacs itself.
++DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
+ .endif
+ 
+ SRCS=	xslide-abbrev.el xslide-data.el xslide-font.el xslide-process.el xslide.el
+@@ -32,8 +35,8 @@
+ 	done
+ 
+ do-install:
+-	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
++	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
+ 	${INSTALL_DATA_DIR} ${DESTDIR}${PREFIX}/share/doc/xslide
+ 	${INSTALL_DATA} ${WRKSRC}/README.TXT ${DESTDIR}${PREFIX}/share/doc/xslide
+ 	${INSTALL_DATA} ${WRKSRC}/dot_emacs ${DESTDIR}${PREFIX}/share/doc/xslide
+
+--- mail/mu/patches/patch-mu4e_meson.build.orig
++++ mail/mu/patches/patch-mu4e_meson.build
+@@ -2,9 +2,33 @@
+ 
+ Don't care about info errors
+ 
++Byte-compile mu4e-dbus.el unconditionally.  The build asks the Emacs whether
++dbusbind is compiled in and skips the file when it is not, but PLIST.emacs
++lists mu4e-dbus.elc with no condition, so the package cannot be built against
++an Emacs without D-Bus -- every *nox one, and an emacs30 with the dbus option
++off.  The file compiles clean without D-Bus: both of its requires pass
++'noerror.
++
+ --- mu4e/meson.build.orig	2026-08-09 13:09:56.075658158 +0000
+ +++ mu4e/meson.build
+-@@ -156,6 +156,7 @@ if makeinfo.found()
++@@ -80,13 +80,9 @@
++ 
++ # do have we have dbus support?
++ mu4e_srcs += 'mu4e-dbus.el'
++-emacs_dbus = run_command(emacs, '--batch', '--eval', '(kill-emacs (if (featurep \'dbusbind) 0 1))',
++-                         check: false)
++-if emacs_dbus.returncode() == 0
++-  mu4e_bc_srcs += 'mu4e-dbus.el'
++-else
++-  message('mu4e-dbus.el cannot be byte-compiled')
++-endif
+++# Byte-compile this whether or not the Emacs has dbusbind; both of its
+++# requires are 'noerror, so it compiles without D-Bus.
+++mu4e_bc_srcs += 'mu4e-dbus.el'
++ 
++ # note, we cannot compile mu4e-config.el without incurring
++ #  WARNING: Source item
++@@ -156,6 +152,7 @@ if makeinfo.found()
+                  install: true,
+                  depends: fdl_texi,
+                  command: [makeinfo,
+
+--- mail/mu/distinfo.orig
++++ mail/mu/distinfo
+@@ -4,4 +4,4 @@
+ SHA512 (mu-1.14.3.tar.gz) = 7ac28e81f646a9bdd0dd1140d7d0517b8a83eb4383c2a2e1b9e44ca1b1130e408c6db15da85b73f0ffd894a1b449bdb70a896fbd7527d79a843b42c4ae4b80fa
+ Size (mu-1.14.3.tar.gz) = 1338427 bytes
+ SHA1 (patch-lib_message_mu-contact.hh) = cc4cc391ab4bbd16f6c38e222057b392d68485e6
+-SHA1 (patch-mu4e_meson.build) = 3581ab81c473ae058869b90e979fc77c96cf0670
++SHA1 (patch-mu4e_meson.build) = 7119708a5472bcc1b048a900e2db3b059e84aa0f
+
+--- devel/semi/options.mk.orig
++++ devel/semi/options.mk
+@@ -1,7 +1,7 @@
+ # $NetBSD: options.mk,v 1.7 2022/06/05 02:39:18 mef Exp $
+ 
+ PKG_OPTIONS_VAR=		PKG_OPTIONS.semi
+-PKG_SUPPORTED_OPTIONS=		semi-bbdb
++PKG_SUPPORTED_OPTIONS=		# empty
+ PKG_OPTIONS_OPTIONAL_GROUPS=	semi-browser
+ PKG_OPTIONS_GROUP.semi-browser=	w3 w3m
+ PKG_SUGGESTED_OPTIONS=
+@@ -10,10 +10,14 @@
+ 
+ PLIST_VARS+=	bbdb w3
+ 
+-.if !empty(PKG_OPTIONS:Msemi-bbdb)
+-.include "../../misc/bbdb2/buildlink3.mk"
+-PLIST.bbdb=	yes
+-.endif
++# The semi-bbdb option included misc/bbdb2, which went away with
++# emacs21.  Pointing it at misc/bbdb3 does not work: mime-bbdb.el is
++# written against BBDB 2 and byte-compiles with bbdb-record-getprop,
++# bbdb-record-putprop, bbdb-search-simple, bbdb-pop-up-bbdb-buffer,
++# bbdb-record-edit-notes and bbdb-annotate-notes all undefined, none
++# of which BBDB 3 defines.  Without a port of mime-bbdb.el there is
++# nothing for the option to select, and leaving it in makes the
++# package fail to parse rather than fail to build.
+ 
+ .if !empty(PKG_OPTIONS:Mw3)
+ .include "../../www/w3/buildlink3.mk"
+

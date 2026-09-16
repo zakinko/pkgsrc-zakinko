@@ -355,7 +355,9 @@ Spelling the prefix in the pattern fixes it and sharpens it at the
 same time -- with ${EMACS_PKGNAME_PREFIX}tamago-[0-9]* the line matches
 emacs20-tamago while tamago-tsunagi is built for emacs20, and does not
 match it under emacs30nox, which is right: the two only collide when
-they share a lisp directory.  That diff is with the others.
+they share a lisp directory.  That one is in emacs-framework/pkg-fixes/
+on the branch, with the rest of the package changes; say the word and I
+will paste whichever of them you want to look at into a mail instead.
 
 I watched the shape of this happen for real, though for a different
 reason: editors/gnuserv's CONFLICTS names a pattern that matches no
