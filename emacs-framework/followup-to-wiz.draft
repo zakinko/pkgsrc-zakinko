@@ -64,8 +64,14 @@ the way pyversion.mk walks PYTHON_VERSIONS_ACCEPTED, and that was the
 intent but not the code: the loop that intersects the two lists walked
 modules.mk's, so the package's order never reached the answer.
 misc/mailcrypt writes emacs20 first and still got emacs31.  The loop
-runs the other way now, and moving mailcrypt's line moves what it
-picks, which is how I checked.
+runs the other way now.  Reordering does move the answer, but only
+where it should -- with EMACS_TYPE set to something the package does
+not take, mailcrypt given "emacs20 emacs29" picks emacs20 and given
+"emacs29 emacs20" picks emacs29, while if the default is in the list
+the default still wins.  I mention the condition because I first tried
+to show this with devel/apel and got the same answer both ways: apel
+names emacs20 in EMACS_VERSIONS_INCOMPATIBLE, so only one candidate
+survived the filter and there was nothing left to order.
 
 The pbulk part was worse, and I am sorry to have said it was done.  I
 wrote that it was three lines in mk/pbulk/pbulk-index.mk of the same
