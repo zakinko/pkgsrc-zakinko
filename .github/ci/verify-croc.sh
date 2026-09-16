@@ -62,6 +62,22 @@ if [ -x "$PREFIX/bin/bmake" ]; then
 	else
 		echo "--- 依存の出どころ: 無し。全部その場で組む ---"
 	fi
+elif [ "$OS" = NetBSD ]; then
+	# base の make で済む NetBSD には bmake が無い。ここを MKARGS="" に
+	# していたので、qemu の箱では依存を一つも降ろさず perl も python も
+	# go14 から go127 までも source で組み、work が 11GB の disk を埋めて
+	# go127 の go_bootstrap が exit status 1 で止まった (run 35092623482、
+	# console に /var/log/messages: No space left on device)。bin-install は
+	# source へ落ちた package を package-install && clean で片付けるので、
+	# 上の枝と同じものを渡す。verify-xwpe.sh と同じ形。
+	PKGMAKE=make
+	MKARGS="DEPENDS_TARGET=bin-install"
+	if [ -z "${BINPKG_SITES:-}" ]; then
+		_rel=$(uname -r); _br=${_rel%%.*}.0
+		BINPKG_SITES=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/$(uname -p)/${_br}_2026Q2
+	fi
+	MKARGS="$MKARGS BINPKG_SITES=$BINPKG_SITES"
+	echo "--- 依存の出どころ: $BINPKG_SITES ---"
 else
 	PKGMAKE=make
 	MKARGS=""
@@ -70,7 +86,7 @@ fi
 cd "$TREE/$PKG" || { echo "FAIL: $TREE/$PKG が無い"; exit 1; }
 rc=0
 echo "--- $PKG ($OS $(uname -r) / $(uname -m)) ---"
-grep -n 'DISTNAME\|GO_VERSION_REQD\|GO_BUILD_PATTERN' Makefile | sed 's/^/  /'
+grep -nE 'DISTNAME|GO_VERSION_REQD|GO_BUILD_PATTERN' Makefile | sed 's/^/  /'
 
 echo
 echo "########## 1. 建てて入れて package ##########"
@@ -80,13 +96,16 @@ if $PKGMAKE $MKARGS install > "$T/croc-install.log" 2>&1; then
 else
 	echo "FAIL: install が落ちた"; rc=1
 	# どの依存の中で落ちたかが要る。checking や Checksum の行は捨てる。
+	# 選択は -E の | で書く。BSD の grep は \| を解さないので、OpenBSD では
+	# 三つの grep とも黙り、go120 で止まった理由が一行も残らなかった。
 	echo "  -- 依存の連鎖"
-	grep -n '===> Installing dependencies for\|NOT found' "$T/croc-install.log" | sed 's/^/     /'
+	grep -nE '===> Installing dependencies for|NOT found' "$T/croc-install.log" | sed 's/^/     /'
 	echo "  -- error らしい行"
-	grep -n 'constraints exclude\|ERROR\|error:\|fatal\|cannot\|Cannot\|No such\|not supported\|\*\*\* \[' "$T/croc-install.log" |
-		grep -v 'checking\|Checksum\|unused' | head -20 | sed 's/^/     /'
+	grep -nE 'constraints exclude|ERROR|error:|fatal|cannot|Cannot|No such|not supported|\*\*\* \[|No space|Killed|signal: ' "$T/croc-install.log" |
+		grep -vE 'checking|Checksum|unused' | head -20 | sed 's/^/     /'
 	echo "  -- 末尾"
-	grep -v 'Checksum\|=> Fetching\|^checking' "$T/croc-install.log" | tail -30 | sed 's/^/     /'
+	grep -vE 'Checksum|=> Fetching|^checking' "$T/croc-install.log" | tail -30 | sed 's/^/     /'
+	df -h /usr 2>/dev/null | sed 's/^/     /'
 fi
 if [ $rc -eq 0 ]; then
 	if $PKGMAKE $MKARGS package > "$T/croc-package.log" 2>&1; then
@@ -144,10 +163,10 @@ if $PKGMAKE $MKARGS GO_BUILD_PATTERN=./... build > "$T/croc-dotdotdot.log" 2>&1;
 else
 	if grep -q 'build constraints exclude' "$T/croc-dotdotdot.log"; then
 		echo "  ./... は落ちる (pattern が要る側の OS):"
-		grep -n 'constraints exclude\|^package \|imports ' "$T/croc-dotdotdot.log" | head -6 | sed 's/^/     /'
+		grep -nE 'constraints exclude|^package |imports ' "$T/croc-dotdotdot.log" | head -6 | sed 's/^/     /'
 	else
 		echo "  ./... は別の理由で落ちた:"
-		grep -n 'ERROR\|error:\|\*\*\* \[' "$T/croc-dotdotdot.log" | grep -v 'checking\|Checksum' | head -6 | sed 's/^/     /'
+		grep -nE 'ERROR|error:|\*\*\* \[' "$T/croc-dotdotdot.log" | grep -vE 'checking|Checksum' | head -6 | sed 's/^/     /'
 	fi
 fi
 $PKGMAKE clean > /dev/null 2>&1
