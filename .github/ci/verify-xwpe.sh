@@ -216,7 +216,8 @@ _strip() {
 		-e "s/${_ESC}\][0-9;]*[a-zA-Z]*//g" -e "s/${_ESC}[=>]//g" -e "s/${_ESC}//g" "$1" |
 	LC_ALL=C tr -d '\000-\010\013\014\016-\037'
 }
-_hex() { printf '%s' "$1" | od -An -tx1 | tr -d ' \n'; }
+# 文字列を、一文字ずつ "," で区切った hex に。ptydrive の鍵の形。
+_hex_keys() { printf '%s' "$1" | od -An -tx1 | tr -s ' \n' ',' | sed 's/^,//;s/,$//'; }
 
 if [ -x "$PREFIX/bin/we" ]; then
 	echo "--- 名乗るか ---"
@@ -283,7 +284,10 @@ CEOF
 		else
 			echo "  F2 = $_f2 (tput)"
 		fi
-		_keys="$(_hex '/* touched */')0d${_f2}1b780d"
+		# 鍵は "," で区切って渡す。一つの区切りが一回の write になる。
+		# F2 の ESC O Q を byte ごとに送ると xwpe の 25ms の ESC 待ちを
+		# 外して、"OQ" が本文に入る。文字は一つずつ、並びは一まとめ。
+		_keys="$(_hex_keys '/* touched */'),0d,${_f2},1b78,0d"
 		# menu の最後の語が描かれたら editor は主 loop に居る。それを見て
 		# から鍵を送る。時間や pty の静けさで待つと箱ごとに振られた。
 		# 時限は 45 秒。印を待つ上限 30 秒と鍵 17 個 × 0.2 秒が入る。

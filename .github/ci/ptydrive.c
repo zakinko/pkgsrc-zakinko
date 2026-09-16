@@ -1,7 +1,13 @@
 /*
  * 全画面 editor を pty の向こうで走らせて、画面に出たものを file へ落とす。
  *
- *	ptydrive <out> <seconds> <keys-in-hex> <cmd> [args...]
+ *	ptydrive <out> <seconds> <keys> <cmd> [args...]
+ *
+ * <keys> は hex を "," で区切った列で、区切りの一つが一つの鍵である。
+ * "2f,0d,1b4f51,1b78" なら '/'、Enter、F2 (ESC O Q)、Alt-X (ESC x)。
+ * 一つの鍵は一回の write(2) で送る。ESC の並びを byte ごとに間を置いて
+ * 送ると、editor 側の ESC 待ち (xwpe は set_escdelay(25)) を外して ESC が
+ * 単独で切れ、続きの "OQ" や "x" が文字として本文に入る。
  *
  * script(1) でやろうとしたが、NetBSD のそれは -c を付けても記録が空だった。
  * 掴めないものを回避で誤魔化すより、openpty(3) を直に呼ぶほうが短い。
@@ -136,14 +142,31 @@ main(int argc, char **argv)
 			(void)write(2, "ptydrive: ready marker not seen\n", 32);
 	}
 
-	/* 鍵は一つずつ。送るたびに画面を吸わないと pty が詰まる。 */
-	for (i = 0; argv[3][i] && argv[3][i+1]; i += 2) {
-		char h[3] = { argv[3][i], argv[3][i+1], 0 };
-		unsigned char c = (unsigned char)strtol(h, NULL, 16);
+	/*
+	 * 鍵は一つずつ、ただし一つの鍵の並びは一回で。送るたびに画面を吸わ
+	 * ないと pty が詰まる。
+	 *
+	 * 以前は hex を byte ごとに 200ms 置いて書いていて、それで F2 (ESC O Q)
+	 * が効いていた。効いていた理由は、鍵を打つ間 master を読まなかった
+	 * ことで pty の出力が詰まり、editor が write で止まって、鍵が全部
+	 * 溜まってから一気に読まれていたからである。吸うようにして editor が
+	 * 本当に 200ms 間隔で受け取るようになった途端、ESC が 25ms で単独と
+	 * 判定され、'O' 'Q' 'x' が本文に入って保存も終了も起きなくなった。
+	 * 全 13 箱が同時に落ちたのはそれで、緑は偶然だった。
+	 */
+	{
+	char *tok, *sp = argv[3];
+	while ((tok = strsep(&sp, ",")) != NULL) {
+		unsigned char seq[64];
+		size_t k = 0;
 		struct pollfd pfd;
 		char b[4096];
 
-		if (write(master, &c, 1) != 1)
+		for (i = 0; tok[i] && tok[i+1] && k < sizeof(seq); i += 2) {
+			char h[3] = { tok[i], tok[i+1], 0 };
+			seq[k++] = (unsigned char)strtol(h, NULL, 16);
+		}
+		if (k == 0 || write(master, seq, k) != (ssize_t)k)
 			break;
 		pfd.fd = master;
 		pfd.events = POLLIN;
@@ -160,6 +183,7 @@ main(int argc, char **argv)
 		 * 吸うのは pty を詰まらせないためで、待つ代わりではない。
 		 */
 		usleep(200000);
+	}
 	}
 
 	while ((n = read(master, buf, sizeof(buf))) > 0)
