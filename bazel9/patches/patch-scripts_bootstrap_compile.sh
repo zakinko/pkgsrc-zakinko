@@ -1,6 +1,6 @@
 $NetBSD$
 
-Keep the bootstrap working on JDK 23 and newer.
+Run the annotation processors on JDK 23 and newer, first stage.
 
 javac stopped running annotation processors it finds on the classpath
 unless it is asked to, so the AutoValue and AutoService processors never
@@ -14,9 +14,15 @@ run and none of the generated classes exist:
 onwards, because the option does not exist before 21 and the default is
 already what we want up to 22.
 
+This covers the javac that builds the bootstrap bazel and nothing else.
+Once that bazel runs, tools/build_rules/java_rules_skylark.bzl calls the
+JDK's javac again from a genrule, and the same thing happens there 1,778
+actions later.  That one takes --javacopt and --host_javacopt rather than
+a patch; the Makefile passes them.  Change one and look at the other.
+
 Upstream solved this after 9.2.0 by naming the processors explicitly
 (-processor) and splitting the compilation in two, which is a larger
-change than belongs in a patch here.
+change than belongs in a patch here.  It did not solve the genrule.
 
 --- scripts/bootstrap/compile.sh.orig
 +++ scripts/bootstrap/compile.sh
