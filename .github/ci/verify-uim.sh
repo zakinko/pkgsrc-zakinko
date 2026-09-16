@@ -236,6 +236,47 @@ tail -40 /tmp/uim-plain.log
 
 # ------------------------------------------------------------------
 echo
+echo "########## 2.5 gtk が見つからない理由を採る ##########"
+# gtk2 の option を入れた run で、configure が
+#
+#	checking for gtk+-2.0 >= 2.2.0 gdk-x11-2.0... no
+#
+# と言って gtk を落とし、gtk2 の 9 個が建たない。当て物を当てる前の素の
+# 状態でも同じ 9 個が欠けるので、当て物のせいではない。ただし no の一語
+# だけでは、gtk+-2.0 が無いのか gdk-x11-2.0 が無いのか、その先の x11.pc が
+# 引けないのかが分からない。名指しで採る。
+#
+# 読みとしては、uim の options.mk が X11 を buildlink しているのは xim の
+# 枝だけで、gtk2 と gtk3 の枝は引いていない。NetBSD は native X なので
+# x11.pc は /usr/X11R7/lib/pkgconfig に在り、PKG_CONFIG_LIBDIR には
+# buildlink の下しか入らない。gdk-x11-2.0 は x11 に依存するので、そこで
+# 解けずに no になる — という筋。ここで裏を取る。外れたら外れたと出る。
+UW=$TREE/$PKG/work
+UPC=$UW/.tools/bin/pkg-config
+UBL=$UW/.buildlink/lib/pkgconfig
+if [ -x "$UPC" ]; then
+	echo "--- buildlink に在る .pc (gtk / gdk / x 系) ---"
+	ls "$UBL" 2>/dev/null | grep -E 'gtk|gdk|^x11|^xext|^xft' | sed 's/^/    /' ||
+		echo "    (一つも無い)"
+	echo "--- module ごとに引く ---"
+	for m in gtk+-2.0 gdk-2.0 gdk-x11-2.0 gtk+-x11-2.0 x11 xext xft; do
+		out=$(PKG_CONFIG_LIBDIR="$UBL:$UW/.buildlink/share/pkgconfig" \
+		      "$UPC" --print-errors --exists "$m" 2>&1)
+		if [ $? -eq 0 ]; then
+			printf '    %-14s あり\n' "$m"
+		else
+			printf '    %-14s 無い: %s\n' "$m" "$(echo "$out" | tr '\n' ' ' | cut -c1-140)"
+		fi
+	done
+	echo "--- native X 側に在るか (/usr/X11R7/lib/pkgconfig) ---"
+	ls /usr/X11R7/lib/pkgconfig 2>/dev/null | grep -E '^(x11|xext|xft)\.pc$' | sed 's/^/    /' ||
+		echo "    (X11R7 側にも無い)"
+else
+	echo "    $UPC が無い。build が configure まで届いていない"
+fi
+
+# ------------------------------------------------------------------
+echo
 echo "########## 3. 重複を消して建て直す ##########"
 # PLIST.gtk2 / PLIST.gtk3 が持っている行を PLIST から落とす。option を
 # 入れたときは PLIST_SRC で足されるので、消しても入るものは変わらない。
