@@ -170,19 +170,25 @@ eleven grammars into C.  rsltc builds against it and works:
   $ rsltc bad.rsl
   bad.rsl:3:13: syntax error
 
-with the line and column right.  Then I had the same thing tried on
-i386, where pkgsrc does not mark gentle broken at all -- and there it
-builds, installs, and dies:
+with the line and column right.  The same thing was then tried from
+the same tree on i386, where pkgsrc does not mark gentle broken at
+all, and there it builds, installs, and dies on the first grammar:
 
   gentle ast.g
   gmake: *** [std_make:31: ast.c] Segmentation fault (core dumped)
 
-So the two measurements point the opposite way from the line: the
-platform it says is broken is the one where it worked for me, and the
-one it permits is where it crashed.  I have two machines and a
-contradiction, which is not enough to ask you to change anything -- I
-am only reporting that the line does not match what either of us saw,
-and that it is what keeps rsltc out of the bulk build.
+I should be plain that the two are not equally backed.  The amd64 run
+is mine, on NetBSD 11.0, with the log in front of me; the i386 run was
+on a throwaway 9.4 VM and the core is gone, so the version there is
+read off the tree rather than off the installed package.  The two
+differ in release as well as in word size, and I have a build going on
+i386 11.0 to narrow that down.
+
+Either way the line does not describe what either of us saw: the
+platform it calls broken is the one where it worked, and the one it
+permits is where it crashed.  That is not enough to ask you to change
+anything, and I am not asking -- but it is what keeps rsltc out of the
+bulk build, so it seemed worth saying.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
