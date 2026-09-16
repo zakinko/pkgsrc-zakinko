@@ -98,7 +98,23 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+          # trigger は非同期なので、直後に -w を見ると間に合わないことがある。
+          # run 35069883047 では同じ run の中で emacs20 が「KVM 無し」、
+          # emacs21 が「KVM あり」になった。取りこぼすと TCG へ落ちて時間が
+          # 桁で変わるので、待ってから、それでも駄目なら直接開ける。
+          sudo udevadm settle || true
+          if [ -e /dev/kvm ] && [ ! -w /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm || true
+          fi
+          # -w 一つだと「device が無い」と「書けない」が同じ顔になる。
+          # 次に遅い回が出たとき、どちらを直すのか分からなくなる。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。相当遅い"
+          fi
 
       - name: 建てる
         env:
@@ -150,7 +166,23 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+          # trigger は非同期なので、直後に -w を見ると間に合わないことがある。
+          # run 35069883047 では同じ run の中で emacs20 が「KVM 無し」、
+          # emacs21 が「KVM あり」になった。取りこぼすと TCG へ落ちて時間が
+          # 桁で変わるので、待ってから、それでも駄目なら直接開ける。
+          sudo udevadm settle || true
+          if [ -e /dev/kvm ] && [ ! -w /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm || true
+          fi
+          # -w 一つだと「device が無い」と「書けない」が同じ顔になる。
+          # 次に遅い回が出たとき、どちらを直すのか分からなくなる。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。相当遅い"
+          fi
 
       - name: 建てる
         env:
