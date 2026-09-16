@@ -48,7 +48,15 @@ unset PKG_PATH
 
 PKG=NetworkManager
 DIR=$TREE/zakinko/$PKG
-BM=$PREFIX/bin/bmake
+# NetBSD の base の make は pkgsrc の make そのものなので bmake は入らない。
+# verify-pkg.sh が同じ分岐を持っている。最初これを写し忘れて
+#   /usr/pkg/bin/bmake: not found
+# で NetBSD だけ転んだ。
+if [ "$(uname -s)" = NetBSD ]; then
+	BM=make
+else
+	BM=$PREFIX/bin/bmake
+fi
 W=${RUNNER_TEMP:-/tmp}/nm-verify
 mkdir -p "$W"
 
@@ -61,7 +69,7 @@ ng()   { printf 'FAIL  %s\n' "$*"; rc=1; }
 step "1. 建てて入れる"
 cd "$DIR"
 pkg_delete -f "$PKG" >/dev/null 2>&1 || true
-if "$BM" DEPENDS_TARGET=package-install install > "$W/build.log" 2>&1; then
+if $BM DEPENDS_TARGET=package-install install > "$W/build.log" 2>&1; then
 	ok "package が出来て入った"
 else
 	tail -40 "$W/build.log"
