@@ -88,7 +88,7 @@ bin/gnuattach with gnuserv already installed, which is the collision
 the line is there to declare.  The diff below makes it
 xemacs-nox11-[0-9]*.
 
-A sixth is broken for a different reason, and this one I did build.
+mail/mu is broken for a different reason, and this one I did build.
 mail/mu cannot be packaged against an Emacs without D-Bus -- every nox
 one, and an emacs30 with the dbus option turned off:
 
