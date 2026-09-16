@@ -16,6 +16,10 @@ LICENSE=	gnu-gpl-v2
 # marked BROKEN_EXCEPT_ON_PLATFORM= Linux-*-*, so the build stops at the
 # dependency rather than at a compile error.  Say so here instead.
 ONLY_FOR_PLATFORM=	Linux-*-*
+# FreeBSD は試している最中で、まだ通っていない。ここに並べてあるのは
+# 「対応済み」の意味ではなく、CI に建てさせて最初に転ぶ場所を採るためである。
+# 通ったらこの但し書きを消し、通らないと分かったら行ごと消すこと。
+ONLY_FOR_PLATFORM+=	FreeBSD-*-*
 
 # gdbus-codegen を宣言しないと、mk/tools/gdbus-codegen.mk が
 # TOOLS_FAIL に入れて、わざと壊れた gdbus-codegen を tools へ置く。
@@ -57,7 +61,16 @@ MESON_ARGS+=	-Dvapi=false
 
 .include "../../devel/meson/build.mk"
 .include "../../devel/libuuid/buildlink3.mk"
+# Linux の sysutils/libudev は eudev で、それ自身が
+# BROKEN_EXCEPT_ON_PLATFORM= Linux-*-* である。BSD には devel/libudev-bsd が
+# あって、NetBSD は ndevd、OpenBSD は KERN_AUTOCONF_SERIAL、Free と DragonFly は
+# devd を使って同じ口を出す。
+.include "../../mk/bsd.prefs.mk"
+.if ${OPSYS} == "Linux"
 .include "../../sysutils/libudev/buildlink3.mk"
+.else
+.include "../../devel/libudev-bsd/buildlink3.mk"
+.endif
 .include "../../sysutils/dbus/buildlink3.mk"
 .include "../../zakinko/libndp/buildlink3.mk"
 .include "../../devel/glib2/buildlink3.mk"
