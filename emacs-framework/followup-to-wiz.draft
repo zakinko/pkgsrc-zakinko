@@ -220,9 +220,13 @@ ${EMACS_LISPPREFIX}/color-theme:
 
   ERROR: .../site-lisp/emacs30nox-color-theme/themes/color-theme.elc
 
-That is one of the 24, and I only looked because it was also in the
-nine that spell ${PKGBASE}.  I would not want to say the other 23 are
-a line each until they have been through a build.
+That is one of the 24.  Three of those 24 spell ${PKGBASE}, and they
+are the ones to look at first: misc/color-theme above,
+mail/mailutils (--with-mh-bindir=${PREFIX}/libexec/${PKGBASE} and
+DOCDIR=share/doc/${PKGBASE}) and www/emacs-w3m
+(WRKSRC=${WRKDIR}/${PKGBASE}-${GITHUB_TAG}).  The other 21 have no
+${PKGBASE} of their own, so for them it may well be the one line --
+but I would rather not say so until they have been through a build.
 
 One more, which I found late and have since fixed, but it is worth
 showing because it was mine and because of where the answer was.
