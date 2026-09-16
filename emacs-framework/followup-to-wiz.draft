@@ -67,10 +67,7 @@ and with them devel/apel gives
 
   PKGNAME=emacs30nox-apel-10.8.0.20201107nb2
   PKGNAME=emacs29-apel-10.8.0.20201107nb2
-  PKGNAME=emacs29nox-apel-10.8.0.20201107nb2
-  PKGNAME=emacs30-apel-10.8.0.20201107nb2
-  PKGNAME=emacs31-apel-10.8.0.20201107nb2
-  PKGNAME=emacs31nox-apel-10.8.0.20201107nb2
+  ... six in all, emacs29 through emacs31nox
 
 with the default first, while devel/pcl-cvs, which takes emacs20 and
 nothing else, gives the single line it should, and devel/gmake, which
@@ -137,19 +134,10 @@ ask for emacs21, and that is true of my 2 September copy and not of
 pkgsrc, since jde, leim21, bbdb2 and nxml-mode went with the version.
 Nothing on trunk names it.
 
-So the refusal is worth showing with EMACS_VERSION_REQD instead, where
-the two reasons stay apart:
-
-  devel/apel, EMACS_VERSION_REQD=emacs21
-    "pkgsrc no longer has emacs21"
-    "pkgsrc has: emacs31 emacs31nox ... xemacs214nox"
-
-  devel/apel, EMACS_VERSION_REQD=emacs20
-    "This package does not build with emacs20"
-    "Accepted versions are: emacs29 emacs29nox ... emacs31nox"
-
-The intersection is worth taking for the next retirement rather than
-for a mess sitting there today.
+The two EMACS_VERSION_REQD messages in my last mail still stand; that
+is where the refusal is worth looking at.  The intersection is worth
+taking for the next retirement rather than for a mess sitting there
+today.
 
 Since my earlier figures came from that copy, I took them again from
 trunk, fetching each Makefile and PLIST.  The build results above are
