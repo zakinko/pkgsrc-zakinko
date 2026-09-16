@@ -217,7 +217,19 @@ for p in $LIST; do
 		case $p in */calc) calc_d=$d ;; esac
 	else
 		echo "★ 転けた"
-		tail -20 "/tmp/$(basename $p).log" | sed 's/^/        /'
+		# 末尾だけでは足りない。落ちた行は出るが、**なぜその状態に
+		# なったかを言う行は上に在る。**依存がどの版で入ったか、
+		# configure が何を見つけたか。
+		#
+		# zakinko/rsltc が gentle ast.g で segfault したとき、peer から
+		# 「gentle の版は」と聞かれて答えられなかった。version を出す
+		# 行は tail -20 の外で、VM はもう無かった。**落ちた run が、
+		# 診断に要る証拠を自分で捨てていた。**
+		#
+		# 依存の版と configure の結論だけ先に抜いてから、末尾を出す。
+		grep -E '^=> (Full|Build|Tool) dependency|^===> Configuring' \
+		    "/tmp/$(basename $p).log" 2>/dev/null | sed 's/^/        /'
+		tail -40 "/tmp/$(basename $p).log" | sed 's/^/        /'
 		ng=$((ng+1))
 	fi
 
