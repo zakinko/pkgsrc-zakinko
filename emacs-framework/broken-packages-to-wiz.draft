@@ -11,38 +11,73 @@ if you would rather have it as a PR; I am happy to send it that way
 instead.
 
 Going through the packages that spell ${PKGBASE} in their own Makefile
-turned up five where the install writes ${PKGBASE} while the PLIST
-spells the bare name.  The two agree only while EMACS_PKGNAME_PREFIX
-is empty, and it is not empty for xemacs.
+turned up five where the install writes ${PKGBASE} while the PLIST, or
+the install itself, spells the bare name.  The two agree only while
+EMACS_PKGNAME_PREFIX is empty, and it is not empty for xemacs.  I
+built an xemacs-nox11 21.5.36 here and ran the five against it, with
+your modules.mk and the packages untouched, so what follows is
+measured rather than read.
 
-  devel/ecb            installs into ${EMACS_LISPPREFIX}/${PKGBASE},
-                       PLIST says ${EMACS_LISPPREFIX}/ecb
-  editors/gnuserv      INSTALLATION_DIRS has share/doc/${PKGBASE},
-                       installs into share/doc/gnuserv
-  editors/matlab-mode  creates ${PKGBASE:C|^xemacs-||},
-                       installs into ${PKGBASE}
-  textproc/dictem      share/doc/${PKGBASE}, PLIST share/doc/dictem
-  textproc/xslide      ${EMACS_LISPPREFIX}/${PKGBASE}, PLIST .../xslide
+Three of them fail, each in a different place:
+
+  devel/ecb            stops before it builds anything.  WRKSRC comes
+                       out as work/xemacs-ecb-<tag>, because
+                       mk/fetch/github.mk has GITHUB_PROJECT?=
+                       ${PKGBASE}, and the archive unpacks as
+                       ecb-<tag>:
+                         cd: Can't cd to .../work/xemacs-ecb-1330a44...
+
+  editors/gnuserv      INSTALLATION_DIRS makes share/doc/${PKGBASE},
+                       which is share/doc/xemacs-gnuserv, while
+                       doc-install writes to share/doc/gnuserv, which
+                       does not exist -- so that name becomes a
+                       484-byte file holding whichever README was
+                       installed last, the empty directory sits beside
+                       it, and the file check stops the build.
+
+  textproc/dictem      installs share/doc/xemacs-dictem/{COPYING,NEWS,
+                       README} while the PLIST asks for
+                       share/doc/dictem/*.
+
+The other two, editors/matlab-mode and textproc/xslide, have the same
+shape in their Makefiles -- matlab-mode creates
+${PKGBASE:C|^xemacs-||} and installs into ${PKGBASE}, xslide uses
+${EMACS_LISPPREFIX}/${PKGBASE} against a PLIST that says xslide -- but
+I cannot tell you they fail there, because under xemacs they stop
+earlier, byte-compiling:
+
+  matlab-mode  Cannot open load file: "tempo"
+  xslide       Cannot open load file: "sendmail"
+
+with xemacs-packages installed.  So those two do not build under
+xemacs today either, for a reason I have not chased.
 
 devel/ecb is the one worth looking at first, because it takes
 xemacs215 xemacs215nox xemacs214 xemacs214nox and nothing else, so
-there is no version of it that is not broken:
-
-  devel/ecb, EMACS_TYPE=xemacs215
-    PKGNAME = xemacs-ecb-2.50nb1
-    PKGBASE = xemacs-ecb
-
-and the PLIST asks for ecb.  I should be plain about how far I got
-with each.  I have not built any of the five under xemacs -- I do not
-have an xemacs here -- so for the trigger you would actually hit, this
-is reading plus make show-var.  Four of them I did build and fix,
-under emacs30nox with a modules.mk of my own that puts the version in
-the prefix, which reaches the same lines from the other direction; ecb
-I could not build at all for want of xemacs.
+there is no version of it that works.
 
 cad/dinotrace-mode spells ${PKGBASE} too and is fine.  It is the only
 one of the nine whose PLIST also uses it, so both sides move together,
 which is the whole distinction.
+
+While installing xemacs I ran into something else.  editors/gnuserv
+has
+
+  CONFLICTS+=	xemacs-[0-9]* xemacs-current-[0-9]* # bin/gnuattach; bin/gnuclient
+
+and neither pattern does what it looks like.  The packages are named
+xemacs-21.4.25, xemacs-nox11-21.4.25, xemacs-21.5.36 and
+xemacs-nox11-21.5.36, so xemacs-current-[0-9]* matches nothing at all,
+and xemacs-[0-9]* does not cover the nox ones:
+
+  pkg_info -e 'xemacs-[0-9]*'          rc=1
+  pkg_info -e 'xemacs-current-[0-9]*'  rc=1
+  pkg_info -e 'xemacs-nox11-[0-9]*'    rc=0  xemacs-nox11-21.5.36nb1
+
+I found it by having it happen: pkg_add refused xemacs-nox11 over
+bin/gnuattach with gnuserv already installed, which is the collision
+the line is there to declare.  The diff below makes it
+xemacs-nox11-[0-9]*.
 
 A sixth is broken for a different reason, and this one I did build.
 mail/mu cannot be packaged against an Emacs without D-Bus -- every nox

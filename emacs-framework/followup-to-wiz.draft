@@ -17,11 +17,12 @@ writes the path itself, so the file check catches the mismatch:
 gnuserv, matlab-mode, twittering-mode, dictem, emacs-dict-client,
 xslide and emacs-w3m.  Two of these are worth a word.  editors/gnuserv
 lists share/doc/${PKGBASE} in INSTALLATION_DIRS while installing to
-share/doc/gnuserv, so README ends up as a file of that name rather
-than inside a directory; and editors/matlab-mode creates its directory
-as ${PKGBASE:C|^xemacs-||} but installs into ${PKGBASE}, which means
-it has been broken under xemacs all along and nobody noticed because
-the two spellings agreed under emacs.  I fixed both and they build.
+share/doc/gnuserv, so that name becomes a file holding a README rather
+than a directory -- I have since built it under xemacs and watched it
+happen, and it is in the other mail; and editors/matlab-mode creates
+its directory as ${PKGBASE:C|^xemacs-||} but installs into ${PKGBASE},
+which agrees only while the prefix is empty.  I fixed both and they
+build under emacs30nox.
 
 Two get a 404 fetching their distfile, because mk/fetch/github.mk has
 GITHUB_PROJECT?= ${PKGBASE} and the prefix moves PKGBASE, so the fetch
