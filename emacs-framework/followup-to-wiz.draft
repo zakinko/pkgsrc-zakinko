@@ -83,9 +83,11 @@ mine rather than the tree's: I had two sweeps of my own running
 against one WRKOBJDIR for a while, and curl was left with a
 half-configured work directory.  Cleaning it out and building again
 gave curl 8.21.0.  So those nine say nothing either way and I have not
-counted them for or against the change.  Two of them I am building
-again now that curl is there; the other seven sit behind rust, texlive
-or a gcc bootstrap, which I would rather not ask this machine for.
+counted them for or against the change.  I rebuilt one of them,
+mail/mu, and it is the interesting one -- see below.  The other eight
+sit behind rust, texlive or a gcc bootstrap, which I would rather not
+ask this machine for; I tried wl-snapshot and stopped it when its
+emacs29 started building a compiler for libgccjit.
 
 Three failures are distfiles that no longer fetch (cobol-mode,
 flyspell, ispell-emacs), one is a dependency marked broken on x86_64
@@ -93,6 +95,31 @@ flyspell, ispell-emacs), one is a dependency marked broken on x86_64
 (migemo-elisp), and two I did not try at all because they build bazel
 first and that has nothing to do with where the lisp goes
 (mozc-elisp, mozc-elisp333).
+
+mail/mu turned out not to be about placement at all.  Its
+-Dlispdir=${EMACS_LISPPREFIX} works and everything lands in
+share/emacs/30.2/site-lisp/mu4e; the package still fails, one file
+short:
+
+  pkg_create: can't stat .../site-lisp/mu4e/mu4e-dbus.elc
+
+mu's own meson asks the Emacs whether D-Bus is compiled in --
+(featurep 'dbusbind), which is not the same as the dbus lisp library
+being present -- and only byte-compiles mu4e-dbus.el when it is, while
+PLIST.emacs lists the .elc unconditionally.  So mail/mu cannot be
+packaged against any Emacs built without D-Bus: every nox one, and an
+emacs30 with the dbus option off.  That is true on trunk as much as
+here, it is not something this series causes and I have not touched
+it, but it is exactly the kind of thing your third point would find on
+its first pass, because nobody builds mu against a nox Emacs today.
+
+It also answers a question I had about the prefix.  emacs30 and
+emacs30-nox11 conflict, and they share share/emacs/30.2/site-lisp, so
+it is tempting to give both the emacs30- prefix and let one binary
+package serve either -- the dependency can be spelled
+{emacs30,emacs30-nox11}>=30.1<31 and pkg_info matches it.  mail/mu says
+no: the file list is not the same for the two.  So they are different
+packages and the prefix should keep saying which.
 
 One failure is the change refusing, which is what you asked for.
 mail/vm in my copy depends on misc/bbdb2, which accepts only emacs21,
