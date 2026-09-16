@@ -55,15 +55,23 @@ for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
 done
 
 echo "=== 枠組みを当てる ==="
+# 木がこちらの .orig と同じ版なら差分を当てる。違っていて差分が当たらない
+# なら、.orig (上流の現物) を土台にしたこちらの file をそのまま置く。
+#
+# どちらを取ったかを必ず出す。file を置いた場合、**その file の外に在る
+# 上流の変更は入っていない**ので、測ったものが何なのかが変わる。黙って
+# 置き換えると、それが分からなくなる。
 for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
 	b=${f##*/}
-	# 当てる先を名指しで渡す。差分の頭の path には頼らない。
 	if patch -f -C "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1; then
-		patch -f "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1 &&
-			echo "  当てた   $f"
+		patch -f "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1
+		echo "  差分を当てた   $f"
 	else
-		echo "  ★ 当たらない $f。この木では測れない"
-		exit 1
+		cp "$SRC/$b" "$TREE/$f"
+		echo "  ★ 差分が当たらないので file を置いた   $f"
+		echo "     土台は $(sed -n '1p' "$SRC/$b.orig" | sed 's/.*,v //;s/ Exp \$//')"
+		echo "     木は   $(sed -n '1p' "$TREE/$f" | sed 's/.*,v //;s/ Exp \$//') だった"
+		echo "     この file に限り、木の側の版は測っていない"
 	fi
 done
 
