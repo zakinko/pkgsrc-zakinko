@@ -81,6 +81,9 @@ MAKE_JOBS_METHOD=	manual
 # That costs an hour here and, in JDK 25, does not finish -- the buildjdk's
 # adlc setup expands to something make cannot parse.  Give both the same
 # name so configure sees what is actually happening.
+# pkglint says gnu-configure.mk already handles --build.  It does, but only
+# under USE_GNU_CONFIGURE_HOST, which is no here, so this is the only one
+# that gets passed -- checked by counting --build in CONFIGURE_ARGS.
 CONFIGURE_ARGS+=	--build=${MACHINE_GNU_PLATFORM}
 CONFIGURE_ARGS+=	--openjdk-target=${MACHINE_GNU_PLATFORM}
 CONFIGURE_ARGS+=	--with-boot-jdk=${ALT_BOOTDIR}
@@ -171,9 +174,11 @@ SUBST_SED.kqueue+=		-e 's/static final int EV_CLEAR   = 0x0020;/static final int
 # option: the group is optional, so turning jdk-hotspot-vm off without
 # turning jdk-zero-vm on still builds server, and the PLIST has to agree
 # with what was built.
-PLIST_VARS+=			internal_vm_compiler jvmci
+# jdk.internal.vm.compiler -- Graal -- is gone in JDK 25; lang/openjdk21 still
+# lists its jmod and its legal files, and nothing here has them.  Only jvmci
+# is left of that pair.
+PLIST_VARS+=			jvmci
 .if ${BUILD_VARIANT} == "server"
-PLIST.internal_vm_compiler=	yes
 PLIST.jvmci=			yes
 .endif
 
@@ -196,8 +201,29 @@ ${WRKDIR}/cacerts.out:
 	done
 	mv ${.TARGET}.tmp ${.TARGET}
 
+# The JDK being built cannot find its own libraries.  The pkgsrc patch to
+# flags-cflags.m4 -- "We prefer to use explicit run paths" -- replaces
+# $ORIGIN in the run path with the installed location, so the interim JDK
+# the build runs partway through (build/pkgsrc/jdk/bin/javac, which
+# generates ct.sym) searches only ${PREFIX}/java/${JAVA_NAME}/lib, which
+# does not exist yet:
+#
+#   build/pkgsrc/jdk/bin/javac: Shared object "libjli.so" not found
+#
+# It has to be the boot JDK's lib, not the in-tree JDK's own.  One variable
+# serves the whole build and both JDKs run under it, so whichever directory
+# is named, the other one finds libraries that are not its.  Naming the
+# in-tree lib gets past the launcher and then breaks the boot JDK:
+#
+#   bootstrap/lib/libnio.so: bootstrap/lib/server/libjvm.so: version
+#   SUNWprivate_1.1 required by build/pkgsrc/jdk/lib/libnet.so not defined
+#
+# The other direction survives because all the in-tree launcher wants from
+# the boot JDK's directory is libjli.so, which is a thin shim.  This is why
+# lang/openjdk21 names ALT_BOOTDIR/lib.
 do-build:
-	${_ULIMIT_CMD} cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_PROGRAM}
+	${_ULIMIT_CMD} cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	  LD_LIBRARY_PATH=${ALT_BOOTDIR}/lib ${MAKE_PROGRAM}
 
 do-install:
 	${INSTALL_DATA_DIR} ${DESTDIR}${JAVA_HOME}

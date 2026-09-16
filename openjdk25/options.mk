@@ -4,6 +4,11 @@ PKG_OPTIONS_VAR=		PKG_OPTIONS.openjdk25
 PKG_OPTIONS_OPTIONAL_GROUPS=	variant
 PKG_OPTIONS_GROUP.variant=	jdk-hotspot-vm jdk-zero-vm
 PKG_SUPPORTED_OPTIONS=		debug dtrace jre-jce x11 static-libstdcpp jdk-bundled-zlib
+
+# jdk-bundled-zlib: compile the copy of zlib that comes with the JDK instead
+# of linking devel/zlib.  NetBSD before 10 shipped a zlib the JDK would not
+# build against, and the option is the way out; on a current system there is
+# no reason to prefer it.
 PKG_SUGGESTED_OPTIONS=		jre-jce x11 jdk-hotspot-vm
 
 .include "../../mk/bsd.options.mk"
@@ -65,13 +70,13 @@ BUILDLINK_DEPMETHOD.libXrandr?=	build
 #
 # Debugging
 #
+# BUILD_DEBUG_LEVEL used to name the build directory.  --with-conf-name does
+# that now, so only the configure arguments and the PLIST suffix are left.
 .if !empty(PKG_OPTIONS:Mdebug)
-BUILD_DEBUG_LEVEL=	fastdebug
 CONFIGURE_ARGS+=	--with-native-debug-symbols=external
 CONFIGURE_ARGS+=	--enable-debug
 PLIST_SUBST+=		DBGEXT=.debuginfo
 .else
-BUILD_DEBUG_LEVEL=	release
 CONFIGURE_ARGS+=	--with-native-debug-symbols=zipped
 PLIST_SUBST+=		DBGEXT=.diz
 .endif
@@ -100,13 +105,13 @@ CONFIGURE_ARGS+=	--with-stdc++lib=dynamic
 #
 # Build variant. Zero VM builds a portable JVM without assembly optimization.
 #
-PLIST_VARS+=		hotspot
+# No PLIST identifier for the variant: server and zero install the same file
+# names.  lang/openjdk21 declares PLIST.hotspot and never uses it.
 .if !empty(PKG_OPTIONS:Mjdk-zero-vm)
 BUILD_VARIANT=		zero
 .include "../../devel/libffi/buildlink3.mk"
 .else
 BUILD_VARIANT=		server
-PLIST.hotspot=		yes
 .endif
 CONFIGURE_ARGS+=	--with-jvm-variants=${BUILD_VARIANT}
 
