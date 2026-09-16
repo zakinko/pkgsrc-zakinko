@@ -125,10 +125,14 @@ fi
 #	gentle ast.g
 #	gmake: *** [std_make:31: ast.c] Segmentation fault (core dumped)
 #
-# devel/gentle は x86_64 では BROKEN_ON_PLATFORM= ${LP64PLATFORMS} で入らず、
-# i386 では入るが rsltc の文法を食わせると落ちる。**どちらでも建たない。**
-# 写しは木に置いてあるので差分は生きているが、install の直しが効くことは
-# 建てて確かめられていない。一覧に入れておくと、直しと無関係な赤が毎回出て
+# 落ちるのは release ではなく word size。amd64 11.0 では gentle が文法を
+# 全部通して rsltc も動き、i386 は 9.4 も 11.0 も同じ所で segfault する。
+# devel/gentle の BROKEN_ON_PLATFORM= ${LP64PLATFORMS} は逆を向いていて、
+# LP64 と書いてある側が通り、許している ILP32 で落ちる。
+#
+# この CI の runner は i386 しか無いので、写しを建てる道はここには無い。
+# 木には残してあるので差分は生きているが、install の直しが効くことは建てて
+# 確かめられていない。一覧に入れておくと、直しと無関係な赤が毎回出て
 # 「17 個の緑」が意味を失う。
 LIST_20="zakinko/leim20 zakinko/pcl-cvs zakinko/mule-ucs zakinko/tamago
 	 zakinko/iiimecf zakinko/calc zakinko/emacs-ilisp zakinko/w3
