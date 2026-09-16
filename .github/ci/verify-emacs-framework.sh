@@ -67,10 +67,14 @@ for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
 		patch -f "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1
 		echo "  差分を当てた   $f"
 	else
+		# 木の版は **置き換える前に** 読む。あとで読むと、置いた
+		# こちらの file の版を「木は…だった」として出してしまう。
+		# 一度そうなって、log が 1.42 を 1.42 で置いたと言っていた。
+		was=$(sed -n '1p' "$TREE/$f" | sed 's/.*,v //;s/ Exp \$//')
 		cp "$SRC/$b" "$TREE/$f"
 		echo "  ★ 差分が当たらないので file を置いた   $f"
 		echo "     土台は $(sed -n '1p' "$SRC/$b.orig" | sed 's/.*,v //;s/ Exp \$//')"
-		echo "     木は   $(sed -n '1p' "$TREE/$f" | sed 's/.*,v //;s/ Exp \$//') だった"
+		echo "     木は   $was だった"
 		echo "     この file に限り、木の側の版は測っていない"
 	fi
 done
