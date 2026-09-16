@@ -1,0 +1,45 @@
+name: openjdk の移植 diff
+
+# openjdk* が指している「上流の tag」と「BSD 移植の diff」が噛み合っているか
+# だけを見る。VM は起こさない。
+#
+# これらの package は本体を openjdk から取り、BSD 移植を PATCHFILES で一枚
+# 当てる。個人 fork が上流の release を取り込むのを待つと、その release が
+# 運ぶ脆弱性の修正まで待つことになるので、そこを外した形をしている。
+#
+# 代わりに、噛み合わなくなる道が二つ増えた。どちらも静かに壊れる。
+#
+#   移植の tag が上流 tag の子孫でなくなる
+#     compare が返す A...B.diff は merge-base からの三点差なので、子孫で
+#     なければ「新しい上流の変更を取り消す」hunk が混ざる。当たってしまう
+#     ので patch は成功し、建った JDK だけが古くなる。
+#
+#   上流の tag を動かしたが、移植の diff がその木に当たらない
+#     patch 段で止まる。そこまで行くのに VM と依存の build が要る。
+#
+# 上流も fork も、こちらが何も触らなくても動く。だから週に一度も回す。
+
+on:
+  push:
+    paths:
+      - 'openjdk*/Makefile'
+      - '.github/ci/check-bsd-port-delta.sh'
+      - '.github/workflows/openjdk-port.yml'
+  pull_request:
+    paths:
+      - 'openjdk*/Makefile'
+      - '.github/ci/check-bsd-port-delta.sh'
+      - '.github/workflows/openjdk-port.yml'
+  schedule:
+    # 上流の respin も fork の tag も、こちらの commit とは無関係に出る。
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: 上流の tag に当たるか
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 子孫か、そして当たるか
+        run: sh .github/ci/check-bsd-port-delta.sh

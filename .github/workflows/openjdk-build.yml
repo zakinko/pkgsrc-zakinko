@@ -1,0 +1,114 @@
+name: openjdk を NetBSD で建てる
+
+# openjdk* を実際の NetBSD で建てて、PLIST まで起こす。
+#
+# いまのところ「当て物が当たる」までしか測れていない。建つかどうかは手元の
+# 3 core / 2GB の箱でしか試せず、一本が数時間かかるので、五つを順に回すと
+# 一日では終わらない。
+#
+# **VM で JDK が何分で建つかは、まだ誰も測っていない。** この repo の他の
+# BSD 用 workflow は 2 分から 100 分までばらついていて、JDK の実測は無い。
+# なので最初は openjdk21 を一本だけ回して、時間を知るために使う。
+#
+# 21 を選ぶのは bootstrap kit が ftp.NetBSD.org に在って自足するから。
+# openjdk25 の kit はまだ置き場が決まっていないので、ここでは建てられない。
+#
+# 六時間で切られたときに最初からやり直さないよう、作りかけを cache へ置く。
+# この repo の mule-otherbsd.yml と同じ形。
+#
+# 走らせるのは手で起こしたときだけ。毎 push で VM を起こすと、README の
+# 直しで一時間の JDK build が走る。
+
+on:
+  workflow_dispatch:
+    inputs:
+      pkg:
+        description: '建てる package'
+        required: false
+        default: 'openjdk21'
+      release:
+        description: 'NetBSD の版'
+        required: false
+        default: '10.1'
+
+concurrency:
+  group: openjdk-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ inputs.pkg || 'openjdk21' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 作りかけ -- distfile、依存の binary package、work -- を持ち越す。
+      # 六時間で切られても次の run が続きから始められる。
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: |
+            pkgsrc-distfiles
+            pkgsrc-packages
+          key: openjdk-netbsd-${{ inputs.pkg || 'openjdk21' }}-${{ github.run_id }}
+          restore-keys: openjdk-netbsd-${{ inputs.pkg || 'openjdk21' }}-
+
+      - name: NetBSD で建てる
+        uses: vmactions/netbsd-vm@v1.5.0
+        with:
+          release: ${{ inputs.release || '10.1' }}
+          mem: 8192
+          cpu: 4
+          usesh: true
+          copyback: true
+          envs: 'PKG'
+          prepare: |
+            /usr/sbin/pkg_add git
+          run: |
+            set -e
+            export PATH=/usr/pkg/bin:/usr/pkg/sbin:$PATH
+            : "${PKG:=openjdk21}"
+            # cd したあとに $PWD を使うと別の場所を指す。先に控える。
+            WS="$PWD"
+
+            # pkgsrc 本体は要る。浅く取る -- 履歴は使わない。
+            if [ ! -d /usr/pkgsrc/mk ]; then
+              git clone --depth 1 https://github.com/NetBSD/pkgsrc.git /usr/pkgsrc
+            fi
+            # この repo を pkgsrc の中の一つの category として置く。cache の
+            # 置き場は category の中に持ち込まない -- pkgsrc が package
+            # directory と読んでしまう。
+            rm -rf /usr/pkgsrc/zakinko
+            mkdir -p /usr/pkgsrc/zakinko
+            ( cd "$WS" && pax -rw -s ',^\./\(pkgsrc-\|\.git\).*,,' . /usr/pkgsrc/zakinko/ )
+
+            # 持ち越した物を戻す
+            mkdir -p "$WS/pkgsrc-distfiles" "$WS/pkgsrc-packages"
+            rm -rf /usr/pkgsrc/distfiles /usr/pkgsrc/packages
+            ln -s "$WS/pkgsrc-distfiles" /usr/pkgsrc/distfiles
+            ln -s "$WS/pkgsrc-packages" /usr/pkgsrc/packages
+
+            cd /usr/pkgsrc/zakinko/$PKG
+            echo "=== 何を建てるか ==="
+            make show-var VARNAME=PKGNAME
+            make show-var VARNAME=DISTNAME
+            make show-var VARNAME=PATCHFILES
+
+            echo "=== 建てる ==="
+            date
+            make package
+            date
+
+            echo "=== PLIST を起こす ==="
+            make print-PLIST > "$WS/PLIST.new" || true
+            wc -l "$WS/PLIST.new" || true
+
+      - name: 起こした PLIST を持ち帰る
+        uses: actions/upload-artifact@v4
+        with:
+          name: PLIST-${{ inputs.pkg || 'openjdk21' }}
+          path: PLIST.new
+          if-no-files-found: warn
+        if: always()
