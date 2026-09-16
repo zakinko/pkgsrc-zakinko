@@ -233,6 +233,11 @@ WRKOBJDIR=	$REAL/obj
 # mk/fetch/fetch.mk が ftp に -4 を、curl に --ipv4 を渡す。
 FETCH_USE_IPV4_ONLY=	yes
 EOF
+# job ごとの追記。改行区切りでそのまま足す。OpenBSD の croc が
+# GOROOT_BOOTSTRAP をここから渡す。
+if [ -n "${MKCONF_EXTRA:-}" ]; then
+	printf '%s\n' "$MKCONF_EXTRA" >> "$MKCONF"
+fi
 cat "$MKCONF"
 
 # 手元に取ってある配布物を先に置く。KAIST の書庫は落ちていることがある。

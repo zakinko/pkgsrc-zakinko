@@ -451,7 +451,14 @@ jobs:
       - uses: vmactions/openbsd-vm@v1
         with:
           release: '7.9'
-          run: PKGS='croc' sh .github/ci/build-on-bsd.sh
+          # pkgsrc の go は lang/go14 を source から組んで bootstrap するが、
+          # Go 1.4 は libc を通さず syscall を出すので、7.5 から入った
+          # pinsyscalls(2) の箱では go_bootstrap が Abort trap で死ぬ
+          # (run 35125854518)。OpenBSD 自身の go (7.9 は 1.26.2) を入れて
+          # GOROOT_BOOTSTRAP に指す。bootstrap.mk はそれが在れば go14 を
+          # 引かない。
+          prepare: /usr/sbin/pkg_add go
+          run: MKCONF_EXTRA='GOROOT_BOOTSTRAP=	/usr/local/go' PKGS='croc' sh .github/ci/build-on-bsd.sh
 
   croc-dragonfly:
     if: inputs.target == 'all' || inputs.target == 'croc'
