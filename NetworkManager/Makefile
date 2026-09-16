@@ -17,7 +17,14 @@ LICENSE=	gnu-gpl-v2
 # dependency rather than at a compile error.  Say so here instead.
 ONLY_FOR_PLATFORM=	Linux-*-*
 
-USE_TOOLS+=		pkg-config perl
+# gdbus-codegen を宣言しないと、mk/tools/gdbus-codegen.mk が
+# TOOLS_FAIL に入れて、わざと壊れた gdbus-codegen を tools へ置く。
+# gio-2.0 の pkg-config は在処を答えるので meson はそれを拾い、
+#   Program /usr/pkg/bin/gdbus-codegen found: NO
+#   ERROR: Dependency 'gio-2.0' tool variable 'gdbus_codegen' contains
+#          erroneous value
+# で configure が止まる。実体は devel/gdbus-codegen にある。
+USE_TOOLS+=		pkg-config perl gdbus-codegen
 USE_PKGLOCALEDIR=	yes
 USE_LANGUAGES=		c c++
 
