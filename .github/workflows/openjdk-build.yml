@@ -105,6 +105,35 @@ jobs:
             mkdir -p /usr/pkgsrc/zakinko
             ( cd "$WS" && pax -rw -s ',^\./\(pkgsrc-\|\.git\).*,,' . /usr/pkgsrc/zakinko/ )
 
+            # 入っている binary package を全部外す。image と `pkg_add git`
+            # が入れたものは NetBSD の binary repo 製で、pkgsrc-current が
+            # 建てる版と噛み合わない。噛み合わないと build の途中で止まる:
+            #
+            #   pkg_add: A different version of perl-5.44.0nb1 is already
+            #            installed: perl-5.42.3
+            #
+            # 一本ずつ外すと、次の依存で同じことが起きる。pkgsrc は要る物を
+            # 自分で建てるので、ここで全部落とす。git はもう clone を終えて
+            # いるので消えて構わない。
+            #
+            # 名前を数え上げて渡す。'*' を渡す形だと、pkg_delete が pattern
+            # として受け取らなかったときに黙って何もせず、一時間後に上の
+            # perl の error として出てくる。残ったら、ここで止める。
+            echo "=== 外す binary package ==="
+            /usr/sbin/pkg_info | wc -l
+            pkgs=`/usr/sbin/pkg_info | awk '{print $1}'`
+            if [ -n "$pkgs" ]; then
+              /usr/sbin/pkg_delete -f $pkgs 2>&1 | tail -5 || true
+            fi
+            left=`/usr/sbin/pkg_info | wc -l`
+            echo "残り $left"
+            if [ "$left" -ne 0 ]; then
+              echo "binary package が外れていない。このまま建てると pkgsrc が"
+              echo "建てた版と衝突して途中で止まる。"
+              /usr/sbin/pkg_info
+              exit 1
+            fi
+
             # 持ち越した物を戻す
             mkdir -p "$WS/pkgsrc-distfiles" "$WS/pkgsrc-packages"
             rm -rf /usr/pkgsrc/distfiles /usr/pkgsrc/packages
