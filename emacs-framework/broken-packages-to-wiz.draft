@@ -61,19 +61,13 @@ and land on the ${PKGBASE} problem after all:
 With both fixes they build: xemacs-matlab-mode-2.3.1nb4 and
 xemacs-xslide-0.2.2nb4.
 
-One more of the same kind, found the same way.  devel/doxymacs names
-no EMACS_VERSIONS_ACCEPTED, so it accepts emacs20, and under emacs20
-it stops at
-
-  doxymacs.el:243:11: Error: Symbol's function definition is void:
-                      eieio-make-class-predicate
-
-I thought that was a missing dependency on lang/eieio and it is not: I
-deinstalled eieio and rebuilt under emacs30nox and it builds fine, so
-Emacs 30 is using its own.  Emacs 20 simply has no eieio that provides
-that function.  Whether the answer is to drop the old versions from
-what doxymacs accepts, or something else, is yours rather than mine,
-so I have not touched it.
+devel/doxymacs has a line of the same shape that no build here can
+reach.  It asks for w3-[0-9]* inside .elif ${EMACS_VERSION_MAJOR} <=
+21, and www/w3 spells EMACS_PKGNAME_PREFIX in its PKGNAME, so once the
+prefix carries the version the pattern cannot be satisfied.  The diff
+below spells the prefix on both sides.  I have only checked that with
+make show-var: I do not have a working emacs20 here to build it
+against, and I would rather say so than imply otherwise.
 
 devel/ecb is the one worth looking at first, because it takes
 xemacs215 xemacs215nox xemacs214 xemacs214nox and nothing else, so
