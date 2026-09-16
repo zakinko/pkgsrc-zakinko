@@ -1,20 +1,17 @@
 --- mail/mu/patches/patch-mu4e_meson.build.orig
 +++ mail/mu/patches/patch-mu4e_meson.build
-@@ -1,10 +1,34 @@
- $NetBSD: patch-mu4e_meson.build,v 1.2 2026/08/11 14:40:34 ktnb Exp $
+@@ -2,9 +2,33 @@
  
--Don't care about info errors
-+Don't care about info errors.
+ Don't care about info errors
  
----- mu4e/meson.build.orig	2026-08-09 13:09:56.075658158 +0000
-+Byte-compile mu4e-dbus.el unconditionally.  The build asks the Emacs
-+whether dbusbind is compiled in and skips the file when it is not, but
-+PLIST.emacs lists mu4e-dbus.elc with no condition, so the package cannot
-+be built against an Emacs without D-Bus -- every *nox one, and an emacs30
-+with the dbus option off.  The file compiles clean without D-Bus: both of
-+its requires pass 'noerror.
++Byte-compile mu4e-dbus.el unconditionally.  The build asks the Emacs whether
++dbusbind is compiled in and skips the file when it is not, but PLIST.emacs
++lists mu4e-dbus.elc with no condition, so the package cannot be built against
++an Emacs without D-Bus -- every *nox one, and an emacs30 with the dbus option
++off.  The file compiles clean without D-Bus: both of its requires pass
++'noerror.
 +
-+--- mu4e/meson.build.orig
+ --- mu4e/meson.build.orig	2026-08-09 13:09:56.075658158 +0000
  +++ mu4e/meson.build
 -@@ -156,6 +156,7 @@ if makeinfo.found()
 +@@ -80,13 +80,9 @@
@@ -34,7 +31,7 @@
 + 
 + # note, we cannot compile mu4e-config.el without incurring
 + #  WARNING: Source item
-+@@ -156,6 +152,7 @@
++@@ -156,6 +152,7 @@ if makeinfo.found()
                   install: true,
                   depends: fdl_texi,
                   command: [makeinfo,

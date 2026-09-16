@@ -1,0 +1,5 @@
+--- mail/mu/distinfo.orig
++++ mail/mu/distinfo
+@@
+-SHA1 (patch-mu4e_meson.build) = 3581ab81c473ae058869b90e979fc77c96cf0670
++SHA1 (patch-mu4e_meson.build) = 7119708a5472bcc1b048a900e2db3b059e84aa0f
