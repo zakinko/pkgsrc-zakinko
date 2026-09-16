@@ -53,7 +53,7 @@ env:
   CARRY: libndp
   # 本家 textproc/xmlto が自分の build でネットを見に行って転ぶ。
   # その直しを木に当ててから進む。詳細は script の頭に書いた。
-  TREE_PATCH: .github/ci/tree-patch-xmlto.sh
+  TREE_PATCH: .github/ci/tree-patch-docbook.sh
   PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/${{ inputs.pkgsrc || 'current' }}/pkgsrc.tar.gz
 
 jobs:
