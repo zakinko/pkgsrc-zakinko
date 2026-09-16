@@ -1,11 +1,18 @@
 # $NetBSD: Makefile,v 1.88 2026/08/14 12:49:21 ryoon Exp $
 
 DISTNAME=	jdk11u-${GITHUB_TAG}
-# The leading number is an epoch.  It moves from 1 to 2 because the old
-# tag folded the upstream build number into the version (jdk-11.0.32+9 gave
-# 1.11.0.32.9) while a GA tag has none, so the newer release would
-# otherwise come out lower than the one it replaces.
-PKGNAME=	openjdk11-2.${GITHUB_TAG:C/jdk-([.0-9]+).*/\1/}
+# The package version is the JDK version, with nothing in front of it.
+# lang/openjdk* used to carry a leading 1. -- an epoch, kept because the old
+# tags folded the upstream build number into the version and a newer release
+# could otherwise sort lower. Taking the tag's version straight makes that
+# unnecessary: 11.0.32.1 is already above 1.11.0.32.9 on the first component,
+# and the next release is above it on the third. Checked with pkg_admin
+# pmatch, both directions.
+#
+# lang/openjdk8 keeps its 1.8 -- that one is not an epoch. JDK 8 declares
+# JDK_MAJOR_VERSION=1, JDK_MINOR_VERSION=8 in common/autoconf/version-numbers,
+# so 1.8.504 is what it calls itself.
+PKGNAME=	openjdk11-${GITHUB_TAG:C/jdk-([.0-9]+).*/\1/}
 CATEGORIES=	lang
 
 # Take the source from OpenJDK and add the BSD port as a patch, rather

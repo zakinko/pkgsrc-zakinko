@@ -1,7 +1,18 @@
 # $NetBSD$
 
 DISTNAME=	jdk25u-${GITHUB_TAG:C/\+/-/}
-PKGNAME=	openjdk25-1.${GITHUB_TAG:C/\+/./:C/jdk-([.0-9]+).*/\1/}
+# The package version is the JDK version, with nothing in front of it.
+# lang/openjdk* used to carry a leading 1. -- an epoch, kept because the old
+# tags folded the upstream build number into the version and a newer release
+# could otherwise sort lower. Taking the tag's version straight makes that
+# unnecessary: 21.0.12.1 is already above 1.21.0.12.8 on the first component,
+# and the next release is above it on the third. Checked with pkg_admin
+# pmatch, both directions.
+#
+# lang/openjdk8 keeps its 1.8 -- that one is not an epoch. JDK 8 declares
+# JDK_MAJOR_VERSION=1, JDK_MINOR_VERSION=8 in common/autoconf/version-numbers,
+# so 1.8.504 is what it calls itself.
+PKGNAME=	openjdk25-${GITHUB_TAG:C/\+/./:C/jdk-([.0-9]+).*/\1/}
 CATEGORIES=	lang
 MASTER_SITES=	${MASTER_SITE_GITHUB:=battleblow/}
 GITHUB_PROJECT=	jdk25u
