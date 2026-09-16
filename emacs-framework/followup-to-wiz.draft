@@ -243,16 +243,21 @@ which names the version, the package and what would work.  It is where
 the tree stops today too, though with "No valid Emacs version
 installed found" and no version named.
 
-One last thing, which is not about placement at all.
+One more that is not about placement at all.
 EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
 modules.mk reads it, while pyversion.mk and rubyversion.mk both
 subtract their equivalent from what they will choose from.  Now that
 the selection walks the package's own list, leaving it out is one more
-condition in the same loop, so I have done that.  mail/mu picks
-emacs31 here and emacs31nox when given EMACS_VERSIONS_INCOMPATIBLE=
-emacs31.  apel's own line names emacs20, which it does not accept
-anyway, so nothing moves there -- that line has been doing nothing
-twice over.
+condition in the same loop, so I have done that.  Side by side, with
+EMACS_TYPE=emacs30nox and devel/apel:
+
+  modules.mk as it is   default emacs30nox, and emacs30nox again when
+                        told EMACS_VERSIONS_INCOMPATIBLE=emacs30nox
+  with the line read     emacs29 instead
+
+apel's own line names emacs20, which it does not accept anyway, so
+nothing moves there -- that line has been doing nothing twice over,
+which is presumably why nobody noticed the variable was never read.
 
 I had been saying the lisp goes somewhere Emacs already searches
 without ever checking it, so I did.  I installed the 36 that build,
