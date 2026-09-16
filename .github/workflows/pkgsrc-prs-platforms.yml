@@ -291,10 +291,16 @@ jobs:
           # で止まる。本物の coreutils へ入れ替えておく。
           dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
             dnf -y install coreutils > /dev/null
+          # hostname は pkgsrc の既定の USE_TOOLS に入っていて、replace.mk は
+          # 無ければ sysutils/coreutils で賄う。Fedora は hostname を
+          # coreutils とは別の rpm に分けていて、container の image には
+          # 入っていないはずである。前の run の診断は 34 個を全部見つけて
+          # いて、hostname を一覧に入れていなかった。下の一覧に足したので、
+          # この見立てが外れていれば「無い」がそこに出る。
           dnf -y install gcc gcc-c++ make curl git tar gzip perl-core diffutils \
                          findutils which patch file gawk zlib-devel \
                          ncurses-devel libb2-devel openssl-devel \
-                         libarchive-devel bzip2 xz > /dev/null
+                         libarchive-devel bzip2 xz hostname > /dev/null
           # 本物の coreutils を入れても install(1) が /usr/sbin にしか
           # 現れないことがある。pkgsrc は /usr/bin/install を探すので
           # 見つからず、自分の sysutils/coreutils を tool として建てに
@@ -313,7 +319,8 @@ jobs:
           for t in install readlink realpath nproc seq env printf expr \
                    tsort nice sha1sum sha512sum md5sum cut tr sort uniq \
                    basename dirname mkdir rm cp mv ln chmod chown touch \
-                   head tail wc date id pwd echo test; do
+                   head tail wc date id pwd echo test \
+                   hostname numfmt tee chgrp ls cat sleep rmdir true false; do
             printf '  %-10s %s\n' "$t" "$(command -v $t || echo '無い')"
           done
       - name: 建てて確かめる
