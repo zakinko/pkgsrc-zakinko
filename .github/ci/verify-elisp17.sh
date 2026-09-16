@@ -120,9 +120,19 @@ fi
 
 # 17 個。emacs20 でしか建たないもの、21 でしか建たないものがあるので、
 # 受け付けない組み合わせは飛ばす。飛ばしたことは出す。
+# zakinko/rsltc はここに入れない。建てられないため。
+#
+#	gentle ast.g
+#	gmake: *** [std_make:31: ast.c] Segmentation fault (core dumped)
+#
+# devel/gentle は x86_64 では BROKEN_ON_PLATFORM= ${LP64PLATFORMS} で入らず、
+# i386 では入るが rsltc の文法を食わせると落ちる。**どちらでも建たない。**
+# 写しは木に置いてあるので差分は生きているが、install の直しが効くことは
+# 建てて確かめられていない。一覧に入れておくと、直しと無関係な赤が毎回出て
+# 「17 個の緑」が意味を失う。
 LIST_20="zakinko/leim20 zakinko/pcl-cvs zakinko/mule-ucs zakinko/tamago
 	 zakinko/iiimecf zakinko/calc zakinko/emacs-ilisp zakinko/w3
-	 zakinko/rsltc devel/emacs20-elib"
+	 devel/emacs20-elib"
 LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 	 zakinko/calc zakinko/nxml-mode zakinko/emacs-ilisp zakinko/jde
 	 zakinko/w3 misc/bbdb2 www/emacs-w3m"
