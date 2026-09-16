@@ -160,18 +160,13 @@ and the build stops with
   ERROR: Accepted versions are: emacs21 emacs21nox
   ERROR: pkgsrc has: emacs31 emacs31nox ... xemacs214nox
 
-rather than with "Cannot open /version.mk".  I have to say plainly
-that this cannot happen on trunk: you took bbdb2 out with emacs21, and
-mail/vm rev 1.47 no longer includes its buildlink3.mk.  The same goes
-for something else I wrote last time -- I said fifteen packages still
-ask for emacs21, and that is true of my 2 September copy and not of
-pkgsrc, since jde, leim21, bbdb2 and nxml-mode went with the version.
-Nothing on trunk names it.
-
-The two EMACS_VERSION_REQD messages in my last mail still stand; that
-is where the refusal is worth looking at.  The intersection is worth
-taking for the next retirement rather than for a mess sitting there
-today.
+rather than with "Cannot open /version.mk".  It cannot happen on trunk,
+though: you took bbdb2 out with emacs21 and mail/vm rev 1.47 no longer
+includes its buildlink3.mk.  The same goes for the fifteen packages I
+said still ask for emacs21 -- that is my 2 September copy, not pkgsrc;
+jde, leim21, bbdb2 and nxml-mode went with the version and nothing on
+trunk names it.  So the intersection is worth taking for the next
+retirement rather than for a mess sitting there today.
 
 Since my earlier figures came from that copy, I took them again from
 trunk, fetching each Makefile and PLIST.  The build results above are
