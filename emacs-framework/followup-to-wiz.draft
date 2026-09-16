@@ -150,13 +150,28 @@ writes ${EMACS_LISPPREFIX} straight into INSTALLATION_DIRS and its
 install rule.)
 
 Three of those six need a second line, because the install writes the
-shared path as well and changing only the PLIST splits the two.  I
-found two of them by building -- inputmethod/tamago-tsunagi and
-devel/cqual, both of which leave it to a bundled makefile -- and the
-third, devel/rsltc, by reading: its own Makefile has
+shared path as well and changing only the PLIST splits the two:
+inputmethod/tamago-tsunagi and devel/cqual, which leave it to a
+bundled makefile, and devel/rsltc, whose own Makefile has
 ${DESTDIR}${PREFIX}/share/emacs/site-lisp/rsl spelled out three times.
-I have not built rsltc; it wants devel/gentle, which is marked broken
-on x86_64.
+All six build here now.
+
+rsltc took a detour worth mentioning on its own.  It wants
+devel/gentle, which carries BROKEN_ON_PLATFORM= ${LP64PLATFORMS}, so I
+had written it off.  With that line taken out for the experiment
+gentle builds on amd64 with nothing but K&R-era warnings, rsltc builds
+against it, and the parser gentle generated does its job:
+
+  $ rsltc HELLO.rsl
+  Checking HELLO ...
+  rsltc completed: 0 error(s) 0 warning(s)
+  $ rsltc bad.rsl
+  bad.rsl:3:13: syntax error
+
+with the line and column right.  I have only the one LP64 platform to
+say that on and I am not proposing to remove the line -- but it may be
+older than the problem it describes, and it is what keeps rsltc out of
+the bulk build.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
