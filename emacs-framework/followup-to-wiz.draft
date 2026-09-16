@@ -300,14 +300,20 @@ tamago-20020909nb5 and does not match emacs20-tamago-20020909nb5:
   pkg_admin pmatch 'tamago-[0-9]*' emacs20-tamago-20020909nb5  does not
 
 Two packages that both select emacs20 would then land in the same
-share/emacs/20.7/site-lisp/egg with nothing declared between them.  I
-watched the shape of that happen for real while doing this, though for
-a different reason: editors/gnuserv's CONFLICTS names a pattern that
-matches no package, and pkg_add refused xemacs-nox11 over
-bin/gnuattach instead of the line refusing it first.  So wherever the
-prefix moves PKGNAME, the CONFLICTS lines pointing at that package
-want looking at too.  I would rather put all of this in front of you
-than decide it.
+share/emacs/20.7/site-lisp/egg with nothing declared between them.
+Spelling the prefix in the pattern fixes it and sharpens it at the
+same time -- with ${EMACS_PKGNAME_PREFIX}tamago-[0-9]* the line matches
+emacs20-tamago while tamago-tsunagi is built for emacs20, and does not
+match it under emacs30nox, which is right: the two only collide when
+they share a lisp directory.  That diff is with the others.
+
+I watched the shape of this happen for real, though for a different
+reason: editors/gnuserv's CONFLICTS names a pattern that matches no
+package, and pkg_add refused xemacs-nox11 over bin/gnuattach instead
+of the line refusing it first.  So wherever the prefix moves PKGNAME,
+the CONFLICTS lines pointing at that package want looking at.  The
+vulnerability list is the same mechanism without a fix I can offer, so
+I would rather put that half in front of you than decide it.
 
 Happy to send the framework part on its own first, with the package
 fixes following in whatever grouping suits you.

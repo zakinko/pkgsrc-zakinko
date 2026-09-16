@@ -1,0 +1,15 @@
+--- inputmethod/tamago-tsunagi/Makefile.orig
++++ inputmethod/tamago-tsunagi/Makefile
+@@ -12,7 +12,11 @@
+ LICENSE=	gnu-gpl-v2
+ 
+ CONFLICTS=	tamago-anthy-[0-9]*
+-CONFLICTS+=	tamago-[0-9]*
++# editors/tamago puts its lisp in the same egg/ directory, so the two
++# collide whenever they are built for the same Emacs -- and only then.
++# Spell the prefix, or the pattern stops matching as soon as the name
++# carries the version: tamago-[0-9]* does not match emacs20-tamago-...
++CONFLICTS+=	${EMACS_PKGNAME_PREFIX}tamago-[0-9]*
+ 
+ GNU_CONFIGURE=		yes
+ 
