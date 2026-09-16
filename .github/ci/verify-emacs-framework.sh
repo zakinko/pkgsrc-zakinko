@@ -63,7 +63,7 @@ echo "=== 枠組みを当てる ==="
 # 置き換えると、それが分からなくなる。
 for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
 	b=${f##*/}
-	if patch -f -C "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1; then
+	if patch -f -C -F0 "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1; then
 		patch -f "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1
 		echo "  差分を当てた   $f"
 	else
@@ -86,7 +86,10 @@ for d in "$SRC"/pkg-fixes/*.diff; do
 	n=${d##*/}
 	# 空当てで見てから当てる。-f が無いと当たらない相手に問い返して
 	# 止まらなくなる。入力は -i で渡す (< と併用すると後ろが勝つ)。
-	if (cd "$TREE" && patch -p0 -f -C -i "$d" >/dev/null 2>&1); then
+	# -F0 が要る。既定の fuzz のままだと、木が動いていても残りの文脈
+	# だけで当たってしまい、空当てが 0 を返す。「当たらない」を見つけ
+	# られないなら空当てを置く意味が無い。
+	if (cd "$TREE" && patch -p0 -f -C -F0 -i "$d" >/dev/null 2>&1); then
 		if (cd "$TREE" && patch -p0 -f -i "$d" >/dev/null 2>&1); then
 			echo "  当てた   $n"
 		else
