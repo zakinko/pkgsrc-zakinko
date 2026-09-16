@@ -457,7 +457,9 @@ jobs:
           restore-keys: prs-dragonfly-
       - uses: vmactions/dragonflybsd-vm@v1
         with:
-          run: PKGS='croc' sh .github/ci/build-on-bsd.sh
+          # libuuid は cdn の木 (2026-09-12) では DragonFly で建たない。上流
+          # rev 1.16 (2026-09-14) と同じ一行を先に足す。追いつけば何もしない。
+          run: TREE_PATCH=.github/ci/tree-patch-libuuid-dragonfly.sh PKGS='croc' sh .github/ci/build-on-bsd.sh
 
   croc-ghostbsd:
     if: inputs.target == 'all' || inputs.target == 'croc'
