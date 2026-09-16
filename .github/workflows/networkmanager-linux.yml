@@ -1,0 +1,120 @@
+name: NetworkManager (Linux distros)
+
+# wip/NetworkManager を引き取って、Linux で実際に建つところまで持っていく。
+#
+# NetBSD/pkgsrc の issue #186 が発端。報告者は Linux From Scratch で pkgsrc を
+# 使っていて (#185 の bootstrap の質問でそう答えている)、欲しいのは Linux の
+# NetworkManager である。BSD の話ではない。
+#
+# wip には 2024-12-14 の import が一度あるきりで、COMMENT が
+# "TODO: Short description of the package" のまま、LICENSE は空、HOMEPAGE は
+# 配布物の置き場を指していた。libndp のほうは MASTER_SITES と HOMEPAGE が
+# 入れ替わっていて、http://libndp.org/libndp-1.9.tar.gz は 404 を返す
+# (/files/ の下が 200)。そこまで直したものがこの repo の NetworkManager と
+# libndp である。
+#
+# NetworkManager は Linux 専用。platform backend は
+# src/libnm-platform/nm-linux-platform.c ひとつきりで netlink を直に叩き、
+# 木の中に __NetBSD__ も __FreeBSD__ も __OpenBSD__ も一つも無い。依存の
+# sysutils/libudev (eudev) 自身が BROKEN_EXCEPT_ON_PLATFORM= Linux-*-* な
+# ので、BSD では compile error より前に依存で止まる。Makefile に
+# ONLY_FOR_PLATFORM= Linux-*-* と書いたのはそのため。
+#
+# Linux 向けの公式バイナリパッケージは配られていない
+# (pub/pkgsrc/packages/Linux/ は 404)。glib2 も gobject-introspection も
+# polkit も素から建つので長い。一回で終わらなくても .bsdcache が作りかけを
+# 持ち越すので、同じ相手をもう一度押せば続きから進む。
+#
+# 手で起動する。押すまで何もしない。
+
+on:
+  workflow_dispatch:
+    inputs:
+      pkgs:
+        description: '何を建てるか'
+        type: choice
+        options: ['NetworkManager', 'libndp', 'libndp NetworkManager']
+        default: 'NetworkManager'
+      distros:
+        description: '回す相手 (空なら全部)'
+        required: false
+      pkgsrc:
+        description: 'pkgsrc の配布物'
+        type: choice
+        options: [current, stable]
+        default: current
+
+env:
+  # NetworkManager は libndp を buildlink で引く。CARRY は「木へ写すが
+  # SUBDIR には入れない = それ自体は建てにいかない」口で、依存として
+  # 引かれたときだけ建つ。pkgs に libndp を並べたときは両方に出るが、
+  # 同じものを二度写すだけで害は無い。
+  PKGS: ${{ inputs.pkgs || 'NetworkManager' }}
+  CARRY: libndp
+  PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/${{ inputs.pkgsrc || 'current' }}/pkgsrc.tar.gz
+
+jobs:
+  distro:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 報告者が LFS (glibc をソースから) なので、まず glibc の二つ。
+          # 通ってから musl や他を足す。
+          - name: Debian 13
+            image: debian:13
+            pm: apt
+          - name: Fedora 41
+            image: fedora:41
+            pm: dnf
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      # 入れるものは pkgsrc/bootstrap/README.Linux に従う。加えて bzip2 —
+      # NetworkManager の配布物が .tar.bz2 なので、無いと extract で止まる。
+      - name: 道具を入れる
+        run: |
+          set -e
+          case '${{ matrix.pm }}' in
+          apt)
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends \
+              build-essential curl ca-certificates file perl patch \
+              tar gzip xz-utils bzip2 git sudo cvs libncurses-dev zlib1g-dev \
+              libssl-dev libudev-dev gawk
+            ;;
+          dnf)
+            dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+              perl patch tar gzip xz bzip2 git diffutils findutils which sudo \
+              ncurses-devel zlib-devel openssl-devel gawk
+            ;;
+          esac
+          cc --version | head -1
+
+      - uses: actions/checkout@v4
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: nm-${{ matrix.image }}-${{ github.run_id }}
+          restore-keys: nm-${{ matrix.image }}-
+
+      - name: 選ばれた相手か見る
+        id: pick
+        run: |
+          set -e
+          want='${{ inputs.distros }}'
+          if [ -z "$want" ]; then echo 'run=yes' >>"$GITHUB_OUTPUT"; exit 0; fi
+          case " $want " in
+          *" ${{ matrix.name }} "*) echo 'run=yes' >>"$GITHUB_OUTPUT" ;;
+          *) echo 'run=no' >>"$GITHUB_OUTPUT"; echo "飛ばす: ${{ matrix.name }}" ;;
+          esac
+
+      - name: 組んで確かめる
+        if: steps.pick.outputs.run == 'yes'
+        run: sh .github/ci/build-on-bsd.sh
