@@ -101,10 +101,19 @@ else
 	echo "  -- 依存の連鎖"
 	grep -nE '===> Installing dependencies for|NOT found' "$T/croc-install.log" | sed 's/^/     /'
 	echo "  -- error らしい行"
-	grep -nE 'constraints exclude|ERROR|error:|fatal|cannot|Cannot|No such|not supported|\*\*\* \[|No space|Killed|signal: ' "$T/croc-install.log" |
-		grep -vE 'checking|Checksum|unused' | head -20 | sed 's/^/     /'
+	grep -nE 'constraints exclude|ERROR|error:|fatal|cannot|Cannot|No such|not supported|\*\*\* \[|No space|Killed|signal: |FAILED' "$T/croc-install.log" |
+		grep -vE 'checking|Checksum|unused|warning:|_\("' | head -20 | sed 's/^/     /'
+	# 最初の Error code の手前が、落ちた本人の最後の言葉である。末尾だけだと
+	# bmake の stopped making の連鎖 (8 段で 32 行) に押し出されて、OpenBSD
+	# の go120 が何で止まったかが二度とも読めなかった (run 35113364075)。
+	echo "  -- 最初の Error code の手前"
+	_first=$(grep -n '\*\*\* Error code' "$T/croc-install.log" | head -1 | cut -d: -f1)
+	if [ -n "$_first" ]; then
+		_from=$((_first - 50)); [ $_from -lt 1 ] && _from=1
+		sed -n "${_from},$((_first + 2))p" "$T/croc-install.log" | cut -c1-300 | sed 's/^/     /'
+	fi
 	echo "  -- 末尾"
-	grep -vE 'Checksum|=> Fetching|^checking' "$T/croc-install.log" | tail -30 | sed 's/^/     /'
+	grep -vE 'Checksum|=> Fetching|^checking' "$T/croc-install.log" | tail -12 | sed 's/^/     /'
 	df -h /usr 2>/dev/null | sed 's/^/     /'
 fi
 if [ $rc -eq 0 ]; then
