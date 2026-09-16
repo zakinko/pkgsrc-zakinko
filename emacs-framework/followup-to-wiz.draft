@@ -33,7 +33,13 @@ One names a renamed package without the prefix and can then never be
 satisfied: misc/emacs-wiki asks for semi>=1.14.6.  devel/flim was the
 same, with an unprefixed apel>=10.8 next to an apel buildlink3.mk that
 already says ${EMACS_PKGNAME_PREFIX}apel>=10; I fixed that one and it
-builds.
+builds.  There is a third that no build here can reach: devel/doxymacs
+asks for w3-[0-9]* inside .elif ${EMACS_VERSION_MAJOR} <= 21, and
+www/w3 becomes emacs20-w3-4.0b47nb4, so the line can never be
+satisfied -- but only under emacs20 or emacs21, which is why the sweep
+went straight past it.  Those three are all there are on trunk; I
+matched on the name boundary rather than as a substring, which first
+gave me xemacs-packages for emacs-packages and w3m for w3.
 
 Going through those lines turned up five packages that are broken on
 trunk today, before any of this, and mail/mu is broken for a
@@ -188,6 +194,42 @@ emacs31 here and emacs31nox when given EMACS_VERSIONS_INCOMPATIBLE=
 emacs31.  apel's own line names emacs20, which it does not accept
 anyway, so nothing moves there -- that line has been doing nothing
 twice over.
+
+I had been saying the lisp goes somewhere Emacs already searches
+without ever checking it, so I did.  I installed the 36 that build,
+listed every .elc they own -- 390 files -- and asked Emacs for each by
+the name it would be required under.  All 390 are on load-path:
+share/emacs/30.2/site-lisp and its first-level subdirectories, with
+share/emacs/site-lisp still there beside them, so a package that has
+not moved yet is unaffected.  Requiring the main library of each
+package works for 24 of 33.  The nine that fail are worth a word,
+because I nearly wrote them up as damage: they fail for reasons inside
+the elisp, not for where it lives.  markdown-mode and rmail-mime want
+eieio-make-class-predicate, which this Emacs does not have even after
+(require 'eieio); verilog-mode wants XEmacs's lucid; gnuserv wants
+XEmacs's temp-directory.  I copied three of the nine into the old
+shared site-lisp and required them from there, and they fail with the
+same messages, character for character.
+
+One cost of the second point that I have not seen raised.  Putting the
+prefix in PKGNAME takes the package out of the vulnerability list's
+reach, quietly:
+
+  pkg_admin audit-pkg flim-1.14.2             -> reports CAN-2004-0422
+  pkg_admin audit-pkg emacs30nox-flim-1.14.2  -> nothing
+  pkg_admin audit-pkg xemacs-flim-1.14.2      -> nothing
+
+The third line is the one that matters: this is already true of the
+xemacs- packages in pkgsrc today.  An advisory can be written to cover
+it, but only by enumerating -- {,emacs30nox-}flim<1.14.3 matches while
+*-flim<1.14.3 and emacs*-flim<1.14.3 do not, because the glob does not
+combine with a version bound.  With the prefix carrying the flavour
+only, that is {,xemacs-}; with the version in it, every advisory for
+an elisp package has to list every Emacs.  Nothing in the current list
+is affected -- I decompressed it and went through the 92 emacs entries,
+and every one of them is bounded below what pkgsrc ships -- but the
+next one would be.  I would rather put that in front of you than
+decide it.
 
 Happy to send the framework part on its own first, with the package
 fixes following in whatever grouping suits you.
