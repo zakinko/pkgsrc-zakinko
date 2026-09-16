@@ -62,9 +62,9 @@ mine rather than the tree's: I had two sweeps of my own running
 against one WRKOBJDIR for a while, and curl was left with a
 half-configured work directory.  Cleaning it out and building again
 gave curl 8.21.0.  So those nine say nothing either way and I have not
-counted them for or against the change.  Three of them I am building
-again now that curl is there; the other six sit behind rust or
-texlive, which I would rather not ask this machine for.
+counted them for or against the change.  Two of them I am building
+again now that curl is there; the other seven sit behind rust, texlive
+or a gcc bootstrap, which I would rather not ask this machine for.
 
 Three failures are distfiles that no longer fetch (cobol-mode,
 flyspell, ispell-emacs), one is a dependency marked broken on x86_64
@@ -112,6 +112,15 @@ themselves.  Of the 86 with a PLIST, 77 already write
 ${EMACS_LISPPREFIX} and six write the path by hand -- the same six I
 named before.  Of the 26 that pass a lisp directory into their build,
 25 pass the variable; only chat/zenicb does not.
+
+Three of those six need a second line, because the install writes the
+shared path as well and changing only the PLIST splits the two.  I
+found two of them by building -- inputmethod/tamago-tsunagi and
+devel/cqual, both of which leave it to a bundled makefile -- and the
+third, devel/rsltc, by reading: its own Makefile has
+${DESTDIR}${PREFIX}/share/emacs/site-lisp/rsl spelled out three times.
+I have not built rsltc; it wants devel/gentle, which is marked broken
+on x86_64.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
