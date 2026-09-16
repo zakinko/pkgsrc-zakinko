@@ -161,8 +161,25 @@ package does not fail to build -- it fails to parse:
          Could not find ../../misc/bbdb2/buildlink3.mk
   bmake: Fatal errors encountered -- cannot continue
 
-misc/bbdb3 is still there, so whether the option should point at it or
-go away is a question rather than a patch, and I have left it alone.
+misc/bbdb3 is still there, so the obvious repair is to point the
+option at it, and that is what I tried first.  It builds -- and it
+would not work.  mime-bbdb.el is BBDB 2 code, and against bbdb3 it
+byte-compiles with
+
+  bbdb-record-getprop, bbdb-record-putprop, bbdb-search-simple,
+  bbdb-pop-up-bbdb-buffer, bbdb-record-edit-notes, bbdb-annotate-notes
+
+all "not known to be defined".  I went through bbdb-3.2.2a's lisp and
+none of the six is there under any of those names, so the package
+would install a file that fails the moment it is used.
+
+So the diff below takes the option out instead, with the reasoning in
+a comment where the block was.  devel/semi then builds, and setting
+PKG_OPTIONS.semi=semi-bbdb no longer does anything rather than
+stopping make.  If someone wants the feature back, what is missing is
+a port of mime-bbdb.el to BBDB 3, not a line in options.mk.  I left
+PLIST_VARS and the PLIST entry alone; with the option gone the line is
+simply never emitted.
 
 The other sort is CONFLICTS lines that match no package.  I checked
 each with pkg_admin pmatch rather than by eye, which was worth doing
