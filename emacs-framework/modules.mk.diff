@@ -1,12 +1,30 @@
---- emacs-framework/modules.mk.orig	2026-09-15 23:18:42
-+++ emacs-framework/modules.mk	2026-09-16 00:22:36
-@@ -233,10 +233,13 @@
+--- editors/emacs/modules.mk.orig
++++ editors/emacs/modules.mk
+@@ -61,6 +61,16 @@
+ #		Default value:
+ #			<undefined>
+ #
++#	EMACS_VERSIONS_INCOMPATIBLE
++#		Description:
++#			Versions the ELP does not work with, subtracted
++#			from EMACS_VERSIONS_ACCEPTED.  The same shape as
++#			PYTHON_VERSIONS_INCOMPATIBLE.
++#		Possible values:
++#			any of the values below
++#		Default value:
++#			empty
++#
+ #	EMACS_VERSIONS_ACCEPTED
+ #		Description:
+ #			Versions the ELP accepts (supports).
+@@ -233,10 +243,14 @@
  # Constants
  #
  
-+# Newest first: a package that does not name its own set gets the newest
-+# Emacs, and ${EMACS_VERSIONS_ACCEPTED:[1]} above means "the package's
-+# first choice".
++# Newest first.  A package that names no set of its own gets this list
++# as EMACS_VERSIONS_ACCEPTED, so the order here is the default
++# preference; where a package does name its own, that list's order is
++# what counts.
  _EMACS_VERSIONS_ALL= \
 -	emacs20 emacs29 emacs29nox  \
 -	emacs30 emacs30nox emacs31 emacs31nox \
@@ -17,7 +35,7 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -253,7 +256,10 @@
+@@ -253,7 +267,10 @@
  
  _EMACS_ETCDIR.emacs=		share
  _EMACS_INFODIR.emacs=		${PKGINFODIR}
@@ -29,7 +47,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,12 +282,53 @@
+@@ -276,12 +293,80 @@
  #		abort;
  #
  
@@ -51,27 +69,54 @@
 +#     the package alone in that pass rather than building it for some
 +#     other version.
 +#   - otherwise EMACS_VERSION_DEFAULT, if the package accepts it.
-+#   - otherwise the first version the package accepts.  Like
-+#     PYTHON_VERSIONS_ACCEPTED, the order is significant and the list is
-+#     written newest first.
++#   - otherwise the first version the package accepts, reading its list
++#     in the order it was written.  Like PYTHON_VERSIONS_ACCEPTED the
++#     order is the package's preference, so the list is written newest
++#     first.
 +#
-+# The versions this package accepts that pkgsrc still has, kept in the
-+# order _EMACS_VERSIONS_ALL lists them.  A package can name a version
-+# that has since been removed -- when emacs21 went, fifteen packages
-+# still asked for it -- and choosing one of those leaves nothing to
-+# depend on.
++# The versions this package accepts that pkgsrc still has, in the order
++# the package wrote them, the way pyversion.mk walks
++# PYTHON_VERSIONS_ACCEPTED: the order is the package's preference and is
++# meant to be honoured.
++#
++# The filter is not decoration.  Every time a version is retired, the
++# packages that named it are left pointing at nothing until they are
++# updated, and selecting one of those leaves _EMACS_PKGDIR empty, which
++# turns a clean refusal into a fatal error further down.
++# EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel and, before this, no
++# line of this file read it.  pyversion.mk and rubyversion.mk honour
++# their equivalents, so subtracting it here is one of the places where
++# this framework was thinner than theirs.
++EMACS_VERSIONS_INCOMPATIBLE?=	# empty
++
 +_EMACS_VERSIONS_OK=	# empty
-+.for _ev_ in ${_EMACS_VERSIONS_ALL}
-+.  if !empty(EMACS_VERSIONS_ACCEPTED:M${_ev_})
++.for _ev_ in ${EMACS_VERSIONS_ACCEPTED}
++.  if !empty(_EMACS_VERSIONS_ALL:M${_ev_}) && \
++      empty(EMACS_VERSIONS_INCOMPATIBLE:M${_ev_})
 +_EMACS_VERSIONS_OK+=	${_ev_}
 +.  endif
 +.endfor
 +
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
++.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
-+.  if empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE})
-+PKG_FAIL_REASON+=	"This package does not build with ${_EMACS_TYPE}"
++.  else
++# The version asked for cannot be used.  Refuse, but leave _EMACS_TYPE
++# at a version that exists: _EMACS_PKGDIR is looked up from it a few
++# lines below, and an empty one turns this clean refusal into "Cannot
++# open /version.mk", a fatal error that stops the whole make instead of
++# failing the one package.
++_EMACS_TYPE=		${_EMACS_VERSIONS_ALL:[1]}
++# Two different things send us here, and a bulk build wants to tell them
++# apart: the package will not take that Emacs, or pkgsrc no longer has
++# it at all.
++.    if empty(_EMACS_VERSIONS_ALL:M${EMACS_VERSION_REQD})
++PKG_FAIL_REASON+=	"pkgsrc no longer has ${EMACS_VERSION_REQD}"
++PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
++.    else
++PKG_FAIL_REASON+=	"This package does not build with ${EMACS_VERSION_REQD}"
 +PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
++.    endif
 +.  endif
 +.elif !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_DEFAULT})
 +_EMACS_TYPE=		${EMACS_VERSION_DEFAULT}
@@ -88,7 +133,7 @@
  .endif
  
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
-@@ -313,7 +360,10 @@
+@@ -313,7 +398,10 @@
  EMACS_ETCPREFIX=	${PREFIX}/${_EMACS_ETCDIR.${_EMACS_FLAVOR}}
  EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
  EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
@@ -99,4 +144,18 @@
 +EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE}-
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
+ 
+@@ -354,7 +442,12 @@
+ .if defined(EMACS_BUILDLINK)
+ _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
+ # A development version usually claims three digits, say, 27.0.50 etc.
+-ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/site-lisp
++# The lisp of other packages now lives under the version directory, so
++# the build-time load path has to name it too; ${_EMACS_DIR}/site-lisp
++# alone finds nothing and the byte-compile fails with "Cannot open load
++# file".  The shared directory stays last for anything still installed
++# there.
++ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp:${_EMACS_DIR}/site-lisp
+ .include	"${_EMACS_PKGDIR}/buildlink3.mk"
+ .endif
  

@@ -38,25 +38,34 @@ EMACS_TYPE=${EMACS_TYPE:-emacs30nox}
 PKGS=${VERIFY_OPTS:-}
 [ -n "$PKGS" ] || PKGS="devel/apel devel/flim devel/zig-mode textproc/dictem editors/gnuserv www/emacs-w3m"
 
-echo "=== 当てる先が素か確かめる ==="
-# 古い写しを現在だと思って測る、というのを一度やった。置き換える前に
-# 手元の .orig と byte で突き合わせて、違っていたら止める。木が動いたのに
-# 気付かないまま「当たった」と言わないため。
+echo "=== 当てる先の版を見る ==="
+# 木を丸ごと置き換える設計にしていたら、初回で捕まった。
+#
+#	ツリー: modules.mk,v 1.40 2026/08/25
+#	手元  : modules.mk,v 1.42 2026/09/14
+#
+# cdn.netbsd.org の current/pkgsrc.tar.gz は git の trunk より遅れる。
+# file を置き換えると、その差にある上流の変更を黙って戻してしまう。
+# 差分を当てる形にした。送る物とも揃う。版が違うことは止める理由には
+# しない (当たるなら当たる) が、読めるように出す。
 for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
 	b=${f##*/}
-	if cmp -s "$SRC/$b.orig" "$TREE/$f"; then
-		echo "  $f は手元の .orig と一致"
+	printf '  %-28s ツリー %s\n' "$f" "$(sed -n '1p' "$TREE/$f" | sed 's/.*,v //;s/ Exp \$//')"
+	printf '  %-28s 手元   %s\n' "" "$(sed -n '1p' "$SRC/$b.orig" | sed 's/.*,v //;s/ Exp \$//')"
+done
+
+echo "=== 枠組みを当てる ==="
+for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
+	b=${f##*/}
+	# 当てる先を名指しで渡す。差分の頭の path には頼らない。
+	if patch -f -C "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1; then
+		patch -f "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1 &&
+			echo "  当てた   $f"
 	else
-		echo "  ★ $f が手元の .orig と違う。木が動いている"
-		echo "     ツリー: $(sed -n '1p' "$TREE/$f")"
-		echo "     手元  : $(sed -n '1p' "$SRC/$b.orig")"
+		echo "  ★ 当たらない $f。この木では測れない"
 		exit 1
 	fi
 done
-
-echo "=== 枠組みを置く ==="
-cp "$SRC/modules.mk"      "$TREE/editors/emacs/modules.mk"
-cp "$SRC/pbulk-index.mk"  "$TREE/mk/pbulk/pbulk-index.mk"
 
 echo "=== package の直しを当てる ==="
 fail=0
