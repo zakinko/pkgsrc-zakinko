@@ -1,4 +1,4 @@
-Subject: six elisp packages that cannot be packaged as they stand
+Subject: elisp packages that cannot be built as they stand
 To: Thomas Klausner <wiz@NetBSD.org>
 
 (DRAFT -- not sent.)
@@ -18,7 +18,7 @@ built an xemacs-nox11 21.5.36 here and ran the five against it, with
 your modules.mk and the packages untouched, so what follows is
 measured rather than read.
 
-Three of them fail, each in a different place:
+Three fail straight away, each in a different place:
 
   devel/ecb            stops before it builds anything.  WRKSRC comes
                        out as work/xemacs-ecb-<tag>, because
@@ -60,14 +60,6 @@ and land on the ${PKGBASE} problem after all:
 
 With both fixes they build: xemacs-matlab-mode-2.3.1nb4 and
 xemacs-xslide-0.2.2nb4.
-
-devel/doxymacs has a line of the same shape that no build here can
-reach.  It asks for w3-[0-9]* inside .elif ${EMACS_VERSION_MAJOR} <=
-21, and www/w3 spells EMACS_PKGNAME_PREFIX in its PKGNAME, so once the
-prefix carries the version the pattern cannot be satisfied.  The diff
-below spells the prefix on both sides.  I have only checked that with
-make show-var: I do not have a working emacs20 here to build it
-against, and I would rather say so than imply otherwise.
 
 devel/ecb is the one worth looking at first, because it takes
 xemacs215 xemacs215nox xemacs214 xemacs214nox and nothing else, so
