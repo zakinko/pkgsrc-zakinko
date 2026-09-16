@@ -136,9 +136,10 @@ trunk, fetching each Makefile and PLIST.  The build results above are
 still from the copy, with the current modules.mk dropped in; every
 package I name still exists on trunk with the same lines.  87 packages
 read modules.mk, leaving out wip and the emacs and xemacs packages
-themselves.  Of the 86 with a PLIST, 77 already write
-${EMACS_LISPPREFIX} and six write the path by hand -- the same six I
-named before.  Of the 26 that pass a lisp directory into their own
+themselves.  86 have a PLIST -- counting PLIST.emacs and the like, not
+just PLIST, which is where I lost one the first time.  Of those, 78
+write ${EMACS_LISPPREFIX}, six write the path by hand (the same six I
+named before) and two install no lisp at all.  Of the 26 that pass a lisp directory into their own
 build, all 26 pass the variable.  (I said 25 and named chat/zenicb last
 time; that was a miscount -- what I matched there is a commented-out
 PLIST_SUBST line, and zenicb passes nothing into a build at all, it
@@ -192,7 +193,9 @@ out of the one on amd64.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
-PKGNAME, and 22 of the 87 do not.  Adding it moves PKGBASE, and six
+PKGNAME, and 24 of the 87 do not -- 22 last time; I had been reading
+only the Makefile and missing the ones that set PKGNAME in options.mk
+or not at all.  Adding it moves PKGBASE, and six
 variables under mk/ take ${PKGBASE} as their default -- PKGWILDCARD
 and PKG_SYSCONFVAR in bsd.pkg.mk, FILEBASE in
 pkgformat/pkg/package.mk, and GITHUB_PROJECT, GITLAB_PROJECT and
@@ -211,8 +214,8 @@ ${EMACS_LISPPREFIX}/color-theme:
 
   ERROR: .../site-lisp/emacs30nox-color-theme/themes/color-theme.elc
 
-That is one of the 22, and I only looked because it was also in the
-nine that spell ${PKGBASE}.  I would not want to say the other 21 are
+That is one of the 24, and I only looked because it was also in the
+nine that spell ${PKGBASE}.  I would not want to say the other 23 are
 a line each until they have been through a build.
 
 One more, which I found late and have since fixed, but it is worth
