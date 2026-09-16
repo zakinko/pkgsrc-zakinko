@@ -1,0 +1,10 @@
+@comment $NetBSD: PLIST,v 1.2 2009/06/14 17:49:07 joerg Exp $
+bin/rsltc
+${EMACS_LISPPREFIX}/rsl/rsl-mode.el
+${EMACS_LISPPREFIX}/rsl/rsl-mode.elc
+${EMACS_LISPPREFIX}/rsl/rslconvert.el
+${EMACS_LISPPREFIX}/rsl/rslconvert.elc
+${EMACS_LISPPREFIX}/rsl/rsltc.el
+${EMACS_LISPPREFIX}/rsl/rsltc.elc
+${EMACS_LISPPREFIX}/rsl/tokenise.el
+${EMACS_LISPPREFIX}/rsl/tokenise.elc

@@ -93,6 +93,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
 | [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
+| [rsltc/](rsltc/) | `devel/rsltc` | lisp の置き場を `${EMACS_LISPPREFIX}` へ。PLIST も install も共有 `site-lisp` 直書きだった |
 | [tamago/](tamago/) | `editors/tamago` | LICENSE。12786 行の当て物が何かを書く |
 | [w3/](w3/) | `www/w3` | LICENSE と当て物 3 本の説明 |
 | [xemacs/](xemacs/) | `editors/xemacs` | MESSAGE を DESCR へ。COMMENT が package 名で始まるのを直す。効いていない PLIST_VARS+= debug |

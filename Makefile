@@ -63,6 +63,7 @@ SUBDIR+=	nxml-mode
 SUBDIR+=	openjdk25
 SUBDIR+=	openjdk28
 SUBDIR+=	pcl-cvs
+SUBDIR+=	rsltc
 SUBDIR+=	stnsd
 SUBDIR+=	tamago
 SUBDIR+=	uim-mozc
