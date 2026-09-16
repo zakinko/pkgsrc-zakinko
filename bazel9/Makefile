@@ -189,6 +189,29 @@ MAKE_ENV+=	TMPDIR=${WRKDIR}/bazel_tmp
 BAZEL_JAVAC_OPTS=	-J-Xmx1g -J-Xms128m
 MAKE_ENV+=		BAZEL_JAVAC_OPTS=${BAZEL_JAVAC_OPTS:Q}
 
+# patch-scripts_bootstrap_compile.sh puts -proc:full on the javac that builds
+# the bootstrap bazel.  That is not the only javac in the build.  Once the
+# bootstrap bazel runs, tools/build_rules/java_rules_skylark.bzl builds the
+# VanillaJavaBuilder with a genrule that calls the JDK's javac directly:
+#
+#	cmd += "%s/bin/javac" % java_runtime.java_home
+#	cmd += " " + " ".join(ctx.fragments.java.default_javac_flags)
+#
+# so on JDK 23 and later the AutoValue processor does not run there either and
+# the build stops 1,778 actions in with
+#
+#	JarOwner.java:37: error: cannot find symbol
+#	  symbol: class AutoValue_JarOwner
+#	... 4 errors
+#
+# default_javac_flags is exactly --javacopt (JavaConfiguration.java's
+# commandLineJavacFlags), so the flag reaches it without a patch.  The genrule
+# runs in the exec configuration, hence --host_javacopt as well.
+#
+# Harmless before 23: -proc:full exists from 21 on and is the default there,
+# and this package asks for 21 at the least.
+EXTRA_BAZEL_ARGS+=	--javacopt=-proc:full
+EXTRA_BAZEL_ARGS+=	--host_javacopt=-proc:full
 EXTRA_BAZEL_ARGS+=	--tool_java_runtime_version=local_jdk
 EXTRA_BAZEL_ARGS+=	--java_language_version=21
 EXTRA_BAZEL_ARGS+=	--tool_java_language_version=21
