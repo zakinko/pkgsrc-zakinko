@@ -177,18 +177,22 @@ all, and there it builds, installs, and dies on the first grammar:
   gentle ast.g
   gmake: *** [std_make:31: ast.c] Segmentation fault (core dumped)
 
-I should be plain that the two are not equally backed.  The amd64 run
-is mine, on NetBSD 11.0, with the log in front of me; the i386 run was
-on a throwaway 9.4 VM and the core is gone, so the version there is
-read off the tree rather than off the installed package.  The two
-differ in release as well as in word size, and I have a build going on
-i386 11.0 to narrow that down.
+That first i386 run was on a throwaway NetBSD 9.4 VM, which differs
+from my amd64 box in release as well as in word size, so I ran it
+again on i386 11.0 and got the same thing, on the same first grammar.
+Three points now:
 
-Either way the line does not describe what either of us saw: the
-platform it calls broken is the one where it worked, and the one it
-permits is where it crashed.  That is not enough to ask you to change
-anything, and I am not asking -- but it is what keeps rsltc out of the
-bulk build, so it seemed worth saying.
+  amd64 11.0   gentle builds, all eleven grammars, rsltc works
+  i386  9.4    gentle builds and installs, segfault on ast.g
+  i386  11.0   the same
+
+so it is the word size and not the release.  What the line says is the
+other way round: it calls LP64 broken, and LP64 is where it worked.  I
+have no core to offer -- both i386 runs were throwaway VMs -- and I am
+not asking you to change the line on three data points and no
+backtrace.  But since i386 is not marked broken, devel/rsltc is
+failing there in any bulk build today, and that is also what keeps it
+out of the one on amd64.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
