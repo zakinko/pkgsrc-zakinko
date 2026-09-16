@@ -53,7 +53,7 @@ which does not join.  Test whatever came out of it and fall back to
 
 --- configure.orig
 +++ configure
-@@ -581,13 +581,42 @@
+@@ -581,13 +581,51 @@
    *-*-netbsd* )
      opsys=netbsd
      case "${canonical}" in
@@ -75,6 +75,15 @@ which does not join.  Test whatever came out of it and fall back to
 +    opsys=dragonfly
 +    case "${canonical}" in
 +      x86_64-*-dragonfly*) machine=amd64 ;;
++    esac
++  ;;
++
++  ## MidnightBSD forked from FreeBSD 6 and still tracks its libc, so the
++  ## FreeBSD description fits.  Only amd64 is built.
++  *-*-midnightbsd* )
++    opsys=freebsd
++    case "${canonical}" in
++      x86_64-*-midnightbsd*) machine=amd64 ;;
 +    esac
 +  ;;
 +
