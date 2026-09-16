@@ -1,49 +1,83 @@
 Subject: Re: possible pkgsrc emacs framework improvements?
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.  The sweep figures in the first paragraph are
-being re-measured: the tree they came from already had four of the
-fixes applied, so "ten" is a floor, not the count.  Do not send until
-the numbers below are replaced.)
-
 Hi Thomas,
 
 The rest of the sweep finished, so here are the numbers I owed you.
-Of the 67 packages that select emacs30nox, 40 build, 2 I did not try,
-and 25 fail -- ten because of this change and fifteen for reasons that
-have nothing to do with it.
+Of the 67 packages that select emacs30nox, 37 build, 2 I did not try
+(both mozc-elisp, which want bazel), and 28 fail -- fourteen because
+of this change and fourteen for reasons that have nothing to do with
+it.  This is on a tree with none of my fixes in it; I had measured it
+once before while fixing as I went, and that pass reported four fewer,
+which is what fixing and measuring in the same tree does.
 
-The ten fall into three shapes, and each takes one line to fix.
+The fourteen fall into four shapes, and each takes one line.
 
-Seven have a PLIST that follows ${EMACS_LISPPREFIX} while the install
-writes the path itself, so the file check catches the mismatch:
-gnuserv, matlab-mode, twittering-mode, dictem, emacs-dict-client,
-xslide and emacs-w3m.  Two of these are worth a word.  editors/gnuserv
-lists share/doc/${PKGBASE} in INSTALLATION_DIRS while installing to
-share/doc/gnuserv, so that name becomes a file holding a README rather
-than a directory -- I have since built it under xemacs and watched it
-happen, and it is in the other mail; and editors/matlab-mode creates
-its directory as ${PKGBASE:C|^xemacs-||} but installs into ${PKGBASE},
-which agrees only while the prefix is empty.  I fixed both and they
-build under emacs30nox.
-
-Two get a 404 fetching their distfile, because mk/fetch/github.mk has
+Four get a 404 fetching their distfile, because mk/fetch/github.mk has
 GITHUB_PROJECT?= ${PKGBASE} and the prefix moves PKGBASE, so the fetch
-asks for github.com/ziglang/emacs30nox-zig-mode: emacs-neotree and
-markdown-mode.  I fixed zig-mode and lua-mode the same way earlier and
-both build, so the one line is enough.
+asks for github.com/ziglang/emacs30nox-zig-mode and WRKSRC points
+where the archive does not unpack: zig-mode, lua-mode, emacs-neotree
+and markdown-mode.
 
-One names a renamed package without the prefix and can then never be
-satisfied: misc/emacs-wiki asks for semi>=1.14.6.  devel/flim was the
-same, with an unprefixed apel>=10.8 next to an apel buildlink3.mk that
-already says ${EMACS_PKGNAME_PREFIX}apel>=10; I fixed that one and it
-builds.  There is a third that no build here can reach: devel/doxymacs
-asks for w3-[0-9]* inside .elif ${EMACS_VERSION_MAJOR} <= 21, and
-www/w3 becomes emacs20-w3-4.0b47nb4, so the line can never be
-satisfied -- but only under emacs20 or emacs21, which is why the sweep
-went straight past it.  Those three are all there are on trunk; I
-matched on the name boundary rather than as a substring, which first
-gave me xemacs-packages for emacs-packages and w3m for w3.
+Two name a renamed package without the prefix and can then never be
+satisfied: misc/emacs-wiki asks for semi>=1.14.6, and devel/flim adds
+an unprefixed apel>=10.8 to BUILDLINK_API_DEPENDS.apel while apel's
+own buildlink3.mk already says ${EMACS_PKGNAME_PREFIX}apel>=10.  There
+is a third that no build here can reach: devel/doxymacs asks for
+w3-[0-9]* inside .elif ${EMACS_VERSION_MAJOR} <= 21, and www/w3
+becomes emacs20-w3-4.0b47nb4, so the line can never be satisfied --
+but only under emacs20 or emacs21, which is why the sweep went
+straight past it.  Those three are all there are on trunk; I matched
+on the name boundary rather than as a substring, which first gave me
+xemacs-packages for emacs-packages and w3m for w3.
+
+Three have a PLIST that spells share/emacs/site-lisp itself while the
+install follows ${EMACS_LISPPREFIX}, so the files go to the version
+directory and the file check reports them missing from where the PLIST
+says: twittering-mode, emacs-dict-client and rsltc.
+
+Five spell ${PKGBASE} on one side of the install and the bare name on
+the other, which agree only while the prefix is empty.  Three are in
+the lisp directory: editors/matlab-mode creates
+${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||} and installs into
+${EMACS_LISPPREFIX}/${PKGBASE}, textproc/xslide installs into
+${EMACS_LISPPREFIX}/${PKGBASE} while its PLIST says
+${EMACS_LISPPREFIX}/xslide, and www/emacs-w3m sets WRKSRC to
+${WRKDIR}/${PKGBASE}-${GITHUB_TAG}.  Two are in share/doc:
+editors/gnuserv lists share/doc/${PKGBASE} in INSTALLATION_DIRS while
+doc-install writes share/doc/gnuserv, so that name becomes a file
+holding whichever README was installed last rather than a directory,
+and textproc/dictem has the same pair.
+
+There is a fifth shape that does not fail at all, and it is the one I
+could not have found by reading.  devel/cqual and
+inputmethod/tamago-tsunagi build green and install into
+share/emacs/site-lisp rather than into the version directory: their
+PLIST and their install both spell the old path, so the two agree and
+nothing catches it.  cqual does not spell EMACS_PKGNAME_PREFIX either,
+so it stays cqual-0.991nb21 and writes exactly where it always did.  A
+package that quietly ignores the new location seems worse to me than
+one that stops, and only the packing list of the built package shows
+it:
+
+  cqual-0.991nb21                        share/emacs/site-lisp/cqual/
+  emacs30nox-tamago-tsunagi-5.0.7.1nb3   share/emacs/site-lisp/egg/
+  the other 35 that built                share/emacs/30.2/site-lisp/
+
+The other fourteen are not about the change: three have lost their
+distfile (cobol-mode 402, flyspell and ispell-emacs 404), eight want a
+dependency this sandbox cannot build (TeX Live, gcc14, rust), mail/mu
+has a PLIST bug of its own that is in the other mail, mail/vm reaches
+misc/bbdb2 -- which you have since removed, and vm no longer asks for
+it -- and mail/wl-snapshot is stopped by a CONFLICTS line that I think
+is stale, also in the other mail.
+
+The sweep tree is a 2 September copy, so I went back and checked each
+package I name above against trunk today rather than trusting the
+copy: all four GITHUB_PROJECT lines are still absent, all three
+unprefixed dependencies are still unprefixed, all six hand-written
+lisp paths are still hand-written, and all five ${PKGBASE} pairs are
+still as described.
 
 Going through those lines turned up a handful of packages that are
 broken on trunk today, before any of this.  That is not really about

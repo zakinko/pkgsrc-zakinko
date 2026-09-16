@@ -1,7 +1,9 @@
 Subject: elisp packages that cannot be built as they stand
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.)
+(DRAFT -- not sent.  The diffs the last paragraph promises are not in
+this file yet; they are in emacs-framework/pkg-fixes/.  They have to be
+pasted in and re-checked against trunk on the day it goes out.)
 
 Hi Thomas,
 
@@ -194,8 +196,24 @@ nothing simply does nothing.  They are worth a look because the thing
 they were guarding may still be true.  editors/gnuserv above is the
 case where it was.
 
-The diffs are below.  I checked them in check mode against a fresh
-trunk checkout this morning: they apply with no offset and no fuzz.
+There is one that goes the other way -- it matches, and I do not think
+it should.  misc/bbdb3 has
+
+  CONFLICTS+=		xemacs-packages-[0-9]*
+
+and it stopped a build of mine: mail/wl-snapshot wants bbdb, and
+pkg_add refused emacs30nox-bbdb-3.2.2anb3 because xemacs-packages was
+installed.  bbdb3 takes emacs29, emacs30 and emacs31 and no xemacs at
+all, so it cannot produce a file under lib/xemacs; I compared the two
+packing lists to be sure rather than reasoning about it, and of
+bbdb3's 38 files and xemacs-packages' 7840 not one name is shared.
+I have not put a diff for it below, because I would rather ask: is
+this line left over from when bbdb3 accepted xemacs, or is there a
+collision I am not seeing?  If it is the former I am happy to send the
+one-line removal.
+
+The diffs are below.  I checked them in check mode against trunk as of
+2026-09-17: they apply with no offset and no fuzz.
 For mail/mu the file patches/patch-mu4e_meson.build already exists, so
 that one is a change to an existing patch rather than a new one, and
 its distinfo line moves with it.
