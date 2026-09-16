@@ -121,7 +121,15 @@ for p in $PKGS; do
 			printf '%s\tNG-BUILD\t%s\n' "$p" \
 				"$(grep -m1 'Error code' "$log" | tr -d '\n')" >> "$R"
 		fi
-		tail -25 "$log"
+		# 転けた run が、診断に要る行を自分で捨てないようにする。
+		# 末尾だけ出すと、依存の版と configure の結論はその外に在る。
+		# 落とすのは `: found` で終わる Tool dependency だけ。**NOT found
+		# を落とさない形に限る**（全部落として肝心の一行を埋めた例が在る）。
+		echo "  -- 依存と configure --"
+		grep -E '^(=> (Full|Build|Tool) dependency|===> Configuring)' "$log" \
+			| grep -vE '^=> Tool dependency .*: found$' | tail -20
+		echo "  -- 末尾 --"
+		tail -40 "$log"
 	fi
 done
 
