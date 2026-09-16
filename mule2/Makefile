@@ -141,6 +141,7 @@ post-install:
 SUBST_CLASSES+=		curses
 SUBST_STAGE.curses=	pre-configure
 SUBST_MESSAGE.curses=	Use the curses library pkgsrc picked
-SUBST_FILES.curses=	src/s/linux.h src/s/freebsd.h src/s/dragonfly.h
+SUBST_FILES.curses=	src/s/linux.h src/s/freebsd.h src/s/dragonfly.h \
+			src/s/openbsd.h
 SUBST_SED.curses=	-e 's|^\#define LIBS_TERMCAP .*|\#define LIBS_TERMCAP ${BUILDLINK_LDADD.curses}|'
 .include "../../mk/bsd.pkg.mk"

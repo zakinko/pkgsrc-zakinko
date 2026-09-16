@@ -34,6 +34,13 @@ Boston, MA 02111-1307, USA.  */
    file includes picks unexelf.o under __ELF__, so there is nothing to add
    here.  */
 
+/* netbsd.h links -lterminfo, which NetBSD's base curses provides but
+   OpenBSD's does not.  Let pkgsrc name the curses it picked; the SUBST in
+   the package Makefile fills this in, the same way it does for the Linux and
+   FreeBSD descriptions.  */
+#undef LIBS_TERMCAP
+#define LIBS_TERMCAP @CURSES_LIBS@
+
 /* OpenBSD keeps struct __sFILE private, so the netbsd.h definition, which
    reads _p and _bf._base, does not compile, and dispnew.c's fallback reads
    _ptr and _base, which is no better.  There is no public way to ask how
