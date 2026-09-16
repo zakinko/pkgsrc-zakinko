@@ -221,6 +221,30 @@ That is one package of the 22, and I only looked because it was in the
 list of nine that spell ${PKGBASE}.  So I would not want to say the
 remaining 22 are a line each until they have been through a build.
 
+There is one more thing I found late, and it is a problem with my own
+change rather than with a package.  I made EMACS_TYPE the default
+rather than a requirement, so a package that does not accept it falls
+back to something it does accept, the way pyversion.mk treats
+PYTHON_VERSION_DEFAULT.  That is fine on its own and wrong in a chain.
+www/emacs-w3m accepts emacs20; devel/apel does not.  With EMACS_TYPE=
+emacs20:
+
+  emacs-w3m  DEPENDS = emacs20-apel>=10:../../devel/apel
+  apel       PKGNAME = emacs29-apel-10.8.0.20201107nb2
+
+The dependency can never be satisfied, and nothing says so.  With
+modules.mk as it is today the same setting stops at apel with
+
+  "Accepted versions are: emacs29 emacs29nox ... emacs31nox"
+
+which is worse for a bulk run and better for a person, and I would
+rather not trade the second for the first without asking.  The same
+shape must exist in pyversion.mk -- a package whose accepted list does
+not overlap its dependency's -- so perhaps the answer is that these
+lists are meant to agree and the disagreement is the bug.  But my
+change turns a loud failure into a quiet one, and that seemed worth
+putting in front of you before anything else happens to it.
+
 One last thing, which is not about placement at all.
 EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
 modules.mk reads it, while pyversion.mk and rubyversion.mk both
