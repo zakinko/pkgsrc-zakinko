@@ -64,6 +64,21 @@ report() {
 			sed -n '100,135p' "$m" | cat -t 2>/dev/null ||
 				sed -n '100,135p' "$m"
 		done
+		# temacs や emacs が落ちると BSD は cwd に <名前>.core を置く。
+		# DragonFly は temacs が mule-inst.el を読む所で黙って abort し、
+		# log には "Abort trap (core dumped)" の一行しか残らなかった。
+		# core が在れば gdb に食わせる。gdb の無い箱では何も出ない。
+		for c in "$REAL"/obj/zakinko/mule*/work/mule/src/*.core; do
+			[ -f "$c" ] || continue
+			b=${c%.core}
+			[ -x "$b" ] || continue
+			echo "--- $c ---"
+			for g in gdb egdb; do
+				command -v $g > /dev/null 2>&1 || continue
+				$g -batch -ex 'bt 25' "$b" "$c" 2>&1 | head -40
+				break
+			done
+		done
 	}
 	exit $rc
 }
