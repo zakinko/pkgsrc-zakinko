@@ -47,7 +47,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,12 +293,80 @@
+@@ -276,14 +293,100 @@
  #		abort;
  #
  
@@ -97,6 +97,24 @@
 +.  endif
 +.endfor
 +
++# When pkgsrc resolves a dependency it passes the pattern it is looking
++# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
++# part of the name, that pattern says which Emacs the package asking for
++# it settled on, and the dependency has to be built for the same one.
++# pyversion.mk reads PKGNAME_REQD for exactly this reason.
++#
++# Without it the two ends can disagree in silence: www/emacs-w3m accepts
++# emacs20 and devel/apel does not, so with EMACS_TYPE=emacs20 emacs-w3m
++# asks for emacs20-apel while apel builds itself as emacs29-apel, and
++# nothing ever says why the dependency is not there.
++.if defined(PKGNAME_REQD)
++.  for _ev_ in ${_EMACS_VERSIONS_ALL}
++.    if !empty(PKGNAME_REQD:M${_ev_}-*)
++EMACS_VERSION_REQD?=	${_ev_}
++.    endif
++.  endfor
+ .endif
+ 
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 +.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
@@ -130,10 +148,12 @@
 +PKG_FAIL_REASON+=	"No Emacs that pkgsrc still has is accepted here"
 +PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
 +PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
- .endif
- 
++.endif
++
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
-@@ -313,7 +398,10 @@
+ 
+ .include "${_EMACS_PKGDIR}/version.mk"
+@@ -313,7 +416,10 @@
  EMACS_ETCPREFIX=	${PREFIX}/${_EMACS_ETCDIR.${_EMACS_FLAVOR}}
  EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
  EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
@@ -145,7 +165,7 @@
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
  
-@@ -354,7 +442,12 @@
+@@ -354,7 +460,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

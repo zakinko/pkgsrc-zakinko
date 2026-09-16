@@ -334,6 +334,24 @@ _EMACS_VERSIONS_OK+=	${_ev_}
 .  endif
 .endfor
 
+# When pkgsrc resolves a dependency it passes the pattern it is looking
+# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
+# part of the name, that pattern says which Emacs the package asking for
+# it settled on, and the dependency has to be built for the same one.
+# pyversion.mk reads PKGNAME_REQD for exactly this reason.
+#
+# Without it the two ends can disagree in silence: www/emacs-w3m accepts
+# emacs20 and devel/apel does not, so with EMACS_TYPE=emacs20 emacs-w3m
+# asks for emacs20-apel while apel builds itself as emacs29-apel, and
+# nothing ever says why the dependency is not there.
+.if defined(PKGNAME_REQD)
+.  for _ev_ in ${_EMACS_VERSIONS_ALL}
+.    if !empty(PKGNAME_REQD:M${_ev_}-*)
+EMACS_VERSION_REQD?=	${_ev_}
+.    endif
+.  endfor
+.endif
+
 .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 .  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 _EMACS_TYPE=		${EMACS_VERSION_REQD}
