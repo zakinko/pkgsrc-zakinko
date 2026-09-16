@@ -37,7 +37,7 @@ on:
       target:
         description: 'どれを回すか'
         type: choice
-        options: [all, xwpe, fail2ban, zls, lua-socket]
+        options: [all, xwpe, fail2ban, zls, lua-socket, gdb7]
         default: all
 
 concurrency:
@@ -349,6 +349,25 @@ jobs:
       - name: 建てて確かめる
         run: |
           sudo env PKGS='xwpe' XWPE_OPTIONS="$XWPE_OPTIONS" \
+                   PKGSRC_BASE=/Users/runner/pkgsrcwork \
+                   sh .github/ci/build-on-bsd.sh
+
+  # gdb7: GitHub NetBSD/pkgsrc #187 は Darwin-*-aarch64 を NOT_FOR_PLATFORM に
+  # する一行。前提 (同梱 zlib の fdopen が SDK と衝突) がこの runner で再現
+  # するか、一行が効くか、zlib を越えた先に native の口が無いか、を
+  # verify-gdb7.sh が三段で見る。runner は arm64 の macOS で、まさに対象。
+  # 手元の Mac では lang/perl5 の miniperl が glob で segfault して依存の
+  # 段で止まり、ここまで届かなかった。
+  gdb7-macos:
+    if: inputs.target == 'all' || inputs.target == 'gdb7'
+    name: gdb7 on macOS (Darwin/aarch64, #187)
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: 再現して確かめる
+        run: |
+          sudo env PKGS='' TREE_PKGS='devel/gdb7' \
                    PKGSRC_BASE=/Users/runner/pkgsrcwork \
                    sh .github/ci/build-on-bsd.sh
 
