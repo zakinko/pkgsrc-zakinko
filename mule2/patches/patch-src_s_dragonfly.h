@@ -15,7 +15,7 @@ DragonFly is 4.4BSD-Lite2 derived, so it gets the same 199506 that Emacs
 
 --- /dev/null	2006-01-04 20:13:24.000000000 +0000
 +++ src/s/dragonfly.h
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,83 @@
 +/* Get most of the stuff from bsd4.3 */
 +#include "bsd4-3.h"
 +
@@ -76,6 +76,15 @@ DragonFly is 4.4BSD-Lite2 derived, so it gets the same 199506 that Emacs
 +#define WRETCODE(w) (_W_INT(w) >> 8)
 +#define CURRENT_USER
 +#define NO_MATHERR
++
++/* DragonFly's libc malloc is mmap-based and its sbrk cannot give memory
++   back.  Emacs' own relocating allocator (REL_ALLOC, turned on whenever
++   the GNU malloc is used) shrinks the heap through sbrk in relinquish(),
++   and when that sbrk returns failure relinquish() aborts.  temacs dies in
++   tzset -> free -> r_alloc_sbrk(-61440) -> relinquish before it can dump.
++   Use the system malloc; that also turns REL_ALLOC off.  NetBSD keeps the
++   relocating allocator because its sbrk can shrink; DragonFly cannot.  */
++#define SYSTEM_MALLOC
 +
 +#define ORDINARY_LINK
 +
