@@ -27,12 +27,18 @@ on:
         type: choice
         options: ['NetworkManager', 'libndp', 'libndp NetworkManager']
         default: 'NetworkManager'
+      target:
+        description: 'どれを回すか (VM は高いので既定は一つ)'
+        type: choice
+        options: [freebsd, netbsd, openbsd, dragonfly, ghostbsd, all]
+        default: freebsd
       freebsd_release:
         description: 'FreeBSD の版'
         default: '14.4'
 
 jobs:
   freebsd:
+    if: inputs.target == 'all' || inputs.target == 'freebsd'
     name: FreeBSD amd64
     runs-on: ubuntu-latest
     timeout-minutes: 240
@@ -71,3 +77,140 @@ jobs:
         with:
           path: .bsdcache
           key: nm-freebsd-amd64-${{ github.run_id }}
+
+  openbsd:
+    if: inputs.target == 'all' || inputs.target == 'openbsd'
+    name: OpenBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: pkgsrc の作りかけを戻す
+        uses: actions/cache/restore@v4
+        with:
+          path: .bsdcache
+          key: nm-openbsd-amd64-${{ github.run_id }}
+          restore-keys: nm-openbsd-amd64-
+      - name: 組んで確かめる
+        uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          envs: 'PKGS CARRY TREE_PATCH'
+          run: sh .github/ci/build-on-bsd.sh
+        env:
+          PKGS: ${{ inputs.pkgs || 'NetworkManager' }}
+          CARRY: libndp
+          TREE_PATCH: .github/ci/tree-patch-docbook.sh
+      - name: pkgsrc の作りかけを持ち越す
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .bsdcache
+          key: nm-openbsd-amd64-${{ github.run_id }}
+
+  dragonfly:
+    if: inputs.target == 'all' || inputs.target == 'dragonfly'
+    name: DragonFly amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: pkgsrc の作りかけを戻す
+        uses: actions/cache/restore@v4
+        with:
+          path: .bsdcache
+          key: nm-dragonfly-amd64-${{ github.run_id }}
+          restore-keys: nm-dragonfly-amd64-
+      # release は版を書き切る。この action には「先頭だけ」の仕組みが無く、
+      # "6" は 6.conf を探して転ぶ (mule-otherbsd.yml で踏んである)。
+      - name: 組んで確かめる
+        uses: vmactions/dragonflybsd-vm@v1
+        with:
+          release: '6.4.2'
+          envs: 'PKGS CARRY TREE_PATCH'
+          run: sh .github/ci/build-on-bsd.sh
+        env:
+          PKGS: ${{ inputs.pkgs || 'NetworkManager' }}
+          CARRY: libndp
+          TREE_PATCH: .github/ci/tree-patch-docbook.sh
+      - name: pkgsrc の作りかけを持ち越す
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .bsdcache
+          key: nm-dragonfly-amd64-${{ github.run_id }}
+
+  # GhostBSD は FreeBSD 派生で kernel が同じなので、pkgsrc から見た OPSYS も
+  # FreeBSD になる。差は userland と package の作りだけのはずで、そこが
+  # 同じに見えるかを確かめる。ONLY_FOR_PLATFORM に行は要らない。
+  ghostbsd:
+    if: inputs.target == 'all' || inputs.target == 'ghostbsd'
+    name: GhostBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: pkgsrc の作りかけを戻す
+        uses: actions/cache/restore@v4
+        with:
+          path: .bsdcache
+          key: nm-ghostbsd-${{ github.run_id }}
+          restore-keys: nm-ghostbsd-
+      - name: 組んで確かめる
+        uses: vmactions/ghostbsd-vm@v1
+        with:
+          envs: 'PKGS CARRY TREE_PATCH'
+          run: sh .github/ci/build-on-bsd.sh
+        env:
+          PKGS: ${{ inputs.pkgs || 'NetworkManager' }}
+          CARRY: libndp
+          TREE_PATCH: .github/ci/tree-patch-docbook.sh
+      - name: pkgsrc の作りかけを持ち越す
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .bsdcache
+          key: nm-ghostbsd-${{ github.run_id }}
+
+  # NetBSD だけ vmactions を使わない。あちらの netbsd-vm は GitHub の runner で
+  # KVM が使えず TCG になり、pkgsrc を建てるには遅すぎる (uim で 4 時間に
+  # 8 package しか進まず timeout に当たった)。netbsd-ci-images の image を
+  # QEMU で起こす run-in-qemu.sh を使う。host が x86_64 なので KVM が効く。
+  #
+  # UPSTREAM_PKG は空白区切りで複数を運べる。NetworkManager は
+  # zakinko/libndp を buildlink で引くので、両方を渡す。
+  netbsd:
+    if: inputs.target == 'all' || inputs.target == 'netbsd'
+    name: NetBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: pkgsrc の作りかけを戻す
+        uses: actions/cache/restore@v4
+        with:
+          path: .bsdcache
+          key: nm-netbsd-amd64-${{ github.run_id }}
+          restore-keys: nm-netbsd-amd64-
+      - name: 組んで確かめる
+        run: sh .github/ci/run-in-qemu.sh amd64-11.0
+        env:
+          UPSTREAM_PKG: 'zakinko/libndp zakinko/NetworkManager'
+          VERIFY_SCRIPT: verify-NetworkManager.sh
+      - name: 転んだら console を出す
+        if: failure()
+        run: tail -80 .vm/amd64-11.0.console.log 2>/dev/null || true
+      - name: pkgsrc の作りかけを持ち越す
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .bsdcache
+          key: nm-netbsd-amd64-${{ github.run_id }}

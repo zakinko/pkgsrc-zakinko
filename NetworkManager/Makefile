@@ -16,10 +16,14 @@ LICENSE=	gnu-gpl-v2
 # marked BROKEN_EXCEPT_ON_PLATFORM= Linux-*-*, so the build stops at the
 # dependency rather than at a compile error.  Say so here instead.
 ONLY_FOR_PLATFORM=	Linux-*-*
-# FreeBSD は試している最中で、まだ通っていない。ここに並べてあるのは
+# BSD は試している最中で、まだ一つも通っていない。ここに並べてあるのは
 # 「対応済み」の意味ではなく、CI に建てさせて最初に転ぶ場所を採るためである。
-# 通ったらこの但し書きを消し、通らないと分かったら行ごと消すこと。
+# 通ったものからこの但し書きを外し、通らないと分かったものは行ごと消すこと。
+# GhostBSD は FreeBSD 派生で OPSYS も FreeBSD になるので、行は要らない。
 ONLY_FOR_PLATFORM+=	FreeBSD-*-*
+ONLY_FOR_PLATFORM+=	NetBSD-*-*
+ONLY_FOR_PLATFORM+=	OpenBSD-*-*
+ONLY_FOR_PLATFORM+=	DragonFly-*-*
 
 # gdbus-codegen を宣言しないと、mk/tools/gdbus-codegen.mk が
 # TOOLS_FAIL に入れて、わざと壊れた gdbus-codegen を tools へ置く。
