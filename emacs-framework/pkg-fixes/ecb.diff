@@ -1,0 +1,21 @@
+--- devel/ecb/Makefile.orig
++++ devel/ecb/Makefile
+@@ -25,14 +25,14 @@
+ 
+ INSTALLATION_DIRS+=	\
+ 	${PKGINFODIR} \
+-	${EMACS_LISPPREFIX}/${PKGBASE}
++	${EMACS_LISPPREFIX}/ecb
+ 
+ do-install:
+-	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
+-	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/ecb
++	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/ecb
+ 	${INSTALL_DATA} ${WRKSRC}/info-help/ecb.info* ${DESTDIR}${PREFIX}/${PKGINFODIR}
+ 	${TAR} -cf - -C ${WRKSRC} ecb-images | \
+-		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/ecb
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
