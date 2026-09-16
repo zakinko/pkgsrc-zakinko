@@ -91,6 +91,14 @@ with the default first, while devel/pcl-cvs, which takes emacs20 and
 nothing else, gives the single line it should, and devel/gmake, which
 never includes modules.mk, is untouched.
 
+I should say where all this was measured, since it is one machine for
+most of it: NetBSD 11.0/amd64.  The parts that matter most I have also
+run on i386 11.0, in a throwaway VM -- apel, flim, zig-mode, dictem,
+gnuserv and emacs-w3m build there with the prefix on their names, the
+pbulk enumeration comes out the same, and Emacs finds the lisp under
+share/emacs/30.2/site-lisp with share/emacs/site-lisp still beside it.
+Nothing else has been near another platform.
+
 Nine of the fifteen never reached the elisp package at all: they
 stopped in www/curl, several levels down, and that was my own doing --
 two sweeps of mine sharing one WRKOBJDIR left curl half-configured.
