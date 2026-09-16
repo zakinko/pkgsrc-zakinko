@@ -34,6 +34,15 @@ Boston, MA 02111-1307, USA.  */
    file includes picks unexelf.o under __ELF__, so there is nothing to add
    here.  */
 
+/* OpenBSD keeps struct __sFILE private, so the netbsd.h definition, which
+   reads _p and _bf._base, does not compile, and dispnew.c's fallback reads
+   _ptr and _base, which is no better.  There is no public way to ask how
+   much stdio has buffered.  The count only feeds the flush-every-so-often
+   heuristic in update_frame; with it always zero that heuristic never
+   fires and the ordinary fflush at the end of the update still happens.  */
+#undef PENDING_OUTPUT_COUNT
+#define PENDING_OUTPUT_COUNT(FILE) 0
+
 /* OpenBSD は union wait を捨てた。syswait.h は BSD が定義されていると
    WAITTYPE を union wait にするので、先にこちらで決めて止める。中身は
    syswait.h の POSIX 側と同じもの。  */
