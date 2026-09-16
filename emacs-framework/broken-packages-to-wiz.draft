@@ -108,6 +108,34 @@ with no output at all and the .elc loads.  With the guard removed,
 mail/mu builds and the package has both mu4e-dbus.el and
 mu4e-dbus.elc.
 
+One more, and this one is four days old rather than years.
+misc/elscreen cannot be built at all on trunk:
+
+  misc/elscreen/Makefile 1.28   EMACS_VERSIONS_ACCEPTED= emacs20
+                                .include ".../devel/apel/buildlink3.mk"
+  devel/apel/Makefile    1.46   EMACS_VERSIONS_ACCEPTED+= emacs29 ...
+
+Its only accepted Emacs is one its only elisp dependency refuses, and
+the include is at top level, not inside a condition.  Both files carry
+your 2026-09-12 date, so this came in with the emacs21 removal: apel's
+list moved up and elscreen was left behind.  Its own comment says
+"Emacs 24 or later is not supported.  Try wip/elscreen-current
+instead", so it really does want an old Emacs.
+
+Three others reach apel the same way and are only partly affected,
+because apel's buildlink3.mk opens with .if ${EMACS_FLAVOR} ==
+"emacs", so under xemacs the dependency is simply not there:
+
+  misc/lookup              emacs20 fails; xemacs214/215 are fine
+  www/emacs-w3m            emacs20 fails; emacs29 and up are fine
+  www/emacs-w3m-snapshot   the same
+
+That flavour guard is worth knowing about before counting this sort of
+thing: editors/mule-ucs guards its buildlink with .if ${EMACS_FLAVOR}
+== "emacs" && ${EMACS_VERSION_MAJOR} < 22, so a plain read of who
+depends on whom reports pairs that do not exist at the version being
+built.
+
 While I was in these Makefiles I went looking for declarations that no
 longer describe anything, since that is the kind of thing that rots
 quietly.  Two sorts turned up.
