@@ -139,7 +139,7 @@ LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 
 eval "LIST=\$LIST_$EMACS_V"
 
-ok=0; ng=0; skip=0; rot=0; lpng=0; lpseen=0
+ok=0; ng=0; skip=0; rot=0; lpng=0; lpseen=0; bad=0
 calc_d=
 for p in $LIST; do
 	d=$TREE/$p
@@ -217,6 +217,7 @@ for p in $LIST; do
 		case $p in */calc) calc_d=$d ;; esac
 	else
 		echo "★ 転けた"
+		bad=$((bad+1))
 		# 末尾だけでは足りない。落ちた行は出るが、**なぜその状態に
 		# なったかを言う行は上に在る。**依存がどの版で入ったか、
 		# configure が何を見つけたか。
@@ -275,7 +276,14 @@ for p in $LIST; do
 	fi
 done
 
-echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip / 版に追従していない $rot / loadpath を見た $lpseen (ずれ $lpng) ==="
+# 「転けた」は建たなかった数だけを言う。検査が見つけた分を混ぜると、
+# 建った数と足しても対象数にならず、読む側が数え直せない。
+#
+#	通った 7 / 転けた 4   対象は 10 個。7+4=11 で合わない
+#
+# 実際に建たなかったのは 3 で、4 つ目は loadpath の検査だった。ng は
+# 終了状態を決めるためだけに使い、表には出さない。
+echo "=== emacs$EMACS_V: 通った $ok / 転けた $bad / 飛ばした $skip / 版に追従していない $rot / loadpath を見た $lpseen (ずれ $lpng) ==="
 
 # site-start.d が効いているか。calc が入ったときだけ見る。
 #
