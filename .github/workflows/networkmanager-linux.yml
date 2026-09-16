@@ -75,6 +75,10 @@ jobs:
             pm: dnf
     container:
       image: ${{ matrix.image }}
+      # NM は rtnetlink を開くので CAP_NET_ADMIN が要る。docker の既定の
+      # capability 集合には入っていない。渡さないと daemon が起動の時点で
+      # 落ち、「BSD でなくても動かない」という誤った結論になる。
+      options: --cap-add=NET_ADMIN --cap-add=NET_RAW
     steps:
       # 入れるものは pkgsrc/bootstrap/README.Linux に従う。加えて bzip2 —
       # NetworkManager の配布物が .tar.bz2 なので、無いと extract で止まる。
