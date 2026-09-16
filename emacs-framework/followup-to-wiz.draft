@@ -42,10 +42,10 @@ went straight past it.  Those three are all there are on trunk; I
 matched on the name boundary rather than as a substring, which first
 gave me xemacs-packages for emacs-packages and w3m for w3.
 
-Going through those lines turned up five packages that are broken on
-trunk today, before any of this, and mail/mu is broken for a
-different reason.  That is not really about your three points, so I
-have put it in a mail of its own rather than bury it here.
+Going through those lines turned up a handful of packages that are
+broken on trunk today, before any of this.  That is not really about
+your three points, so it is in a mail of its own rather than buried
+here.
 
 Two of the things that had to be fixed were in my own modules.mk, and
 only building found them.  EMACSLOADPATH for the build still named the
@@ -94,8 +94,9 @@ in the other mail; the rest sit behind rust, texlive or a gcc
 bootstrap.
 
 Three failures are distfiles that no longer fetch (cobol-mode,
-flyspell, ispell-emacs), one is a dependency marked broken on x86_64
-(rsltc), one is a ruby package that does not build here
+flyspell, ispell-emacs), one is blocked by a dependency pkgsrc marks
+broken on x86_64 (rsltc, which turns out to be worth a paragraph of
+its own below), one is a ruby package that does not build here
 (migemo-elisp), and two I did not try at all because they build bazel
 first and that has nothing to do with where the lisp goes
 (mozc-elisp, mozc-elisp333).
