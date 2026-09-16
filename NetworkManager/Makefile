@@ -56,4 +56,15 @@ MESON_ARGS+=	-Dnm_cloud_setup=false
 .include "../../devel/glib2/buildlink3.mk"
 .include "../../devel/gobject-introspection/buildlink3.mk"
 .include "../../security/polkit/buildlink3.mk"
+# 上位の meson.build は
+#   python = python_mod.find_installation('python3', required: false)
+#   if python.found()
+#     python_path = python.full_path()
+#   endif
+# と、python3 が見つかったときだけ python_path を定義する。ところが
+# src/libnm-client-impl/meson.build:193 は doc 生成の枝でそれを無条件に使う。
+# python3 が build 環境に無いと
+#   ERROR: Unknown variable name "python_path"
+# で configure が止まる (上流のガード漏れでもある)。tool として python を出す。
+.include "../../lang/python/tool.mk"
 .include "../../mk/bsd.pkg.mk"
