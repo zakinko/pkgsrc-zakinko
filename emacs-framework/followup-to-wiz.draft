@@ -55,6 +55,27 @@ misc/mailcrypt writes emacs20 first and still got emacs31.  The loop
 runs the other way now, and moving mailcrypt's line moves what it
 picks, which is how I checked.
 
+The pbulk part was worse, and I am sorry to have said it was done.  I
+wrote that it was three lines in mk/pbulk/pbulk-index.mk of the same
+shape as the python and ruby entries.  It was three lines and they did
+nothing: the class also has to be named in _PBULK_MULTI, which is the
+list the loop walks, so nothing ever read them.  It also wanted the
+filtered list rather than the written one, for the reason python takes
+_PYTHON_VERSIONS_ACCEPTED -- otherwise a package naming a version
+pkgsrc no longer has puts it in the bulk index.  So it is four lines,
+and with them devel/apel gives
+
+  PKGNAME=emacs30nox-apel-10.8.0.20201107nb2
+  PKGNAME=emacs29-apel-10.8.0.20201107nb2
+  PKGNAME=emacs29nox-apel-10.8.0.20201107nb2
+  PKGNAME=emacs30-apel-10.8.0.20201107nb2
+  PKGNAME=emacs31-apel-10.8.0.20201107nb2
+  PKGNAME=emacs31nox-apel-10.8.0.20201107nb2
+
+with the default first, while devel/pcl-cvs, which takes emacs20 and
+nothing else, gives the single line it should, and devel/gmake, which
+never includes modules.mk, is untouched.
+
 Nine of the fifteen unrelated failures never reached the elisp package
 at all.  All nine stopped in the same place, www/curl, several levels
 down -- under ruby34, cmake, meson or luatex -- and that failure was
