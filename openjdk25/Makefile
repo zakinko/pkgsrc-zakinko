@@ -5,7 +5,7 @@ PKGNAME=	openjdk25-1.${GITHUB_TAG:C/\+/./:C/jdk-([.0-9]+).*/\1/}
 CATEGORIES=	lang
 MASTER_SITES=	${MASTER_SITE_GITHUB:=battleblow/}
 GITHUB_PROJECT=	jdk25u
-GITHUB_TAG=	jdk-25+36-1
+GITHUB_TAG=	jdk-25.0.4+7-1
 
 MAINTAINER=	zakinko@snowrabbit.org
 HOMEPAGE=	https://openjdk.java.net/
@@ -18,29 +18,26 @@ EXTRACT_ONLY=	${DISTNAME}${EXTRACT_SUFX}
 JAVA_NAME=	openjdk25
 JAVA_HOME=	${PREFIX}/java/${JAVA_NAME}
 JAVA_WRAPPERS=	jar jarsigner java javac javadoc javap jcmd jconsole jdb \
-		jdeprscan jdeps jfr jimage jinfo jlink jmap jmod jps \
-		jrunscript jshell jstack jstat jstatd jwebserver keytool \
+		jdeprscan jdeps jfr jimage jinfo jlink jmap jmod jnativescan \
+		jps jrunscript jshell jstack jstat jstatd jwebserver keytool \
 		rmiregistry serialver
 
 TOOL_DEPENDS+=		mozilla-rootcerts>=1.0.20140820nb2:../../security/mozilla-rootcerts
 
-# For alloca()
+# alloca() is a GNU extension, and the JDK calls it from files it compiles
+# with a strict -std=, where the declaration is not visible.
 BUILDLINK_TRANSFORM+=		opt:-std=c99:-std=gnu99
 BUILDLINK_TRANSFORM+=		opt:-std=c11:-std=gnu11
 BUILDLINK_TRANSFORM+=		opt:-std=c++14:-std=gnu++14
 BUILDLINK_TRANSFORM+=		opt:-std=c++11:-std=gnu++11
-# For NetBSD
-#BUILDLINK_TRANSFORM.NetBSD+=	rm:-ldl
 
 .include "../../mk/bsd.prefs.mk"
 
-# -Wl,--hash-style=gnu is not supported by NetBSD 9.
-.if ${OPSYS} == "NetBSD" && ${OPSYS_VERSION} < 099900
-BUILDLINK_TRANSFORM+=	opt:-Wl,--hash-style=gnu:-Wl,--hash-style=sysv
-.endif
-
 GNU_CONFIGURE=		yes
-GNU_CONFIGURE_STRICT=	no # generates the configure script during the build
+# The tree ships configure as a wrapper that runs autoconf on
+# make/autoconf/configure.ac, so the usual checks for a generated script
+# do not apply.
+GNU_CONFIGURE_STRICT=	no
 GNU_CONFIGURE_ICONV=	no
 USE_GNU_CONFIGURE_HOST=	no
 CONFIGURE_SCRIPT=	configure
@@ -50,22 +47,32 @@ CONFIG_GUESS_OVERRIDE+=	make/autoconf/build-aux/config.guess
 CONFIG_SUB_OVERRIDE+=	make/autoconf/build-aux/autoconf-config.sub
 CONFIG_GUESS_OVERRIDE+=	make/autoconf/build-aux/autoconf-config.guess
 USE_LANGUAGES=		c c++
+# flags-cflags.m4 still sets -std=c++14 in JDK 25.
 USE_CXX_FEATURES=	c++14
-USE_TOOLS+=		bash gmake pax pkg-config unzip:run zip:run autoconf automake
+# configure requires zip and unzip (basic_tools.m4), and the build runs zip
+# to make the .diz debug bundles.  Neither is needed once the JDK is
+# installed, so they are build tools rather than run-time dependencies.
+USE_TOOLS+=		bash gmake pax pkg-config unzip zip autoconf automake
 UNLIMIT_RESOURCES=	datasize stacksize virtualsize cputime
 
 BUILDLINK_PASSTHRU_DIRS+=	${ALT_BOOTDIR}
 
-# Try to use less POSIX semaphores (large MAKE_JOBS can consume them all)
-BOOT_JVMARGS=	-XX:+UnlockDiagnosticVMOptions
-
-# ${WRKSRC}/doc/building.mk explicitly states that its Makefiles are unsafe
-# to use -j.  Disable it and configure ourselves via configure arguments.
+# ${WRKSRC}/doc/building.md states that the build is not safe under make -j.
+# It parallelises itself from --with-jobs instead.
 MAKE_JOBS_METHOD=	manual
 
+# OpenJDK decides native vs cross by comparing the two autoconf triples as
+# strings, not the platforms they name (platform.m4: "if test
+# x$OPENJDK_BUILD_AUTOCONF_NAME != x$OPENJDK_TARGET_AUTOCONF_NAME").  pkgsrc
+# calls the target x86_64--netbsd while config.guess calls the build machine
+# x86_64-unknown-netbsd10.1, so a plain native build is taken for a cross
+# compile: it builds a second, complete JDK to compile the first one with.
+# That costs an hour here and, in JDK 25, does not finish -- the buildjdk's
+# adlc setup expands to something make cannot parse.  Give both the same
+# name so configure sees what is actually happening.
+CONFIGURE_ARGS+=	--build=${MACHINE_GNU_PLATFORM}
 CONFIGURE_ARGS+=	--openjdk-target=${MACHINE_GNU_PLATFORM}
 CONFIGURE_ARGS+=	--with-boot-jdk=${ALT_BOOTDIR}
-CONFIGURE_ARGS+=	--with-boot-jdk-jvmargs=${BOOT_JVMARGS:Q}
 CONFIGURE_ARGS+=	--with-giflib=bundled
 CONFIGURE_ARGS+=	--with-lcms=bundled
 CONFIGURE_ARGS+=	--with-cups-include=${BUILDLINK_PREFIX.libcups}/include
@@ -77,27 +84,26 @@ CONFIGURE_ARGS+=	--with-num-cores=${MAKE_JOBS:U1}
 CONFIGURE_ARGS+=	--disable-precompiled-headers
 CONFIGURE_ARGS+=	--disable-ccache
 CONFIGURE_ARGS+=	--disable-javac-server
-CONFIGURE_ARGS+=	--with-extra-ldflags="${COMPILER_RPATH_FLAG}${X11BASE}/lib ${COMPILER_RPATH_FLAG}${PREFIX}/java/${JAVA_NAME}/lib ${LDFLAGS}"
+CONFIGURE_ARGS+=	--with-extra-ldflags="${COMPILER_RPATH_FLAG}${X11BASE}/lib ${COMPILER_RPATH_FLAG}${JAVA_HOME}/lib ${LDFLAGS}"
 CONFIGURE_ARGS+=	--with-extra-cflags=${CFLAGS:Q}
 CONFIGURE_ARGS+=	--with-extra-cxxflags=${CXXFLAGS:Q}
 CONFIGURE_ARGS+=	--disable-warnings-as-errors
 CONFIGURE_ARGS+=	--with-cacerts-file=${WRKDIR}/cacerts.out
 CONFIGURE_ARGS+=	--with-default-make-target=product-images
+# Fixing the configuration name fixes the build directory, which do-install
+# has to name.  Deriving it instead means reproducing the JDK's own mapping
+# from OPSYS and MACHINE_ARCH, and that mapping changes without notice.
+CONFIGURE_ARGS+=	--with-conf-name=pkgsrc
 # It is intentional to use CONFIGURE_ARGS instead of CONFIGURE_ENV here.
 CONFIGURE_ARGS+=	USER=pkgsrc
 
 # Avoid build errors when JAVA_HOME and CLASSPATH are defined by user.
 MAKE_ENV+=	JAVA_HOME=
 MAKE_ENV+=	CLASSPATH=
-.if ${OPSYS} == "NetBSD" && ${OPSYS_VERSION} > 099980
-ALL_ENV+=	SED="sed -g"
-.endif
 
-BUILD_OPSYS=			${OPSYS:C/.*BSD/bsd/:S/DragonFly/bsd/:S/SunOS/solaris/:S/Linux/linux/}
-BUILD_ARCH=			${MACHINE_ARCH:S/i386/x86/:S/sparc64/sparcv9/:C/^e?arm.*$/arm/}
-BUILDDIR=			${WRKSRC}/build/${BUILD_OPSYS}-${BUILD_ARCH}-${BUILD_VARIANT}-${BUILD_DEBUG_LEVEL}
-BUILDLINK_PASSTHRU_RPATHDIRS+=	${PREFIX}/java/${JAVA_NAME}/lib
-BUILDLINK_PASSTHRU_RPATHDIRS+=	${PREFIX}/java/${JAVA_NAME}/lib/server
+BUILDDIR=			${WRKSRC}/build/pkgsrc
+BUILDLINK_PASSTHRU_RPATHDIRS+=	${JAVA_HOME}/lib
+BUILDLINK_PASSTHRU_RPATHDIRS+=	${JAVA_HOME}/lib/server
 WRKSRC=				${WRKDIR}/${DISTNAME}
 
 .include "../../mk/compiler.mk"
@@ -116,7 +122,6 @@ _WRAP_EXTRA_ARGS.CXX+=	-mstackrealign
 CWRAPPERS_APPEND.cxx+=	-mstackrealign
 .  endif
 .else
-# GCC
 CONFIGURE_ARGS+=	--with-toolchain-type=gcc
 .endif
 
@@ -139,9 +144,9 @@ SUBST_FILES.fontpaths=		src/java.desktop/bsd/data/fontconfig/fontconfig.properti
 SUBST_FILES.fontpaths+=		src/java.desktop/unix/native/common/awt/fontpath.c
 SUBST_VARS.fontpaths=		PREFIX BUILDLINK_PREFIX.fontconfig
 
-
-.if ${OPSYS} == "NetBSD"
-# NetBSD's EVFILT_* EV_* are different from FreeBSD/OpenBSD's values.
+# NetBSD numbers the kqueue filters and flags differently from the FreeBSD
+# and OpenBSD values the BSD port carries, and the Java side has them
+# hardcoded rather than reading them from a header.
 SUBST_CLASSES+=			kqueue
 SUBST_STAGE.kqueue=		pre-configure
 SUBST_MESSAGE.kqueue=		fixing kqueue filter values
@@ -150,26 +155,15 @@ SUBST_SED.kqueue=		-e 's/static final int EVFILT_READ  = -1;/static final int EV
 SUBST_SED.kqueue+=		-e 's/static final int EVFILT_WRITE = -2;/static final int EVFILT_WRITE = 1;/'
 SUBST_SED.kqueue+=		-e 's/static final int EV_ONESHOT = 0x0010;/static final int EV_ONESHOT = 0x0004;/'
 SUBST_SED.kqueue+=		-e 's/static final int EV_CLEAR   = 0x0020;/static final int EV_CLEAR   = 0x0008;/'
-.endif
 
+# Key these off the variant options.mk settled on rather than off the
+# option: the group is optional, so turning jdk-hotspot-vm off without
+# turning jdk-zero-vm on still builds server, and the PLIST has to agree
+# with what was built.
 PLIST_VARS+=			internal_vm_compiler jvmci
-.if (${MACHINE_ARCH} == "x86_64" || ${MACHINE_ARCH} == "aarch64") && !empty(PKG_OPTIONS:Mjdk-hotspot-vm)
+.if ${BUILD_VARIANT} == "server"
 PLIST.internal_vm_compiler=	yes
 PLIST.jvmci=			yes
-.endif
-
-.if ${OPSYS} == "NetBSD"
-TOOLS_PLATFORM.unzip=
-.endif
-
-post-extract:
-# These libs are bundled w/ the netbsd-9 bootstrap to facilitate building with
-# MKLLVM=yes / MKGCC=no. Nuke them from bootstrap if they are present in base.
-.if exists(/lib/libgcc_s.so.1)
-	${RM} -f ${ALT_BOOTDIR}/lib/libgcc_s.so.1
-.endif
-.if exists(/usr/lib/libstdc++.so.9)
-	${RM} -f ${ALT_BOOTDIR}/lib/libstdc++.so.9
 .endif
 
 pre-configure: ${WRKDIR}/cacerts.out
@@ -192,18 +186,15 @@ ${WRKDIR}/cacerts.out:
 	mv ${.TARGET}.tmp ${.TARGET}
 
 do-build:
-	rm -f ${WRKSRC}/make/data/fontconfig/*.orig
-	${_ULIMIT_CMD} cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} LD_LIBRARY_PATH=${ALT_BOOTDIR}/lib ${MAKE_PROGRAM}
+	${_ULIMIT_CMD} cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_PROGRAM}
 
 do-install:
 	${INSTALL_DATA_DIR} ${DESTDIR}${JAVA_HOME}
 	cd ${BUILDDIR}/images/jdk && pax -rwpp .		\
 	  ${DESTDIR}${JAVA_HOME}/.
 
-.if ${OPSYS} == "Linux" || ${OPSYS} == "NetBSD"
 .include "../../audio/alsa-lib/buildlink3.mk"
 CONFIGURE_ARGS+=	--with-alsa=${BUILDLINK_PREFIX.alsa-lib}
-.endif
 .include "../../converters/libiconv/buildlink3.mk"
 .include "../../fonts/fontconfig/buildlink3.mk"
 .include "../../graphics/freetype2/buildlink3.mk"

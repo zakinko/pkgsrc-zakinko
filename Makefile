@@ -61,6 +61,7 @@ SUBDIR+=	nss_stns
 SUBDIR+=	ntp4
 SUBDIR+=	nxml-mode
 SUBDIR+=	openjdk25
+SUBDIR+=	openjdk25
 SUBDIR+=	openjdk28
 SUBDIR+=	pcl-cvs
 SUBDIR+=	stnsd
