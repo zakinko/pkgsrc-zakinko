@@ -35,39 +35,10 @@ same, with an unprefixed apel>=10.8 next to an apel buildlink3.mk that
 already says ${EMACS_PKGNAME_PREFIX}apel>=10; I fixed that one and it
 builds.
 
-Going through those lines turned up something that is not about this
-work at all.  Nine of the 87 spell ${PKGBASE} in their own Makefile,
-and five of those are broken on trunk today, before any of this: the
-install writes ${PKGBASE} while the PLIST spells the bare name, so the
-moment EMACS_PKGNAME_PREFIX is not empty the two disagree.  It is not
-empty for xemacs.
-
-  devel/ecb            installs to ${EMACS_LISPPREFIX}/${PKGBASE},
-                       PLIST says ${EMACS_LISPPREFIX}/ecb
-  editors/gnuserv      INSTALLATION_DIRS share/doc/${PKGBASE},
-                       installs into share/doc/gnuserv
-  editors/matlab-mode  creates ${PKGBASE:C|^xemacs-||},
-                       installs into ${PKGBASE}
-  textproc/dictem      share/doc/${PKGBASE}, PLIST share/doc/dictem
-  textproc/xslide      ${EMACS_LISPPREFIX}/${PKGBASE}, PLIST .../xslide
-
-devel/ecb is the one I would look at first: it takes xemacs215
-xemacs215nox xemacs214 xemacs214nox and nothing else, so there is no
-version of it that is not broken.  With your modules.mk untouched,
-
-  devel/ecb, EMACS_TYPE=xemacs215
-    PKGNAME = xemacs-ecb-2.50nb1
-    PKGBASE = xemacs-ecb
-
-and the PLIST asks for ecb.  I have not built it -- that wants an
-xemacs and I do not have one here -- so ecb is from reading and
-make show-var, not from a build.  The other four I did build, because
-emacs30nox reaches the same lines once the prefix carries the version.
-The fixes are one line each and are on the branch.
-
-cad/dinotrace-mode uses ${PKGBASE} as well and is fine.  It is the
-only one of the nine whose PLIST also uses it, so both sides move
-together -- which is the whole distinction.
+Going through those lines turned up five packages that are broken on
+trunk today, before any of this, and mail/mu is broken for a
+different reason.  That is not really about your three points, so I
+have put it in a mail of its own rather than bury it here.
 
 Two of the things that had to be fixed were in my own modules.mk, and
 only building found them.  EMACSLOADPATH for the build still named the
@@ -127,22 +98,11 @@ flyspell, ispell-emacs), one is a dependency marked broken on x86_64
 first and that has nothing to do with where the lisp goes
 (mozc-elisp, mozc-elisp333).
 
-mail/mu turned out not to be about placement at all.  Its
--Dlispdir=${EMACS_LISPPREFIX} works and everything lands in
-share/emacs/30.2/site-lisp/mu4e; the package still fails, one file
-short:
-
-  pkg_create: can't stat .../site-lisp/mu4e/mu4e-dbus.elc
-
-mu's own meson asks the Emacs whether D-Bus is compiled in --
-(featurep 'dbusbind), which is not the same as the dbus lisp library
-being present -- and only byte-compiles mu4e-dbus.el when it is, while
-PLIST.emacs lists the .elc unconditionally.  So mail/mu cannot be
-packaged against any Emacs built without D-Bus: every nox one, and an
-emacs30 with the dbus option off.  That is true on trunk as much as
-here, it is not something this series causes and I have not touched
-it, but it is exactly the kind of thing your third point would find on
-its first pass, because nobody builds mu against a nox Emacs today.
+mail/mu turned out not to be about placement at all -- it is the one
+in the other mail, and its lisp goes exactly where it should.  It is
+worth one word here though, because it is the kind of thing your third
+point would find on its first pass: nobody builds mu against a nox
+Emacs today, so nobody has seen it.
 
 It also answers a question I had about the prefix.  emacs30 and
 emacs30-nox11 conflict, and they share share/emacs/30.2/site-lisp, so

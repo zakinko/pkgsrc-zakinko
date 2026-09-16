@@ -1,0 +1,68 @@
+Subject: six elisp packages that cannot be packaged as they stand
+To: Thomas Klausner <wiz@NetBSD.org>
+
+(DRAFT -- not sent.)
+
+Hi Thomas,
+
+This is separate from the framework thread because it is true of
+pkgsrc as it is today and does not depend on any of that.  Please say
+if you would rather have it as a PR; I am happy to send it that way
+instead.
+
+Going through the packages that spell ${PKGBASE} in their own Makefile
+turned up five where the install writes ${PKGBASE} while the PLIST
+spells the bare name.  The two agree only while EMACS_PKGNAME_PREFIX
+is empty, and it is not empty for xemacs.
+
+  devel/ecb            installs into ${EMACS_LISPPREFIX}/${PKGBASE},
+                       PLIST says ${EMACS_LISPPREFIX}/ecb
+  editors/gnuserv      INSTALLATION_DIRS has share/doc/${PKGBASE},
+                       installs into share/doc/gnuserv
+  editors/matlab-mode  creates ${PKGBASE:C|^xemacs-||},
+                       installs into ${PKGBASE}
+  textproc/dictem      share/doc/${PKGBASE}, PLIST share/doc/dictem
+  textproc/xslide      ${EMACS_LISPPREFIX}/${PKGBASE}, PLIST .../xslide
+
+devel/ecb is the one worth looking at first, because it takes
+xemacs215 xemacs215nox xemacs214 xemacs214nox and nothing else, so
+there is no version of it that is not broken:
+
+  devel/ecb, EMACS_TYPE=xemacs215
+    PKGNAME = xemacs-ecb-2.50nb1
+    PKGBASE = xemacs-ecb
+
+and the PLIST asks for ecb.  I should be plain about how far I got
+with each.  I have not built any of the five under xemacs -- I do not
+have an xemacs here -- so for the trigger you would actually hit, this
+is reading plus make show-var.  Four of them I did build and fix,
+under emacs30nox with a modules.mk of my own that puts the version in
+the prefix, which reaches the same lines from the other direction; ecb
+I could not build at all for want of xemacs.
+
+cad/dinotrace-mode spells ${PKGBASE} too and is fine.  It is the only
+one of the nine whose PLIST also uses it, so both sides move together,
+which is the whole distinction.
+
+A sixth is broken for a different reason, and this one I did build.
+mail/mu cannot be packaged against an Emacs without D-Bus -- every nox
+one, and an emacs30 with the dbus option turned off:
+
+  pkg_create: can't stat .../site-lisp/mu4e/mu4e-dbus.elc
+
+mu4e/meson.build asks the Emacs whether dbusbind is compiled in and
+only byte-compiles mu4e-dbus.el when it is, while PLIST.emacs lists
+the .elc with no condition.  The guard turns out not to be needed:
+both requires in mu4e-dbus.el pass 'noerror, and with
+emacs30-nox11-30.2nb1, which has no dbusbind, the file byte-compiles
+with no output at all and the .elc loads.  With the guard removed,
+mail/mu builds and the package has both mu4e-dbus.el and
+mu4e-dbus.elc.
+
+The diffs are below.  I checked them in check mode against a fresh
+trunk checkout this morning: they apply with no offset and no fuzz.
+For mail/mu the file patches/patch-mu4e_meson.build already exists, so
+that one is a change to an existing patch rather than a new one, and
+its distinfo line moves with it.
+
+Showta
