@@ -1,0 +1,12 @@
+--- textproc/xslide/Makefile.orig
++++ textproc/xslide/Makefile
+@@ -17,6 +17,9 @@
+ EMACS=	emacs
+ .else
+ EMACS=	xemacs
++# The byte-compile below loads sendmail, which lives in
++# xemacs-packages rather than in XEmacs itself.
++DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
+ .endif
+ 
+ SRCS=	xslide-abbrev.el xslide-data.el xslide-font.el xslide-process.el xslide.el

@@ -1,0 +1,12 @@
+--- editors/matlab-mode/Makefile.orig
++++ editors/matlab-mode/Makefile
+@@ -23,6 +23,9 @@
+ EMACS=	emacs
+ .else
+ EMACS=	xemacs
++# matlab.el requires tempo, which lives in xemacs-packages rather
++# than in XEmacs itself, so the byte-compile below cannot find it.
++DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
+ .endif
+ 
+ SRCS=	matlab.el

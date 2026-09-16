@@ -39,18 +39,27 @@ Three of them fail, each in a different place:
                        README} while the PLIST asks for
                        share/doc/dictem/*.
 
-The other two, editors/matlab-mode and textproc/xslide, have the same
-shape in their Makefiles -- matlab-mode creates
-${PKGBASE:C|^xemacs-||} and installs into ${PKGBASE}, xslide uses
-${EMACS_LISPPREFIX}/${PKGBASE} against a PLIST that says xslide -- but
-I cannot tell you they fail there, because under xemacs they stop
-earlier, byte-compiling:
+editors/matlab-mode and textproc/xslide have the same shape in their
+Makefiles, and they need two fixes each, because the first failure
+hides the second.  They stop at the byte-compile:
 
   matlab-mode  Cannot open load file: "tempo"
   xslide       Cannot open load file: "sendmail"
 
-with xemacs-packages installed.  So those two do not build under
-xemacs today either, for a reason I have not chased.
+Neither library is in XEmacs; both are in editors/xemacs-packages, and
+neither package depends on it.  devel/doxymacs and textproc/migemo-elisp
+already carry that dependency in their xemacs branch, so the missing
+line has a precedent to copy.  With it added they get past the compile
+and land on the ${PKGBASE} problem after all:
+
+  matlab-mode  creates .../lisp/matlab-mode, installs into
+               .../lisp/xemacs-matlab-mode
+               install: the last argument ... must name an
+               existing directory
+  xslide       PLIST .../lisp/xslide, destdir .../lisp/xemacs-xslide
+
+With both fixes they build: xemacs-matlab-mode-2.3.1nb4 and
+xemacs-xslide-0.2.2nb4.
 
 One more of the same kind, found the same way.  devel/doxymacs names
 no EMACS_VERSIONS_ACCEPTED, so it accepts emacs20, and under emacs20
