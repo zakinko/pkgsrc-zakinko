@@ -129,8 +129,19 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: pkgsrc の作りかけを持ち越す
-        uses: actions/cache@v4
+      # actions/cache は job が失敗すると保存しない。持ち越したいのは
+      # まさに失敗したときなので、restore と save を分けて save を
+      # if: always() で回す。NetworkManager は依存の鎖が長く、一回で
+      # 終わらないことを前提にしないと、転ぶたびに依存の再構築で
+      # 一時間以上を捨てる。実際、最初の失敗の後の run は ~8MB しか
+      # 戻せず、gettext から建て直して xmlto まで 83 分かかった。
+      #
+      # 半端な package が混じる危険はあるが、build-on-bsd.sh は前回の
+      # package を pkg_add -U ... || true で入れるだけで、入らなければ
+      # pkgsrc が作り直す。distfile は checksum が守る。
+      - name: pkgsrc の作りかけを戻す
+        id: cache
+        uses: actions/cache/restore@v4
         with:
           path: .bsdcache
           key: nm-${{ matrix.image }}-${{ github.run_id }}
@@ -150,3 +161,11 @@ jobs:
       - name: 組んで確かめる
         if: steps.pick.outputs.run == 'yes'
         run: sh .github/ci/build-on-bsd.sh
+
+      # 転んでも作りかけを残す。次の run がここから続ける。
+      - name: pkgsrc の作りかけを持ち越す
+        if: always() && steps.pick.outputs.run == 'yes'
+        uses: actions/cache/save@v4
+        with:
+          path: .bsdcache
+          key: nm-${{ matrix.image }}-${{ github.run_id }}
