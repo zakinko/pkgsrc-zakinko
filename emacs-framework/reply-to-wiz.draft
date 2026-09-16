@@ -1,7 +1,12 @@
 Subject: Re: possible pkgsrc emacs framework improvements?
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.  The sweep line is still to be filled in.)
+(SENT 2026-09-15, in an earlier revision.  This copy is the later
+one; the sweep line it still marks was never filled in here -- the
+results went out in followup-to-wiz.draft instead, which also
+corrects two claims below: the fifteen-emacs21-packages figure is
+true of a 2026-09-02 copy and not of trunk, and the ordering claim
+was the intent rather than the code at the time this was sent.)
 
 Hi Thomas,
 
