@@ -40,6 +40,10 @@ on:
       image:
         description: 'イメージ。空なら i386-9.4'
         required: false
+      lispdir:
+        description: 'yes にすると lisp の置き場を版の下へ動かして回す (意図して赤くなる)'
+        required: false
+        default: 'no'
 
 # push で続けて直したときは古い方を捨てる。手で回したものは run ごとに別の
 # group にして、走っている run の後ろで待たせない。一つの group に全部を入れて
@@ -108,9 +112,9 @@ jobs:
             zakinko/emacs
             zakinko/leim20 zakinko/leim21 zakinko/mule-ucs zakinko/tamago
             zakinko/iiimecf zakinko/calc zakinko/nxml-mode zakinko/pcl-cvs
-            zakinko/emacs-ilisp zakinko/jde zakinko/w3
+            zakinko/emacs-ilisp zakinko/jde zakinko/w3 zakinko/rsltc
           VERIFY_SCRIPT: verify-elisp17.sh
-          VERIFY_OPTS: ${{ matrix.version }}
+          VERIFY_OPTS: ${{ matrix.version }}${{ inputs.lispdir == 'yes' && ':lispdir' || '' }}
         run: sh .github/ci/run-in-qemu.sh '${{ needs.plan.outputs.image }}'
 
       - name: 転けたらコンソールを出す

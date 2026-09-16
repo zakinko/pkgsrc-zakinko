@@ -21,6 +21,23 @@
 set -u
 
 EMACS_V=${EMACS_V:-${VERIFY_OPTS:-20}}
+
+# "20:lispdir" と渡すと、lisp の置き場を版の下へ動かして回す。
+#
+# 上流の modules.mk を版の下へ移す話が進んでいるが、いまの木では
+# ${EMACS_LISPPREFIX} と share/emacs/site-lisp が同じ場所を指すので、
+# **直した package と直していない package が同じ結果になる。**この周回は
+# _EMACS_LISPDIR.emacs を命令行から上書きして、その差が出る状態を作る。
+#
+# 意図して赤くなる周回である。置き場が動けば
+#   - PLIST か install のどちらかが直書きの package は file-check で落ちる
+#   - site-start.el は共有の site-lisp へ直書きで入るので autoload が切れる
+#   - EMACSLOADPATH は共有の site-lisp を指したままなのでずれる
+# この三つが出ないなら、検査の側が何も測っていない。
+LISPDIR_PROBE=no
+case $EMACS_V in
+*:lispdir) LISPDIR_PROBE=yes; EMACS_V=${EMACS_V%%:*} ;;
+esac
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
@@ -87,11 +104,25 @@ if [ $rc -ne 0 ]; then
 fi
 echo "    $($PREFIX/bin/emacs --version 2>&1 | head -1)"
 
+# 置き場を動かすのは emacs 本体を建てたあと。本体は modules.mk を読まない
+# ので渡しても無駄で、渡すと本体の PLIST と食い違う。
+if [ "$LISPDIR_PROBE" = yes ]; then
+	EV=$($PREFIX/bin/emacs --version 2>&1 | head -1 \
+	     | sed -n 's/.* \([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p')
+	if [ -z "$EV" ]; then
+		echo "FAIL: emacs の版が読めないので置き場を動かせない"
+		exit 1
+	fi
+	MKARGS="$MKARGS _EMACS_LISPDIR.emacs=share/emacs/$EV/site-lisp"
+	echo "=== 置き場を動かして回す: share/emacs/$EV/site-lisp ==="
+	echo "    意図して赤くなる周回。緑なら検査が何も測っていない"
+fi
+
 # 17 個。emacs20 でしか建たないもの、21 でしか建たないものがあるので、
 # 受け付けない組み合わせは飛ばす。飛ばしたことは出す。
 LIST_20="zakinko/leim20 zakinko/pcl-cvs zakinko/mule-ucs zakinko/tamago
 	 zakinko/iiimecf zakinko/calc zakinko/emacs-ilisp zakinko/w3
-	 devel/emacs20-elib"
+	 zakinko/rsltc devel/emacs20-elib"
 LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 	 zakinko/calc zakinko/nxml-mode zakinko/emacs-ilisp zakinko/jde
 	 zakinko/w3 misc/bbdb2 www/emacs-w3m"
