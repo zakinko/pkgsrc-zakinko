@@ -98,7 +98,7 @@ LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 
 eval "LIST=\$LIST_$EMACS_V"
 
-ok=0; ng=0; skip=0; rot=0; lpng=0
+ok=0; ng=0; skip=0; rot=0; lpng=0; lpseen=0
 calc_d=
 for p in $LIST; do
 	d=$TREE/$p
@@ -198,6 +198,11 @@ for p in $LIST; do
 	ae=$(cd "$d" && $PKGMAKE $MKARGS show-var VARNAME=ALL_ENV 2>/dev/null)
 	elp=$(printf '%s\n' $ae | sed -n 's/^EMACSLOADPATH=//p' | head -1)
 	if [ -n "$elp" ]; then
+		# 見た数を数える。失敗した行しか出さないと、「全部正常」と
+		# 「一つも見ていない」が同じ 0 になる。この検査が対象にするのは
+		# EMACS_BUILDLINK を持つ package だけで、17 個のうち数個しかない。
+		# 分母を出さないと、対象が一つも無い周回が緑で通る。
+		lpseen=$((lpseen+1))
 		lpfx=$(cd "$d" && $PKGMAKE $MKARGS show-var VARNAME=EMACS_LISPPREFIX 2>/dev/null)
 		rel=${lpfx#$PREFIX/}
 		hit=no
@@ -217,7 +222,7 @@ for p in $LIST; do
 	fi
 done
 
-echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip / 版に追従していない $rot / loadpath がずれている $lpng ==="
+echo "=== emacs$EMACS_V: 通った $ok / 転けた $ng / 飛ばした $skip / 版に追従していない $rot / loadpath を見た $lpseen (ずれ $lpng) ==="
 
 # site-start.d が効いているか。calc が入ったときだけ見る。
 #
