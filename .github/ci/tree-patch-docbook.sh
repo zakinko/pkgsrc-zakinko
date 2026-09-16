@@ -60,8 +60,13 @@ if ! grep -q 'docbook.sourceforge.net' "$f"; then
 		print "# dbus や xmlto がまだ参照している旧い URI を、局所の"
 		print "# stylesheet へ向ける。上流の catalog.xml は cdn.docbook.org の"
 		print "# 二つしか持っていない。"
-		print "XML_ENTRIES+=\trewriteURI http://docbook.sourceforge.net/release/xsl/current/ file://${XSLDIR}/ --"
-		print "XML_ENTRIES+=\trewriteURI http://docbook.sourceforge.net/release/xsl-ns/current/ file://${XSLDIR}/ --"
+		print "# xmlcatmgr の install.tmpl は add \"$1\" \"$2\" \"$3\" して shift を"
+		print "# 三回する。エントリはきっかり 3 トークン。引数が一つの型だけが"
+		print "# -- で埋める (catalogs.mk の nextCatalog がそれ)。rewriteURI は"
+		print "# 引数が二つなので -- は付けない。行き先は textproc/docbook-xml に"
+		print "# 倣って素の path で書く。"
+		print "XML_ENTRIES+=\trewriteURI http://docbook.sourceforge.net/release/xsl/current/ ${XSLDIR}/"
+		print "XML_ENTRIES+=\trewriteURI http://docbook.sourceforge.net/release/xsl-ns/current/ ${XSLDIR}/"
 		print ""
 		done = 1
 	}
