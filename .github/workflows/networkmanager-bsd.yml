@@ -205,6 +205,40 @@ jobs:
           path: .bsdcache
           key: nm-netbsd-amd64-${{ github.run_id }}
           restore-keys: nm-netbsd-amd64-
+
+      # 最初これを書き忘れて runvm.sh: qemu-system-x86_64 が無い で 38 秒で
+      # 転んだ。mule.yml と同じ段が要る。
+      #
+      # KVM の通し方は mule.yml のものから直してある。あちらは
+      #   sudo udevadm trigger --name-match=kvm || true
+      #   [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し"
+      # だが、udevadm trigger は非同期なので規則が当たる前に -w を読むことが
+      # ある。負けた job は TCG に落ちてそのまま何時間も回る。実際に一つの run
+      # の中で四つの job が違う答えを出していて、負けた二つが 3h20m と 3h30m
+      # かかっていた (peer が run 35069883047 で見つけた)。
+      #
+      # settle で待ち、それでも書けなければ chmod する。vmactions の action
+      # 自身が chmod 666 /dev/kvm しているので、udev 規則に頼らなくてよい。
+      # 判定も三つに割る。-w 一つだと「device が無い」と「在るが書けない」が
+      # 同じ顔で出て、前者だと思い込む。
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+          fi
+
       - name: 組んで確かめる
         run: sh .github/ci/run-in-qemu.sh amd64-11.0
         env:
