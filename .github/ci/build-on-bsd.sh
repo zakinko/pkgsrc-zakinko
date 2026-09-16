@@ -153,6 +153,18 @@ fi
 # どの日のツリーかは、転けたときに効く。current は毎日動く。
 echo "ツリー: $(ls -ld "$TREE/mk/bsd.pkg.mk" | awk '{ print $6, $7, $8 }')"
 
+# 本家の木そのものに手を入れたいときの口。上流の bug を直して、その直しが
+# 効くかをここで測るのに使う。TREE_PATCH を設定しなければ何もしない。
+if [ -n "${TREE_PATCH:-}" ]; then
+	if [ -f "$WS/$TREE_PATCH" ]; then
+		stage "ツリーに当て物をする ($TREE_PATCH)"
+		sh "$WS/$TREE_PATCH" "$TREE" || exit 1
+	else
+		echo "!! TREE_PATCH=$TREE_PATCH が repo に無い" >&2
+		exit 1
+	fi
+fi
+
 # ------------------------------------------------------------------
 stage "bootstrap"
 if [ -s "$CACHE/bootstrap-kit.tar.gz" ]; then
