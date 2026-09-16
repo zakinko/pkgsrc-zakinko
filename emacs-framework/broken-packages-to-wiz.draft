@@ -108,19 +108,28 @@ with no output at all and the .elc loads.  With the guard removed,
 mail/mu builds and the package has both mu4e-dbus.el and
 mu4e-dbus.elc.
 
-One more, and this one is four days old rather than years.
-misc/elscreen cannot be built at all on trunk:
+One more, which is recent rather than ancient.  misc/elscreen cannot
+be built at all:
 
   misc/elscreen/Makefile 1.28   EMACS_VERSIONS_ACCEPTED= emacs20
                                 .include ".../devel/apel/buildlink3.mk"
   devel/apel/Makefile    1.46   EMACS_VERSIONS_ACCEPTED+= emacs29 ...
 
 Its only accepted Emacs is one its only elisp dependency refuses, and
-the include is at top level, not inside a condition.  Both files carry
-your 2026-09-12 date, so this came in with the emacs21 removal: apel's
-list moved up and elscreen was left behind.  Its own comment says
-"Emacs 24 or later is not supported.  Try wip/elscreen-current
-instead", so it really does want an old Emacs.
+the include is at top level rather than inside a condition.  The
+dependency is real: elscreen.el requires alist and static, both apel.
+
+I first read this as fallout from 2026-09-12 because both files carry
+that date, but it is older.  In a 2 September copy apel is already at
+1.45, from 26 August, with the same emacs29-and-up list, while
+elscreen still accepted emacs21 emacs21nox emacs20.  So the overlap
+went on 26 August, and the September commit only took emacs21 out of a
+list that had already stopped working.  Its own comment says "Emacs 24
+or later is not supported.  Try wip/elscreen-current instead", and
+apel names emacs20 and emacs21 in EMACS_VERSIONS_INCOMPATIBLE, so
+there is no version where the two can meet.  I have not written a
+patch for that one: whether elscreen should follow wip/elscreen-current,
+or be marked, is not mine to decide.
 
 Three others reach apel the same way and are only partly affected,
 because apel's buildlink3.mk opens with .if ${EMACS_FLAVOR} ==
