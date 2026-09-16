@@ -88,9 +88,38 @@ jobs:
               libssl-dev libudev-dev gawk
             ;;
           dnf)
+            # fedora の image は coreutils-single を積んでいる。install(1) が
+            # pkgsrc の要求に足りず、pkgsrc が自分の sysutils/coreutils を
+            # tool として建てにいく。それが bootstrap の最中に走ると
+            #
+            #   => Tool dependency coreutils>=5.2.1: NOT found
+            #   ERROR: [bsd.pkg.mk] Circular dependency detected
+            #
+            # で止まる。本物へ入れ替えておく。
+            dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
+              dnf -y install coreutils > /dev/null
+            # hostname は pkgsrc の既定の USE_TOOLS に入っていて、replace.mk の
+            # _TOOLS.coreutils の一員でもある。Fedora は hostname を coreutils と
+            # 別の rpm に分けていて image に入っていないので、無いと上と同じ輪に
+            # なる。dce20ee で一度突き止めてある。
             dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
-              perl patch tar gzip xz bzip2 git diffutils findutils which sudo \
-              ncurses-devel zlib-devel openssl-devel gawk
+              perl-core patch tar gzip xz bzip2 git diffutils findutils which \
+              sudo ncurses-devel zlib-devel openssl-devel libb2-devel \
+              libarchive-devel gawk hostname
+            # 本物の coreutils を入れても install(1) が /usr/sbin にしか
+            # 現れないことがある。pkgsrc は /usr/bin/install を探す。
+            [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
+            /usr/bin/install --version 2>&1 | head -1
+            # 見立てが外れたときに「どれが無いか」がそのまま出るようにする。
+            # 当てずっぽうで dnf に足すのをやめるための一覧。
+            echo '--- pkgsrc が Linux で探す道具 ---'
+            for t in install readlink realpath nproc seq env printf expr \
+                     tsort nice sha1sum sha512sum md5sum cut tr sort uniq \
+                     basename dirname mkdir rm cp mv ln chmod chown touch \
+                     head tail wc date id pwd echo test \
+                     hostname numfmt tee chgrp ls cat sleep rmdir true false; do
+              printf '  %-10s %s\n' "$t" "$(command -v $t || echo '無い')"
+            done
             ;;
           esac
           cc --version | head -1
