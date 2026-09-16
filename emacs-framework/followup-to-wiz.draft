@@ -156,11 +156,13 @@ bundled makefile, and devel/rsltc, whose own Makefile has
 ${DESTDIR}${PREFIX}/share/emacs/site-lisp/rsl spelled out three times.
 All six build here now.
 
-rsltc took a detour worth mentioning on its own.  It wants
-devel/gentle, which carries BROKEN_ON_PLATFORM= ${LP64PLATFORMS}, so I
-had written it off.  With that line taken out for the experiment
-gentle builds on amd64 with nothing but K&R-era warnings, rsltc builds
-against it, and the parser gentle generated does its job:
+rsltc took a detour worth mentioning on its own, and it ends somewhere
+I did not expect.  It wants devel/gentle, which carries
+BROKEN_ON_PLATFORM= ${LP64PLATFORMS}, so I had written it off.  With
+that line taken out for the experiment, on NetBSD 11.0/amd64, gentle
+builds with nothing but K&R-era warnings, and it really runs: the
+distfile ships ast.g and no ast.c, and the log has gentle turning all
+eleven grammars into C.  rsltc builds against it and works:
 
   $ rsltc HELLO.rsl
   Checking HELLO ...
@@ -168,10 +170,19 @@ against it, and the parser gentle generated does its job:
   $ rsltc bad.rsl
   bad.rsl:3:13: syntax error
 
-with the line and column right.  I have only the one LP64 platform to
-say that on and I am not proposing to remove the line -- but it may be
-older than the problem it describes, and it is what keeps rsltc out of
-the bulk build.
+with the line and column right.  Then I had the same thing tried on
+i386, where pkgsrc does not mark gentle broken at all -- and there it
+builds, installs, and dies:
+
+  gentle ast.g
+  gmake: *** [std_make:31: ast.c] Segmentation fault (core dumped)
+
+So the two measurements point the opposite way from the line: the
+platform it says is broken is the one where it worked for me, and the
+one it permits is where it crashed.  I have two machines and a
+contradiction, which is not enough to ask you to change anything -- I
+am only reporting that the line does not match what either of us saw,
+and that it is what keeps rsltc out of the bulk build.
 
 The name is the expensive half, and most of it is outside modules.mk.
 EMACS_PKGNAME_PREFIX only does anything where the package spells it in
