@@ -261,8 +261,24 @@ only, that is {,xemacs-}; with the version in it, every advisory for
 an elisp package has to list every Emacs.  Nothing in the current list
 is affected -- I decompressed it and went through the 92 emacs entries,
 and every one of them is bounded below what pkgsrc ships -- but the
-next one would be.  I would rather put that in front of you than
-decide it.
+next one would be.
+
+CONFLICTS goes the same way, and that one has teeth.
+inputmethod/tamago-tsunagi says CONFLICTS= tamago-[0-9]*, which matches
+tamago-20020909nb5 and does not match emacs20-tamago-20020909nb5:
+
+  pkg_admin pmatch 'tamago-[0-9]*' tamago-20020909nb5          matches
+  pkg_admin pmatch 'tamago-[0-9]*' emacs20-tamago-20020909nb5  does not
+
+Two packages that both select emacs20 would then land in the same
+share/emacs/20.7/site-lisp/egg with nothing declared between them.  I
+watched the shape of that happen for real while doing this, though for
+a different reason: editors/gnuserv's CONFLICTS names a pattern that
+matches no package, and pkg_add refused xemacs-nox11 over
+bin/gnuattach instead of the line refusing it first.  So wherever the
+prefix moves PKGNAME, the CONFLICTS lines pointing at that package
+want looking at too.  I would rather put all of this in front of you
+than decide it.
 
 Happy to send the framework part on its own first, with the package
 fixes following in whatever grouping suits you.

@@ -108,6 +108,43 @@ with no output at all and the .elc loads.  With the guard removed,
 mail/mu builds and the package has both mu4e-dbus.el and
 mu4e-dbus.elc.
 
+While I was in these Makefiles I went looking for declarations that no
+longer describe anything, since that is the kind of thing that rots
+quietly.  Two sorts turned up.
+
+devel/semi is the serious one.  Its options.mk still has
+
+  .if !empty(PKG_OPTIONS:Msemi-bbdb)
+  .include "../../misc/bbdb2/buildlink3.mk"
+
+and misc/bbdb2 went out with emacs21, so with that option set the
+package does not fail to build -- it fails to parse:
+
+  bmake: ".../devel/semi/options.mk" line 14:
+         Could not find ../../misc/bbdb2/buildlink3.mk
+  bmake: Fatal errors encountered -- cannot continue
+
+misc/bbdb3 is still there, so whether the option should point at it or
+go away is a question rather than a patch, and I have left it alone.
+
+The other sort is CONFLICTS lines that match no package.  I checked
+each with pkg_admin pmatch rather than by eye, which was worth doing
+because one I was sure about turned out to be fine (mail/elm's PKGNAME
+is elm-2.5.8nb5, not the elm2.5.8 its DISTNAME suggests).
+
+  devel/pcl-cvs      CONFLICTS= emacs-21.*
+                     emacs21's PKGNAME was emacs21-21.4anb49, which
+                     that never matched; and it is gone now anyway
+  inputmethod/skk    CONFLICTS= ddskk-[0-9]*        no such package
+  mail/mew           CONFLICTS+= mew-xemacs-[0-9]*  no such package
+  inputmethod/       CONFLICTS= tamago-anthy-[0-9]*
+    tamago-tsunagi   only in wip
+
+None of these breaks anything today -- a CONFLICTS that matches
+nothing simply does nothing.  They are worth a look because the thing
+they were guarding may still be true.  editors/gnuserv above is the
+case where it was.
+
 The diffs are below.  I checked them in check mode against a fresh
 trunk checkout this morning: they apply with no offset and no fuzz.
 For mail/mu the file patches/patch-mu4e_meson.build already exists, so
