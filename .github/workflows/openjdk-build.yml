@@ -1,4 +1,5 @@
 name: openjdk を NetBSD で建てる
+run-name: ${{ inputs.pkg || 'openjdk21' }} を NetBSD ${{ inputs.release || '10.1' }} で建てる
 
 # openjdk* を実際の NetBSD で建てて、PLIST まで起こす。
 #
@@ -31,8 +32,10 @@ on:
         required: false
         default: '10.1'
 
+# package 名まで group に入れる。入れないと、四つを並べて起こしたときに
+# 後から起きたものが前のものを cancel して、一本しか走らない。
 concurrency:
-  group: openjdk-build-${{ github.ref }}
+  group: openjdk-build-${{ github.ref }}-${{ inputs.pkg || 'openjdk21' }}
   cancel-in-progress: true
 
 jobs:
