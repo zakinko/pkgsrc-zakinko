@@ -66,6 +66,24 @@ jobs:
           envs: 'PKG'
           prepare: |
             /usr/sbin/pkg_add git
+            # openjdk は headless にしても X に link されるので、X sets が
+            # 無い箱では pkgsrc が先に止める:
+            #   uses X11, but /usr/X11R7 not found
+            # vmactions の image には入っていない。二箇所間違えやすく、
+            # どちらも 404 が返るだけで見分けが付かない。
+            #   拡張子は .tar.xz  (.tgz ではない)
+            #   arch は uname -m (amd64)。uname -p は x86_64 を返す
+            if [ ! -f /usr/X11R7/lib/libX11.so.7 ]; then
+              REL=`uname -r | cut -d_ -f1`
+              ARCH=`uname -m`
+              SETS=https://cdn.NetBSD.org/pub/NetBSD/NetBSD-$REL/$ARCH/binary/sets
+              for s in xbase xcomp; do
+                ftp -o "/var/tmp/$s.tar.xz" "$SETS/$s.tar.xz"
+                ( cd / && xzcat "/var/tmp/$s.tar.xz" | tar -xpf - )
+                rm -f "/var/tmp/$s.tar.xz"
+              done
+              ls -l /usr/X11R7/lib/libX11.so.7
+            fi
           run: |
             set -e
             export PATH=/usr/pkg/bin:/usr/pkg/sbin:$PATH
