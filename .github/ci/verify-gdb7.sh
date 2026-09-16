@@ -16,16 +16,18 @@
 #
 #   1. 素の gdb7 を建てる。zutil.h の衝突で止まるのが再現か。
 #   2. PR の一行を入れる。pkgsrc が Darwin-*-aarch64 を拒むか。
-#   3. 作者の言う system zlib へ振る。zlib を越えた先で gdb 自身の configure が
-#      どう言うか。gdb 7.11 の gdb/configure.host は *-*-darwin* を gdb_host=darwin
-#      にするが、native の makefile 片は config/i386/darwin.mh しか無く、
-#      config/aarch64/darwin.mh は存在しない。host==target なら gdb_native=yes で、
-#      片が無いと
+#   3. 作者の言う system zlib へ振る。zlib を越えた先に gdb が在るか。
+#      無い。gdb 7.11 の toplevel configure.ac:1026 が
 #
-#	*** Gdb does not support native target aarch64-apple-darwin...
+#	aarch64-*-darwin*)
+#	  noconfigdirs="$noconfigdirs ld gas gdb gprof"
 #
-#      で止まるはずである。それが出れば「建たない」のではなく「支えていない」で、
-#      BROKEN_ON_PLATFORM ではなく NOT_FOR_PLATFORM が正しいことになる。
+#      と gdb の directory そのものを外すので、make build は通り、install が
+#      PLIST の bin/gdb、include/gdb/jit-reader.h、info、man を「無い」と
+#      並べる。作者の「compile は通るが PLIST で落ちる」はこれである。
+#      gdb/configure.host も native の片を config/i386/darwin.mh しか持たない。
+#      つまり「建たない」(BROKEN_ON_PLATFORM) ではなく「支えていない」
+#      (NOT_FOR_PLATFORM) で、PR の選択が正しい。
 #
 # python option は切って走らせる。報告された段は zlib で、python27 は関係が
 # 無いうえ、この箱で建てるのに時間が掛かる。
@@ -99,10 +101,25 @@ awk '/^\.include "\.\.\/\.\.\/mk\/termcap\.buildlink3\.mk"$/ {
 } { print }' Makefile > Makefile.new && mv Makefile.new Makefile
 grep -n 'zlib' Makefile
 if build syszlib; then
-	echo "  建った。ならば NOT_FOR ではなく直せる可能性が在る。PLIST を見る"
-	$PKGMAKE $OPT install > "$T/gdb7-syszlib-install.log" 2>&1 && echo "  install も通った" || {
-		echo "  install で落ちた:"; grep -n 'ERROR' "$T/gdb7-syszlib-install.log" | head -10; }
-	rc=1
+	echo "  zlib は越えた。gdb が組まれたかを見る"
+	_wrksrc=$($PKGMAKE show-var VARNAME=WRKSRC)
+	if [ -x "$_wrksrc/gdb/gdb" ]; then
+		echo "!! gdb の実行 file が出来ている。ならば直せる可能性が在る"; rc=1
+	elif grep -q 'Configuring in .*/gdb$\|Configuring in ./gdb' "$T/gdb7-syszlib.log"; then
+		echo "!! gdb の directory が configure されている"; rc=1
+	else
+		echo "  ok gdb の directory は configure されていない (toplevel が noconfigdirs に入れる)"
+		grep -n 'Configuring in' "$T/gdb7-syszlib.log" | sed 's/^/     /' | head -12
+		$PKGMAKE $OPT install > "$T/gdb7-syszlib-install.log" 2>&1 && { echo "!! install が通った"; rc=1; } || {
+			if grep -q 'PLIST but not in.*' "$T/gdb7-syszlib-install.log" &&
+			   grep -q '/bin/gdb$' "$T/gdb7-syszlib-install.log"; then
+				echo "  ok install は PLIST の bin/gdb を「無い」と並べる (作者の見たもの)"
+				grep -n 'ERROR: *.*\(bin/gdb\|jit-reader\|\.info\|\.1\|\.5\)$' "$T/gdb7-syszlib-install.log" | head -8
+			else
+				echo "?? install が別の理由で落ちた"; grep -n ERROR "$T/gdb7-syszlib-install.log" | head; rc=1
+			fi
+		}
+	fi
 elif grep -q 'does not support native target' "$T/gdb7-syszlib.log"; then
 	echo "  ok gdb 自身の configure が host を支えていない:"
 	grep -n 'does not support native target' "$T/gdb7-syszlib.log" | head -2
@@ -118,6 +135,6 @@ restore
 $PKGMAKE clean > /dev/null 2>&1
 
 echo
-[ $rc -eq 0 ] && echo "RESULT: #187 の前提は再現し、一行は効き、zlib の先に native の口は無い" \
+[ $rc -eq 0 ] && echo "RESULT: #187 の前提は再現し、一行は効き、zlib の先に gdb は無い" \
 	|| echo "RESULT: 見込みと違う所が在る (上を読む)"
 exit $rc
