@@ -1,7 +1,10 @@
 Subject: Re: possible pkgsrc emacs framework improvements?
 To: Thomas Klausner <wiz@NetBSD.org>
 
-(DRAFT -- not sent.)
+(DRAFT -- not sent.  The sweep figures in the first paragraph are
+being re-measured: the tree they came from already had four of the
+fixes applied, so "ten" is a floor, not the count.  Do not send until
+the numbers below are replaced.)
 
 Hi Thomas,
 
