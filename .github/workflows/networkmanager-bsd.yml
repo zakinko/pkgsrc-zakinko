@@ -178,10 +178,15 @@ jobs:
           path: .bsdcache
           key: nm-ghostbsd-${{ github.run_id }}
 
-  # NetBSD だけ vmactions を使わない。あちらの netbsd-vm は GitHub の runner で
-  # KVM が使えず TCG になり、pkgsrc を建てるには遅すぎる (uim で 4 時間に
-  # 8 package しか進まず timeout に当たった)。netbsd-ci-images の image を
-  # QEMU で起こす run-in-qemu.sh を使う。host が x86_64 なので KVM が効く。
+  # NetBSD だけ vmactions を使わない。vmactions に NetBSD/i386 の image が
+  # 無いため、この repo は自前の image を持っている。amd64 だけなら
+  # vmactions/netbsd-vm で足りる (conf/11.0.conf があり default も 11.0)。
+  # ここでは同じ道具で i386 まで回せるほうを採る。
+  #
+  # 速さの話ではない。/dev/kvm は GitHub の runner に在り、amd64 も i386 も
+  # KVM で走る。TCG になるのはホストと arch が違うゲストだけである。
+  # (この段に最初「vmactions は KVM が使えず TCG になる」と書いたが誤りで、
+  #  run-in-qemu.sh の同じ誤りごと 2026-09-17 に直した。)
   #
   # UPSTREAM_PKG は空白区切りで複数を運べる。NetworkManager は
   # zakinko/libndp を buildlink で引くので、両方を渡す。
