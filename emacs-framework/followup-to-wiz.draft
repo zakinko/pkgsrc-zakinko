@@ -85,18 +85,13 @@ with the default first, while devel/pcl-cvs, which takes emacs20 and
 nothing else, gives the single line it should, and devel/gmake, which
 never includes modules.mk, is untouched.
 
-Nine of the fifteen unrelated failures never reached the elisp package
-at all.  All nine stopped in the same place, www/curl, several levels
-down -- under ruby34, cmake, meson or luatex -- and that failure was
-mine rather than the tree's: I had two sweeps of my own running
-against one WRKOBJDIR for a while, and curl was left with a
-half-configured work directory.  Cleaning it out and building again
-gave curl 8.21.0.  So those nine say nothing either way and I have not
-counted them for or against the change.  I rebuilt one of them,
-mail/mu, and it is the interesting one -- see below.  The other eight
-sit behind rust, texlive or a gcc bootstrap, which I would rather not
-ask this machine for; I tried wl-snapshot and stopped it when its
-emacs29 started building a compiler for libgccjit.
+Nine of the fifteen never reached the elisp package at all: they
+stopped in www/curl, several levels down, and that was my own doing --
+two sweeps of mine sharing one WRKOBJDIR left curl half-configured.
+Cleaned out, curl builds.  So those nine say nothing either way and I
+have not counted them.  One of them, mail/mu, I did rebuild, and it is
+in the other mail; the rest sit behind rust, texlive or a gcc
+bootstrap.
 
 Three failures are distfiles that no longer fetch (cobol-mode,
 flyspell, ispell-emacs), one is a dependency marked broken on x86_64
@@ -205,21 +200,19 @@ moves with it.  Ten of the 87 fetch from GitHub without setting
 GITHUB_PROJECT; none uses gitlab or codeberg.  Nine spell ${PKGBASE}
 themselves -- the nine above.
 
-Since none of that shows up until a package gains the prefix, I took
-one of the 22 that do not have it -- misc/color-theme -- added the
-PKGNAME line, and built it.  It breaks in two places at once.  Its
-MASTER_SITES is https://download.savannah.gnu.org/releases/${PKGBASE}/,
-which becomes .../releases/emacs30nox-color-theme/ and gives a 404 (the
-build here only got past it because the distfile was already in
-DISTDIR).  And its install is ELISPDIR=${EMACS_LISPPREFIX}/${PKGBASE}
-while its PLIST spells ${EMACS_LISPPREFIX}/color-theme, so the file
-check stops it:
+None of that shows up until a package gains the prefix, so I took one
+of the 22 that lack it -- misc/color-theme -- added the PKGNAME line
+and built it.  It breaks twice over: MASTER_SITES is
+.../releases/${PKGBASE}/, which becomes
+.../releases/emacs30nox-color-theme/ and 404s, and the install writes
+ELISPDIR=${EMACS_LISPPREFIX}/${PKGBASE} while the PLIST says
+${EMACS_LISPPREFIX}/color-theme:
 
   ERROR: .../site-lisp/emacs30nox-color-theme/themes/color-theme.elc
 
-That is one package of the 22, and I only looked because it was in the
-list of nine that spell ${PKGBASE}.  So I would not want to say the
-remaining 22 are a line each until they have been through a build.
+That is one of the 22, and I only looked because it was also in the
+nine that spell ${PKGBASE}.  I would not want to say the other 21 are
+a line each until they have been through a build.
 
 One more, which I found late and have since fixed, but it is worth
 showing because it was mine and because of where the answer was.
