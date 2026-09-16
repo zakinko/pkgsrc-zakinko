@@ -47,6 +47,13 @@ MESON_ARGS+=	-Dconcheck=false
 MESON_ARGS+=	-Dnmcli=false
 MESON_ARGS+=	-Dnmtui=false
 MESON_ARGS+=	-Dnm_cloud_setup=false
+# vapi の既定は auto で、周囲に vala が在るかどうかで中身が変わる。
+# wip の PLIST は vala が在る環境で採られていて、無い箱では
+#   share/vala/vapi/libnm.{deps,vapi}
+# の二つが作られず file-check で食い違う。決まった物が出るよう false で固定し、
+# PLIST からも外す。Vala の binding が要るようになったら、lang/vala を
+# 依存に足したうえで true にして PLIST を採り直すこと。
+MESON_ARGS+=	-Dvapi=false
 
 .include "../../devel/meson/build.mk"
 .include "../../devel/libuuid/buildlink3.mk"
