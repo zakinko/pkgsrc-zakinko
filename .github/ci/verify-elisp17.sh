@@ -174,7 +174,8 @@ for p in $LIST; do
 			echo "  --- $p  ★ pkgsrc に在る版を一つも受けない ($acc)"
 			rot=$((rot+1)); ng=$((ng+1))
 		else
-			echo "  --- $p  受け付けない ($acc)"; skip=$((skip+1))
+			echo "  --- $p  $EMACS_TYPE を受け付けない ($acc)"
+			skip=$((skip+1))
 		fi
 		continue ;;
 	esac
