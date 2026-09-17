@@ -37,7 +37,7 @@ on:
       target:
         description: 'どれを回すか'
         type: choice
-        options: [all, xwpe, fail2ban, zls, lua-socket, gdb7, croc]
+        options: [all, xwpe, fail2ban, zls, lua-socket, gdb7, croc, go]
         default: all
 
 concurrency:
@@ -433,6 +433,32 @@ jobs:
         with:
           release: '14.4'
           run: PKGS='croc' sh .github/ci/build-on-bsd.sh
+
+  # lang/go は OpenBSD で bootstrap できない (go14 が Abort trap)。go-bin に
+  # openbsd-amd64 を足し bootstrap.mk に OpenBSD を足す木の直しを当てて、
+  # go-bin が make distinfo と同じ物で入り、go127 がそこから建ち、作った
+  # 物が走り、pkglint が増えないことを 7.8 と 7.9 で見る。送る diff と
+  # 同じ物 (tree-go-bin-openbsd.diff) を当てる。
+  go-openbsd:
+    if: inputs.target == 'all' || inputs.target == 'go'
+    name: go-bin/go127 on OpenBSD ${{ matrix.release }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ['7.8', '7.9']
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          run: TREE_PATCH=.github/ci/tree-patch-go-bin-openbsd.sh PKGS='' TREE_PKGS='lang/go-bin lang/go127' sh .github/ci/build-on-bsd.sh
+          # 持ち帰りの rsync が VM の中で library を見失って落ちる (croc の
+          # OpenBSD と同じ)。持ち帰る物は無い。
+          copyback: false
 
   croc-openbsd:
     if: inputs.target == 'all' || inputs.target == 'croc'

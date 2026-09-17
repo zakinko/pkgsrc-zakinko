@@ -9,7 +9,7 @@
 #	./make.bash: line 170: 86020 Abort trap (core dumped)
 #	    "$GOTOOLDIR"/go_bootstrap clean -i std
 #
-# で止まる (run 35125854518)。go-bin に openbsd-amd64 と openbsd-arm64 の
+# で止まる (run 35125854518)。go-bin に openbsd-amd64 の
 # 公式 binary を足し、bootstrap.mk の条件に OpenBSD を足す。
 #
 # 上流に入ったら bootstrap.mk の grep が当たって何もしない。
@@ -20,6 +20,13 @@ if grep -q '"OpenBSD"' "$TREE/lang/go/bootstrap.mk"; then
 	echo "  go: bootstrap.mk は既に OpenBSD を見ている。何もしない"
 	exit 0
 fi
+# 当てる前の三つを木の外に取っておく。verify-go127.sh が pkglint の
+# 出力を当てる前と後で比べるのに使う。package の中に .orig を残すと
+# pkglint がそれを咎めるので、外に置く。
+for f in lang/go-bin/Makefile lang/go-bin/distinfo lang/go/bootstrap.mk; do
+	mkdir -p "$TREE/.ci-orig/$(dirname "$f")"
+	cp "$TREE/$f" "$TREE/.ci-orig/$f"
+done
 patch -f -p0 -d "$TREE" < "$D" > /dev/null
 grep -q 'openbsd-amd64' "$TREE/lang/go-bin/distinfo" || { echo "!! go-bin: distinfo に入っていない" >&2; exit 1; }
-echo "  go: go-bin に openbsd-amd64/arm64 を足し、bootstrap.mk の go-bin の条件に OpenBSD を足した"
+echo "  go: go-bin に openbsd-amd64 を足し、bootstrap.mk の go-bin の条件に OpenBSD を足した"
