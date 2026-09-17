@@ -391,6 +391,32 @@ I have not done it, because Emacs finds info through INFOPATH and the
 dir file rather than by looking beside the lisp, so it is a change
 with a second half I would rather agree with you first.
 
+Then I went one level up and found the same thing, larger.  I was
+building skk for emacs29 to show the collision above, and the Emacs
+itself would not install:
+
+  pkg_add: emacs29-nox11-29.4: conflicting PLIST with
+           emacs30-nox11-30.2nb1: bin/ctags
+
+editors/emacs29 and editors/emacs30 do not declare a conflict with
+each other -- each names only its own nox twin, and the built packages
+carry @pkgcfl emacs29-[0-9]* and @pkgcfl emacs30-[0-9]* and nothing
+else -- but their file lists overlap in 93 places: bin/emacs,
+bin/ctags, bin/etags, bin/emacsclient, bin/ebrowse, include/
+emacs-module.h, 66 info files and 15 under share.  So two versions of
+Emacs cannot be installed side by side today, and nothing says so
+until pkg_add trips over it.  python313 versions every one of its
+binaries -- bin/python3.13, bin/pydoc3.13 -- which is why py312- and
+py313- packages are worth having on one machine.
+
+I am not proposing to fix that here; it is a bigger change than the
+three you asked about, and it is yours to want or not.  But it does
+set the ceiling on what the second point buys: with the Emacsen as
+they are, a per-version name is worth having because a bulk build can
+make every version and because the name records which Emacs a binary
+package was made for -- not because two of them can sit on one machine
+yet.  The info collision above is the same disease one floor down.
+
 One cost of the second point that I have not seen raised.  Putting the
 prefix in PKGNAME takes the package out of the vulnerability list's
 reach, quietly:
