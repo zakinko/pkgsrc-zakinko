@@ -66,6 +66,35 @@ ok()   { printf 'PASS  %s\n' "$*"; }
 ng()   { printf 'FAIL  %s\n' "$*"; rc=1; }
 
 # ------------------------------------------------------------------
+step "0. 道具の素性"
+# OpenBSD 7.9 で textproc/libxml2 の configure が
+#
+#	checking pkg-config is at least version 0.9.0... Segmentation fault (core dumped)
+#	configure: error: pkg-config not found
+#
+# で止まった。落ちているのが host の pkg-config なのか、pkgsrc が建てた
+# pkgconf なのか、tools の wrapper なのかで直す先が変わる。建て始める前に
+# 素性を採る。ここは転んでも先へ進む。どの箱でも一度は見ておきたい。
+for t in pkg-config pkgconf; do
+	w=$(command -v "$t" 2>/dev/null) || w=""
+	if [ -z "$w" ]; then
+		printf '  %-12s PATH に無い\n' "$t"
+		continue
+	fi
+	printf '  %-12s %s\n' "$t" "$w"
+	printf '    file:    '; file "$w" 2>/dev/null | cut -c1-120 || echo "(file が無い)"
+	printf '    version: '
+	if v=$("$w" --version 2>&1); then
+		echo "$v"
+	else
+		st=$?
+		echo "落ちた (exit=$st)"
+		[ "$st" -gt 128 ] && echo "    signal $((st - 128)) で死んだ"
+	fi
+done
+printf '  %-12s %s\n' "pkg_info" "$(pkg_info -e pkgconf 2>/dev/null || echo '(pkgconf は入っていない)')"
+
+# ------------------------------------------------------------------
 step "1. 建てて入れる"
 cd "$DIR"
 pkg_delete -f "$PKG" >/dev/null 2>&1 || true
