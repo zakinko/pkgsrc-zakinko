@@ -457,8 +457,11 @@ jobs:
           # (run 35125854518)。OpenBSD 自身の go (7.9 は 1.26.2) を入れて
           # GOROOT_BOOTSTRAP に指す。bootstrap.mk はそれが在れば go14 を
           # 引かない。
-          prepare: /usr/sbin/pkg_add -v go
-          run: MKCONF_EXTRA='GOROOT_BOOTSTRAP=	/usr/local/go' PKGS='croc' sh .github/ci/build-on-bsd.sh
+          # pkgsrc の go は OpenBSD で bootstrap できない (go14 が Abort trap、
+          # run 35125854518)。OpenBSD の go を GOROOT_BOOTSTRAP に指せば通る
+          # (run 35172300869) が、それは箱の側の回避なので、木の側の直し
+          # (go-bin に OpenBSD を足す) を当てて、pkgsrc だけで通るかを見る。
+          run: TREE_PATCH=.github/ci/tree-patch-go-bin-openbsd.sh PKGS='croc' sh .github/ci/build-on-bsd.sh
           # 持ち帰りの rsync が VM の中で
           #   ld.so: rsync: can't load library 'liblz4.so.3.3'   (run 35153723523)
           #   ld.so: rsync: can't load library 'libiconv.so.7.2' (run 35165804296)
