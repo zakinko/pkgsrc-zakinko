@@ -268,6 +268,30 @@ if [ -x "$UPC" ]; then
 			printf '    %-14s 無い: %s\n' "$m" "$(echo "$out" | tr '\n' ' ' | cut -c1-140)"
 		fi
 	done
+	# 2026-09-17 の run で、引けない理由が名指しで出た。
+	#
+	#   gtk+-2.0  無い: Package graphite2 was not found in the pkg-config
+	#                   search path.
+	#
+	# x11 も xext も xft も引けているので X11 の話ではなかった (そう読んで
+	# いたが外れた)。連鎖は gtk+-2.0 -> pango -> harfbuzz -> graphite2 で、
+	# 最後で切れている。fonts/harfbuzz/buildlink3.mk は
+	# graphics/graphite2/buildlink3.mk を読んでいるので、理屈のうえでは
+	# 入るはずである。入っていないのか、入っているが buildlink に出て
+	# いないのかを分ける。
+	echo "--- graphite2 はどこに在るか ---"
+	printf '    package として: '
+	pkg_info -e graphite2 2>/dev/null || echo "(入っていない)"
+	printf '    buildlink の .pc: '
+	ls "$UBL"/graphite2.pc 2>/dev/null || echo "(無い)"
+	printf '    prefix の .pc:    '
+	ls "$PREFIX"/lib/pkgconfig/graphite2.pc 2>/dev/null || echo "(無い)"
+	printf '    harfbuzz の .pc:  '
+	ls "$UBL"/harfbuzz.pc 2>/dev/null || echo "(無い)"
+	echo "    harfbuzz.pc の Requires:"
+	grep -h '^Requires' "$UBL"/harfbuzz.pc "$PREFIX"/lib/pkgconfig/harfbuzz.pc 2>/dev/null |
+		sort -u | sed 's/^/        /' || echo "        (読めない)"
+	echo "    buildlink に在る .pc の総数: $(ls "$UBL" 2>/dev/null | grep -c '\.pc$')"
 	echo "--- native X 側に在るか (/usr/X11R7/lib/pkgconfig) ---"
 	ls /usr/X11R7/lib/pkgconfig 2>/dev/null | grep -E '^(x11|xext|xft)\.pc$' | sed 's/^/    /' ||
 		echo "    (X11R7 側にも無い)"
