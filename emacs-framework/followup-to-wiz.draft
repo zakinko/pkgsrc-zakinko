@@ -120,9 +120,9 @@ _PYTHON_VERSIONS_ACCEPTED -- otherwise a package naming a version
 pkgsrc no longer has puts it in the bulk index.  So it is four lines,
 and with them devel/apel gives
 
-  PKGNAME=emacs30nox-apel-10.8.0.20201107nb2
+  PKGNAME=emacs30-apel-10.8.0.20201107nb2
   PKGNAME=emacs29-apel-10.8.0.20201107nb2
-  ... six in all, emacs29 through emacs31nox
+  PKGNAME=emacs31-apel-10.8.0.20201107nb2
 
 with the default first, while devel/pcl-cvs, which takes emacs20 and
 nothing else, gives the single line it should, and devel/gmake, which
@@ -142,13 +142,44 @@ worth one word here though, because it is the kind of thing your third
 point would find on its first pass: nobody builds mu against a nox
 Emacs today, so nobody has seen it.
 
-It also answers a question I had about the prefix.  emacs30 and
-emacs30-nox11 conflict, and they share share/emacs/30.2/site-lisp, so
-it is tempting to give both the emacs30- prefix and let one binary
-package serve either -- the dependency can be spelled
-{emacs30,emacs30-nox11}>=30.1<31 and pkg_info matches it.  mail/mu says
-no: the file list is not the same for the two.  So they are different
-packages and the prefix should keep saying which.
+It also settled a question I had about the prefix, though not the way I
+first read it.  emacs30 and emacs30-nox11 conflict with each other and
+share share/emacs/30.2/site-lisp, so one emacs30-foo could serve
+either.  I had written that mail/mu said otherwise, because its file
+list differs between an Emacs with D-Bus and one without -- and then
+noticed that the difference is made by the very guard the patch in the
+other mail removes.  With that gone I went looking for any other
+package whose installed files depend on the Emacs having X, and there
+is none: nothing in the 87 conditions on it, in a PLIST or anywhere
+else.  So the two builds do not need two names, and I have folded them:
+
+  EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
+
+A package accepting emacs30 now accepts emacs30nox as well, so the
+lists stop having to spell both halves of every pair, and the bulk
+index makes one package per version instead of two -- devel/apel goes
+from six entries to three, textproc/xslide from eleven to six.  The
+dependency is written so either build satisfies it, and pkg_add is
+what enforces it: with only emacs30-nox11 installed here, the same
+binary package refuses or installs according to that one line.
+
+  @pkgdep emacs30>=30.1<31              pkg_add: no pkg found, sorry.
+  @pkgdep {emacs30-nox11,emacs30}>=...  installs
+
+The exception keeps the longer name.  A package that refuses the X
+build says so in EMACS_VERSIONS_INCOMPATIBLE, and is then called
+emacs30-nox11-foo with its dependency pinned to that build, so a
+binary package cannot land on an Emacs that cannot run it.  A package
+that refuses the nox build keeps the plain name, since there is no
+other emacs30-foo to confuse it with.  cad/dinotrace-mode is the only
+candidate I found -- it carries a comment about needing athena widgets
+-- and I have not touched it, because its list also still names
+emacs26 and I have not built it either way.
+
+XEmacs stays split by series rather than by build: xemacs214- and
+xemacs215-, which today are both xemacs-, although 21.4 and 21.5 are
+different enough that editors/xemacs and editors/xemacs-current are
+separate packages.
 
 One failure is the change refusing, which is what you asked for.
 mail/vm in my copy depends on misc/bbdb2, which accepts only emacs21,

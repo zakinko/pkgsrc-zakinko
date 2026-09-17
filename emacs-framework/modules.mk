@@ -327,12 +327,47 @@ EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
 EMACS_VERSIONS_INCOMPATIBLE?=	# empty
 
 _EMACS_VERSIONS_OK=	# empty
+# Naming emacs30 accepts the nox build of it as well, so a package does
+# not have to write both halves of every pair.  Writing emacs30nox on its
+# own still works.  A package that takes only one of the two names the
+# other in EMACS_VERSIONS_INCOMPATIBLE.
 .for _ev_ in ${EMACS_VERSIONS_ACCEPTED}
-.  if !empty(_EMACS_VERSIONS_ALL:M${_ev_}) && \
-      empty(EMACS_VERSIONS_INCOMPATIBLE:M${_ev_})
-_EMACS_VERSIONS_OK+=	${_ev_}
+.  for _cand_ in ${_ev_} ${_ev_}nox
+.    if !empty(_EMACS_VERSIONS_ALL:M${_cand_}) && \
+        empty(EMACS_VERSIONS_INCOMPATIBLE:M${_cand_}) && \
+        empty(_EMACS_VERSIONS_OK:M${_cand_})
+_EMACS_VERSIONS_OK+=	${_cand_}
+.    endif
+.  endfor
+.endfor
+
+# What a bulk build should make: one entry per name.  Where both builds
+# of one Emacs are accepted they produce the same package, so only the
+# plain one is listed; where only the nox build is accepted it stays,
+# because then it is the only way to get that package at all.
+# A .for variable is substituted as text, so it cannot be tested with
+# empty() directly -- empty(_ev_:M*nox) asks about a variable called
+# _ev_, which is always empty, and every entry passes.  Assign it to a
+# real variable first.
+_EMACS_VERSIONS_BULK=	# empty
+.for _ev_ in ${_EMACS_VERSIONS_OK}
+_EMACS_BULK_CAND=	${_ev_}
+.  if empty(_EMACS_BULK_CAND:M*nox) || \
+      empty(_EMACS_VERSIONS_OK:M${_EMACS_BULK_CAND:C/nox$//})
+_EMACS_VERSIONS_BULK+=	${_ev_}
 .  endif
 .endfor
+
+# The bulk index wants its default to be one of the entries it lists, and
+# the entries are the folded names, so the default folds the same way.
+# EMACS_VERSION_DEFAULT itself is left alone: it says which build to use
+# here, which is still a real choice between the two.
+.if !empty(EMACS_VERSION_DEFAULT:M*nox) && \
+    !empty(_EMACS_VERSIONS_BULK:M${EMACS_VERSION_DEFAULT:C/nox$//})
+_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
+.else
+_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
+.endif
 
 # When pkgsrc resolves a dependency it passes the pattern it is looking
 # for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
@@ -395,7 +430,32 @@ _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
 # Dependencies and conflicts
 #
 
-DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
+# One binary package serves both builds of an Emacs, so the dependency is
+# written so that either satisfies it.  The nox package is <name>-nox11
+# for both flavours, so the pair comes out of the one version.mk we read.
+#
+# A package that genuinely needs one of the two -- cad/dinotrace-mode
+# says it wants athena widgets -- refuses the other in
+# EMACS_VERSIONS_INCOMPATIBLE.  Then there is nothing to be tolerant
+# about and the dependency names the build it was made for, so that a
+# binary package cannot be installed against an Emacs that cannot run it.
+_EMACS_REQD_NAME=	${_EMACS_REQD:C/[<>=].*//}
+_EMACS_REQD_BOUND=	${_EMACS_REQD:C/^[^<>=]*//}
+.if !empty(_EMACS_TYPE:M*nox)
+_EMACS_TYPE_OTHER=	${_EMACS_TYPE:C/nox$//}
+_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME:C/-nox11$//}
+.else
+_EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
+_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME}-nox11
+.endif
+
+.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
+_EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
+.else
+_EMACS_REQD_ANY=	${_EMACS_REQD}
+.endif
+
+DEPENDS+=	${_EMACS_REQD_ANY}:${_EMACS_PKGDIR}
 
 EMACS_MODULES?=
 .for _mod_ in ${EMACS_MODULES}
@@ -419,7 +479,22 @@ EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
 # Which Emacs a package was built for belongs in its name, the way
 # PYPKGPREFIX carries the Python version, so the set can be built and
 # told apart.
-EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE}-
+# The nox build and the X build of one Emacs conflict with each other and
+# share a lisp directory, and no package in the tree installs a different
+# file list for the two, so by default they do not get different names:
+# one emacs30-foo serves either, and a bulk build makes one of it rather
+# than two.
+#
+# The exception earns the longer name.  A package that refuses the X
+# build -- it says so in EMACS_VERSIONS_INCOMPATIBLE -- is not the same
+# thing as the ordinary one, so it is called emacs30-nox11-foo, after the
+# Emacs it needs.  A package that refuses the nox build keeps the plain
+# name, because there is no other emacs30-foo for it to be confused with.
+.if !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
+EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
+.else
+EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
+.endif
 
 GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
 
