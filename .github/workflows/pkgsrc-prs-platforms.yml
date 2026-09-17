@@ -440,23 +440,24 @@ jobs:
   # 物が走り、pkglint が増えないことを 7.8 と 7.9 で見る。送る diff と
   # 同じ物 (tree-go-bin-openbsd.diff) を当てる。
   #
-  # aarch64 も送る diff に入るので、そちらも動かす。vmactions は 7.9 の
-  # aarch64 image を持つが、x86 の runner では TCG で十倍以上遅い。arm の
-  # runner (ubuntu-24.04-arm) は README が「勧めない、もっと遅い」と言う
-  # ので、両方を並べて、通った方を根拠にする。timeout は上限の 6 時間。
+  # aarch64 も送る diff に入るが、GitHub では測り切れない。vmactions の
+  # 7.9 aarch64 image は x86 の runner でも arm の runner (ubuntu-24.04-arm、
+  # /dev/kvm が無い) でも TCG で、run 35196319109 では bootstrap だけで
+  # 2 時間、go-bin の perl:run と bash:run を source で組む所で 6 時間の
+  # 上限に当たった (make distinfo と DISTFILES=openbsd-arm64 までは通った)。
+  # aarch64 は手元の Mac (Apple Silicon、QEMU + HVF) で同じ image を
+  # 起こして測る。手順は zakinko-doc の go-bootstrap-openbsd.md。
   go-openbsd:
     if: inputs.target == 'all' || inputs.target == 'go'
-    name: go-bin/go127 on OpenBSD ${{ matrix.release }} ${{ matrix.arch }} (${{ matrix.runner }})
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 360
+    name: go-bin/go127 on OpenBSD ${{ matrix.release }} ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { release: '7.8', arch: x86_64,  runner: ubuntu-latest }
-          - { release: '7.9', arch: x86_64,  runner: ubuntu-latest }
-          - { release: '7.9', arch: aarch64, runner: ubuntu-latest }
-          - { release: '7.9', arch: aarch64, runner: ubuntu-24.04-arm }
+          - { release: '7.8', arch: x86_64 }
+          - { release: '7.9', arch: x86_64 }
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける

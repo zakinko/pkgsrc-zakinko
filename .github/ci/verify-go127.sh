@@ -81,8 +81,13 @@ if ( cd "$TREE/pkgtools/pkglint" && $BMAKE install > "$T/pkglint-install.log" 2>
 		for f in lang/go-bin/Makefile lang/go-bin/distinfo lang/go/bootstrap.mk; do
 			cp "$TREE/.ci-orig/$f.patched" "$TREE/$f"
 		done
+		# 行番号は捨てて比べる。当て物で行がずれると、元から在る
+		# WARN (bootstrap.mk の go14-1.4* の版の書き方) が「増えた行」に
+		# 見える (run 35196319109)。
 		for d in go-bin go; do
-			_new=$(grep -v '^Looks fine\|^[0-9]* warnings\|^[0-9]* errors' "$T/pkglint.after.$d" | grep -vxF -f "$T/pkglint.before.$d" || true)
+			sed 's/^\([A-Z]*: [^:]*\):[0-9]*:/\1:/' "$T/pkglint.before.$d" > "$T/pkglint.before.$d.nl"
+			_new=$(grep -vE '^Looks fine|^[0-9]+ (warnings|errors)' "$T/pkglint.after.$d" |
+				sed 's/^\([A-Z]*: [^:]*\):[0-9]*:/\1:/' | grep -vxF -f "$T/pkglint.before.$d.nl" || true)
 			if [ -n "$_new" ]; then echo "!! pkglint lang/$d に増えた行:"; echo "$_new" | sed 's/^/     /'; rc=1
 			else echo "  ok pkglint lang/$d: 当てる前から増えた行は無い ($(wc -l < "$T/pkglint.after.$d" | tr -d ' ') 行)"; fi
 		done
