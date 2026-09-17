@@ -329,6 +329,21 @@ which names the version, the package and what would work.  It is where
 the tree stops today too, though with "No valid Emacs version
 installed found" and no version named.
 
+I owe you a correction on the first mail.  I wrote that nothing in
+pkgsrc names an Emacs the tree no longer has, having checked emacs21.
+That was true of emacs21 and not of everything: cad/dinotrace-mode has
+
+  EMACS_VERSIONS_ACCEPTED=	emacs26 emacs29
+
+and editors/emacs26 is gone.  It costs nothing today because emacs29 is
+still in the list, which is exactly why it has sat there -- the same
+shape as the version.mk above, a value nobody reads because nothing
+reads it.  With the intersection it simply drops out, and the package
+keeps building for emacs29.  I have not touched the line: the comment
+above it says the package wants athena widgets, and deciding what it
+should accept now is a question for whoever knows that, not a
+mechanical edit.
+
 One more that is not about placement at all.
 EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
 modules.mk reads it, while pyversion.mk and rubyversion.mk both

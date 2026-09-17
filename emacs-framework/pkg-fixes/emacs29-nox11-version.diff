@@ -1,8 +1,0 @@
---- editors/emacs29-nox11/version.mk.orig
-+++ editors/emacs29-nox11/version.mk
-@@ -4,4 +4,4 @@
- _EMACS_REQD=	emacs29-nox11>=29.1<30
- 
- _EMACS_VERSION_MAJOR=	29
--_EMACS_VERSION_MINOR=	1
-+_EMACS_VERSION_MINOR=	4
