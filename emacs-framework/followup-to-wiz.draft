@@ -335,12 +335,18 @@ The third line is the one that matters: this is already true of the
 xemacs- packages in pkgsrc today.  An advisory can be written to cover
 it, but only by enumerating -- {,emacs30nox-}flim<1.14.3 matches while
 *-flim<1.14.3 and emacs*-flim<1.14.3 do not, because the glob does not
-combine with a version bound.  With the prefix carrying the flavour
-only, that is {,xemacs-}; with the version in it, every advisory for
-an elisp package has to list every Emacs.  Nothing in the current list
-is affected -- I decompressed it and went through the 92 emacs entries,
-and every one of them is bounded below what pkgsrc ships -- but the
-next one would be.
+combine with a version bound.  That shape is at least not a novelty:
+of the 30234 entries in the list 3778 already open with a brace list,
+1183 of them with the empty alternative, and w3m{,-img}<0.3.2.2 shows
+a brace and a version bound together.  So the cost is the width of the
+line rather than a new mechanism -- with the prefix carrying the
+flavour only it is {,xemacs-}, and with the version in it every
+advisory for an elisp package has to name every Emacs.  Nothing in the
+current list is affected: I decompressed it and went through the 92
+entries whose name starts with emacs or xemacs, and every one is
+bounded below what pkgsrc ships.  The only advisory for an elisp
+package rather than for Emacs itself is flim<1.14.3, and pkgsrc has
+1.14.9.
 
 CONFLICTS goes the same way, and that one has teeth.
 inputmethod/tamago-tsunagi says CONFLICTS= tamago-[0-9]*, which matches
