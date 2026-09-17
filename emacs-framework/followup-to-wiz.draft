@@ -4,18 +4,19 @@ To: Thomas Klausner <wiz@NetBSD.org>
 Hi Thomas,
 
 The rest of the sweep finished, so here are the numbers I owed you.
-Of the 67 packages that select emacs30nox, 37 build, 2 I did not try
-(both mozc-elisp, which want bazel), and 28 fail -- fourteen because
-of this change and fourteen for reasons that have nothing to do with
-it.  This is on a tree with none of my fixes in it; I had measured it
-once before while fixing as I went, and that pass reported four fewer,
-which is what fixing and measuring in the same tree does.
+Of the 57 packages I built -- everything that reads modules.mk except
+ten that want bazel, TeX Live, rust or a gcc bootstrap, none of which
+has anything to do with where the lisp goes -- 36 build and 21 fail.
+Thirteen fail because of this change, two fail behind one of those
+thirteen, and six for reasons of their own.  This is on a tree with
+none of my fixes applied; measuring while fixing, which is what I did
+the first time round, reported four fewer.
 
-The fourteen fall into four shapes, and each takes one line.
+The thirteen fall into four shapes, and each takes one line.
 
 Four get a 404 fetching their distfile, because mk/fetch/github.mk has
 GITHUB_PROJECT?= ${PKGBASE} and the prefix moves PKGBASE, so the fetch
-asks for github.com/ziglang/emacs30nox-zig-mode and WRKSRC points
+asks for github.com/ziglang/emacs30-zig-mode and WRKSRC points
 where the archive does not unpack: zig-mode, lua-mode, emacs-neotree
 and markdown-mode.
 
@@ -61,16 +62,22 @@ one that stops, and only the packing list of the built package shows
 it:
 
   cqual-0.991nb21                        share/emacs/site-lisp/cqual/
-  emacs30nox-tamago-tsunagi-5.0.7.1nb3   share/emacs/site-lisp/egg/
+  emacs30-tamago-tsunagi-5.0.7.1nb3      share/emacs/site-lisp/egg/
   the other 35 that built                share/emacs/30.2/site-lisp/
 
-The other fourteen are not about the change: three have lost their
-distfile (cobol-mode 402, flyspell and ispell-emacs 404), eight want a
-dependency this sandbox cannot build (TeX Live, gcc14, rust), mail/mu
-has a PLIST bug of its own that is in the other mail, mail/vm reaches
-misc/bbdb2 -- which you have since removed, and vm no longer asks for
-it -- and mail/wl-snapshot is stopped by a CONFLICTS line that I think
-is stale, also in the other mail.
+The other six are not about the change: three have lost their distfile
+(cobol-mode 402, flyspell and ispell-emacs 404), mail/mu has a PLIST
+bug of its own that is in the other mail, mail/vm reaches misc/bbdb2
+-- which you have since removed, and vm no longer asks for it -- and
+mail/wl-snapshot is stopped by a CONFLICTS line that I think is stale,
+also in the other mail.
+
+The two that fail behind another are devel/semi and www/emacs-w3m,
+both waiting on devel/flim.  emacs-w3m is worth a word because it
+shows how soft this kind of count is: with a flim available it gets as
+far as its own ${PKGBASE} problem and fails there instead, so whether
+it lands in the thirteen or in the two depends only on what was
+installed when I ran it.  Its own bug does not go away either way.
 
 The sweep tree is a 2 September copy, so I went back and checked each
 package I name above against trunk today rather than trusting the
@@ -283,11 +290,11 @@ None of that shows up until a package gains the prefix, so I took one
 of the 22 that lack it -- misc/color-theme -- added the PKGNAME line
 and built it.  It breaks twice over: MASTER_SITES is
 .../releases/${PKGBASE}/, which becomes
-.../releases/emacs30nox-color-theme/ and 404s, and the install writes
+.../releases/emacs30-color-theme/ and 404s, and the install writes
 ELISPDIR=${EMACS_LISPPREFIX}/${PKGBASE} while the PLIST says
 ${EMACS_LISPPREFIX}/color-theme:
 
-  ERROR: .../site-lisp/emacs30nox-color-theme/themes/color-theme.elc
+  ERROR: .../site-lisp/emacs30-color-theme/themes/color-theme.elc
 
 That is one of the 24.  Three of those 24 spell ${PKGBASE}, and they
 are the ones to look at first: misc/color-theme above,
@@ -330,9 +337,14 @@ the selection walks the package's own list, leaving it out is one more
 condition in the same loop, so I have done that.  Side by side, with
 EMACS_TYPE=emacs30nox and devel/apel:
 
-  modules.mk as it is   default emacs30nox, and emacs30nox again when
-                        told EMACS_VERSIONS_INCOMPATIBLE=emacs30nox
-  with the line read     emacs29 instead
+  modules.mk as it is  apel-10.8.0.20201107nb2, and the same again
+                       when told EMACS_VERSIONS_INCOMPATIBLE=emacs30nox
+  with the line read   emacs30-apel        by default
+                       emacs29-apel        told emacs30nox is no good
+                       emacs30-nox11-apel  told emacs30 is no good
+
+The last line is the whole of the nox handling in one place: refusing
+the X build is the one thing that puts nox back into a package name.
 
 apel's own line names emacs20, which it does not accept anyway, so
 nothing moves there -- that line has been doing nothing twice over,
@@ -361,13 +373,14 @@ lib/xemacs/site-packages/info.  With the version in the name, two
 builds of the same package are two packages that write the same info
 file, and pkg_add stops the second:
 
-  pkg_add: flim-1.14.9nb6: conflicting PLIST with
-           emacs30nox-flim-1.14.9nb6: info/mime-en.info
+  pkg_add: emacs29-skk-17.1nb2: conflicting PLIST with
+           emacs30-skk-17.1nb2: info/skk.info
 
-I hit that by accident -- I was rebuilding flim against the stock
-modules.mk while the emacs30nox one was still installed.  It is the
-same collision emacs29-flim and emacs30-flim would have, and 30 of the
-87 install info files.  The two apels sat side by side happily through
+That is inputmethod/skk built for emacs30 and the same package for
+emacs29, and 30 of the 87 install info files.  I first hit it by
+accident, rebuilding flim against the stock modules.mk while the
+prefixed one was still installed, which is the same collision wearing
+different names.  The two apels sat side by side happily through
 all of it, because apel installs no info file and flim installs two.
 XEmacs has the same shape: xemacs214 and xemacs215 both give
 lib/xemacs/site-packages/info.
@@ -383,12 +396,12 @@ prefix in PKGNAME takes the package out of the vulnerability list's
 reach, quietly:
 
   pkg_admin audit-pkg flim-1.14.2             -> reports CAN-2004-0422
-  pkg_admin audit-pkg emacs30nox-flim-1.14.2  -> nothing
+  pkg_admin audit-pkg emacs30-flim-1.14.2     -> nothing
   pkg_admin audit-pkg xemacs-flim-1.14.2      -> nothing
 
 The third line is the one that matters: this is already true of the
 xemacs- packages in pkgsrc today.  An advisory can be written to cover
-it, but only by enumerating -- {,emacs30nox-}flim<1.14.3 matches while
+it, but only by enumerating -- {,emacs30-}flim<1.14.3 matches while
 *-flim<1.14.3 and emacs*-flim<1.14.3 do not, because the glob does not
 combine with a version bound.  That shape is at least not a novelty:
 of the 30234 entries in the list 3778 already open with a brace list,
@@ -415,7 +428,7 @@ share/emacs/20.7/site-lisp/egg with nothing declared between them.
 Spelling the prefix in the pattern fixes it and sharpens it at the
 same time -- with ${EMACS_PKGNAME_PREFIX}tamago-[0-9]* the line matches
 emacs20-tamago while tamago-tsunagi is built for emacs20, and does not
-match it under emacs30nox, which is right: the two only collide when
+match it under emacs30, which is right: the two only collide when
 they share a lisp directory.  That one is in emacs-framework/pkg-fixes/
 on the branch, with the rest of the package changes; say the word and I
 will paste whichever of them you want to look at into a mail instead.
