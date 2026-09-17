@@ -37,7 +37,7 @@ on:
       target:
         description: 'どれを回すか'
         type: choice
-        options: [all, xwpe, fail2ban, zls, lua-socket, gdb7, croc, go]
+        options: [all, xwpe, fail2ban, zls, lua-socket, gdb7, croc, go, openssl]
         default: all
 
 concurrency:
@@ -469,6 +469,24 @@ jobs:
           run: TREE_PATCH=.github/ci/tree-patch-go-bin-openbsd.sh PKGS='' TREE_PKGS='lang/go-bin lang/go127' sh .github/ci/build-on-bsd.sh
           # 持ち帰りの rsync が VM の中で library を見失って落ちる (croc の
           # OpenBSD と同じ)。持ち帰る物は無い。
+          copyback: false
+
+  # security/openssl が OpenBSD/arm64 (手元の HVF 箱) で engines/dasync.so の
+  # link に落ちる (-z defs で libc の symbol が未定義)。amd64 では通っている
+  # ので、同じ物を amd64 で出して比べる。go-bin の arm64 の測定の前提。
+  openssl-openbsd:
+    if: inputs.target == 'openssl'
+    name: openssl on OpenBSD 7.9 x86_64
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          run: PKGS='' TREE_PKGS='security/openssl' sh .github/ci/build-on-bsd.sh
           copyback: false
 
   croc-openbsd:
