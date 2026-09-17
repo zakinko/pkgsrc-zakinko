@@ -1,0 +1,14 @@
+--- cad/dinotrace-mode/Makefile.orig
++++ cad/dinotrace-mode/Makefile
+@@ -18,7 +18,10 @@
+ DEPENDS+=	${EMACS_PKGNAME_PREFIX}verilog-mode>=3.13:../../cad/verilog-mode
+ 
+ # failed to build with emacs28; needs athena widgets which are not enabled by default
+-EMACS_VERSIONS_ACCEPTED=	emacs26 emacs29
++# (emacs26 was in this list until editors/emacs26 was removed; it named an
++# Emacs pkgsrc no longer has, and cost nothing only because emacs29 was
++# beside it)
++EMACS_VERSIONS_ACCEPTED=	emacs29
+ 
+ .include "../../mk/bsd.prefs.mk"
+ .include "../../editors/emacs/modules.mk"

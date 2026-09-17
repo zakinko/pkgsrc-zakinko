@@ -329,6 +329,18 @@ which names the version, the package and what would work.  It is where
 the tree stops today too, though with "No valid Emacs version
 installed found" and no version named.
 
+While I was in those files I tidied one thing that caused the trouble
+in the first place.  Each nox version.mk is a copy of its X11 twin with
+one line changed, and the copied lines are where the rot was; each
+buildlink3.mk then writes the version a third time in
+BUILDLINK_ABI_DEPENDS, on the line after the one that takes it from
+version.mk.  With the nox file including its twin and the ABI floor
+moved into version.mk, the version is written in exactly one place per
+Emacs and cannot disagree with itself:
+
+  editors/emacs29/version.mk      3 lines carry a version
+  editors/emacs29/buildlink3.mk   0
+
 Making EMACS_TYPE a request rather than the answer turns one idiom
 from harmless into wrong, and there is exactly one package using it.
 devel/apel has
@@ -359,13 +371,20 @@ That was true of emacs21 and not of everything: cad/dinotrace-mode has
   EMACS_VERSIONS_ACCEPTED=	emacs26 emacs29
 
 and editors/emacs26 is gone.  It costs nothing today because emacs29 is
-still in the list, which is exactly why it has sat there -- the same
-shape as the version.mk above, a value nobody reads because nothing
-reads it.  With the intersection it simply drops out, and the package
-keeps building for emacs29.  I have not touched the line: the comment
-above it says the package wants athena widgets, and deciding what it
-should accept now is a question for whoever knows that, not a
-mechanical edit.
+still in the list, which is exactly why it has sat there -- a value
+nobody reads because nothing reads it.  The diff takes emacs26 out.
+The comment above it worried me, since it says the package wants athena
+widgets and I did not want to narrow it on a guess, so I built it: with
+the line as emacs29 alone it builds against emacs29-nox11, which has no
+toolkit at all, and the lisp loads.  I have left the comment, because
+it records why the list is short and I have not tried emacs30 or 31.
+
+That build also showed something the file check cannot: the lisp lands
+in share/emacs/29.4/site-lisp/emacs29-dinotrace-mode, the prefix inside
+the directory name, because the install spells ${EMACS_LISPPREFIX}/
+${PKGBASE}.  Its PLIST spells ${PKGBASE} too, so the two agree and
+nothing complains -- green, and named wrong.  It is the same shape as
+cqual and tamago-tsunagi being green in the old shared directory.
 
 One more that is not about placement at all.
 EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
