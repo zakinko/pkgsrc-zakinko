@@ -1,6 +1,6 @@
 --- lang/go-bin/Makefile.orig
 +++ lang/go-bin/Makefile
-@@ -108,6 +108,13 @@
+@@ -108,6 +108,20 @@
  EXTRACT_ONLY+=			${DIST.netbsd-arm64}
  .endif
  
@@ -11,18 +11,28 @@
 +EXTRACT_ONLY+=			${DIST.openbsd-amd64}
 +.endif
 +
++ONLY_FOR_PLATFORM+=		OpenBSD-*-aarch64
++DIST.openbsd-arm64=		go${PKGVERSION_NOREV}.openbsd-arm64.tar.gz
++.if ${MACHINE_PLATFORM:MOpenBSD-*-aarch64} || make(distinfo) || make(mdi)
++DISTFILES+=			${DIST.openbsd-arm64}
++EXTRACT_ONLY+=			${DIST.openbsd-arm64}
++.endif
++
  ONLY_FOR_PLATFORM+=		SunOS-*-x86_64
  DIST.illumos-amd64=		go${PKGVERSION_NOREV}.illumos-amd64.tar.gz
  .if ${MACHINE_PLATFORM:MSunOS-*-x86_64} || make(distinfo) || make(mdi)
 --- lang/go-bin/distinfo.orig
 +++ lang/go-bin/distinfo
-@@ -36,3 +36,6 @@
+@@ -36,3 +36,9 @@
  BLAKE2s (go1.24.11.netbsd-arm64.tar.gz) = 89ff3e26803dda951fa64496576d0d7cb4e9dbf23c189e2686f4e46dcf9add42
  SHA512 (go1.24.11.netbsd-arm64.tar.gz) = 6627f77a54dff6c1701a5869b1c5f20d80e92454f6a7c7e3905acbbc1894cb8cb2ec26847cf85876c7c70d6648441fe12b2ca8197dc8671d325bfa077c83aa55
  Size (go1.24.11.netbsd-arm64.tar.gz) = 74450529 bytes
 +BLAKE2s (go1.24.11.openbsd-amd64.tar.gz) = ea3279e6ab75141abbf0dce95e5b7a74334dab324193d7fb274fb120de4a6976
 +SHA512 (go1.24.11.openbsd-amd64.tar.gz) = 4ec8395849c4e0f09f9e903ecf2c1ccce8bf071baccf0edb531ced1168767ce4fa45c8f84d2e1922be7e3dd2a601633f5d695d5e88326e3cac86c6bf9d9667c9
 +Size (go1.24.11.openbsd-amd64.tar.gz) = 77721717 bytes
++BLAKE2s (go1.24.11.openbsd-arm64.tar.gz) = a9ddf13143c4029f5b22efeb6e4897352be63efe076f888aea800f5e6e3aa9f9
++SHA512 (go1.24.11.openbsd-arm64.tar.gz) = d43332e3f1042de2e178dce758217d64e96252a4c7b45d0b77e79c15389c57bd22962d7cec95bdd920eeb273bfc6342196670aef18951c1a903c8ca471421335
++Size (go1.24.11.openbsd-arm64.tar.gz) = 74016476 bytes
 --- lang/go/bootstrap.mk.orig
 +++ lang/go/bootstrap.mk
 @@ -1,9 +1,13 @@

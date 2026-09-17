@@ -439,15 +439,24 @@ jobs:
   # go-bin が make distinfo と同じ物で入り、go127 がそこから建ち、作った
   # 物が走り、pkglint が増えないことを 7.8 と 7.9 で見る。送る diff と
   # 同じ物 (tree-go-bin-openbsd.diff) を当てる。
+  #
+  # aarch64 も送る diff に入るので、そちらも動かす。vmactions は 7.9 の
+  # aarch64 image を持つが、x86 の runner では TCG で十倍以上遅い。arm の
+  # runner (ubuntu-24.04-arm) は README が「勧めない、もっと遅い」と言う
+  # ので、両方を並べて、通った方を根拠にする。timeout は上限の 6 時間。
   go-openbsd:
     if: inputs.target == 'all' || inputs.target == 'go'
-    name: go-bin/go127 on OpenBSD ${{ matrix.release }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 240
+    name: go-bin/go127 on OpenBSD ${{ matrix.release }} ${{ matrix.arch }} (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
-        release: ['7.8', '7.9']
+        include:
+          - { release: '7.8', arch: x86_64,  runner: ubuntu-latest }
+          - { release: '7.9', arch: x86_64,  runner: ubuntu-latest }
+          - { release: '7.9', arch: aarch64, runner: ubuntu-latest }
+          - { release: '7.9', arch: aarch64, runner: ubuntu-24.04-arm }
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -455,6 +464,7 @@ jobs:
       - uses: vmactions/openbsd-vm@v1
         with:
           release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
           run: TREE_PATCH=.github/ci/tree-patch-go-bin-openbsd.sh PKGS='' TREE_PKGS='lang/go-bin lang/go127' sh .github/ci/build-on-bsd.sh
           # 持ち帰りの rsync が VM の中で library を見失って落ちる (croc の
           # OpenBSD と同じ)。持ち帰る物は無い。
