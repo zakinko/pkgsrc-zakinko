@@ -72,7 +72,23 @@ pkg_delete -f "$PKG" >/dev/null 2>&1 || true
 if $BM DEPENDS_TARGET=package-install install > "$W/build.log" 2>&1; then
 	ok "package が出来て入った"
 else
-	tail -40 "$W/build.log"
+	# tail だけでは bmake の停止連鎖しか映らず、本当のエラーが埋もれる。
+	# DragonFly で実際にそうなった。devel/libuuid が転んで
+	# python313 -> py-flit_core -> ... -> NetworkManager と崩れたのに、
+	# 見えたのは "stopped making" の行だけで、compiler が何と言ったのかは
+	# 一行も残っていなかった。最初の error とその周辺を先に出す。
+	echo "--- 最初の error / fatal ---"
+	grep -nE 'error:|fatal error|Error [0-9]+$' "$W/build.log" | head -8 || true
+	first=$(grep -nE 'error:|fatal error' "$W/build.log" | head -1 | cut -d: -f1)
+	if [ -n "$first" ]; then
+		from=$((first - 20)); [ "$from" -lt 1 ] && from=1
+		echo "--- $from..$((first + 10)) 行 ---"
+		sed -n "${from},$((first + 10))p" "$W/build.log"
+	fi
+	echo "--- どの package で止まったか ---"
+	grep -E 'stopped making' "$W/build.log" | head -8 || true
+	echo "--- 末尾 60 行 ---"
+	tail -60 "$W/build.log"
 	ng "建たない"
 	exit 1
 fi
