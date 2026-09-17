@@ -449,10 +449,24 @@ _EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
 _EMACS_REQD_OTHER=	${_EMACS_REQD_NAME}-nox11
 .endif
 
+# The ABI floor has to be as tolerant as the API one, or a package whose
+# dependency is already satisfied by the nox build is told to build the
+# X11 one instead -- which on a small i386 box means building a compiler
+# for an Emacs that is already installed.  That is how this was found.
+_EMACS_ABI_NAME=	${_EMACS_ABI:C/[<>=].*//}
+_EMACS_ABI_BOUND=	${_EMACS_ABI:C/^[^<>=]*//}
+.if !empty(_EMACS_ABI_NAME:M*-nox11)
+_EMACS_ABI_OTHER=	${_EMACS_ABI_NAME:C/-nox11$//}
+.else
+_EMACS_ABI_OTHER=	${_EMACS_ABI_NAME}-nox11
+.endif
+
 .if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
 _EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
+_EMACS_ABI_ANY=		{${_EMACS_ABI_NAME},${_EMACS_ABI_OTHER}}${_EMACS_ABI_BOUND}
 .else
 _EMACS_REQD_ANY=	${_EMACS_REQD}
+_EMACS_ABI_ANY=		${_EMACS_ABI}
 .endif
 
 DEPENDS+=	${_EMACS_REQD_ANY}:${_EMACS_PKGDIR}
