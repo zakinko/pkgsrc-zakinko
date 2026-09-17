@@ -323,6 +323,29 @@ XEmacs's temp-directory.  I copied three of the nine into the old
 shared site-lisp and required them from there, and they fail with the
 same messages, character for character.
 
+The lisp moves and the info files do not, and that turns out to matter
+more than it sounds.  _EMACS_INFODIR is picked by flavour, not by
+version, so every GNU Emacs gets ${PKGINFODIR} and every XEmacs gets
+lib/xemacs/site-packages/info.  With the version in the name, two
+builds of the same package are two packages that write the same info
+file, and pkg_add stops the second:
+
+  pkg_add: flim-1.14.9nb6: conflicting PLIST with
+           emacs30nox-flim-1.14.9nb6: info/mime-en.info
+
+I hit that by accident -- I was rebuilding flim against the stock
+modules.mk while the emacs30nox one was still installed -- but it is
+the same collision emacs29-flim and emacs30-flim would have, and 30 of
+the 87 install info files.  XEmacs has
+it too: xemacs214 and xemacs215 both give
+lib/xemacs/site-packages/info.
+
+So being able to build every version is not yet being able to install
+them.  Moving info under the version as well is the obvious answer and
+I have not done it, because Emacs finds info through INFOPATH and the
+dir file rather than by looking beside the lisp, so it is a change
+with a second half I would rather agree with you first.
+
 One cost of the second point that I have not seen raised.  Putting the
 prefix in PKGNAME takes the package out of the vulnerability list's
 reach, quietly:
