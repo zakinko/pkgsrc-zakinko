@@ -14,3 +14,22 @@ file-check が「PLIST に在るのに destdir に無い」と言って落ちる
 	editors/tamago   同梱 configure の lispdir (--with-lispdir は受けない)
 
 どちらも一行で直る。
+
+## 建たないので送らないもの
+
+`ecb.diff` は **当てても devel/ecb は建たない。**外へ出す当て物には入れない。
+
+`GITHUB_PROJECT` を足すと fetch と WRKSRC は通るが、次で止まる。
+
+	Symbol's function definition is void: semantic-mode
+
+`ecb-2.50` の `Makefile:89` が compile script に `(semantic-mode 1)` を書く。
+`xemacs-nox11-21.5.36nb1` + `xemacs-packages-1.19nb1` で
+
+	(fboundp 'semantic-mode) → nil      素の状態でも (require 'semantic) の後でも
+
+`devel/ecb` が受けるのは xemacs215/215nox/214/214nox だけなので、**受ける
+Emacs のどれでも byte-compile 出来ない。**当て物は一つ目の壁を越えて二つ目に
+当たるだけで、直したことにならない。
+
+`editors/xemacs-packages` が既に ECB を入れている (lisp/ecb 以下 63 file)。

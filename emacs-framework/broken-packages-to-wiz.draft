@@ -63,9 +63,26 @@ and land on the ${PKGBASE} problem after all:
 With both fixes they build: xemacs-matlab-mode-2.3.1nb4 and
 xemacs-xslide-0.2.2nb4.
 
-devel/ecb is the one worth looking at first, because it takes
-xemacs215 xemacs215nox xemacs214 xemacs214nox and nothing else, so
-there is no version of it that works.
+devel/ecb I could not get to build at all, so there is no patch for it
+below -- what follows is what I found rather than a fix.  Adding
+GITHUB_PROJECT= ecb does get it past the fetch, and it then stops in
+the byte-compile:
+
+  Symbol's function definition is void: semantic-mode
+
+ecb-2.50's own Makefile writes (semantic-mode 1) into the compile
+script, and XEmacs does not have that function -- with
+xemacs-nox11-21.5.36nb1 and xemacs-packages-1.19nb1 installed,
+(fboundp 'semantic-mode) is nil both bare and after (require
+'semantic).  Since the package takes xemacs215, xemacs215nox,
+xemacs214 and xemacs214nox and nothing else, there is no Emacs it
+accepts that can compile it.
+
+While looking I noticed editors/xemacs-packages already installs ECB,
+63 files under lib/xemacs/xemacs-packages/lisp/ecb, so XEmacs users
+have one either way.  Whether devel/ecb should follow ECB upstream,
+depend on the bundled one, or be marked is not mine to decide, which
+is the other reason there is no diff.
 
 cad/dinotrace-mode spells ${PKGBASE} too and is fine.  It is the only
 one of the nine whose PLIST also uses it, so both sides move together,
@@ -219,28 +236,6 @@ that one is a change to an existing patch rather than a new one, and
 its distinfo line moves with it.
 
 Showta
-
---- devel/ecb/Makefile.orig
-+++ devel/ecb/Makefile
-@@ -25,14 +25,14 @@
- 
- INSTALLATION_DIRS+=	\
- 	${PKGINFODIR} \
--	${EMACS_LISPPREFIX}/${PKGBASE}
-+	${EMACS_LISPPREFIX}/ecb
- 
- do-install:
--	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
--	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
-+	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/ecb
-+	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/ecb
- 	${INSTALL_DATA} ${WRKSRC}/info-help/ecb.info* ${DESTDIR}${PREFIX}/${PKGINFODIR}
- 	${TAR} -cf - -C ${WRKSRC} ecb-images | \
--		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
-+		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/ecb
- 
- .include "../../editors/emacs/modules.mk"
- .include "../../mk/bsd.pkg.mk"
 
 --- editors/gnuserv/Makefile.orig
 +++ editors/gnuserv/Makefile
