@@ -1,0 +1,18 @@
+--- devel/apel/Makefile.orig
++++ devel/apel/Makefile
+@@ -40,8 +40,13 @@
+ .include "../../editors/emacs/modules.mk"
+ 
+ PLIST_VARS+=	emacs23 emacs19
+-.if empty(EMACS_TYPE:Mxemacs)
+-.  if !empty(EMACS_TYPE:Memacs2[3-9]*) || !empty(EMACS_TYPE:Memacs3[0-9]*)
++# Ask which Emacs is being built for, not which one the user asked for.
++# They are the same today because EMACS_TYPE is used as the answer, but
++# it is a request, and a package that does not accept it is built for
++# something else -- and then this test reads the request and picks the
++# wrong list.  EMACS_VERSION_MAJOR is the version actually in use.
++.if ${EMACS_FLAVOR} != "xemacs"
++.  if ${EMACS_VERSION_MAJOR} >= 23
+ PLIST.emacs23=	yes
+ .  else
+ PLIST.emacs19=	yes

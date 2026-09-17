@@ -329,6 +329,29 @@ which names the version, the package and what would work.  It is where
 the tree stops today too, though with "No valid Emacs version
 installed found" and no version named.
 
+Making EMACS_TYPE a request rather than the answer turns one idiom
+from harmless into wrong, and there is exactly one package using it.
+devel/apel has
+
+  .if empty(EMACS_TYPE:Mxemacs)
+  .  if !empty(EMACS_TYPE:Memacs2[3-9]*) || !empty(EMACS_TYPE:Memacs3[0-9]*)
+  PLIST.emacs23=	yes
+  .  else
+  PLIST.emacs19=	yes
+
+which reads what the user asked for.  Today that is always what gets
+built, so it is correct by accident.  With the fallback it is not:
+
+  EMACS_TYPE=emacs20     built for emacs29, PLIST.emacs19=yes
+  EMACS_TYPE=xemacs215   built for emacs29, PLIST.emacs19=yes
+
+apel does not accept emacs20 or xemacs, so it is built for emacs29 and
+then given the Emacs 19 packing list.  EMACS_VERSION_MAJOR is the
+version actually in use and six other packages already use it; with
+the test written that way all four inputs give emacs23 and it builds.
+It is the only package in the 87 that tests EMACS_TYPE in a
+condition, so this is one line, not a sweep.
+
 I owe you a correction on the first mail.  I wrote that nothing in
 pkgsrc names an Emacs the tree no longer has, having checked emacs21.
 That was true of emacs21 and not of everything: cad/dinotrace-mode has
