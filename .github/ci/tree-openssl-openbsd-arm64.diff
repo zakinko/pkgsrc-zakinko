@@ -1,0 +1,77 @@
+--- security/openssl/distinfo.orig
++++ security/openssl/distinfo
+@@ -3,5 +3,6 @@
+ BLAKE2s (openssl-3.6.4.tar.gz) = a53beb887698b14996f8a98efb813a7e91b19d304c7b83e7ebfb1aa1ddcebbf2
+ SHA512 (openssl-3.6.4.tar.gz) = 9e7f4039082880357969c0857f33b20a6a4306d1b5e4f8fcbd7ec8dc41edc96e87c526a1db0b8259f5000c4ced84149b03547562ce4f9df35194634a7576dac0
+ Size (openssl-3.6.4.tar.gz) = 55003802 bytes
++SHA1 (patch-Configurations_10-main.conf) = da01e86d1f1914ba56a09b79a5dd00f286519f76
+ SHA1 (patch-Configurations_unix-Makefile.tmpl) = ea9b0a0c8de810362813d84a4f85c5ebdedf9fc6
+-SHA1 (patch-util_perl_OpenSSL_config.pm) = 3ba3c23046bf69c7d348b4c1c8c8269d83cfa2b4
++SHA1 (patch-util_perl_OpenSSL_config.pm) = db0f513b314462771eaf8432250d52cc73a0fe11
+--- security/openssl/patches/patch-util_perl_OpenSSL_config.pm.orig
++++ security/openssl/patches/patch-util_perl_OpenSSL_config.pm
+@@ -4,9 +4,13 @@
+ 
+ fix default platform id (linux-ppc64) for big-endian PowerPC-based Linux
+ 
+---- util/perl/OpenSSL/config.pm.orig	2024-04-09 12:12:22.000000000 +0000
++Pick BSD-nodef-aarch64 on OpenBSD/arm64; the generic arm64 rule matched
++first and gave it the -Wl,-z,defs target, which cannot link the engines
++there (see patch-Configurations_10-main.conf).
++
++--- util/perl/OpenSSL/config.pm.orig	Tue Aug 25 11:48:34 2026
+ +++ util/perl/OpenSSL/config.pm
+-@@ -130,6 +130,7 @@ my $guess_patterns = [
++@@ -130,6 +130,7 @@
+        sub {
+            my $hw = `/usr/sbin/sysctl -n hw.model || /sbin/sysctl -n hw.model`;
+            $hw =~  s@.*(.)86-class.*@i${1}86@;
+@@ -14,7 +18,7 @@
+            return "${hw}-whatever-netbsd";
+        }
+      ],
+-@@ -579,29 +580,7 @@ EOF
++@@ -596,29 +597,7 @@
+                       %config };
+          }
+        ],
+@@ -45,3 +49,11 @@
+        [ 'ppc64le-.*-linux2',      { target => "linux-ppc64le" } ],
+        [ 'ppc-.*-linux2',          { target => "linux-ppc" } ],
+        [ 'mips64.*-*-linux2',
++@@ -826,6 +805,7 @@
++       [ 'x86_64-.*-dragonfly.*',  { target => "BSD-x86_64" } ],
++       [ 'amd64-.*-openbsd.*',     { target => "BSD-nodef-x86_64" } ],
++       [ 'amd64-.*-.*bsd.*',       { target => "BSD-x86_64" } ],
+++      [ 'arm64-.*-openbsd.*',     { target => "BSD-nodef-aarch64" } ],
++       [ 'arm64-.*-.*bsd.*',       { target => "BSD-aarch64" } ],
++       [ 'armv6-.*-.*bsd.*',       { target => "BSD-armv4" } ],
++       [ 'armv7-.*-.*bsd.*',       { target => "BSD-armv4" } ],
+--- /dev/null	2026-09-18 08:10:10
++++ security/openssl/patches/patch-Configurations_10-main.conf
+@@ -0,0 +1,25 @@
++$NetBSD$
++
++Add a BSD-nodef-aarch64 target and let ./config pick it on OpenBSD/arm64,
++the way amd64 already gets BSD-nodef-x86_64.  OpenBSD's cc -shared does not
++link libc, so the -Wl,-z,defs that the BSD-* targets put on the engine DSOs
++fails with undefined strcmp/memcpy/write/read/pipe/close; the -nodef
++targets exist for exactly that.
++
++--- Configurations/10-main.conf.orig	Thu Sep 17 20:48:47 2026
+++++ Configurations/10-main.conf
++@@ -1261,6 +1261,14 @@
++         perlasm_scheme   => "elf",
++     },
++ 
+++    "BSD-nodef-aarch64" => {
+++        inherit_from     => [ "BSD-nodef-generic64" ],
+++        lib_cppflags     => add("-DL_ENDIAN"),
+++        bn_ops           => "SIXTY_FOUR_BIT_LONG",
+++        asm_arch         => 'aarch64',
+++        perlasm_scheme   => "linux64",
+++    },
+++
++ #### SCO/Caldera targets.
++ #
++ # Originally we had like unixware-*, unixware-*-pentium, unixware-*-p6, etc.

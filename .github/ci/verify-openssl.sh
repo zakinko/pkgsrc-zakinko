@@ -43,5 +43,9 @@ fi
 echo "  -- dasync.so の link (wrapper の前と後)"
 grep -n 'dasync\.so' "$WRK/.work.log" 2>/dev/null | head -2 | cut -c1-500 | sed 's/^/     /'
 grep -n -i 'dasync' "$T/openssl-install.log" | grep -v '^.*\.o' | head -3 | cut -c1-200 | sed 's/^/     /'
+grep -n 'for target' "$T/openssl-install.log" | head -1 | sed 's/^/  /'
+_hints=$(ldconfig -r 2>/dev/null | sed -n 's/.*search directories: //p')
+echo "  ld.so.hints: $_hints"
+case "$_hints" in */usr/local/lib*) : ;; *) echo "!! ld.so.hints から /usr/local/lib が消えた"; rc=1 ;; esac
 [ $rc -eq 0 ] && echo "RESULT: openssl は建つ" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc

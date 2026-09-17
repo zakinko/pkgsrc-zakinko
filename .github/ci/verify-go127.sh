@@ -98,5 +98,17 @@ else
 	echo "  (pkglint が入らなかった。見ない)"; tail -5 "$T/pkglint-install.log"
 fi
 
+if [ "$(uname -s)" = OpenBSD ]; then
+	# devel/ncurses の configure が ldconfig -v で /var/run/ld.so.hints を
+	# /usr/lib だけに書き換えていた。連鎖の途中で ncurses が建った後も
+	# /usr/local/lib が残っているか。無いと vmactions の持ち帰りの rsync が
+	# library を見失って死ぬ。
+	_hints=$(ldconfig -r | sed -n 's/.*search directories: //p')
+	echo "  ld.so.hints: $_hints"
+	case "$_hints" in
+	*/usr/local/lib*) echo "  ok /usr/local/lib が残っている" ;;
+	*) echo "!! ld.so.hints から /usr/local/lib が消えた"; rc=1 ;;
+	esac
+fi
 [ $rc -eq 0 ] && echo "RESULT: go127 は go-bin から建ち、作った物が走る" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc

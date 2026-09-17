@@ -466,10 +466,10 @@ jobs:
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          run: TREE_PATCH=.github/ci/tree-patch-go-bin-openbsd.sh PKGS='' TREE_PKGS='lang/go-bin lang/go127' sh .github/ci/build-on-bsd.sh
-          # 持ち帰りの rsync が VM の中で library を見失って落ちる (croc の
-          # OpenBSD と同じ)。持ち帰る物は無い。
-          copyback: false
+          # 木の直しは三つ: go-bin (本題)、openssl (arm64 の連鎖の底)、ncurses
+          # (configure の ldconfig -v が ld.so.hints を潰す)。ncurses の直しが
+          # 効けば持ち帰りの rsync も死なないので、copyback を戻して測る。
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='lang/go-bin lang/go127' sh .github/ci/build-on-bsd.sh
 
   # security/openssl が OpenBSD/arm64 (手元の HVF 箱) で engines/dasync.so の
   # link に落ちる (-z defs で libc の symbol が未定義)。amd64 では通っている
@@ -486,8 +486,10 @@ jobs:
       - uses: vmactions/openbsd-vm@v1
         with:
           release: '7.9'
-          run: PKGS='' TREE_PKGS='security/openssl' sh .github/ci/build-on-bsd.sh
-          copyback: false
+          # amd64 では元から建つ。当て物が amd64 でも当たり、target の選択が
+          # 変わらず (BSD-nodef-x86_64) 建つことを見る。ncurses も同じ木で
+          # 建て、ld.so.hints が残るかを verify-openssl.sh の末尾で見る。
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='devel/ncurses security/openssl' sh .github/ci/build-on-bsd.sh
 
   croc-openbsd:
     if: inputs.target == 'all' || inputs.target == 'croc'
