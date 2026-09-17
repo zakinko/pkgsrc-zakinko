@@ -52,12 +52,12 @@
  #
  
 -_EMACS_TYPE=	${EMACS_TYPE}
-+EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
- 
--EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
+-
+ EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
 -.if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
 -PKG_FAIL_REASON+=		"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
 -PKG_FAIL_REASON+=		"No valid Emacs version installed found"
++
 +# The Emacs this machine uses when the package does not care.  EMACS_TYPE
 +# is the name this has always had; keep honouring it.
 +EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
@@ -130,8 +130,8 @@
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
 +.else
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
-+.endif
-+
+ .endif
+ 
 +# When pkgsrc resolves a dependency it passes the pattern it is looking
 +# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
 +# part of the name, that pattern says which Emacs the package asking for
@@ -148,8 +148,8 @@
 +EMACS_VERSION_REQD?=	${_ev_}
 +.    endif
 +.  endfor
- .endif
- 
++.endif
++
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 +.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
@@ -223,7 +223,30 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -313,7 +476,25 @@
+@@ -306,14 +469,47 @@
+ #
+ 
+ EMACS_FLAVOR=		${_EMACS_FLAVOR}
+-EMACS_BIN=		${PREFIX}/bin/${_EMACS_FLAVOR}
++# Build with the Emacs the package is being built for, not with whichever
++# one owns bin/emacs.  Today the two are the same thing because only one
++# Emacs can be installed at a time, but that is an accident of the Emacs
++# packages colliding, and it makes "build this for emacs29" quietly run
++# emacs30 the moment they stop.  Both flavours already install a
++# versioned binary; GNU Emacs names it after the version, XEmacs adds a
++# beta suffix (xemacs-21.5-b36), so version.mk can say when it differs.
++# GNU Emacs installs bin/emacs-29.4 and bin/emacs-30.2 and makes
++# bin/emacs a symlink to one of them, so the name follows from the
++# version.  XEmacs adds a beta suffix (bin/xemacs-21.5-b36) that does
++# not, so it keeps the plain name until its version.mk can say; there is
++# only ever one XEmacs of a series installed anyway.
++_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
++_EMACS_BIN_NAME.xemacs=	xemacs
++_EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
++EMACS_BIN=		${PREFIX}/bin/${_EMACS_BIN_NAME}
+ EMACS_VERSION_MAJOR=	${_EMACS_VERSION_MAJOR}
+ EMACS_VERSION_MINOR=	${_EMACS_VERSION_MINOR}
+ EMACS_VERSION_MICRO=	${_EMACS_VERSION_MICRO}
  EMACS_ETCPREFIX=	${PREFIX}/${_EMACS_ETCDIR.${_EMACS_FLAVOR}}
  EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
  EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
@@ -250,7 +273,7 @@
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
  
-@@ -354,7 +535,12 @@
+@@ -354,7 +550,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

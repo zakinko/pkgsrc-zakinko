@@ -469,7 +469,22 @@ DEPENDS+=	${_EMACS_PKGDEP.${_mod_}}
 #
 
 EMACS_FLAVOR=		${_EMACS_FLAVOR}
-EMACS_BIN=		${PREFIX}/bin/${_EMACS_FLAVOR}
+# Build with the Emacs the package is being built for, not with whichever
+# one owns bin/emacs.  Today the two are the same thing because only one
+# Emacs can be installed at a time, but that is an accident of the Emacs
+# packages colliding, and it makes "build this for emacs29" quietly run
+# emacs30 the moment they stop.  Both flavours already install a
+# versioned binary; GNU Emacs names it after the version, XEmacs adds a
+# beta suffix (xemacs-21.5-b36), so version.mk can say when it differs.
+# GNU Emacs installs bin/emacs-29.4 and bin/emacs-30.2 and makes
+# bin/emacs a symlink to one of them, so the name follows from the
+# version.  XEmacs adds a beta suffix (bin/xemacs-21.5-b36) that does
+# not, so it keeps the plain name until its version.mk can say; there is
+# only ever one XEmacs of a series installed anyway.
+_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
+_EMACS_BIN_NAME.xemacs=	xemacs
+_EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
+EMACS_BIN=		${PREFIX}/bin/${_EMACS_BIN_NAME}
 EMACS_VERSION_MAJOR=	${_EMACS_VERSION_MAJOR}
 EMACS_VERSION_MINOR=	${_EMACS_VERSION_MINOR}
 EMACS_VERSION_MICRO=	${_EMACS_VERSION_MICRO}

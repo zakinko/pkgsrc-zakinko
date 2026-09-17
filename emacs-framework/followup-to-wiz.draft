@@ -376,8 +376,16 @@ file, and pkg_add stops the second:
   pkg_add: emacs29-skk-17.1nb2: conflicting PLIST with
            emacs30-skk-17.1nb2: info/skk.info
 
-That is inputmethod/skk built for emacs30 and the same package for
-emacs29, and 30 of the 87 install info files.  I first hit it by
+That is inputmethod/skk built twice, once against each Emacs, and 30
+of the 87 install info files.  Getting as far as being able to run
+that took three other things first, and they are worth listing because
+each was invisible while only one Emacs could be installed:
+editors/emacs29-nox11/version.mk still says 29.1 although the package
+it builds is 29.4, so the lisp went to share/emacs/29.1/site-lisp and
+the build's load path pointed at a directory that does not exist;
+EMACS_BIN is ${PREFIX}/bin/${_EMACS_FLAVOR}, so building for emacs29
+byte-compiled with whichever Emacs owned bin/emacs, which was 30.2;
+and the two Emacs packages themselves will not coexist.  I first hit it by
 accident, rebuilding flim against the stock modules.mk while the
 prefixed one was still installed, which is the same collision wearing
 different names.  The two apels sat side by side happily through
