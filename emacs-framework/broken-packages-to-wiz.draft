@@ -229,8 +229,22 @@ this line left over from when bbdb3 accepted xemacs, or is there a
 collision I am not seeing?  If it is the former I am happy to send the
 one-line removal.
 
+Everything below was built with the diff in place, on NetBSD
+11.0/amd64, against xemacs-nox11-21.5.36nb1 and xemacs-packages-1.19nb1
+where the package takes XEmacs and emacs30-nox11-30.2nb1 where it takes
+Emacs:
+
+  xemacs-gnuserv-3.12.8        xemacs-matlab-mode-2.3.1nb4
+  xemacs-dictem-1.0.4nb3       xemacs-xslide-0.2.2nb4
+  emacs30nox-semi-1.14.6nb8    mu-1.14.3
+
+For mail/mu I also opened the package: it has both mu4e-dbus.el and
+mu4e-dbus.elc, this Emacs has (featurep 'dbusbind) nil, and the .elc
+loads with the mu4e directory on load-path.
+
 The diffs are below.  I checked them in check mode against trunk as of
-2026-09-17: they apply with no offset and no fuzz.
+2026-09-17: they apply with no offset and no fuzz, in the order given
+and reversed.
 For mail/mu the file patches/patch-mu4e_meson.build already exists, so
 that one is a change to an existing patch rather than a new one, and
 its distinfo line moves with it.
