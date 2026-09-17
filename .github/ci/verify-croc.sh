@@ -135,7 +135,12 @@ echo
 echo "########## 2. relay を立てて送受信 ##########"
 if [ $rc -eq 0 ]; then
 	D=$T/croc-run; rm -rf "$D"; mkdir -p "$D/send" "$D/recv" "$D/home"
-	head -c 300000 /dev/urandom > "$D/send/payload.bin"
+	# head -c は OpenBSD の head に無い。そこでは payload が空のまま送られ、
+	# 空と空の cksum が一致して ok と出た (run 35153723523)。dd で作り、
+	# 送る前に大きさを確かめる。
+	dd if=/dev/urandom of="$D/send/payload.bin" bs=1000 count=300 2>/dev/null
+	_size=$(wc -c < "$D/send/payload.bin" | tr -d ' ')
+	[ "$_size" = 300000 ] || { echo "!! payload が $_size byte しか無い"; rc=1; }
 	_before=$(cksum < "$D/send/payload.bin")
 	HOME=$D/home; export HOME
 	"$PREFIX/bin/croc" relay --ports 19009,19010,19011 > "$D/relay.log" 2>&1 & RP=$!
@@ -152,8 +157,11 @@ if [ $rc -eq 0 ]; then
 	if [ -f "$D/recv/payload.bin" ]; then
 		_after=$(cksum < "$D/recv/payload.bin")
 		echo "  cksum: $_before -> $_after"
-		[ "$_before" = "$_after" ] && echo "  ok 300000 byte が relay 越しに同じ中身で届いた" ||
-			{ echo "!! 中身が違う"; rc=1; }
+		if [ "$_before" = "$_after" ] && [ "$_size" = 300000 ]; then
+			echo "  ok 300000 byte が relay 越しに同じ中身で届いた"
+		else
+			echo "!! 中身が違う、または送った物が 300000 byte でない"; rc=1
+		fi
 	else
 		echo "!! 受け取った file が無い"; rc=1
 		echo "  -- send.log"; tail -5 "$D/send.log"; echo "  -- recv.log"; tail -5 "$D/recv.log"

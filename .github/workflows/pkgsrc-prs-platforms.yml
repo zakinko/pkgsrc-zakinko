@@ -457,7 +457,15 @@ jobs:
           # (run 35125854518)。OpenBSD 自身の go (7.9 は 1.26.2) を入れて
           # GOROOT_BOOTSTRAP に指す。bootstrap.mk はそれが在れば go14 を
           # 引かない。
-          prepare: /usr/sbin/pkg_add go
+          #
+          # 入れたあとに rsync が liblz4.so.3.3 を見失い、持ち帰りの段が
+          # rsync error code 12 で落ちた (同じ run)。何が動いたかを見えるよう
+          # にし、rsync が動かなくなっていたら lz4 と rsync を揃え直す。
+          prepare: |
+            /usr/sbin/pkg_add -v go
+            /usr/sbin/pkg_info -I go lz4 rsync-- 2>&1 || true
+            ldd /usr/local/bin/rsync > /dev/null 2>&1 || /usr/sbin/pkg_add -v -u lz4 rsync--
+            ldd /usr/local/bin/rsync | grep -i lz4 || true
           run: MKCONF_EXTRA='GOROOT_BOOTSTRAP=	/usr/local/go' PKGS='croc' sh .github/ci/build-on-bsd.sh
 
   croc-dragonfly:
