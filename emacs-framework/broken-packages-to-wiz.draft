@@ -236,7 +236,7 @@ Emacs:
 
   xemacs-gnuserv-3.12.8        xemacs-matlab-mode-2.3.1nb4
   xemacs-dictem-1.0.4nb3       xemacs-xslide-0.2.2nb4
-  emacs30nox-semi-1.14.6nb8    mu-1.14.3
+  semi-1.14.6nb8               mu-1.14.3
 
 For mail/mu I also opened the package: it has both mu4e-dbus.el and
 mu4e-dbus.elc, this Emacs has (featurep 'dbusbind) nil, and the .elc

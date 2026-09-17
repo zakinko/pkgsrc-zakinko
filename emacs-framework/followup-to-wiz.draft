@@ -334,9 +334,11 @@ file, and pkg_add stops the second:
            emacs30nox-flim-1.14.9nb6: info/mime-en.info
 
 I hit that by accident -- I was rebuilding flim against the stock
-modules.mk while the emacs30nox one was still installed -- but it is
-the same collision emacs29-flim and emacs30-flim would have, and 30 of
-the 87 install info files.  XEmacs has
+modules.mk while the emacs30nox one was still installed.  It is worth
+saying that the two apels sat side by side perfectly happily through
+all of this, because apel installs no info file and flim installs two.
+It is the same collision emacs29-flim and emacs30-flim would have, and
+30 of the 87 install info files.  XEmacs has
 it too: xemacs214 and xemacs215 both give
 lib/xemacs/site-packages/info.
 
