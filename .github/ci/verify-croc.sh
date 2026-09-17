@@ -94,8 +94,9 @@ $PKGMAKE clean > /dev/null 2>&1
 if $PKGMAKE $MKARGS install > "$T/croc-install.log" 2>&1; then
 	echo "  ok install"
 	# go の連鎖の底が go-bin か go14 か。OpenBSD は go14 では始まれない。
-	grep -E '===> Installing dependencies for (go-bin|go14|go[0-9]+)-' "$T/croc-install.log" |
-		sed 's/.*for /  bootstrap: /' | tr '\n' ' ' | sed 's/ $/\n/'
+	_chain=$(grep -E '===> Installing dependencies for (go-bin|go14|go[0-9]+)-' "$T/croc-install.log" |
+		sed 's/.*for //' | tr '\n' ' ')
+	[ -n "$_chain" ] && echo "  go の連鎖: $_chain"
 else
 	echo "FAIL: install が落ちた"; rc=1
 	# どの依存の中で落ちたかが要る。checking や Checksum の行は捨てる。
