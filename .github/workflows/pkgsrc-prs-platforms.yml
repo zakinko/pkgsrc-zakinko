@@ -475,7 +475,7 @@ jobs:
   # link に落ちる (-z defs で libc の symbol が未定義)。amd64 では通っている
   # ので、同じ物を amd64 で出して比べる。go-bin の arm64 の測定の前提。
   openssl-openbsd:
-    if: inputs.target == 'openssl'
+    if: inputs.target == 'go' || inputs.target == 'openssl'
     name: openssl on OpenBSD 7.9 x86_64
     runs-on: ubuntu-latest
     timeout-minutes: 180
