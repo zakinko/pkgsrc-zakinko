@@ -1,0 +1,201 @@
+diff -ruN orig/lang/go/go-module.mk new/lang/go/go-module.mk
+--- orig/lang/go/go-module.mk	2026-09-18 12:44:59
++++ new/lang/go/go-module.mk	2026-09-18 12:44:59
+@@ -133,8 +133,8 @@
+ _VARGROUPS+=		go
+ _PKG_VARS.go=		GOFLAGS GO_BUILD_PATTERN GO_MODULE_FILES \
+ 			GO_EXTRA_MOD_DIRS
+-_USER_VARS.go=		GO_VERSION_DEFAULT
+-_SYS_VARS.go=		GO GO_VERSION GOVERSSUFFIX GOARCH GOCHAR \
++_USER_VARS.go=		GO_VERSION_DEFAULT GO_TYPE
++_SYS_VARS.go=		GO GO_DIR GO_VERSION GOVERSSUFFIX GOARCH GOCHAR \
+ 			GOOPT GOTOOLDIR GO_PLATFORM GO_CACHE_DIR
+ _DEF_VARS.go=		GO14_VERSION GO19_VERSION GO110_VERSION \
+ 			GO111_VERSION INSTALLATION_DIRS _MAKE_JOBS_N \
+diff -ruN orig/lang/go/go-package.mk new/lang/go/go-package.mk
+--- orig/lang/go/go-package.mk	2026-09-18 12:43:31
++++ new/lang/go/go-package.mk	2026-09-18 12:44:51
+@@ -65,7 +65,7 @@
+ 
+ TOOL_DEPENDS+=		${GO_PACKAGE_DEP}
+ 
+-GOTOOLDIR=		go${GOVERSSUFFIX}/pkg/tool/${GO_PLATFORM}
++GOTOOLDIR=		${GO_DIR}/pkg/tool/${GO_PLATFORM}
+ 
+ PRINT_PLIST_AWK+=	/^@pkgdir bin$$/ { next; }
+ PRINT_PLIST_AWK+=	/^@pkgdir gopkg$$/ { next; }
+@@ -127,8 +127,8 @@
+ 
+ _VARGROUPS+=		go
+ _PKG_VARS.go=		GO_SRCPATH GO_DIST_BASE GO_BUILD_PATTERN
+-_USER_VARS.go=		GO_VERSION_DEFAULT
+-_SYS_VARS.go=		GO GO_VERSION GOVERSSUFFIX GOARCH GOCHAR \
++_USER_VARS.go=		GO_VERSION_DEFAULT GO_TYPE
++_SYS_VARS.go=		GO GO_DIR GO_VERSION GOVERSSUFFIX GOARCH GOCHAR \
+ 			GOOPT GOTOOLDIR GO_PLATFORM GO_CACHE_DIR
+ _USE_VARS.go=		GO_PACKAGE_DEP \
+ 			WRKDIR BUILDLINK_DIR DESTDIR PREFIX \
+diff -ruN orig/lang/go/version.mk new/lang/go/version.mk
+--- orig/lang/go/version.mk	2026-09-18 12:43:31
++++ new/lang/go/version.mk	2026-09-18 12:44:20
+@@ -26,11 +26,23 @@
+ GOVERSSUFFIX=		${GO_VERSION_DEFAULT}
+ .endif
+ 
+-# How to find the Go tool
+-GO=			${TOOLBASE}/go${GOVERSSUFFIX}/bin/go
++# GO_TYPE selects which Go toolchain builds Go packages: "src" is the
++# lang/go${GOVERSSUFFIX} package, built from source, and "bin" is the
++# upstream binary release from lang/go-bin.  A package that pins a
++# particular release with GO_VERSION_REQD needs that release and stays
++# on "src".
++GO_TYPE?=		src
+ 
+-# Build dependency for Go
++.if ${GO_TYPE} == "bin" && !defined(GO_VERSION_REQD)
++GO_DIR=			go-bin
++GO_PACKAGE_DEP=		go-bin>=${GO${GOVERSSUFFIX}_VERSION:R}:../../lang/go-bin
++.else
++GO_DIR=			go${GOVERSSUFFIX}
+ GO_PACKAGE_DEP=		go${GOVERSSUFFIX}-${GO${GOVERSSUFFIX}_VERSION}*:../../lang/go${GOVERSSUFFIX}
++.endif
++
++# How to find the Go tool
++GO=			${TOOLBASE}/${GO_DIR}/bin/go
+ 
+ #ONLY_FOR_PLATFORM?=	*-*-i386 *-*-x86_64 *-*-earmv[67]hf *-*-aarch64
+ 
+diff -ruN orig/lang/go-bin/Makefile new/lang/go-bin/Makefile
+--- orig/lang/go-bin/Makefile	2026-09-18 12:43:32
++++ new/lang/go-bin/Makefile	2026-09-18 12:45:22
+@@ -1,6 +1,6 @@
+ # $NetBSD: Makefile,v 1.25 2025/12/23 19:19:36 bsiegert Exp $
+ 
+-PKGNAME=	go-bin-1.24.11
++PKGNAME=	go-bin-1.27.1
+ CATEGORIES=	lang
+ MASTER_SITES=	https://dl.google.com/go/
+ 
+@@ -99,6 +99,20 @@
+ .if ${MACHINE_PLATFORM:MLinux-*-aarch64} || make(distinfo) || make(mdi)
+ DISTFILES+=			${DIST.linux-arm64}
+ EXTRACT_ONLY+=			${DIST.linux-arm64}
++.endif
++
++ONLY_FOR_PLATFORM+=		NetBSD-*-i386
++DIST.netbsd-386=		go${PKGVERSION_NOREV}.netbsd-386.tar.gz
++.if ${MACHINE_PLATFORM:MNetBSD-*-i386} || make(distinfo) || make(mdi)
++DISTFILES+=			${DIST.netbsd-386}
++EXTRACT_ONLY+=			${DIST.netbsd-386}
++.endif
++
++ONLY_FOR_PLATFORM+=		NetBSD-*-x86_64
++DIST.netbsd-amd64=		go${PKGVERSION_NOREV}.netbsd-amd64.tar.gz
++.if ${MACHINE_PLATFORM:MNetBSD-*-x86_64} || make(distinfo) || make(mdi)
++DISTFILES+=			${DIST.netbsd-amd64}
++EXTRACT_ONLY+=			${DIST.netbsd-amd64}
+ .endif
+ 
+ ONLY_FOR_PLATFORM+=		NetBSD-*-aarch64
+diff -ruN orig/lang/go-bin/distinfo new/lang/go-bin/distinfo
+--- orig/lang/go-bin/distinfo	2026-09-18 12:43:33
++++ new/lang/go-bin/distinfo	2026-09-18 14:24:35
+@@ -1,38 +1,44 @@
+ $NetBSD: distinfo,v 1.14 2025/12/23 19:19:36 bsiegert Exp $
+ 
+-BLAKE2s (go1.24.11.darwin-amd64.tar.gz) = a22eed5cee6b31364302a0832ce6eb9dcbc655f659020ffe5dd80357ee314169
+-SHA512 (go1.24.11.darwin-amd64.tar.gz) = f8bf8f69e04d481d89d11dd4cf6fff4fb53e6360cb4f5cc62086ae151e6a24e4f2c251839b43d76dcd664ac39e99afdb69814b6d34f4a095d5747a5f1789691e
+-Size (go1.24.11.darwin-amd64.tar.gz) = 80140733 bytes
+-BLAKE2s (go1.24.11.darwin-arm64.tar.gz) = 621ac387a8760d0798a6f6696cf3a9c394cd665ded09ed38e2e19fd0eec78903
+-SHA512 (go1.24.11.darwin-arm64.tar.gz) = 0b56a49d7d23efb4e30114c5fb78a7505ec5d30b8a8ad4b02d90c4c36ce33e0b17ed67368a35d57e8232567a7ea25180e7e10a2403a5b0e778e48a606c485aa3
+-Size (go1.24.11.darwin-arm64.tar.gz) = 76439336 bytes
+-BLAKE2s (go1.24.11.freebsd-386.tar.gz) = bd52f3ab2c80df48a69c98d5b093cbad2c2520b838eee7ec4d4f62cbe267b767
+-SHA512 (go1.24.11.freebsd-386.tar.gz) = 42bdf5f0031e409c9a7d017e253ca0d89d6cf596b456c2cbe30d88d1e943d447ab5d31686525076b126f89b4ff8545dd7841a7138d8d6dfd4c15d9a87e9259e9
+-Size (go1.24.11.freebsd-386.tar.gz) = 76263649 bytes
+-BLAKE2s (go1.24.11.freebsd-amd64.tar.gz) = 66d24e944a0f188aa493f04a14c92d27e76e18469b57a2864df2864d5c21be94
+-SHA512 (go1.24.11.freebsd-amd64.tar.gz) = 96458ed755307a19a19d042cc8eeb84c2eb9d3adfc3a04376fc3bae06b995b0af4b7965549f986f4a9ffdc4e58fe866e2b3b6a4bc9c99531d0825516aea95956
+-Size (go1.24.11.freebsd-amd64.tar.gz) = 78376101 bytes
+-BLAKE2s (go1.24.11.freebsd-arm.tar.gz) = 707b40a62ac1b2bd8143f65ff12125fadd55fe68c3db728ce2517e8ee38b23fb
+-SHA512 (go1.24.11.freebsd-arm.tar.gz) = 659daca6f143906da800ff10717cdcd22eb7ca7d0c7c78806fdb1884663e93fe869a8f1f449d790942dd95bb014728274c51d056f8e769157ed2a4e968006b8f
+-Size (go1.24.11.freebsd-arm.tar.gz) = 76294024 bytes
+-BLAKE2s (go1.24.11.freebsd-arm64.tar.gz) = a7abc2d8d4f8c30a466d9ab14861e8f8986ebee3492163dc755fc731af900ad3
+-SHA512 (go1.24.11.freebsd-arm64.tar.gz) = 5211b423e29e59a6c065ffdf31c38c7851cb5f6d040e87d06799b4d44605b4a47c478c3a81687dde8a6df72fd63116df2b2f02ea80db7132b97a0a4a53682ab2
+-Size (go1.24.11.freebsd-arm64.tar.gz) = 74583405 bytes
+-BLAKE2s (go1.24.11.illumos-amd64.tar.gz) = bc7e27a378e6571147a3119f214fecde8bd49d8f3754f0a1cef3651aee44b9a3
+-SHA512 (go1.24.11.illumos-amd64.tar.gz) = bbe7e4e5462274de7d0faf21c0e019bbcf3273ab4e5f3f129b3eb98d37fdf357d67eebff7db93cc059bb74241493260e05cebc6eba92ff39f0ca90f5755a7ce5
+-Size (go1.24.11.illumos-amd64.tar.gz) = 77906329 bytes
+-BLAKE2s (go1.24.11.linux-386.tar.gz) = 45a7407d16c3e68982984e8190033a7628f0c6c19f7807661372504bea881eec
+-SHA512 (go1.24.11.linux-386.tar.gz) = f92618784bafffaf893f879109b6231d28a384f1a417386fc238be5aeecaab7ca812b3aeacf58a096359c3860f6ff94b3e94080e27ff54dadec90149cd6573ea
+-Size (go1.24.11.linux-386.tar.gz) = 76614370 bytes
+-BLAKE2s (go1.24.11.linux-amd64.tar.gz) = 80732d822358a8d503a0df7dd4a774f4277e9beb442b5360458a9c46f2f533b1
+-SHA512 (go1.24.11.linux-amd64.tar.gz) = c3cc8674035fd0316ec4a93ac80016015035908d46d20665cb0e62de2fce3db9afb2def482a6b530d480081c4b2030f794a5ee90b91e877ca5b0e2bc4b33c280
+-Size (go1.24.11.linux-amd64.tar.gz) = 78702669 bytes
+-BLAKE2s (go1.24.11.linux-arm64.tar.gz) = e9fd0c44ca009c4d2c8ec4d2ddf4c85de483cd1c8b588acc4aaccbedad4d75c2
+-SHA512 (go1.24.11.linux-arm64.tar.gz) = fcdf90d23452a9f5d3cbab2a9a99150c91f8b8be2d89999bda199442fac186bebb69c98bb8e29792e757896ffc3ea7306f5443e2c43a425ade0f5701adf2605a
+-Size (go1.24.11.linux-arm64.tar.gz) = 74944582 bytes
+-BLAKE2s (go1.24.11.linux-armv6l.tar.gz) = 354bcd30b21a5cfb72c71dba66ac2e6c0b7e1f91d9d6799fd13d58b3f2ba79f1
+-SHA512 (go1.24.11.linux-armv6l.tar.gz) = 6733b69616fb0106e973857bbb0031dfb3bd0e51e3ee8c76b72d5fc2bf9d726391e0c26e64aa815f06ac0a8c0e228cd1040f4784920529cdcb8b7268860bdd49
+-Size (go1.24.11.linux-armv6l.tar.gz) = 76861178 bytes
+-BLAKE2s (go1.24.11.netbsd-arm64.tar.gz) = 89ff3e26803dda951fa64496576d0d7cb4e9dbf23c189e2686f4e46dcf9add42
+-SHA512 (go1.24.11.netbsd-arm64.tar.gz) = 6627f77a54dff6c1701a5869b1c5f20d80e92454f6a7c7e3905acbbc1894cb8cb2ec26847cf85876c7c70d6648441fe12b2ca8197dc8671d325bfa077c83aa55
+-Size (go1.24.11.netbsd-arm64.tar.gz) = 74450529 bytes
++BLAKE2s (go1.27.1.darwin-amd64.tar.gz) = 311ed1021e0c9034a9243e1380bec85be70fb0b2a4434c37c254c8cb30f7b117
++SHA512 (go1.27.1.darwin-amd64.tar.gz) = 03a0d208ee1dfc57b4aa207ef68d086227f2beb9c6222d195c6147eb3abbf6e0be4dd184eccbeb1cb8b08ccd77d7c1d8abec407a2998ed1a3a117fe6e08a20a0
++Size (go1.27.1.darwin-amd64.tar.gz) = 71621873 bytes
++BLAKE2s (go1.27.1.darwin-arm64.tar.gz) = 932fd870f6185f66dde1e4715fb2068297a84b13d6f5f4cc0279b9dd68954ec1
++SHA512 (go1.27.1.darwin-arm64.tar.gz) = dfe53518835a4b15d2d662ffe665b52811d2b0bf1abfdf6e45bf9137eea7ac5aef085582f10076329f0a612b65a563d1b9ce97e8fc9bfc573f02887397fafc2e
++Size (go1.27.1.darwin-arm64.tar.gz) = 68100347 bytes
++BLAKE2s (go1.27.1.freebsd-386.tar.gz) = a39239ad0a9d022591c78fd31f31ef6eccd9e2c42a88c25094766d1e5cc5b032
++SHA512 (go1.27.1.freebsd-386.tar.gz) = d1698a226d66f4db35e01795710e62a5342fbee9a4bd2369ccefd5c9929961b5a75c2c3fb10775fc17579f261deaeb83bb0cb844c5db4e5d71c06df3ece49d22
++Size (go1.27.1.freebsd-386.tar.gz) = 68334657 bytes
++BLAKE2s (go1.27.1.freebsd-amd64.tar.gz) = 2df0aeac0c737160af4c880570899c92f3b4eb3dfaeb99d583df434078d04eb5
++SHA512 (go1.27.1.freebsd-amd64.tar.gz) = 049808b04be53c617edf97fe26ee14ce4f931db3801781a4cd68b751654ca1423f33754bc86ed913cd3672220173ecff9ec14b50174bede5c8a6c49219afe825
++Size (go1.27.1.freebsd-amd64.tar.gz) = 70221912 bytes
++BLAKE2s (go1.27.1.freebsd-arm.tar.gz) = 8e7129b35edac2824590d3ab0a572955c252a452cc084cfc0a929dc4379850d6
++SHA512 (go1.27.1.freebsd-arm.tar.gz) = dc03a867bdd2e4243e872230aef6613dbfa1825be136931eb855ba3abee174b5d4c71790d405b2ff86debf8b62652d827964978095af2fb7e5115067a96ecbbb
++Size (go1.27.1.freebsd-arm.tar.gz) = 68381756 bytes
++BLAKE2s (go1.27.1.freebsd-arm64.tar.gz) = 7369313edb05eca1c5add19299abb3348b0bb3c15ad483a52907afbf5716f8a8
++SHA512 (go1.27.1.freebsd-arm64.tar.gz) = 28dbc8aa7d51a237d58d9241ced3ff8e83383e537595724d303750fb7c3f1279666ca6daf8b0798ef714c6753043b76053dfeccfb53a8efd33f310070871061b
++Size (go1.27.1.freebsd-arm64.tar.gz) = 66695818 bytes
++BLAKE2s (go1.27.1.illumos-amd64.tar.gz) = b8bed88120bb520453e1c21a0b711cce63bdf90652a9488c1416b7f2878c3585
++SHA512 (go1.27.1.illumos-amd64.tar.gz) = b570a66fb8edbe14a28d22f98022640c38d9fb53a75e8335ebff82407f99941d0a4e518697a5055d057bd4823aba418bb455034ee01b53ed202884a7da8ebd1d
++Size (go1.27.1.illumos-amd64.tar.gz) = 70021954 bytes
++BLAKE2s (go1.27.1.linux-386.tar.gz) = dbe5b66a134e4fbb723a8c05d1d3b8ae0931bb12fb7dc09f80d2608af448e764
++SHA512 (go1.27.1.linux-386.tar.gz) = 9f901fe90ce0faf9bb3c8ecfd7e7920796f59bb32ba88899cb255d916bc39df95ccc1ddb4f8972e34f47435ab2fd60353b49b0bc9647a48b8f23999d186e4b68
++Size (go1.27.1.linux-386.tar.gz) = 68698442 bytes
++BLAKE2s (go1.27.1.linux-amd64.tar.gz) = 9e894752b6919f9220931f47cce40b7a2e7a92c408c7cbf5a53a0e180bee0250
++SHA512 (go1.27.1.linux-amd64.tar.gz) = 3f63b31c8675e10535d132138176a9606f9008690e73e064dbee5b0c852588e9292732c1fcf79ec9e9b369a2b053a77123eef609e98905f8062cafc90f541735
++Size (go1.27.1.linux-amd64.tar.gz) = 70553950 bytes
++BLAKE2s (go1.27.1.linux-arm64.tar.gz) = 066498f5bdb21d907c69c0b45cb1c56f396a501392be9f82dac653b795de8292
++SHA512 (go1.27.1.linux-arm64.tar.gz) = d3f19c6b9554f076c481bf58f86483df996087976307fe1e5e59b937a7c0d18f7852f9dad2bdb388aafa3a7075d1d4f349faa23b9ed94b62e3abaf7537ad3a0b
++Size (go1.27.1.linux-arm64.tar.gz) = 67009954 bytes
++BLAKE2s (go1.27.1.linux-armv6l.tar.gz) = 88119e0eda4464051e1f47229e29b435d4f8ce757eafbc9f2152ae93e521eaa7
++SHA512 (go1.27.1.linux-armv6l.tar.gz) = d74a25ec52250a84e77b8fa8db607203c639476d755558fa3da10ee6697b3fac651508d085f1394af3cb758f8ecaf95678da17c0e9887de51fbf7b27d72e43b6
++Size (go1.27.1.linux-armv6l.tar.gz) = 68968196 bytes
++BLAKE2s (go1.27.1.netbsd-386.tar.gz) = 12edacc4dcbd8f0997395110d407606e94dbc374a02c4307992260b737baf35e
++SHA512 (go1.27.1.netbsd-386.tar.gz) = 05818d2d5ca6938f46463b1275881c49cc98a1e4bf24dad88616e3b1c5d0fd20e43afcebec8ce87fec5ee0be988e581079226e8da469cc2bd1f637535ccc9c04
++Size (go1.27.1.netbsd-386.tar.gz) = 68269870 bytes
++BLAKE2s (go1.27.1.netbsd-amd64.tar.gz) = d7ed2af3540ace6a0254d7897cf03b0398b61f823cc1bb17becfece448c21c4d
++SHA512 (go1.27.1.netbsd-amd64.tar.gz) = d85e110faa48dfdc6bb66078a49ebebf5779974d2f38229db07902550a233d64e28f9a625ac3c9adef0220e371947c17492fc2a6308897fe5485e8b1a311a2cf
++Size (go1.27.1.netbsd-amd64.tar.gz) = 70148597 bytes
++BLAKE2s (go1.27.1.netbsd-arm64.tar.gz) = f7beed23b59c8c22444536282241cae821af5c087fedf64741bb4650b4390b4a
++SHA512 (go1.27.1.netbsd-arm64.tar.gz) = 21e12398b889764a64db8aed5e063167125c5afb890f02b5d5fe80b72f81c450a6b2190af1206c42c0924415bfc41b624f79c935e047e45db93621186f4ca1fd
++Size (go1.27.1.netbsd-arm64.tar.gz) = 66632373 bytes
+diff -ruN orig/mk/defaults/mk.conf new/mk/defaults/mk.conf
+--- orig/mk/defaults/mk.conf	2026-09-18 12:43:33
++++ new/mk/defaults/mk.conf	2026-09-18 12:45:22
+@@ -1086,6 +1086,14 @@
+ # Possible:	any user name
+ # Default:	${GAMES_USER}
+ 
++#GO_TYPE?=	src
++# Used by Go packages to decide whether the Go toolchain is built from
++# source (lang/go${GO_VERSION_DEFAULT}) or installed from the upstream
++# binary release (lang/go-bin).  Packages that pin a release with
++# GO_VERSION_REQD always build it from source.
++# Possible: src bin
++# Default: src
++
+ #GRUB_NETWORK_CARDS=
+ # Compile netboot support for the listed network interface cards into GRUB.
+ # Use e.g. "rtl8139" for RealTek 8139 support or "eepro100 epic100" for

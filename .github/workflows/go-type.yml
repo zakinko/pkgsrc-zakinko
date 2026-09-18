@@ -1,0 +1,159 @@
+name: GO_TYPE=bin (platforms)
+
+# lang/go の GO_TYPE=bin (Go の package を lang/go-bin の上流 binary で
+# 建てる knob) と、それに要る go-bin 1.24.11 -> 1.27.1 の bump を、
+# pkgsrc に送る前に NetBSD 以外の platform で動かす。
+#
+# NetBSD の i386 と x86_64 は bambi と techne で通してある
+# (zakinko-doc の NetBSD-i386/go-type-bin.md)。ここで見るのは bump が
+# 触る残りの platform で、go-bin の distinfo に載る 14 本のうち、箱の
+# ある物。
+#
+#   Linux   x86_64 / aarch64 / i386     runner (i386 は 32bit container)
+#   Darwin  aarch64 / x86_64            runner
+#   FreeBSD x86_64 / aarch64            vmactions (aarch64 は TCG で遅い)
+#   illumos x86_64                      vmactions/omnios-vm
+#
+# 無いのは FreeBSD i386 / arm、Linux armv6l、NetBSD aarch64。
+# FreeBSD i386 は run-freebsd-i386.sh の道があるが、あちらは mule 用の
+# 口なので、要るなら別に足す。
+#
+# 検査は verify-fzf.sh。木に tree-patch-go-type.sh で当て物をし、
+# mk.conf に GO_TYPE=bin を書いて sysutils/fzf を建て、go-bin が
+# toolchain として使われた (go1xx を要求せず、binary が go-bin の版を
+# 名乗る) ことを見る。
+#
+# 手で起動する。go-bin の tarball は一つ 60-80MB、perl と bash も建つ。
+
+on:
+  # 既定 branch に無い workflow は workflow_dispatch で起動できない。
+  # main を触らずに済むよう、この branch への push でも回す。
+  push:
+    branches: [go-type]
+    paths:
+      - .github/workflows/go-type.yml
+      - .github/ci/tree-patch-go-type.sh
+      - .github/ci/tree-patches/go-type.diff
+      - .github/ci/verify-fzf.sh
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'どれを回すか'
+        type: choice
+        options: [all, linux, darwin, freebsd, illumos]
+        default: all
+
+concurrency:
+  group: go-type-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TREE_PATCH: .github/ci/tree-patch-go-type.sh
+  TREE_PKGS: sysutils/fzf
+  PKGS: ''
+
+jobs:
+  linux:
+    if: github.event_name == 'push' || inputs.target == 'all' || inputs.target == 'linux'
+    name: Linux ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86_64,  runner: ubuntu-latest,    image: 'debian:13' }
+          - { arch: aarch64, runner: ubuntu-24.04-arm, image: 'debian:13' }
+          # 32bit の container。kernel は 64bit なので uname -m が x86_64 を
+          # 返し、bootstrap が amd64 だと思い込む。linux32 で personality を
+          # 変えて i686 にする。
+          - { arch: i386,    runner: ubuntu-latest,    image: 'i386/debian:13', setarch: linux32 }
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash patch util-linux
+      - name: 建てて確かめる
+        run: |
+          PKGSRC_BASE=/tmp ${{ matrix.setarch }} sh .github/ci/build-on-bsd.sh
+
+  darwin:
+    if: github.event_name == 'push' || inputs.target == 'all' || inputs.target == 'darwin'
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: aarch64, runner: macos-15 }
+          - { arch: x86_64,  runner: macos-15-intel }
+    env:
+      # Darwin は /usr が SIP で書けない。build-on-bsd.sh が prefix を
+      # /opt/pkg に寄せるので、木も /opt へ。
+      PKGSRC_BASE: /opt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: go-type-darwin-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: go-type-darwin-${{ matrix.arch }}-
+      - name: 建てて確かめる
+        run: sudo -E sh .github/ci/build-on-bsd.sh
+      - name: キャッシュを持ち帰れるようにする
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .bsdcache 2>/dev/null || true
+
+  freebsd:
+    if: github.event_name == 'push' || inputs.target == 'all' || inputs.target == 'freebsd'
+    name: FreeBSD ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86_64,  vmarch: '' }
+          # host と違う arch は TCG。perl を建てる分がまるごと遅い。
+          - { arch: aarch64, vmarch: aarch64 }
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: go-type-freebsd-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: go-type-freebsd-${{ matrix.arch }}-
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          arch: ${{ matrix.vmarch }}
+          envs: 'TREE_PATCH TREE_PKGS PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  illumos:
+    if: github.event_name == 'push' || inputs.target == 'all' || inputs.target == 'illumos'
+    name: illumos x86_64 (OmniOS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: go-type-illumos-${{ github.run_id }}
+          restore-keys: go-type-illumos-
+      - uses: vmactions/omnios-vm@v1
+        with:
+          release: 'r151058'
+          envs: 'TREE_PATCH TREE_PKGS PKGS'
+          # 素の OmniOS にコンパイラは無い。bootstrap がまず転ぶので入れる。
+          prepare: |
+            pkg install developer/gcc14 developer/build/gnu-make || true
+          run: sh .github/ci/build-on-bsd.sh
