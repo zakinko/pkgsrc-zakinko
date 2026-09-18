@@ -284,7 +284,12 @@ _EMACS_PKGDIR_MAP= \
 	xemacs215@../../editors/xemacs-current \
 	xemacs215nox@../../editors/xemacs-current-nox11
 
-_EMACS_ETCDIR.emacs=		share
+# Data installed beside the lisp moves with it.  mail/mew and math/ess
+# are the two that use this, and both bake the path into the package at
+# build time (etcdir=, INSTALLATION_DIRS), so nothing has to be told
+# where it went -- unlike info, which Emacs looks for at run time.
+# Without this, emacs29-mew and emacs30-mew would both write share/mew.
+_EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
 _EMACS_INFODIR.emacs=		${PKGINFODIR}
 # Put the lisp under the version directory of the Emacs it was built
 # for.  Emacs already searches share/emacs/<version>/site-lisp, so what

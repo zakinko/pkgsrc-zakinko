@@ -556,6 +556,29 @@ all of it, because apel installs no info file and flim installs two.
 XEmacs has the same shape: xemacs214 and xemacs215 both give
 lib/xemacs/site-packages/info.
 
+Three other variables are picked the same way and I have taken two of
+them with the lisp.  EMACS_ETCPREFIX was share, so emacs29-mew and
+emacs30-mew would both write share/mew; it is now
+share/emacs/<version>/etc, which is safe because the two packages that
+use it (mail/mew, math/ess) have the path baked in at build time and
+nothing has to be told where it went.  EMACS_BIN was
+${PREFIX}/bin/${_EMACS_FLAVOR}, so building for emacs29 byte-compiled
+with whichever Emacs owned bin/emacs; it is now the versioned binary
+for GNU Emacs.  XEmacs keeps the plain name, and that is not an
+oversight I have left lying: 21.5 installs bin/xemacs-21.5-b36 but
+21.4 installs no versioned executable at all, only a
+bin/xemacs-21.4.25-<hash>.dmp, so there is nothing to point at.  I
+built 21.4 here to find that out rather than guess a name.
+
+The third is EMACS_INFOPREFIX, and that one I have left alone on
+purpose.  Info is found at run time, not baked in:
+Info-default-directory-list comes from the Emacs's own --infodir and
+the only runtime lever is INFOPATH.  Moving the elisp packages' info
+under the version would put it somewhere Emacs does not look.  It also
+would not be the first collision there -- 66 of the 93 files the two
+Emacs packages share are their own info files -- so it is the same
+change as making the Emacsen coexist rather than a separate one.
+
 So being able to build every version is not yet being able to install
 them.  Moving info under the version as well is the obvious answer and
 I have not done it, because Emacs finds info through INFOPATH and the

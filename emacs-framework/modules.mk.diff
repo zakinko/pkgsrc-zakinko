@@ -78,9 +78,17 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -253,7 +286,10 @@
+@@ -251,9 +284,17 @@
+ 	xemacs215@../../editors/xemacs-current \
+ 	xemacs215nox@../../editors/xemacs-current-nox11
  
- _EMACS_ETCDIR.emacs=		share
+-_EMACS_ETCDIR.emacs=		share
++# Data installed beside the lisp moves with it.  mail/mew and math/ess
++# are the two that use this, and both bake the path into the package at
++# build time (etcdir=, INSTALLATION_DIRS), so nothing has to be told
++# where it went -- unlike info, which Emacs looks for at run time.
++# Without this, emacs29-mew and emacs30-mew would both write share/mew.
++_EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
  _EMACS_INFODIR.emacs=		${PKGINFODIR}
 -_EMACS_LISPDIR.emacs=		share/emacs/site-lisp
 +# Put the lisp under the version directory of the Emacs it was built
@@ -90,7 +98,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,14 +312,135 @@
+@@ -276,14 +317,135 @@
  #		abort;
  #
  
@@ -173,8 +181,8 @@
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
 +.else
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
- .endif
- 
++.endif
++
 +# When pkgsrc resolves a dependency it passes the pattern it is looking
 +# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
 +# part of the name, that pattern says which Emacs the package asking for
@@ -191,8 +199,8 @@
 +EMACS_VERSION_REQD?=	${_ev_}
 +.    endif
 +.  endfor
-+.endif
-+
+ .endif
+ 
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 +.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
@@ -231,7 +239,7 @@
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
  
  .include "${_EMACS_PKGDIR}/version.mk"
-@@ -292,8 +449,62 @@
+@@ -292,8 +454,62 @@
  # Dependencies and conflicts
  #
  
@@ -295,7 +303,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,14 +517,47 @@
+@@ -306,14 +522,47 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -345,7 +353,7 @@
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
  
-@@ -354,7 +598,12 @@
+@@ -354,7 +603,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
