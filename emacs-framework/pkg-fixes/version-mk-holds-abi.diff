@@ -60,3 +60,16 @@
  _EMACS_PKGDEP.base=	xemacs-packages>=1.15:../../editors/xemacs-packages
  _EMACS_PKGDEP.leim=
  
+--- editors/emacs20/version.mk.orig
++++ editors/emacs20/version.mk
+@@ -2,6 +2,10 @@
+ 
+ _EMACS_FLAVOR=		emacs
+ _EMACS_REQD=		emacs20>=20.7<21
++
++# The floor the buildlink file used to write out again.  One Emacs, one
++# place that says which version it is.
++_EMACS_ABI=			emacs20>=20.7nb26
+ _EMACS_PKGDEP.base=
+ _EMACS_PKGDEP.leim=	leim>=20.${EMACS_VERSION_MINOR}<21:../../editors/leim20
+ 
