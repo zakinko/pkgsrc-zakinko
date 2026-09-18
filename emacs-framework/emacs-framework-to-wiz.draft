@@ -560,8 +560,11 @@ Three other variables are picked the same way and I have taken two of
 them with the lisp.  EMACS_ETCPREFIX was share, so emacs29-mew and
 emacs30-mew would both write share/mew; it is now
 share/emacs/<version>/etc, which is safe because the two packages that
-use it (mail/mew, math/ess) have the path baked in at build time and
-nothing has to be told where it went.  EMACS_BIN was
+use it have the path baked in at build time and nothing has to be told
+where it went.  math/ess spells ${EMACS_ETCPREFIX} on both sides and
+needs nothing; mail/mew passes it to the build but writes share/mew in
+its PLIST, so it wants the one-line change the three lisp ones wanted,
+and the diff is below.  EMACS_BIN was
 ${PREFIX}/bin/${_EMACS_FLAVOR}, so building for emacs29 byte-compiled
 with whichever Emacs owned bin/emacs; it is now the versioned binary
 for GNU Emacs.  XEmacs keeps the plain name, and that is not an
@@ -867,6 +870,79 @@ Showta
 +	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
  
  .include "../../mk/bsd.pkg.mk"
+
+--- mail/mew/PLIST.orig
++++ mail/mew/PLIST
+@@ -153,36 +153,36 @@
+ ${EMACS_LISPPREFIX}/mew/mew-win32.el
+ ${EMACS_LISPPREFIX}/mew/mew.el
+ ${EMACS_LISPPREFIX}/mew/mew.elc
+-share/mew/Mew.img
+-share/mew/Mew.png
+-share/mew/Mew.xbm
+-share/mew/Mew.xpm
+-share/mew/mew-Audio.xpm
+-share/mew/mew-Blank.xpm
+-share/mew/mew-External.xpm
+-share/mew/mew-Folder.xpm
+-share/mew/mew-Image.xpm
+-share/mew/mew-Octet-Stream.xpm
+-share/mew/mew-Postscript.xpm
+-share/mew/mew-Rfc822.xpm
+-share/mew/mew-Text.xpm
+-share/mew/mew-Unknown.xpm
+-share/mew/mew-Video.xpm
+-share/mew/mew-attach.xpm
+-share/mew/mew-cite.xpm
+-share/mew/mew-forward.xpm
+-share/mew/mew-inc.xpm
+-share/mew/mew-lock.xpm
+-share/mew/mew-next.xpm
+-share/mew/mew-pgp-enc.xpm
+-share/mew/mew-pgp-sigenc.xpm
+-share/mew/mew-pgp-sign.xpm
+-share/mew/mew-prev.xpm
+-share/mew/mew-queue.xpm
+-share/mew/mew-refile.xpm
+-share/mew/mew-reply.xpm
+-share/mew/mew-send.xpm
+-share/mew/mew-sep.xpm
+-share/mew/mew-show.xpm
+-share/mew/mew-write.xpm
+-share/mew/mew-yank.xpm
++${EMACS_ETCPREFIX}/mew/Mew.img
++${EMACS_ETCPREFIX}/mew/Mew.png
++${EMACS_ETCPREFIX}/mew/Mew.xbm
++${EMACS_ETCPREFIX}/mew/Mew.xpm
++${EMACS_ETCPREFIX}/mew/mew-Audio.xpm
++${EMACS_ETCPREFIX}/mew/mew-Blank.xpm
++${EMACS_ETCPREFIX}/mew/mew-External.xpm
++${EMACS_ETCPREFIX}/mew/mew-Folder.xpm
++${EMACS_ETCPREFIX}/mew/mew-Image.xpm
++${EMACS_ETCPREFIX}/mew/mew-Octet-Stream.xpm
++${EMACS_ETCPREFIX}/mew/mew-Postscript.xpm
++${EMACS_ETCPREFIX}/mew/mew-Rfc822.xpm
++${EMACS_ETCPREFIX}/mew/mew-Text.xpm
++${EMACS_ETCPREFIX}/mew/mew-Unknown.xpm
++${EMACS_ETCPREFIX}/mew/mew-Video.xpm
++${EMACS_ETCPREFIX}/mew/mew-attach.xpm
++${EMACS_ETCPREFIX}/mew/mew-cite.xpm
++${EMACS_ETCPREFIX}/mew/mew-forward.xpm
++${EMACS_ETCPREFIX}/mew/mew-inc.xpm
++${EMACS_ETCPREFIX}/mew/mew-lock.xpm
++${EMACS_ETCPREFIX}/mew/mew-next.xpm
++${EMACS_ETCPREFIX}/mew/mew-pgp-enc.xpm
++${EMACS_ETCPREFIX}/mew/mew-pgp-sigenc.xpm
++${EMACS_ETCPREFIX}/mew/mew-pgp-sign.xpm
++${EMACS_ETCPREFIX}/mew/mew-prev.xpm
++${EMACS_ETCPREFIX}/mew/mew-queue.xpm
++${EMACS_ETCPREFIX}/mew/mew-refile.xpm
++${EMACS_ETCPREFIX}/mew/mew-reply.xpm
++${EMACS_ETCPREFIX}/mew/mew-send.xpm
++${EMACS_ETCPREFIX}/mew/mew-sep.xpm
++${EMACS_ETCPREFIX}/mew/mew-show.xpm
++${EMACS_ETCPREFIX}/mew/mew-write.xpm
++${EMACS_ETCPREFIX}/mew/mew-yank.xpm
 
 --- mail/mu/patches/patch-mu4e_meson.build.orig
 +++ mail/mu/patches/patch-mu4e_meson.build
