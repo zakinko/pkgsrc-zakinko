@@ -173,8 +173,8 @@
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
 +.else
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
-+.endif
-+
+ .endif
+ 
 +# When pkgsrc resolves a dependency it passes the pattern it is looking
 +# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
 +# part of the name, that pattern says which Emacs the package asking for
@@ -191,8 +191,8 @@
 +EMACS_VERSION_REQD?=	${_ev_}
 +.    endif
 +.  endfor
- .endif
- 
++.endif
++
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 +.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
@@ -231,7 +231,7 @@
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
  
  .include "${_EMACS_PKGDIR}/version.mk"
-@@ -292,8 +449,47 @@
+@@ -292,8 +449,62 @@
  # Dependencies and conflicts
  #
  
@@ -259,6 +259,13 @@
 +# dependency is already satisfied by the nox build is told to build the
 +# X11 one instead -- which on a small i386 box means building a compiler
 +# for an Emacs that is already installed.  That is how this was found.
++# A version.mk that does not say gets the API requirement as its floor
++# rather than nothing.  Leaving it empty is how the floor for emacs20
++# disappeared once: the buildlink file was changed to read this variable
++# while its version.mk had not been given one, and an empty
++# BUILDLINK_ABI_DEPENDS is not an error -- it is simply no check at all.
++_EMACS_ABI?=		${_EMACS_REQD}
++
 +_EMACS_ABI_NAME=	${_EMACS_ABI:C/[<>=].*//}
 +_EMACS_ABI_BOUND=	${_EMACS_ABI:C/^[^<>=]*//}
 +.if !empty(_EMACS_ABI_NAME:M*-nox11)
@@ -269,7 +276,15 @@
 +
 +.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
 +_EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
++.  if !empty(_EMACS_ABI_NAME)
 +_EMACS_ABI_ANY=		{${_EMACS_ABI_NAME},${_EMACS_ABI_OTHER}}${_EMACS_ABI_BOUND}
++.  else
++# Never build the pair out of nothing: {,-nox11} is a pattern that looks
++# like a check and matches nothing.  Better to fail loudly than to ship a
++# package whose floor is a typo.
++PKG_FAIL_REASON+=	"_EMACS_ABI is empty; ${_EMACS_PKGDIR}/version.mk must set it"
++_EMACS_ABI_ANY=		${_EMACS_REQD_ANY}
++.  endif
 +.else
 +_EMACS_REQD_ANY=	${_EMACS_REQD}
 +_EMACS_ABI_ANY=		${_EMACS_ABI}
@@ -280,7 +295,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,14 +502,47 @@
+@@ -306,14 +517,47 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -330,7 +345,7 @@
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
  
-@@ -354,7 +583,12 @@
+@@ -354,7 +598,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

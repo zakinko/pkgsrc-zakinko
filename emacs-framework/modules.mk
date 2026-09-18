@@ -472,6 +472,13 @@ _EMACS_REQD_OTHER=	${_EMACS_REQD_NAME}-nox11
 # dependency is already satisfied by the nox build is told to build the
 # X11 one instead -- which on a small i386 box means building a compiler
 # for an Emacs that is already installed.  That is how this was found.
+# A version.mk that does not say gets the API requirement as its floor
+# rather than nothing.  Leaving it empty is how the floor for emacs20
+# disappeared once: the buildlink file was changed to read this variable
+# while its version.mk had not been given one, and an empty
+# BUILDLINK_ABI_DEPENDS is not an error -- it is simply no check at all.
+_EMACS_ABI?=		${_EMACS_REQD}
+
 _EMACS_ABI_NAME=	${_EMACS_ABI:C/[<>=].*//}
 _EMACS_ABI_BOUND=	${_EMACS_ABI:C/^[^<>=]*//}
 .if !empty(_EMACS_ABI_NAME:M*-nox11)
@@ -482,7 +489,15 @@ _EMACS_ABI_OTHER=	${_EMACS_ABI_NAME}-nox11
 
 .if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
 _EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
+.  if !empty(_EMACS_ABI_NAME)
 _EMACS_ABI_ANY=		{${_EMACS_ABI_NAME},${_EMACS_ABI_OTHER}}${_EMACS_ABI_BOUND}
+.  else
+# Never build the pair out of nothing: {,-nox11} is a pattern that looks
+# like a check and matches nothing.  Better to fail loudly than to ship a
+# package whose floor is a typo.
+PKG_FAIL_REASON+=	"_EMACS_ABI is empty; ${_EMACS_PKGDIR}/version.mk must set it"
+_EMACS_ABI_ANY=		${_EMACS_REQD_ANY}
+.  endif
 .else
 _EMACS_REQD_ANY=	${_EMACS_REQD}
 _EMACS_ABI_ANY=		${_EMACS_ABI}
