@@ -78,19 +78,26 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -251,9 +284,17 @@
+@@ -251,9 +284,23 @@
  	xemacs215@../../editors/xemacs-current \
  	xemacs215nox@../../editors/xemacs-current-nox11
  
 -_EMACS_ETCDIR.emacs=		share
+-_EMACS_INFODIR.emacs=		${PKGINFODIR}
+-_EMACS_LISPDIR.emacs=		share/emacs/site-lisp
 +# Data installed beside the lisp moves with it.  mail/mew and math/ess
 +# are the two that use this, and both bake the path into the package at
 +# build time (etcdir=, INSTALLATION_DIRS), so nothing has to be told
 +# where it went -- unlike info, which Emacs looks for at run time.
 +# Without this, emacs29-mew and emacs30-mew would both write share/mew.
 +_EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
- _EMACS_INFODIR.emacs=		${PKGINFODIR}
--_EMACS_LISPDIR.emacs=		share/emacs/site-lisp
++# Info goes under the version with the lisp.  Unlike the lisp, Emacs does
++# not find it by itself: Info-default-directory-list is built from the
++# Emacs's own --infodir when it is configured, and the only runtime lever
++# is INFOPATH.  The Emacs packages install a site-start.el beside their
++# site-lisp that adds ../info to the list, which is the receiving half of
++# this.  Without that half the files land where nothing looks.
++_EMACS_INFODIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info
 +# Put the lisp under the version directory of the Emacs it was built
 +# for.  Emacs already searches share/emacs/<version>/site-lisp, so what
 +# lands there is seen by that Emacs and by no other.
@@ -98,7 +105,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,14 +317,135 @@
+@@ -276,14 +323,135 @@
  #		abort;
  #
  
@@ -239,7 +246,7 @@
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
  
  .include "${_EMACS_PKGDIR}/version.mk"
-@@ -292,8 +454,62 @@
+@@ -292,8 +460,62 @@
  # Dependencies and conflicts
  #
  
@@ -303,7 +310,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,14 +522,47 @@
+@@ -306,14 +528,47 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -353,7 +360,7 @@
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
  
-@@ -354,7 +603,12 @@
+@@ -354,7 +609,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

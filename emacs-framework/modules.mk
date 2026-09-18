@@ -290,7 +290,13 @@ _EMACS_PKGDIR_MAP= \
 # where it went -- unlike info, which Emacs looks for at run time.
 # Without this, emacs29-mew and emacs30-mew would both write share/mew.
 _EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
-_EMACS_INFODIR.emacs=		${PKGINFODIR}
+# Info goes under the version with the lisp.  Unlike the lisp, Emacs does
+# not find it by itself: Info-default-directory-list is built from the
+# Emacs's own --infodir when it is configured, and the only runtime lever
+# is INFOPATH.  The Emacs packages install a site-start.el beside their
+# site-lisp that adds ../info to the list, which is the receiving half of
+# this.  Without that half the files land where nothing looks.
+_EMACS_INFODIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info
 # Put the lisp under the version directory of the Emacs it was built
 # for.  Emacs already searches share/emacs/<version>/site-lisp, so what
 # lands there is seen by that Emacs and by no other.
