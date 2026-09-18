@@ -1,6 +1,6 @@
 --- editors/emacs/modules.mk.orig
 +++ editors/emacs/modules.mk
-@@ -61,6 +61,16 @@
+@@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
  #
@@ -17,7 +17,50 @@
  #	EMACS_VERSIONS_ACCEPTED
  #		Description:
  #			Versions the ELP accepts (supports).
-@@ -233,10 +243,14 @@
++#
++#			Naming emacs30 accepts emacs30nox as well: they are
++#			one Emacs built two ways, and no package in the tree
++#			installs a different file list for the two.  Write
++#			both halves if you like; it makes no difference.  A
++#			package that really does need one of them says so in
++#			EMACS_VERSIONS_INCOMPATIBLE.
+ #		Possible values:
+-#			emacs31 emacs31nox
+-#			emacs30 emacs30nox
+-#			emacs29 emacs29nox
+-#			emacs20 xemacs215 xemacs215nox
+-#			xemacs214 xemacs214nox
++#			emacs31 emacs30 emacs29 emacs20
++#			xemacs215 xemacs214
++#			(each also accepting its nox build; append nox to
++#			name one of the two on its own)
+ #		Default value:
+ #			emacs31 emacs31nox
+ #			emacs30 emacs30nox
+@@ -131,8 +147,21 @@
+ #		Description:
+ #			The prefix of PKGNAME and DEPENDS lines.  All ELPs
+ #			must honour this!
++#
++#			It carries the version, not the flavour, so that one
++#			bulk build can make the same package for every Emacs
++#			and the name says which one it was made for.  The two
++#			builds of one Emacs share it: emacs30 and
++#			emacs30-nox11 conflict with each other and install
++#			their lisp in the same directory, so emacs30-foo
++#			serves either.  A package that refuses one of the two
++#			(EMACS_VERSIONS_INCOMPATIBLE) is a different thing and
++#			gets the longer name.
+ #		Possible values:
+-#			"", "xemacs-"
++#			"emacs20-", "emacs29-", "emacs30-", "emacs31-",
++#			"xemacs214-", "xemacs215-"
++#			and, for a package that takes only the nox build,
++#			"emacs30-nox11-" and so on
+ #
+ #	EMACS_VERSION_MAJOR
+ #		Description:
+@@ -233,10 +262,14 @@
  # Constants
  #
  
@@ -35,7 +78,7 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -253,7 +267,10 @@
+@@ -253,7 +286,10 @@
  
  _EMACS_ETCDIR.emacs=		share
  _EMACS_INFODIR.emacs=		${PKGINFODIR}
@@ -47,7 +90,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,14 +293,135 @@
+@@ -276,14 +312,135 @@
  #		abort;
  #
  
@@ -130,8 +173,8 @@
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
 +.else
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
- .endif
- 
++.endif
++
 +# When pkgsrc resolves a dependency it passes the pattern it is looking
 +# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
 +# part of the name, that pattern says which Emacs the package asking for
@@ -148,8 +191,8 @@
 +EMACS_VERSION_REQD?=	${_ev_}
 +.    endif
 +.  endfor
-+.endif
-+
+ .endif
+ 
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 +.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
@@ -188,7 +231,7 @@
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
  
  .include "${_EMACS_PKGDIR}/version.mk"
-@@ -292,8 +430,47 @@
+@@ -292,8 +449,47 @@
  # Dependencies and conflicts
  #
  
@@ -237,7 +280,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,14 +483,47 @@
+@@ -306,14 +502,47 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -287,7 +330,7 @@
  
  GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
  
-@@ -354,7 +564,12 @@
+@@ -354,7 +583,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

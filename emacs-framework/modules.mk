@@ -74,12 +74,18 @@
 #	EMACS_VERSIONS_ACCEPTED
 #		Description:
 #			Versions the ELP accepts (supports).
+#
+#			Naming emacs30 accepts emacs30nox as well: they are
+#			one Emacs built two ways, and no package in the tree
+#			installs a different file list for the two.  Write
+#			both halves if you like; it makes no difference.  A
+#			package that really does need one of them says so in
+#			EMACS_VERSIONS_INCOMPATIBLE.
 #		Possible values:
-#			emacs31 emacs31nox
-#			emacs30 emacs30nox
-#			emacs29 emacs29nox
-#			emacs20 xemacs215 xemacs215nox
-#			xemacs214 xemacs214nox
+#			emacs31 emacs30 emacs29 emacs20
+#			xemacs215 xemacs214
+#			(each also accepting its nox build; append nox to
+#			name one of the two on its own)
 #		Default value:
 #			emacs31 emacs31nox
 #			emacs30 emacs30nox
@@ -141,8 +147,21 @@
 #		Description:
 #			The prefix of PKGNAME and DEPENDS lines.  All ELPs
 #			must honour this!
+#
+#			It carries the version, not the flavour, so that one
+#			bulk build can make the same package for every Emacs
+#			and the name says which one it was made for.  The two
+#			builds of one Emacs share it: emacs30 and
+#			emacs30-nox11 conflict with each other and install
+#			their lisp in the same directory, so emacs30-foo
+#			serves either.  A package that refuses one of the two
+#			(EMACS_VERSIONS_INCOMPATIBLE) is a different thing and
+#			gets the longer name.
 #		Possible values:
-#			"", "xemacs-"
+#			"emacs20-", "emacs29-", "emacs30-", "emacs31-",
+#			"xemacs214-", "xemacs215-"
+#			and, for a package that takes only the nox build,
+#			"emacs30-nox11-" and so on
 #
 #	EMACS_VERSION_MAJOR
 #		Description:
