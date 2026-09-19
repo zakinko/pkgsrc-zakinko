@@ -1,0 +1,11 @@
+--- devel/doxymacs/Makefile.orig
++++ devel/doxymacs/Makefile
+@@ -24,7 +24,7 @@
+ .if ${EMACS_FLAVOR} == xemacs
+ DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
+ .elif ${EMACS_VERSION_MAJOR} <= 21
+-DEPENDS+=	w3-[0-9]*:../../www/w3
++DEPENDS+=	${EMACS_PKGNAME_PREFIX}w3-[0-9]*:../../www/w3
+ .endif
+ 
+ GNU_CONFIGURE=		yes
