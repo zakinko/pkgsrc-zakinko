@@ -1,10 +1,11 @@
 --- devel/pcl-cvs/Makefile.orig
 +++ devel/pcl-cvs/Makefile
-@@ -23,6 +23,7 @@
+@@ -23,6 +23,8 @@
  .endif
  
  INSTALL_MAKE_FLAGS+=	PREFIX=${DESTDIR:Q}${PREFIX:Q}
 +INSTALL_MAKE_FLAGS+=	lispdir=${DESTDIR:Q}${EMACS_LISPPREFIX:Q}
++INSTALL_MAKE_FLAGS+=	infodir=${DESTDIR:Q}${PREFIX:Q}/${PKGINFODIR}
  
  BUILD_TARGET=	default
  INFO_FILES=	yes
