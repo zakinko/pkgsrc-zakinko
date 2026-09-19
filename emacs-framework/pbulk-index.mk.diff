@@ -1,0 +1,20 @@
+--- mk/pbulk/pbulk-index.mk.orig
++++ mk/pbulk/pbulk-index.mk
+@@ -16,12 +16,16 @@
+ #	_PBULK_MULTI_VAR.foo forces a specific version
+ #	_PBULK_MULTI_DEFAULT.foo contains the default value
+ 
+-_PBULK_MULTI?=	apache lua mysql php postgresql python rails ruby
++_PBULK_MULTI?=	apache emacs lua mysql php postgresql python rails ruby
+ 
+ _PBULK_MULTI_LIST.apache=	PKG_APACHE_ACCEPTED
+ _PBULK_MULTI_VAR.apache=	PKG_APACHE
+ _PBULK_MULTI_DEFAULT.apache=	PKG_APACHE_DEFAULT
+ 
++_PBULK_MULTI_LIST.emacs=	_EMACS_VERSIONS_BULK
++_PBULK_MULTI_VAR.emacs=		EMACS_VERSION_REQD
++_PBULK_MULTI_DEFAULT.emacs=	_EMACS_VERSION_BULK_DEFAULT
++
+ _PBULK_MULTI_LIST.lua=		_LUA_VERSIONS_ACCEPTED
+ _PBULK_MULTI_VAR.lua=		LUA_VERSION_REQD
+ _PBULK_MULTI_DEFAULT.lua=	LUA_VERSION_DEFAULT

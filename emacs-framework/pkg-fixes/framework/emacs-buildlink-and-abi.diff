@@ -1,0 +1,133 @@
+--- editors/emacs29/buildlink3.mk.orig
++++ editors/emacs29/buildlink3.mk
+@@ -7,8 +7,8 @@
+ EMACS_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD}
+-BUILDLINK_ABI_DEPENDS.emacs?=	emacs29>=29.1nb2
++BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD_ANY}
++BUILDLINK_ABI_DEPENDS.emacs?=	${_EMACS_ABI_ANY}
+ BUILDLINK_PKGSRCDIR.emacs?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/emacs29-nox11/buildlink3.mk.orig
++++ editors/emacs29-nox11/buildlink3.mk
+@@ -7,7 +7,7 @@
+ EMACS_NOX11_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs-nox11+=	${_EMACS_REQD}
++BUILDLINK_API_DEPENDS.emacs-nox11+=	${_EMACS_REQD_ANY}
+ BUILDLINK_PKGSRCDIR.emacs-nox11?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs-nox11=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/emacs30/buildlink3.mk.orig
++++ editors/emacs30/buildlink3.mk
+@@ -7,8 +7,8 @@
+ EMACS_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD}
+-BUILDLINK_ABI_DEPENDS.emacs?=	emacs30>=30.1
++BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD_ANY}
++BUILDLINK_ABI_DEPENDS.emacs?=	${_EMACS_ABI_ANY}
+ BUILDLINK_PKGSRCDIR.emacs?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/emacs30-nox11/buildlink3.mk.orig
++++ editors/emacs30-nox11/buildlink3.mk
+@@ -7,7 +7,7 @@
+ EMACS_NOX11_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs-nox11+=	${_EMACS_REQD}
++BUILDLINK_API_DEPENDS.emacs-nox11+=	${_EMACS_REQD_ANY}
+ BUILDLINK_PKGSRCDIR.emacs-nox11?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs-nox11=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/emacs31/buildlink3.mk.orig
++++ editors/emacs31/buildlink3.mk
+@@ -7,8 +7,8 @@
+ EMACS_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD}
+-BUILDLINK_ABI_DEPENDS.emacs?=	emacs31>=31.1
++BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD_ANY}
++BUILDLINK_ABI_DEPENDS.emacs?=	${_EMACS_ABI_ANY}
+ BUILDLINK_PKGSRCDIR.emacs?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/emacs31-nox11/buildlink3.mk.orig
++++ editors/emacs31-nox11/buildlink3.mk
+@@ -7,7 +7,7 @@
+ EMACS_NOX11_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs-nox11+=	${_EMACS_REQD}
++BUILDLINK_API_DEPENDS.emacs-nox11+=	${_EMACS_REQD_ANY}
+ BUILDLINK_PKGSRCDIR.emacs-nox11?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs-nox11=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/emacs20/buildlink3.mk.orig
++++ editors/emacs20/buildlink3.mk
+@@ -7,8 +7,8 @@
+ EMACS_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD}
+-BUILDLINK_ABI_DEPENDS.emacs?=	emacs20>=20.7nb26
++BUILDLINK_API_DEPENDS.emacs+=	${_EMACS_REQD_ANY}
++BUILDLINK_ABI_DEPENDS.emacs?=	${_EMACS_ABI_ANY}
+ BUILDLINK_PKGSRCDIR.emacs?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.emacs=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/xemacs/buildlink3.mk.orig
++++ editors/xemacs/buildlink3.mk
+@@ -7,8 +7,8 @@
+ XEMACS_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.xemacs+=	${_EMACS_REQD}
+-BUILDLINK_ABI_DEPENDS.xemacs?=	xemacs>=21.4.24nb19
++BUILDLINK_API_DEPENDS.xemacs+=	${_EMACS_REQD_ANY}
++BUILDLINK_ABI_DEPENDS.xemacs?=	${_EMACS_ABI_ANY}
+ BUILDLINK_PKGSRCDIR.xemacs?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.xemacs=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/xemacs-nox11/buildlink3.mk.orig
++++ editors/xemacs-nox11/buildlink3.mk
+@@ -7,7 +7,7 @@
+ XEMACS_NOX11_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.xemacs-nox11+=	${_EMACS_REQD}
++BUILDLINK_API_DEPENDS.xemacs-nox11+=	${_EMACS_REQD_ANY}
+ BUILDLINK_PKGSRCDIR.xemacs-nox11?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.xemacs-nox11=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/xemacs-current/buildlink3.mk.orig
++++ editors/xemacs-current/buildlink3.mk
+@@ -7,8 +7,8 @@
+ XEMACS_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.xemacs+=	${_EMACS_REQD}
+-BUILDLINK_ABI_DEPENDS.xemacs?=	xemacs>=21.5.34nb19
++BUILDLINK_API_DEPENDS.xemacs+=	${_EMACS_REQD_ANY}
++BUILDLINK_ABI_DEPENDS.xemacs?=	${_EMACS_ABI_ANY}
+ BUILDLINK_PKGSRCDIR.xemacs?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.xemacs=	${EGREP} '.*\.el$$|.*\.elc$$'
+--- editors/xemacs-current-nox11/buildlink3.mk.orig
++++ editors/xemacs-current-nox11/buildlink3.mk
+@@ -7,7 +7,7 @@
+ XEMACS_NOX11_BUILDLINK3_MK:=
+ 
+ .include "../../editors/emacs/modules.mk"
+-BUILDLINK_API_DEPENDS.xemacs-nox11+=	${_EMACS_REQD}
++BUILDLINK_API_DEPENDS.xemacs-nox11+=	${_EMACS_REQD_ANY}
+ BUILDLINK_PKGSRCDIR.xemacs-nox11?=	${_EMACS_PKGDIR}
+ 
+ BUILDLINK_CONTENTS_FILTER.xemacs-nox11=	${EGREP} '.*\.el$$|.*\.elc$$'
