@@ -1,6 +1,6 @@
 --- editors/emacs29/Makefile.common.orig
 +++ editors/emacs29/Makefile.common
-@@ -85,3 +85,15 @@
+@@ -85,3 +85,16 @@
  	${CHMOD} -R go-w ${WRKSRC}
  
  .include "../../devel/libgetopt/buildlink3.mk"
@@ -9,12 +9,13 @@
 +# does their info, but Emacs builds Info-default-directory-list from its
 +# own --infodir at configure time and cannot be told at run time except
 +# through INFOPATH.  This adds the version's info directory to the list
-+# at startup; without it the files land where nothing looks.
++# at startup; without it the files land where nothing looks.  setq/append
++# rather than add-to-list, whose APPEND argument Emacs 20 does not have.
 +post-install: emacs-info-path
 +emacs-info-path:
-+	${ECHO} '(add-to-list (quote Info-default-directory-list)' \
++	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
 +		> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
-+	${ECHO} '  (expand-file-name "../info" (file-name-directory load-file-name)) t)' \
++	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
 +		>> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 --- editors/emacs29/PLIST.orig
 +++ editors/emacs29/PLIST
@@ -28,7 +29,7 @@
  share/icons/hicolor/16x16/apps/emacs.png
 --- editors/emacs30/Makefile.common.orig
 +++ editors/emacs30/Makefile.common
-@@ -89,3 +89,15 @@
+@@ -89,3 +89,16 @@
  .if ${OPSYS} != "Darwin"
  .  include "../../devel/libgetopt/buildlink3.mk"
  .endif
@@ -37,12 +38,13 @@
 +# does their info, but Emacs builds Info-default-directory-list from its
 +# own --infodir at configure time and cannot be told at run time except
 +# through INFOPATH.  This adds the version's info directory to the list
-+# at startup; without it the files land where nothing looks.
++# at startup; without it the files land where nothing looks.  setq/append
++# rather than add-to-list, whose APPEND argument Emacs 20 does not have.
 +post-install: emacs-info-path
 +emacs-info-path:
-+	${ECHO} '(add-to-list (quote Info-default-directory-list)' \
++	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
 +		> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
-+	${ECHO} '  (expand-file-name "../info" (file-name-directory load-file-name)) t)' \
++	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
 +		>> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 --- editors/emacs30/PLIST.orig
 +++ editors/emacs30/PLIST
@@ -56,7 +58,7 @@
  share/icons/hicolor/16x16/apps/emacs.png
 --- editors/emacs31/Makefile.common.orig
 +++ editors/emacs31/Makefile.common
-@@ -89,3 +89,15 @@
+@@ -89,3 +89,16 @@
  .if ${OPSYS} != "Darwin"
  .  include "../../devel/libgetopt/buildlink3.mk"
  .endif
@@ -65,12 +67,13 @@
 +# does their info, but Emacs builds Info-default-directory-list from its
 +# own --infodir at configure time and cannot be told at run time except
 +# through INFOPATH.  This adds the version's info directory to the list
-+# at startup; without it the files land where nothing looks.
++# at startup; without it the files land where nothing looks.  setq/append
++# rather than add-to-list, whose APPEND argument Emacs 20 does not have.
 +post-install: emacs-info-path
 +emacs-info-path:
-+	${ECHO} '(add-to-list (quote Info-default-directory-list)' \
++	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
 +		> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
-+	${ECHO} '  (expand-file-name "../info" (file-name-directory load-file-name)) t)' \
++	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
 +		>> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 --- editors/emacs31/PLIST.orig
 +++ editors/emacs31/PLIST
@@ -84,7 +87,7 @@
  share/icons/hicolor/16x16/apps/emacs.png
 --- editors/emacs20/Makefile.orig
 +++ editors/emacs20/Makefile
-@@ -111,3 +111,15 @@
+@@ -111,3 +111,16 @@
  	${CHOWN} -R ${SHAREOWN}:${SHAREGRP} ${DESTDIR}${PREFIX}/share/emacs
  
  .include "../../mk/bsd.pkg.mk"
@@ -93,12 +96,13 @@
 +# does their info, but Emacs builds Info-default-directory-list from its
 +# own --infodir at configure time and cannot be told at run time except
 +# through INFOPATH.  This adds the version's info directory to the list
-+# at startup; without it the files land where nothing looks.
++# at startup; without it the files land where nothing looks.  setq/append
++# rather than add-to-list, whose APPEND argument Emacs 20 does not have.
 +post-install: emacs-info-path
 +emacs-info-path:
-+	${ECHO} '(add-to-list (quote Info-default-directory-list)' \
++	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
 +		> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
-+	${ECHO} '  (expand-file-name "../info" (file-name-directory load-file-name)) t)' \
++	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
 +		>> ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 --- editors/emacs20/PLIST.orig
 +++ editors/emacs20/PLIST
