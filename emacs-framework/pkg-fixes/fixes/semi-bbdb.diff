@@ -1,0 +1,30 @@
+--- devel/semi/options.mk.orig
++++ devel/semi/options.mk
+@@ -1,7 +1,7 @@
+ # $NetBSD: options.mk,v 1.7 2022/06/05 02:39:18 mef Exp $
+ 
+ PKG_OPTIONS_VAR=		PKG_OPTIONS.semi
+-PKG_SUPPORTED_OPTIONS=		semi-bbdb
++PKG_SUPPORTED_OPTIONS=		# empty
+ PKG_OPTIONS_OPTIONAL_GROUPS=	semi-browser
+ PKG_OPTIONS_GROUP.semi-browser=	w3 w3m
+ PKG_SUGGESTED_OPTIONS=
+@@ -10,10 +10,14 @@
+ 
+ PLIST_VARS+=	bbdb w3
+ 
+-.if !empty(PKG_OPTIONS:Msemi-bbdb)
+-.include "../../misc/bbdb2/buildlink3.mk"
+-PLIST.bbdb=	yes
+-.endif
++# The semi-bbdb option included misc/bbdb2, which went away with
++# emacs21.  Pointing it at misc/bbdb3 does not work: mime-bbdb.el is
++# written against BBDB 2 and byte-compiles with bbdb-record-getprop,
++# bbdb-record-putprop, bbdb-search-simple, bbdb-pop-up-bbdb-buffer,
++# bbdb-record-edit-notes and bbdb-annotate-notes all undefined, none
++# of which BBDB 3 defines.  Without a port of mime-bbdb.el there is
++# nothing for the option to select, and leaving it in makes the
++# package fail to parse rather than fail to build.
+ 
+ .if !empty(PKG_OPTIONS:Mw3)
+ .include "../../www/w3/buildlink3.mk"

@@ -1,0 +1,20 @@
+--- editors/gnuserv/Makefile.orig
++++ editors/gnuserv/Makefile
+@@ -10,7 +10,7 @@
+ HOMEPAGE=	https://www.emacswiki.org/emacs/GnuClient
+ COMMENT=	Improved version of emacsserver for GNU Emacs
+ 
+-CONFLICTS+=	xemacs-[0-9]* xemacs-current-[0-9]* # bin/gnuattach; bin/gnuclient
++CONFLICTS+=	xemacs-[0-9]* xemacs-nox11-[0-9]* # bin/gnuattach; bin/gnuclient
+ GNU_CONFIGURE=	YES
+ 
+ CONFIGURE_ARGS+=	--with-x	# X support
+@@ -22,7 +22,7 @@
+ EL_FILES=		devices.el gnuserv.el gnuserv-compat.el
+ 
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX} share/applications	\
+-			share/doc/${PKGBASE}
++			share/doc/gnuserv
+ 
+ .PHONY: el-install doc-install
+ 

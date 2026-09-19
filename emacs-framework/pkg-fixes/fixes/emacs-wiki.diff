@@ -1,0 +1,16 @@
+--- misc/emacs-wiki/Makefile.orig
++++ misc/emacs-wiki/Makefile
+@@ -15,11 +15,12 @@
+ 
+ EMACSWIKI=		emacs-wiki
+ EMACSWIKIVERSION=	2.72
+-DEPENDS=		semi>=1.14.6:../../devel/semi
++DEPENDS=		${EMACS_PKGNAME_PREFIX}semi>=1.14.6:../../devel/semi
+ 
+ USE_TOOLS+=		gmake makeinfo
+ INFO_FILES=		yes
+ INSTALL_MAKE_FLAGS+=	PREFIX=${DESTDIR}${PREFIX}
++INSTALL_MAKE_FLAGS+=	ELISPDIR=${DESTDIR}${EMACS_LISPPREFIX}/emacs-wiki
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"

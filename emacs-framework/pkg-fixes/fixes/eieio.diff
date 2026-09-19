@@ -1,0 +1,16 @@
+--- lang/eieio/Makefile.orig
++++ lang/eieio/Makefile
+@@ -10,6 +10,13 @@
+ HOMEPAGE=	https://cedet.sourceforge.net/eieio.shtml
+ COMMENT=	Enhanced Integration of Emacs Interpreted Objects
+ 
++# eieio has been part of GNU Emacs since 24.1, and this 2004 copy in
++# site-lisp shadows the bundled one, since site-lisp comes first on
++# load-path: with it installed (require 'eieio) loads 0.17 and org-export,
++# which wants eieio-make-class-predicate, stops.  XEmacs does not bundle
++# it (xemacs-packages does).
++EMACS_VERSIONS_ACCEPTED=	emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
++
+ EMACS_MODULES+=	base
+ MAKEFLAGS+=	EMACS=${EMACS_BIN:Q}
+ 

@@ -1,0 +1,10 @@
+--- editors/tamago/Makefile.orig
++++ editors/tamago/Makefile
+@@ -11,6 +11,7 @@
+ COMMENT=	CJK characters inputting system for emacs + leim
+ 
+ GNU_CONFIGURE=	yes
++MAKE_FLAGS+=	lispdir=${DESTDIR}${EMACS_LISPPREFIX}
+ MAKE_FLAGS+=	prefix=${DESTDIR}${PREFIX}
+ # XXX please someone adjust paths and PLIST for XEmacs...
+ EMACS_VERSIONS_ACCEPTED=	emacs20
