@@ -1,0 +1,33 @@
+--- devel/ecb/Makefile.orig
++++ devel/ecb/Makefile
+@@ -6,6 +6,11 @@
+ CATEGORIES=	devel
+ 
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=ecb-home/}
++# mk/fetch/github.mk defaults GITHUB_PROJECT to the package base name,
++# which under xemacs is xemacs-ecb, so the fetch asks github for a
++# project of that name and WRKSRC points where the archive does not
++# unpack.  Name the project instead of letting it be derived.
++GITHUB_PROJECT=	ecb
+ GITHUB_TAG=	1330a44cf3c171781083b0b926ab7622f64e6e81
+ 
+ MAINTAINER=	pho@cielonegro.org
+@@ -25,14 +30,14 @@
+ 
+ INSTALLATION_DIRS+=	\
+ 	${PKGINFODIR} \
+-	${EMACS_LISPPREFIX}/${PKGBASE}
++	${EMACS_LISPPREFIX}/ecb
+ 
+ do-install:
+-	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
+-	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++	${INSTALL_DATA} ${WRKSRC}/*.el  ${DESTDIR}${EMACS_LISPPREFIX}/ecb
++	${INSTALL_DATA} ${WRKSRC}/*.elc ${DESTDIR}${EMACS_LISPPREFIX}/ecb
+ 	${INSTALL_DATA} ${WRKSRC}/info-help/ecb.info* ${DESTDIR}${PREFIX}/${PKGINFODIR}
+ 	${TAR} -cf - -C ${WRKSRC} ecb-images | \
+-		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
++		${TAR} -xf - -C ${DESTDIR}${EMACS_LISPPREFIX}/ecb
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
