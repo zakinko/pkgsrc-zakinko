@@ -132,8 +132,9 @@
 #			installed into.  Unlike EMACS_ETCPREFIX or
 #			EMACS_LISPPREFIX, a subdirectory is not needed.
 #			For GNU Emacs this is PKGINFODIR, which this file
-#			sets to the version directory, so a PLIST may
-#			spell either ${EMACS_INFOPREFIX}/ or info/.
+#			sets to the version directory when PKGNAME carries
+#			EMACS_PKGNAME_PREFIX, so a PLIST may spell either
+#			${EMACS_INFOPREFIX}/ or info/.
 #		Possible values:
 #			${PREFIX}/${PKGINFODIR}
 #			${PREFIX}/lib/xemacs/site-packages/info
@@ -460,16 +461,23 @@ _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
 
 .include "${_EMACS_PKGDIR}/version.mk"
 
+# Info goes under the version exactly when the package's name does.
+# The name is what makes emacs29-foo and emacs30-foo two packages, and
+# two packages are what collide on info/foo.info; a package that keeps
+# one name whatever Emacs it is built for -- mail/mailutils and
+# lang/bigloo, whose Emacs support is an option -- has one info file
+# and keeps it where the user's PKGINFODIR says.  The test is deferred
+# (= not :=) because PKGNAME is not known here.
+#
 # Unlike the lisp, Emacs does not find info under its version directory
 # by itself: Info-default-directory-list is built from the Emacs's own
 # --infodir at configure time, and the only runtime lever is INFOPATH.
 # The Emacs packages install a site-start.el beside their site-lisp that
 # adds ../info to the list, which is the receiving half of this; without
-# it the files land where nothing looks.  This overrides a PKGINFODIR
-# from mk.conf for the packages that read this file, in the same way
-# that the lisp directory is not the user's to place.
+# it the files land where nothing looks.
 .if ${_EMACS_FLAVOR} == "emacs"
-PKGINFODIR=	share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info
+_EMACS_PKGINFODIR_DEFAULT:=	${PKGINFODIR}
+PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
 .endif
 
 #

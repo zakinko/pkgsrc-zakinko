@@ -1,0 +1,419 @@
+（日本語訳。送るのは英語版だけ。ユーザー確認用）
+
+件名: Re: possible pkgsrc emacs framework improvements?
+宛先: Thomas Klausner <wiz@NetBSD.org>
+
+Thomas さん
+
+通して読んでくださってありがとうございます。三つに分ける案も、こちらが
+持っていた形より良く、「いまの trunk の modules.mk で、今日すでに間違って
+いるか」を一つずつ問うたら自然にそう割れました。以下その三つを、それぞれ
+の差分と一緒に、この順で並べます。枠組み、いま壊れている物の直し、枠組み
+が入って初めて要る適応。直しと適応は互いに依存せず、当てるのに枠組みも
+要りません。freeze の間に入れられる物があるとすれば直しの側だと思って
+います。いま間違っていて、どちらにしても間違ったままなので。
+
+mk/ を待つのは了解しました。その間も続けていて、いまここまで来ています。
+まだ息切れはしていないので、ご自分で持ちたい部分があれば言ってください。
+そこには手を出さないようにします。
+
+全部 branch にも同じ三つの directory で置いてあります。
+
+  https://github.com/zakinko/pkgsrc-zakinko/tree/emacs-framework-3parts/emacs-framework
+
+差分は全部 2026-09-18 の trunk (c8e5216) に当たります。書いた順でも逆順
+でも、部ごとにどちらの順でも、offset も fuzz も無しで。NetBSD 11.0/amd64
+で建てました。CI の写しは i386 11.0 で同じ trunk の file に当てています。
+
+
+1. 枠組み
+=========
+
+modules.mk、mk/pbulk/pbulk-index.mk、それと Emacs package 自身への小さな
+差分が四つ (version.mk、buildlink3.mk、新しく入れる site-start.el)。何を
+するかを、いただいた三点の順に、そのあと建てて分かった分を。
+
+版の選び方は pyversion.mk のもので、前回間違えていた所も含めて。
+EMACS_VERSION_REQD は受けるか断るか。無ければ EMACS_TYPE は既定で、
+それを受けない package は自分が受ける先頭の版に落ちる。package が書いた
+EMACS_VERSIONS_ACCEPTED を書いた順に歩いて。（前回「出来た」と書いたのは
+意図であって code ではありませんでした。loop が歩いていたのは modules.mk
+の一覧で、mailcrypt が emacs20 を先頭に書いても emacs31 が選ばれていた。
+いまは package の側を歩き、並べ替えは他に決め手が無い所でだけ答えを
+動かします。）devel/apel が立てていて誰も読まなかった
+EMACS_VERSIONS_INCOMPATIBLE は、pyversion.mk が同等物を引くのと同じ形で
+引きます。依存の pattern は PKGNAME_REQD から読み戻し、これで連鎖が自分と
+食い違わなくなる。www/emacs-w3m は emacs20 を受け devel/apel は受けない
+ので、EMACS_TYPE=emacs20 だと emacs-w3m が emacs20-apel を求め、apel は
+emacs29-apel として建ち、誰も理由を言わなかった。いまは apel の所で、版と
+package と受ける一覧を名指しして止まります。
+
+lisp は share/emacs/<version>/site-lisp へ。Emacs は元からそこと一段目の
+sub directory を探すので、何も教えなくてよい。建つ物を全部入れ、持って
+いる .elc 390 個を全部並べて、どれも load-path 上に在ることを見ました。
+share/emacs/site-lisp はまだ隣に在るので、まだ動いていない package には
+影響しない。
+
+名前は版を持ちます。emacs29-apel、emacs30-apel、版だけ。一つの Emacs の
+nox build と X build は互いに衝突し、同じ site-lisp を共有し、木の中で
+二つに別の file 一覧を入れる package は一つも無い（それを見る条件 87 個
+を全部読みました）ので、emacs30-foo 一つでどちらにも効き、pbulk は二つで
+なく一つ作る。devel/apel は 6 項目が 3 に、textproc/xslide は 11 が 6 に。
+依存はどちらの build でも満たす形に書き、pkg_add がそれを効かせる。
+emacs30-nox11 だけが入った箱で、同じ binary package がこの一行で入ったり
+断られたりします。
+
+  @pkgdep emacs30>=30.1<31              pkg_add: no pkg found, sorry.
+  @pkgdep {emacs30-nox11,emacs30}>=...  入る
+
+X build を断る package — EMACS_VERSIONS_INCOMPATIBLE にそう書く物 — が
+例外で、emacs30-nox11-foo と名乗り、依存はその build に固定するので、
+動かせない Emacs の上に binary package が乗ることはない。
+EMACS_TYPE=emacs30nox で devel/apel だと
+
+  いまの modules.mk   apel-10.8.0.20201107nb2、EMACS_VERSIONS_INCOMPATIBLE=
+                      emacs30nox を言っても同じ
+  行を読む形          emacs30-apel        既定
+                      emacs29-apel        emacs30nox は駄目と言うと
+                      emacs30-nox11-apel  emacs30 は駄目と言うと
+
+XEmacs は系列で割れたまま、xemacs214- と xemacs215-。今日はどちらも
+xemacs-。package は EMACS_VERSIONS_ACCEPTED に対の両側を書かなくてよく
+なりますが、書いてある一覧もそのまま効きます。
+
+pbulk は三行と言ったのが四行です。class を _PBULK_MULTI にも名指しする
+必要があって、loop が歩くのはその一覧。書いた一覧でなく絞った一覧が要る
+のも、python が _PYTHON_VERSIONS_ACCEPTED を取るのと同じ理由。それで
+devel/apel は
+
+  PKGNAME=emacs30-apel-10.8.0.20201107nb2
+  PKGNAME=emacs29-apel-10.8.0.20201107nb2
+  PKGNAME=emacs31-apel-10.8.0.20201107nb2
+
+既定が先頭。emacs20 しか受けない devel/pcl-cvs は一行、modules.mk を
+読まない devel/gmake は変わらず。
+
+そのあと、建てて分かった三つ。どれも Emacs が一つしか入らない間は見え
+なかった物です。
+
+EMACS_BIN が ${PREFIX}/bin/${_EMACS_FLAVOR} だったので、emacs29 向けに
+建てても bin/emacs を持っている Emacs、30.2 で byte-compile していた。
+いまは GNU Emacs では版付きの binary。XEmacs は素の名前のままで、これは
+わざとです。21.5 は bin/xemacs-21.5-b36 を入れますが 21.4 は版付きの
+実行 file を一つも入れず、bin/xemacs-21.4.25-<hash>.dmp だけ。名前を
+当て推量しないために 21.4 を建てて確かめました。
+
+nox の version.mk は X11 の双子を写して一行変えた物で、写しが腐って
+いた。editors/emacs29-nox11/version.mk は 29.1 と言い、package は 29.4 を
+建てるので、lisp は share/emacs/29.1/site-lisp へ行き、build の load path
+は無い directory を指していた。いまは nox の file が双子を include して
+違う所だけ立て、各 buildlink3.mk が三度目に書いていた ABI の下限は
+version.mk に移したので、版は Emacs ごとに一箇所にしか書かれない。
+
+info と etc も lisp と一緒に版の下へ。名前に版が入ると、一つの package
+の二つの build は同じ file を書く二つの package で、pkg_add が二つ目を
+止めるので。
+
+  pkg_add: emacs29-skk-17.1nb2: conflicting PLIST with
+           emacs30-skk-17.1nb2: info/skk.info
+
+inputmethod/skk を各 Emacs で一度ずつ建てた物です。87 個のうち 30 個が
+info を入れる。etc は share/emacs/<version>/etc で、使う二つの package
+が build 時に path を焼き込むので安全。info は枠組み独自の path でなく
+PKGINFODIR を通しました。modules.mk が版が決まった所でそれを
+share/emacs/<version>/info に立てると、pkgsrc が info file に既にして
+いる事 — plist-info.awk の info/ の正規化、gnu-configure.mk が渡す
+--infodir、dir file — が package に何も言わずに付いてくる。PLIST が
+info/foo.info と綴っていても正しいまま。最初は逆の形、独自の path で
+PLIST 11 個を ${EMACS_INFOPREFIX}/ に書き換える形を試して、あらゆる向きで
+悪かった。mail/mailutils は --infodir=${PREFIX}/${PKGINFODIR} を渡すので
+古い場所に書き PLIST は新しい場所を見る、devel/cqual はその逆。PKGINFODIR
+ならどちらも一行も要らない。
+
+info には lisp と違って受け口が要ります。Emacs は Info-default-
+directory-list で探し、それは configure 時の自分の --infodir から作られ、
+実行時の手掛かりは INFOPATH だけ。そこで Emacs package が site-lisp の隣に
+二行の site-start.el を入れます。
+
+  (add-to-list (quote Info-default-directory-list)
+    (expand-file-name "../info" (file-name-directory load-file-name)) t)
+
+これで skk は share/emacs/30.2/info/skk.info を入れ、C-h i が見つける。
+この file が無いと見つからない。site-start.el という名前を取ってしまう
+のは管理者が欲しがるかもしれない名前で、一行の site-start.el が読む
+site-start.d ならそれを空けておける。訊かずに木の慣習を発明したくなかった
+のでそのままにしてあります。info の変更で建てた package と、まだ測って
+いない物は 4 に。
+
+もう一つ自分の物。build 用の EMACSLOADPATH がまだ古い共有 site-lisp を
+指していて、他の elisp package に対して byte-compile する物は "Cannot open
+load file" で止まった。建てないと出なかった。EMACS_LISPPREFIX 自体は最初
+から正しかったので。
+
+この部が出来ないのは、二つの Emacs を並べること。editors/emacs29 と
+editors/emacs30 は互いに衝突を宣言せず、file を 93 共有する — bin/emacs、
+bin/ctags、bin/etags、bin/emacsclient、bin/ebrowse、include/emacs-module.h、
+info 66、share の下 15 — ので pkg_add が bin/ctags で二つ目を止める。
+その 93 を手で外すと二つは並んで動き、emacs 29.4 と emacs 30.2、上の
+測定は全部その形でやりました。python313 のように binary に版を付けるのは
+訊かれた三点より大きい変更で、していません。それをするまで、版付きの
+名前で買える物の天井を決めてもいます。bulk は全部の版を建てられ、名前は
+どの Emacs 向けかを記録するけれど、二つを一つの箱に置くことはまだ出来
+ない。
+
+prefix の代価が二つ、決めるより前に置きます。package を脆弱性一覧の
+届く範囲から外す。pkg_admin audit-pkg は flim-1.14.2 に CAN-2004-0422 を
+報告し、emacs30-flim-1.14.2 には何も言わない — xemacs-flim-1.14.2 にも
+なので、今日の xemacs- package で既にそうなっている。勧告は列挙で覆えて、
+{,emacs30-}flim<1.14.3、一覧 30234 項目のうち 3778 は既に brace で始まる。
+いま一覧に在る物は影響を受けない。Emacs 自身でなく elisp package への
+勧告は flim<1.14.3 だけで、pkgsrc は 1.14.9 なので。それと、改名された
+package を名指す CONFLICTS の pattern が当たらなくなる。これは直しの側に
+在ります。そこで噛まれたので。
+
+差分: modules.mk (1.42 に対して 402 行)、pbulk-index.mk (20)、Emacs
+package への四つ。
+
+[枠組みの差分]
+
+
+2. 直し — いまの trunk で間違っている物
+=======================================
+
+20 package。何が間違いかで組にし、それぞれ差分を当てて枠組みの下で建て
+ました。(x) 印の物は、そちらの modules.mk のまま xemacs-nox11 21.5.36 でも
+建てています。XEmacs には既に prefix が在るので今日それが見えるから。
+
+そもそも建てられない:
+
+  cad/dinotrace-mode   EMACS_VERSIONS_ACCEPTED が消えた emacs26 を名指す。
+                       emacs29 も一覧に在る間は害が無く、だから残っていた。
+                       上の comment が athena widget を気にしているので、
+                       狭める前に emacs29 だけで建てた。toolkit の無い
+                       emacs29-nox11 で建って読める。
+  devel/semi           semi-bbdb option が misc/bbdb2/buildlink3.mk を
+                       include し、bbdb2 は emacs21 と一緒に消えたので
+                       option が parse で落ちる。bbdb3 を指すのが最初の
+                       試みで、間違い。mime-bbdb.el は BBDB 2 の code で、
+                       byte-compile で関数六つが未定義、どれも bbdb-3.2.2a
+                       にどの名前でも無い。差分は option を外す。機能に
+                       要るのは mime-bbdb.el の移植。
+  mail/mu              PLIST.emacs が mu4e-dbus.elc を無条件に載せ、
+                       mu4e/meson.build は Emacs に dbusbind が在る時だけ
+                       byte-compile するので、nox の Emacs では package
+                       出来ない。番人は要らない — require は両方 'noerror
+                       で、emacs30-nox11 に対して .elc は建って読める —
+                       ので当て物で外す。今日 nox で mu を建てる人が
+                       居ないので誰も見ていない。-Dinfodir=info も同じ
+                       差分に、4 の理由で。
+
+名指す物と合っていない宣言:
+
+  editors/gnuserv (x)  CONFLICTS が何にも当たらない xemacs-current-[0-9]*
+                       と、nox を取りこぼす xemacs-[0-9]* を名指す。
+                       起きて見つけた。pkg_add が xemacs-nox11 を
+                       bin/gnuattach で断り、行が先に断らなかった。
+                       それと INSTALLATION_DIRS の share/doc/${PKGBASE}
+                       に対して doc-install が share/doc/gnuserv に書く
+                       ので、xemacs ではその名前が最後に入った README を
+                       持つ 484 byte の file になる。
+  textproc/dictem (x)  同じ対。share/doc/xemacs-dictem に入れ、PLIST は
+                       share/doc/dictem を求める。
+  inputmethod/tamago-tsunagi
+                       CONFLICTS= tamago-[0-9]* は emacs20-tamago-
+                       20020909nb5 に当たらないので、emacs20 を選ぶ二つが
+                       何も宣言されないまま同じ egg directory に入る。
+                       pattern に prefix を入れると、tamago-tsunagi が
+                       emacs20 向けの時 emacs20-tamago に当たり、emacs30
+                       の下では当たらない。それが正しい。lisp directory
+                       を共有する時だけ衝突するので。
+
+XEmacs で今日壊れている物:
+
+  editors/matlab-mode (x)
+  textproc/xslide (x)  どちらも byte-compile で止まる。"Cannot open load
+                       file: tempo" と "sendmail"。どちらの library も
+                       XEmacs には無く、editors/xemacs-packages に在り、
+                       どちらの package も依存していない。devel/doxymacs
+                       と textproc/migemo-elisp が xemacs の分岐にその行を
+                       持っているので写す先例が在った。その先で両方
+                       ${PKGBASE} の対に当たる。matlab-mode は
+                       ${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||} を作って
+                       ${EMACS_LISPPREFIX}/${PKGBASE} に入れ、xslide は
+                       ${PKGBASE} に入れて PLIST は xslide と言う。両方
+                       直すと建つ。xemacs-matlab-mode-2.3.1nb4、
+                       xemacs-xslide-0.2.2nb4。
+
+今日のどの GNU Emacs でも間違っていて、一番先に置きたい物:
+
+  lang/eieio           EMACS_VERSIONS_ACCEPTED が無いので emacs30 向けに
+                       建つが、eieio は 24.1 から GNU Emacs の一部。
+                       load-path は site-lisp が lisp/ より先なので、
+                       emacs30-eieio-0.17 が入っていると (require 'eieio)
+                       は 2004 年の写しを読み、eieio-make-class-predicate
+                       が void。mail/mu は org-export で man page を作る所
+                       で落ち、前に markdown-mode と rmail-mime が「この
+                       Emacs に無い関数を求めている」と書いたのも違って
+                       いた。在る。eieio 0.17 が隠していた。今日の
+                       share/emacs/site-lisp でも同じ。差分は emacs20 と
+                       XEmacs (同梱しない。xemacs-packages が持つ) に
+                       限る。依存するのは devel/semantic だけで、受ける
+                       のはちょうどその組。
+
+枠組みを使っていない — path が今日正しいのは変数とたまたま一致している
+からで、木には元からそのための変数が在る:
+
+  devel/cqual          同梱 makefile が lispdir を決め、PLIST は share/
+                       emacs/site-lisp/cqual と綴る。両方の行が要る。片方
+                       だけだと二つが割れる。これと tamago-tsunagi は
+                       直しが無いと枠組みの下で古い directory へ緑で
+                       建つ。一番悪い形だと思う。
+  editors/tamago       同梱 configure が lispdir を決める。
+  inputmethod/tamago-tsunagi
+                       同梱 makefile。PLIST が path を綴る。
+  devel/pcl-cvs        同梱 makefile。package の Makefile に grep する
+                       "lispdir" が無く、建てないと出ない。
+  devel/rsltc          自分の Makefile が ${PREFIX}/share/emacs/site-lisp/
+                       rsl を三度綴り、PLIST も。
+  net/twittering-mode
+  textproc/emacs-dict-client
+  mail/mailutils       PLIST が path を綴る。install は既に変数に従う。
+  misc/emacs-wiki      install に ELISPDIR を渡していない。それと
+                       semi>=1.14.6 を prefix 無しで求め、semi が改名
+                       されたら満たせない。
+  devel/flim           BUILDLINK_API_DEPENDS.apel に prefix 無しの
+                       apel>=10.8 を足す。apel 自身の
+                       ${EMACS_PKGNAME_PREFIX}apel>=10 の隣に。xemacs では
+                       既に別々の二つの package を求めている。
+  www/emacs-w3m        --with-lispdir を渡さず、install は古い共有
+                       site-lisp に書き PLIST は変数に従う。それと
+                       --infodir=${PREFIX}/info、木は ${PKGINFODIR} と
+                       書く所。前に WRKSRC=${WRKDIR}/${PKGBASE}-... を
+                       ${PKGBASE} の問題と読んだが、違う。emacs-w3m は
+                       PKGNAME に prefix を入れていないので。
+  devel/apel           packing list を選ぶのに EMACS_TYPE を見る。
+                       EMACS_TYPE は利用者が頼んだ物。今日は必ずそれが
+                       建つので、偶然正しい。package が落ちられるように
+                       なると違う。EMACS_TYPE=emacs20 で apel は emacs29
+                       向けに建ち、Emacs 19 の一覧を渡される。
+                       EMACS_VERSION_MAJOR が使う版で、他の六つは既に
+                       それを見ている。87 個で条件に EMACS_TYPE を見る
+                       のはこれだけ。
+
+devel/rsltc には但し書き。devel/gentle を要り、pkgsrc は LP64 で broken の
+印を付けている。packing list まで来たのは、その行を外して建てた gentle が
+在ったから。gentle は amd64 11.0 で K&R 時代の warning だけで建ち、文法
+11 個を全部 C にし、rsltc はそれに対して動く。
+
+  $ rsltc HELLO.rsl
+  Checking HELLO ...
+  rsltc completed: 0 error(s) 0 warning(s)
+  $ rsltc bad.rsl
+  bad.rsl:3:13: syntax error
+
+i386 では — 9.4 と 11.0、どちらも使い捨ての VM — gentle は建って最初の
+文法で segfault。行は逆を言っている。でも三点と backtrace 無しで変えて
+くれとは言いません。i386 に印が無いので、devel/rsltc は今日どの bulk でも
+そこで落ちていて、amd64 の bulk に入らないのもそれのせい。
+
+CONFLICTS がもう四つ、今日何にも当たらず害も無いが、守っていた物はまだ
+真かもしれない。devel/pcl-cvs (emacs-21.*)、inputmethod/skk (ddskk-[0-9]*)、
+mail/mew (mew-xemacs-[0-9]*)、tamago-tsunagi の tamago-anthy-[0-9]* (wip
+にだけ)。目でなく pkg_admin pmatch で確かめました。mail/elm のは間違って
+見えて正しい、PKGNAME が elm-2.5.8nb5 なので。何のためだったか分からない
+ので差分は無し。
+
+見て直さなかった物が三つ。答えが一つの bug ではなく maintainer の判断
+なので。
+
+  devel/ecb            何でも建てられない。GITHUB_PROJECT= ecb で fetch
+                       は越え、"Symbol's function definition is void:
+                       semantic-mode" で止まる。ecb-2.50 自身の Makefile
+                       が compile script に書く。xemacs-nox11-21.5.36 と
+                       xemacs-packages-1.19 で (fboundp 'semantic-mode) は
+                       素でも (require 'semantic) の後でも nil、package が
+                       受けるのは xemacs214/215 だけ。editors/xemacs-
+                       packages が既に ECB を入れている、lisp/ecb の下に
+                       63 file。
+  misc/elscreen        emacs20 を受け、apel の buildlink3.mk を top
+                       level で include する。apel は emacs29 以降を
+                       受け、EMACS_VERSIONS_INCOMPATIBLE に emacs20 を
+                       名指す。依存は本物 (elscreen.el が alist と static
+                       を require) なので、二つが会う版が無い。自分の
+                       comment が wip/elscreen-current を試せと言う。
+  misc/bbdb3           CONFLICTS+= xemacs-packages-[0-9]* がここで
+                       build を止めた。mail/wl-snapshot が bbdb を求め、
+                       xemacs-packages が入っていたので pkg_add が断った。
+                       bbdb3 は xemacs を受けないので lib/xemacs の下に
+                       書けない。packing list を比べて、38 file と 7840、
+                       共通の名前は一つも無い。その行は bbdb3 が xemacs を
+                       受けていた頃の残りでしょうか、それとも見えていない
+                       衝突が在りますか。
+
+[直しの差分]
+
+
+3. 適応 — 今日は正しく、prefix が入ると間違う物
+==============================================
+
+差分六つ、全部一種類。${PKGBASE} に何かが乗っていて、prefix が PKGBASE を
+動かす。mk/ の変数六つがそれを既定にしている — bsd.pkg.mk の PKGWILDCARD
+と PKG_SYSCONFVAR、pkgformat/pkg/package.mk の FILEBASE、mk/fetch の
+GITHUB_PROJECT、GITLAB_PROJECT、CODEBERG_PROJECT。
+
+  devel/zig-mode
+  devel/lua-mode
+  misc/emacs-neotree
+  textproc/markdown-mode
+                       GITHUB_PROJECT 無しで GitHub から fetch するので、
+                       fetch が github.com/ziglang/emacs30-zig-mode を
+                       求めて 404、WRKSRC は archive が展開されない所を
+                       指す。87 個のうち GitHub から fetch するのは 10、
+                       この四つが行の無い物。gitlab と codeberg を使う物は
+                       無い。
+  devel/doxymacs       emacs20 か emacs21 の下で w3-[0-9]* を求め、www/w3
+                       は emacs20-w3 になる。emacs20 の下だけ、なので
+                       既定の一周は素通りする。
+  mail/mew             build に ${EMACS_ETCPREFIX} を渡し PLIST に
+                       share/mew と書くので、etc の移動で二つが割れる。
+                       math/ess は両側に変数を綴り、何も要らない。
+
+触っていない、もう一つ大きい組。87 個のうち 24 は PKGNAME に
+EMACS_PKGNAME_PREFIX を全く入れていない — options.mk で PKGNAME を立てる
+物、全く立てない物 — ので、入れるまでこの変更から何も得ない。一つ、
+misc/color-theme を取って行を足して建てたら、二重に壊れた。MASTER_SITES
+が .../releases/${PKGBASE}/ で 404、install が ELISPDIR=${EMACS_LISPPREFIX}/
+${PKGBASE} に書き PLIST は color-theme と言う。24 のうち三つ (color-theme、
+mailutils、emacs-w3m) は自分で ${PKGBASE} を綴っていて先に見る物。残り 21
+は一行で済むかもしれないが、建てるまでそうとは言いたくない。
+
+[適応の差分]
+
+
+4. どこまで来たか、何を測っていないか
+=====================================
+
+一周。modules.mk を読み、bazel、TeX Live、rust、gcc の bootstrap を要ら
+ない 57 package を、直しを一つも当てず枠組みだけ入れた木で。36 建ち 21
+落ちる — 13 はこの変更のせい、2 はその 13 のどれかの後ろ (semi と
+emacs-w3m、flim 待ち)、6 は自分の理由 (distfile が消えた物が三つ:
+cobol-mode 402、flyspell と ispell-emacs 404。mu、写しの中の vm、
+wl-snapshot は上)。2 と 3 で名指した package はそのあと差分を当てて建て、
+13 は建つ。二つは落ちずに間違った場所で緑 — cqual と tamago-tsunagi、上
+— で、建った package の packing list だけがそれを見せる。
+
+場所: 全部 NetBSD 11.0/amd64。apel、flim、zig-mode、dictem、gnuserv、
+emacs-w3m、twittering-mode、emacs-dict-client、cqual、tamago-tsunagi は
+使い捨ての VM の i386 11.0 でも、同じ名前と同じ directory。他の platform
+では何も。
+
+info の移動が一番新しく、一番測れていない部分。それで建てて share/emacs/
+30.2/info に入った物: [INFO-LIST]。建てていない物: [INFO-NOT-BUILT]。この
+30 が info を入れる package の全部で、残りは読みだけ。一番厳しく見て
+いただく所だと思います。
+
+していなくて、先に一言いただきたい物が二つ。site-start.el の名前と、
+Emacs 同士の共有 file 93。それと死んだ CONFLICTS 四つと bbdb3 の行は
+差分でなく問いです。
+
+Showta

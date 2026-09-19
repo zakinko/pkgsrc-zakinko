@@ -5,499 +5,83 @@ To: Thomas Klausner <wiz@NetBSD.org>
 
 Hi Thomas,
 
-The rest of the sweep finished, so here are the numbers I owed you.
-Of the 57 packages I built -- everything that reads modules.mk except
-ten that want bazel, TeX Live, rust or a gcc bootstrap, none of which
-has anything to do with where the lisp goes -- 36 build and 21 fail.
-Thirteen fail because of this change, two fail behind one of those
-thirteen, and six for reasons of their own.  This is on a tree with
-none of my fixes applied; measuring while fixing, which is what I did
-the first time round, reported four fewer.
+Thank you for reading it through, and for the three-way split -- it
+is a better shape than the one I had, and it turned out to draw
+itself once I asked of each change "is this wrong on trunk today,
+with the modules.mk that is there now?".  So below are the three
+parts, each with its diff, in that order: the framework, then the
+fixes for what is already broken, then the adaptations that only
+matter once the framework is in.  The fixes and the adaptations do
+not depend on each other, and neither depends on the framework to
+apply; the fixes are the part I would think of for the freeze, if any
+of it is, since they are wrong now and stay wrong either way.
 
-The thirteen fall into four shapes, and each takes one line.
+I understand about mk/ waiting.  I have kept going in the meantime,
+and this is where it has got to.  I am not out of steam yet, so if
+there is a part you would rather take yourself, say so and I will
+stop touching it.
 
-Four get a 404 fetching their distfile, because mk/fetch/github.mk has
-GITHUB_PROJECT?= ${PKGBASE} and the prefix moves PKGBASE, so the fetch
-asks for github.com/ziglang/emacs30-zig-mode and WRKSRC points
-where the archive does not unpack: zig-mode, lua-mode, emacs-neotree
-and markdown-mode.
+Everything here is on the branch as well, in the same three
+directories:
 
-Two name a renamed package without the prefix and can then never be
-satisfied: misc/emacs-wiki asks for semi>=1.14.6, and devel/flim adds
-an unprefixed apel>=10.8 to BUILDLINK_API_DEPENDS.apel while apel's
-own buildlink3.mk already says ${EMACS_PKGNAME_PREFIX}apel>=10.  There
-is a third that no build here can reach: devel/doxymacs asks for
-w3-[0-9]* inside .elif ${EMACS_VERSION_MAJOR} <= 21, and www/w3
-becomes emacs20-w3-4.0b47nb4, so the line can never be satisfied --
-but only under emacs20 or emacs21, which is why the sweep went
-straight past it.  Those three are all there are on trunk; I matched
-on the name boundary rather than as a substring, which first gave me
-xemacs-packages for emacs-packages and w3m for w3.
+  https://github.com/zakinko/pkgsrc-zakinko/tree/emacs-framework-3parts/emacs-framework
 
-Three have a PLIST that spells share/emacs/site-lisp itself while the
-install follows ${EMACS_LISPPREFIX}, so the files go to the version
-directory and the file check reports them missing from where the PLIST
-says: twittering-mode, emacs-dict-client and rsltc.
+All the diffs apply to trunk as of 2026-09-18 (c8e5216), in the order
+given, in the reverse order, part by part in either order, with no
+offset and no fuzz.  I built with them on NetBSD 11.0/amd64; the CI
+copy runs on i386 11.0 against the same trunk files.
 
-Five spell ${PKGBASE} on one side of the install and the bare name on
-the other, which agree only while the prefix is empty.  Three are in
-the lisp directory: editors/matlab-mode creates
-${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||} and installs into
-${EMACS_LISPPREFIX}/${PKGBASE}, textproc/xslide installs into
-${EMACS_LISPPREFIX}/${PKGBASE} while its PLIST says
-${EMACS_LISPPREFIX}/xslide, and www/emacs-w3m sets WRKSRC to
-${WRKDIR}/${PKGBASE}-${GITHUB_TAG}.  Two are in share/doc:
-editors/gnuserv lists share/doc/${PKGBASE} in INSTALLATION_DIRS while
-doc-install writes share/doc/gnuserv, so that name becomes a file
-holding whichever README was installed last rather than a directory,
-and textproc/dictem has the same pair.
 
-There is a fifth shape that does not fail at all, and it is the one I
-could not have found by reading.  devel/cqual and
-inputmethod/tamago-tsunagi build green and install into
-share/emacs/site-lisp rather than into the version directory: their
-PLIST and their install both spell the old path, so the two agree and
-nothing catches it.  cqual does not spell EMACS_PKGNAME_PREFIX either,
-so it stays cqual-0.991nb21 and writes exactly where it always did.  A
-package that quietly ignores the new location seems worse to me than
-one that stops, and only the packing list of the built package shows
-it:
+1. The framework
+================
 
-  cqual-0.991nb21                        share/emacs/site-lisp/cqual/
-  emacs30-tamago-tsunagi-5.0.7.1nb3      share/emacs/site-lisp/egg/
-  the other 35 that built                share/emacs/30.2/site-lisp/
+modules.mk, mk/pbulk/pbulk-index.mk, and four small diffs to the
+Emacs packages themselves (version.mk, buildlink3.mk, and a
+site-start.el they now install).  What it does, in the order of your
+three points, and then what building with it added.
 
-The other six are not about the change: three have lost their distfile
-(cobol-mode 402, flyspell and ispell-emacs 404), mail/mu has a PLIST
-bug of its own, mail/vm reaches misc/bbdb2 -- which you have since
-removed, and vm no longer asks for it -- and mail/wl-snapshot is
-stopped by a CONFLICTS line that I think is stale.  The last three
-come back further down.
+Version selection is pyversion.mk's, including the part I had got
+wrong the first time.  EMACS_VERSION_REQD is honoured or refused;
+otherwise EMACS_TYPE is a default, and a package that does not accept
+it falls back to the first version it does accept, walking the
+package's EMACS_VERSIONS_ACCEPTED in the order the package wrote it.
+(I had said that last part was done, and it was the intent, not the
+code: the loop walked modules.mk's list, so mailcrypt writing emacs20
+first still got emacs31.  It walks the package's now, and reordering
+moves the answer only where nothing else decides it.)
+EMACS_VERSIONS_INCOMPATIBLE, which devel/apel sets and nothing read,
+is subtracted the way pyversion.mk subtracts its equivalent.  And the
+dependency pattern is read back through PKGNAME_REQD, which is what
+lets a chain agree with itself: www/emacs-w3m accepts emacs20 and
+devel/apel does not, so with EMACS_TYPE=emacs20 emacs-w3m used to ask
+for emacs20-apel while apel built itself as emacs29-apel, and nothing
+said why.  Now the build stops at apel with the version, the package
+and the accepted list named.
 
-The two that fail behind another are devel/semi and www/emacs-w3m,
-both waiting on devel/flim.  emacs-w3m is worth a word because it
-shows how soft this kind of count is: with a flim available it gets as
-far as its own ${PKGBASE} problem and fails there instead, so whether
-it lands in the thirteen or in the two depends only on what was
-installed when I ran it.  Its own bug does not go away either way.
+The lisp goes to share/emacs/<version>/site-lisp.  Emacs already
+searches there and its first-level subdirectories, so nothing has to
+be told; I installed everything that builds, listed all 390 .elc
+files they own, and each is on load-path.  share/emacs/site-lisp is
+still beside them, so a package that has not moved is unaffected.
 
-The sweep tree is a 2 September copy, so I went back and checked each
-package I name above against trunk today rather than trusting the
-copy: all four GITHUB_PROJECT lines are still absent, all three
-unprefixed dependencies are still unprefixed, all six hand-written
-lisp paths are still hand-written, and all five ${PKGBASE} pairs are
-still as described.
-
-Four of these are already visible in pkgsrc today, because xemacs
-already has a prefix.  I built an xemacs-nox11 21.5.36 here with your
-modules.mk and the packages untouched, so this part is measured
-against the tree as it is rather than against my branch:
-
-  editors/gnuserv    share/doc/xemacs-gnuserv is made while doc-install
-                     writes share/doc/gnuserv, so that name becomes a
-                     484-byte file holding whichever README went last
-  textproc/dictem    installs share/doc/xemacs-dictem/* while the PLIST
-                     asks for share/doc/dictem/*
-  editors/matlab-mode
-  textproc/xslide    stop earlier, at the byte-compile:
-                       matlab-mode  Cannot open load file: "tempo"
-                       xslide       Cannot open load file: "sendmail"
-                     Neither library is in XEmacs; both are in
-                     editors/xemacs-packages and neither package depends
-                     on it.  devel/doxymacs and textproc/migemo-elisp
-                     already carry that dependency in their xemacs
-                     branch, so the line has a precedent to copy.  With
-                     it added they reach the ${PKGBASE} problem after
-                     all, and with both fixes they build:
-                     xemacs-matlab-mode-2.3.1nb4, xemacs-xslide-0.2.2nb4.
-
-So this is not a new class of breakage the change introduces.  It is a
-class that exists now, that only xemacs users meet, and that the change
-makes everyone meet.  I think that argues for it rather than against.
-
-Some of what I found does not depend on the change at all, and I have
-put it here rather than in a mail of its own, because the packages
-overlap so much with the list above that two mails would name most of
-them twice.
-
-devel/ecb cannot be built by anything.  Adding GITHUB_PROJECT= ecb gets
-it past the fetch, and it then stops at
-
-  Symbol's function definition is void: semantic-mode
-
-which ecb-2.50's own Makefile writes into the compile script.  With
-xemacs-nox11-21.5.36nb1 and xemacs-packages-1.19nb1 installed,
-(fboundp 'semantic-mode) is nil bare and after (require 'semantic), and
-the package takes xemacs215, xemacs215nox, xemacs214 and xemacs214nox
-and nothing else.  editors/xemacs-packages already installs ECB, 63
-files under lib/xemacs/xemacs-packages/lisp/ecb, so XEmacs users have
-one either way.  Whether devel/ecb should follow ECB upstream, depend
-on the bundled one, or be marked is not mine to decide, so there is no
-diff for it.
-
-misc/elscreen cannot be built either, and this one is recent.  Its
-EMACS_VERSIONS_ACCEPTED is emacs20 and it includes apel's buildlink3.mk
-at top level; apel takes emacs29 and up and names emacs20 in
-EMACS_VERSIONS_INCOMPATIBLE.  The dependency is real -- elscreen.el
-requires alist and static, both apel -- so there is no version where
-the two can meet.  I read this at first as fallout from 12 September
-because both files carry that date, but a 2 September copy already has
-apel at 1.45 with the same list, so the overlap went on 26 August and
-the September commit only removed emacs21 from a list that had already
-stopped working.  Its own comment says to try wip/elscreen-current.  No
-diff: whether it should follow wip or be marked is a maintainer's call.
-
-devel/semi does not fail to build with its semi-bbdb option set -- it
-fails to parse, because options.mk includes misc/bbdb2/buildlink3.mk
-and bbdb2 went out with emacs21.  Pointing it at bbdb3 was my first
-try and it is wrong: mime-bbdb.el is BBDB 2 code and byte-compiles with
-bbdb-record-getprop, bbdb-record-putprop, bbdb-search-simple,
-bbdb-pop-up-bbdb-buffer, bbdb-record-edit-notes and bbdb-annotate-notes
-all undefined, and none of the six is in bbdb-3.2.2a under any name.
-The diff takes the option out instead, with the reasoning where the
-block was.  What is missing for the feature is a port of mime-bbdb.el,
-not a line in options.mk.
-
-mail/mu cannot be packaged against an Emacs without D-Bus -- every nox
-one, and an emacs30 with the dbus option off:
-
-  pkg_create: can't stat .../site-lisp/mu4e/mu4e-dbus.elc
-
-mu4e/meson.build asks the Emacs whether dbusbind is compiled in and
-only byte-compiles mu4e-dbus.el when it is, while PLIST.emacs lists the
-.elc unconditionally.  The guard is not needed: both requires in the
-file pass 'noerror, and against emacs30-nox11 it byte-compiles with no
-output and the .elc loads.  Nobody builds mu against a nox Emacs today,
-which is why nobody has seen it.
-
-Then a handful of declarations that no longer describe anything.
-editors/gnuserv's CONFLICTS names xemacs-[0-9]* and
-xemacs-current-[0-9]*, and neither does what it looks like: the
-packages are xemacs-21.4.25, xemacs-nox11-21.4.25, xemacs-21.5.36 and
-xemacs-nox11-21.5.36, so the second matches nothing and the first
-misses the nox ones.  I found it by having it happen -- pkg_add refused
-xemacs-nox11 over bin/gnuattach with gnuserv installed, which is the
-collision the line exists to declare.  Four more match nothing at all
-and cost nothing today, but the thing they were guarding may still be
-true: devel/pcl-cvs (emacs-21.*), inputmethod/skk (ddskk-[0-9]*),
-mail/mew (mew-xemacs-[0-9]*) and inputmethod/tamago-tsunagi
-(tamago-anthy-[0-9]*, only in wip).  I checked each with pkg_admin
-pmatch rather than by eye, which was worth doing: mail/elm's looked
-wrong and is fine, because its PKGNAME is elm-2.5.8nb5 and not the
-elm2.5.8 its DISTNAME suggests.
-
-One goes the other way -- it matches, and I do not think it should.
-misc/bbdb3 has CONFLICTS+= xemacs-packages-[0-9]*, and it stopped a
-build here: mail/wl-snapshot wants bbdb and pkg_add refused the bbdb3
-package because xemacs-packages was installed.  bbdb3 takes emacs29,
-emacs30 and emacs31 and no xemacs at all, so it cannot produce a file
-under lib/xemacs; I compared the two packing lists rather than
-reasoning about it, and of bbdb3's 38 files and xemacs-packages' 7840
-not one name is shared.  There is no diff for it because I would
-rather ask: is that line left from when bbdb3 accepted xemacs, or is
-there a collision I am not seeing?
-
-Two of the things that had to be fixed were in my own modules.mk, and
-only building found them.  EMACSLOADPATH for the build still named the
-old shared site-lisp, so anything byte-compiling against another elisp
-package stopped with "Cannot open load file" -- devel/flim could not
-require apel's install.el.  Nothing in the checks I had showed this:
-EMACS_LISPPREFIX was right, and the installed Emacs finds install.elc
-with the same flags the build uses.  Only the environment variable
-pointed at the old place.  Separately, the EMACS_VERSION_REQD path
-still had the empty-_EMACS_PKGDIR fatal I thought I had fixed, because
-I had only fixed it on the EMACS_VERSIONS_ACCEPTED side.
-
-A third was in something I had already told you was done.  I wrote
-that the choice reads the package's list in the order it was written,
-the way pyversion.mk walks PYTHON_VERSIONS_ACCEPTED, and that was the
-intent but not the code: the loop that intersects the two lists walked
-modules.mk's, so the package's order never reached the answer.
-misc/mailcrypt writes emacs20 first and still got emacs31.  The loop
-runs the other way now.  Reordering does move the answer, but only
-where it should -- with EMACS_TYPE set to something the package does
-not take, mailcrypt given "emacs20 emacs29" picks emacs20 and given
-"emacs29 emacs20" picks emacs29, while if the default is in the list
-the default still wins.  I mention the condition because I first tried
-to show this with devel/apel and got the same answer both ways: apel
-names emacs20 in EMACS_VERSIONS_INCOMPATIBLE, so only one candidate
-survived the filter and there was nothing left to order.
-
-The pbulk part was worse, and I am sorry to have said it was done.  I
-wrote that it was three lines in mk/pbulk/pbulk-index.mk of the same
-shape as the python and ruby entries.  It was three lines and they did
-nothing: the class also has to be named in _PBULK_MULTI, which is the
-list the loop walks, so nothing ever read them.  It also wanted the
-filtered list rather than the written one, for the reason python takes
-_PYTHON_VERSIONS_ACCEPTED -- otherwise a package naming a version
-pkgsrc no longer has puts it in the bulk index.  So it is four lines,
-and with them devel/apel gives
-
-  PKGNAME=emacs30-apel-10.8.0.20201107nb2
-  PKGNAME=emacs29-apel-10.8.0.20201107nb2
-  PKGNAME=emacs31-apel-10.8.0.20201107nb2
-
-with the default first, while devel/pcl-cvs, which takes emacs20 and
-nothing else, gives the single line it should, and devel/gmake, which
-never includes modules.mk, is untouched.
-
-I should say where all this was measured, since it is one machine for
-most of it: NetBSD 11.0/amd64.  The parts that matter most I have also
-run on i386 11.0, in a throwaway VM -- apel, flim, zig-mode, dictem,
-gnuserv and emacs-w3m build there with the prefix on their names, the
-pbulk enumeration comes out the same, and Emacs finds the lisp under
-share/emacs/30.2/site-lisp with share/emacs/site-lisp still beside it.
-Nothing else has been near another platform.
-
-mail/mu turned out not to be about placement at all -- its lisp goes
-exactly where it should, and what is wrong with it is further down.
-It is worth one word here though, because it is the kind of thing your
-third point would find on its first pass: nobody builds mu against a
-nox Emacs today, so nobody has seen it.
-
-It also settled a question I had about the prefix, though not the way I
-first read it.  emacs30 and emacs30-nox11 conflict with each other and
-share share/emacs/30.2/site-lisp, so one emacs30-foo could serve
-either.  I had written that mail/mu said otherwise, because its file
-list differs between an Emacs with D-Bus and one without -- and then
-noticed that the difference is made by the very guard the mu4e patch
-below removes.  With that gone I went looking for any other
-package whose installed files depend on the Emacs having X, and there
-is none: nothing in the 87 conditions on it, in a PLIST or anywhere
-else.  So the two builds do not need two names, and I have folded them:
-
-  EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
-
-A package accepting emacs30 now accepts emacs30nox as well, so the
-lists stop having to spell both halves of every pair, and the bulk
-index makes one package per version instead of two -- devel/apel goes
-from six entries to three, textproc/xslide from eleven to six.  The
-dependency is written so either build satisfies it, and pkg_add is
-what enforces it: with only emacs30-nox11 installed here, the same
-binary package refuses or installs according to that one line.
+The name carries the version: emacs29-apel, emacs30-apel, and only
+the version.  The nox build and the X build of one Emacs conflict
+with each other, share the same site-lisp, and no package in the tree
+installs a different file list for the two -- I went through the 87
+conditions on it -- so one emacs30-foo serves either, and pbulk makes
+one of it rather than two: devel/apel goes from six entries to three,
+textproc/xslide from eleven to six.  The dependency is written so
+either build satisfies it, and pkg_add enforces it: with only
+emacs30-nox11 installed, the same binary package installs or refuses
+according to that one line.
 
   @pkgdep emacs30>=30.1<31              pkg_add: no pkg found, sorry.
   @pkgdep {emacs30-nox11,emacs30}>=...  installs
 
-The exception keeps the longer name.  A package that refuses the X
-build says so in EMACS_VERSIONS_INCOMPATIBLE, and is then called
+A package that refuses the X build -- says so in
+EMACS_VERSIONS_INCOMPATIBLE -- is the exception, and is named
 emacs30-nox11-foo with its dependency pinned to that build, so a
-binary package cannot land on an Emacs that cannot run it.  A package
-that refuses the nox build keeps the plain name, since there is no
-other emacs30-foo to confuse it with.  cad/dinotrace-mode is the only
-candidate I found -- it carries a comment about needing athena widgets
--- and I have not touched it, because its list also still names
-emacs26 and I have not built it either way.
-
-XEmacs stays split by series rather than by build: xemacs214- and
-xemacs215-, which today are both xemacs-, although 21.4 and 21.5 are
-different enough that editors/xemacs and editors/xemacs-current are
-separate packages.
-
-One failure is the change refusing, which is what you asked for.
-mail/vm in my copy depends on misc/bbdb2, which accepts only emacs21,
-and the build stops with
-
-  ERROR: No Emacs that pkgsrc still has is accepted here
-  ERROR: Accepted versions are: emacs21 emacs21nox
-  ERROR: pkgsrc has: emacs31 emacs31nox ... xemacs214nox
-
-rather than with "Cannot open /version.mk".  It cannot happen on trunk,
-though: you took bbdb2 out with emacs21 and mail/vm rev 1.47 no longer
-includes its buildlink3.mk.  The same goes for the fifteen packages I
-said still ask for emacs21 -- that is my 2 September copy, not pkgsrc;
-jde, leim21, bbdb2 and nxml-mode went with the version and nothing on
-trunk names it.  So the intersection is worth taking for the next
-retirement rather than for a mess sitting there today.
-
-Since my earlier figures came from that copy, I took them again from
-trunk, fetching each Makefile and PLIST.  The build results above are
-still from the copy, with the current modules.mk dropped in; every
-package I name still exists on trunk with the same lines.  87 packages
-read modules.mk, leaving out wip and the emacs and xemacs packages
-themselves.  86 have a PLIST -- counting PLIST.emacs and the like, not
-just PLIST, which is where I lost one the first time.  Of those, 78
-write ${EMACS_LISPPREFIX}, six write the path by hand (the same six I
-named before) and two install no lisp at all.  Of the 26 that pass a lisp directory into their own
-build, all 26 pass the variable.  (I said 25 and named chat/zenicb last
-time; that was a miscount -- what I matched there is a commented-out
-PLIST_SUBST line, and zenicb passes nothing into a build at all, it
-writes ${EMACS_LISPPREFIX} straight into INSTALLATION_DIRS and its
-install rule.)
-
-Three of those six need a second line, because the install writes the
-shared path as well and changing only the PLIST splits the two:
-inputmethod/tamago-tsunagi and devel/cqual, which leave it to a
-bundled makefile, and devel/rsltc, whose own Makefile has
-${DESTDIR}${PREFIX}/share/emacs/site-lisp/rsl spelled out three times.
-All six build here with both lines.  Left alone, tamago-tsunagi and
-cqual are the two that build green into the old directory, and the
-other four stop -- which side you land on depends only on whether the
-PLIST or the install was the one written by hand.
-
-devel/rsltc carries a caveat: it wants devel/gentle, which pkgsrc
-marks broken on this platform, so the only reason it got as far as the
-packing list here is that I had a gentle installed from the experiment
-below.  The mismatch itself is in the files and does not depend on
-that.
-
-rsltc took a detour worth mentioning on its own, and it ends somewhere
-I did not expect.  It wants devel/gentle, which carries
-BROKEN_ON_PLATFORM= ${LP64PLATFORMS}, so I had written it off.  With
-that line taken out for the experiment, on NetBSD 11.0/amd64, gentle
-builds with nothing but K&R-era warnings, and it really runs: the
-distfile ships ast.g and no ast.c, and the log has gentle turning all
-eleven grammars into C.  rsltc builds against it and works:
-
-  $ rsltc HELLO.rsl
-  Checking HELLO ...
-  rsltc completed: 0 error(s) 0 warning(s)
-  $ rsltc bad.rsl
-  bad.rsl:3:13: syntax error
-
-with the line and column right.  The same thing was then tried from
-the same tree on i386, where pkgsrc does not mark gentle broken at
-all, and there it builds, installs, and dies on the first grammar:
-
-  gentle ast.g
-  gmake: *** [std_make:31: ast.c] Segmentation fault (core dumped)
-
-That first i386 run was on a throwaway NetBSD 9.4 VM, which differs
-from my amd64 box in release as well as in word size, so I ran it
-again on i386 11.0 and got the same thing, on the same first grammar.
-Three points now:
-
-  amd64 11.0   gentle builds, all eleven grammars, rsltc works
-  i386  9.4    gentle builds and installs, segfault on ast.g
-  i386  11.0   the same
-
-so it is the word size and not the release.  What the line says is the
-other way round: it calls LP64 broken, and LP64 is where it worked.  I
-have no core to offer -- both i386 runs were throwaway VMs -- and I am
-not asking you to change the line on three data points and no
-backtrace.  But since i386 is not marked broken, devel/rsltc is
-failing there in any bulk build today, and that is also what keeps it
-out of the one on amd64.
-
-The name is the expensive half, and most of it is outside modules.mk.
-EMACS_PKGNAME_PREFIX only does anything where the package spells it in
-PKGNAME, and 24 of the 87 do not -- 22 last time; I had been reading
-only the Makefile and missing the ones that set PKGNAME in options.mk
-or not at all.  Adding it moves PKGBASE, and six
-variables under mk/ take ${PKGBASE} as their default -- PKGWILDCARD
-and PKG_SYSCONFVAR in bsd.pkg.mk, FILEBASE in
-pkgformat/pkg/package.mk, and GITHUB_PROJECT, GITLAB_PROJECT and
-CODEBERG_PROJECT in mk/fetch -- so anything resting on the default
-moves with it.  Ten of the 87 fetch from GitHub without setting
-GITHUB_PROJECT; none uses gitlab or codeberg.  Nine spell ${PKGBASE}
-themselves -- the nine above.
-
-None of that shows up until a package gains the prefix, so I took one
-of the 22 that lack it -- misc/color-theme -- added the PKGNAME line
-and built it.  It breaks twice over: MASTER_SITES is
-.../releases/${PKGBASE}/, which becomes
-.../releases/emacs30-color-theme/ and 404s, and the install writes
-ELISPDIR=${EMACS_LISPPREFIX}/${PKGBASE} while the PLIST says
-${EMACS_LISPPREFIX}/color-theme:
-
-  ERROR: .../site-lisp/emacs30-color-theme/themes/color-theme.elc
-
-That is one of the 24.  Three of those 24 spell ${PKGBASE}, and they
-are the ones to look at first: misc/color-theme above,
-mail/mailutils (--with-mh-bindir=${PREFIX}/libexec/${PKGBASE} and
-DOCDIR=share/doc/${PKGBASE}) and www/emacs-w3m
-(WRKSRC=${WRKDIR}/${PKGBASE}-${GITHUB_TAG}).  The other 21 have no
-${PKGBASE} of their own, so for them it may well be the one line --
-but I would rather not say so until they have been through a build.
-
-One more, which I found late and have since fixed, but it is worth
-showing because it was mine and because of where the answer was.
-Making EMACS_TYPE the default rather than a requirement means a
-package that does not accept it falls back to one it does accept.  On
-its own that is pyversion.mk's behaviour and fine; in a chain it was
-not.  www/emacs-w3m accepts emacs20 and devel/apel does not, so with
-EMACS_TYPE=emacs20 emacs-w3m asked for emacs20-apel while apel built
-itself as emacs29-apel, and nothing said why the dependency never
-appeared.
-
-pyversion.mk does not have that problem, and the reason is one I had
-walked past: when pkgsrc resolves a dependency it passes the pattern
-as PKGNAME_REQD, and pyversion.mk reads the version back out of it, so
-the dependency is built for the version its dependent chose.  With the
-same six lines here:
-
-  => Full dependency emacs20-apel>=10: NOT found
-  => Verifying reinstall for ../../devel/apel
-  ERROR: This package does not build with emacs20
-  ERROR: Accepted versions are: emacs29 emacs29nox ... emacs31nox
-
-which names the version, the package and what would work.  It is where
-the tree stops today too, though with "No valid Emacs version
-installed found" and no version named.
-
-While I was in those files I tidied one thing that caused the trouble
-in the first place.  Each nox version.mk is a copy of its X11 twin with
-one line changed, and the copied lines are where the rot was; each
-buildlink3.mk then writes the version a third time in
-BUILDLINK_ABI_DEPENDS, on the line after the one that takes it from
-version.mk.  With the nox file including its twin and the ABI floor
-moved into version.mk, the version is written in exactly one place per
-Emacs and cannot disagree with itself:
-
-  editors/emacs29/version.mk      3 lines carry a version
-  editors/emacs29/buildlink3.mk   0
-
-Making EMACS_TYPE a request rather than the answer turns one idiom
-from harmless into wrong, and there is exactly one package using it.
-devel/apel has
-
-  .if empty(EMACS_TYPE:Mxemacs)
-  .  if !empty(EMACS_TYPE:Memacs2[3-9]*) || !empty(EMACS_TYPE:Memacs3[0-9]*)
-  PLIST.emacs23=	yes
-  .  else
-  PLIST.emacs19=	yes
-
-which reads what the user asked for.  Today that is always what gets
-built, so it is correct by accident.  With the fallback it is not:
-
-  EMACS_TYPE=emacs20     built for emacs29, PLIST.emacs19=yes
-  EMACS_TYPE=xemacs215   built for emacs29, PLIST.emacs19=yes
-
-apel does not accept emacs20 or xemacs, so it is built for emacs29 and
-then given the Emacs 19 packing list.  EMACS_VERSION_MAJOR is the
-version actually in use and six other packages already use it; with
-the test written that way all four inputs give emacs23 and it builds.
-It is the only package in the 87 that tests EMACS_TYPE in a
-condition, so this is one line, not a sweep.
-
-I owe you a correction on the first mail.  I wrote that nothing in
-pkgsrc names an Emacs the tree no longer has, having checked emacs21.
-That was true of emacs21 and not of everything: cad/dinotrace-mode has
-
-  EMACS_VERSIONS_ACCEPTED=	emacs26 emacs29
-
-and editors/emacs26 is gone.  It costs nothing today because emacs29 is
-still in the list, which is exactly why it has sat there -- a value
-nobody reads because nothing reads it.  The diff takes emacs26 out.
-The comment above it worried me, since it says the package wants athena
-widgets and I did not want to narrow it on a guess, so I built it: with
-the line as emacs29 alone it builds against emacs29-nox11, which has no
-toolkit at all, and the lisp loads.  I have left the comment, because
-it records why the list is short and I have not tried emacs30 or 31.
-
-That build also showed something the file check cannot: the lisp lands
-in share/emacs/29.4/site-lisp/emacs29-dinotrace-mode, the prefix inside
-the directory name, because the install spells ${EMACS_LISPPREFIX}/
-${PKGBASE}.  Its PLIST spells ${PKGBASE} too, so the two agree and
-nothing complains -- green, and named wrong.  It is the same shape as
-cqual and tamago-tsunagi being green in the old shared directory.
-
-One more that is not about placement at all.
-EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel, and no line of
-modules.mk reads it, while pyversion.mk and rubyversion.mk both
-subtract their equivalent from what they will choose from.  Now that
-the selection walks the package's own list, leaving it out is one more
-condition in the same loop, so I have done that.  Side by side, with
+binary package cannot land on an Emacs that cannot run it.  With
 EMACS_TYPE=emacs30nox and devel/apel:
 
   modules.mk as it is  apel-10.8.0.20201107nb2, and the same again
@@ -506,731 +90,395 @@ EMACS_TYPE=emacs30nox and devel/apel:
                        emacs29-apel        told emacs30nox is no good
                        emacs30-nox11-apel  told emacs30 is no good
 
-The last line is the whole of the nox handling in one place: refusing
-the X build is the one thing that puts nox back into a package name.
+XEmacs stays split by series, xemacs214- and xemacs215-, which today
+are both xemacs-.  Packages stop having to spell both halves of every
+pair in EMACS_VERSIONS_ACCEPTED, though the lists that do still work.
 
-apel's own line names emacs20, which it does not accept anyway, so
-nothing moves there -- that line has been doing nothing twice over,
-which is presumably why nobody noticed the variable was never read.
+pbulk is four lines rather than the three I said: the class also has
+to be named in _PBULK_MULTI, which is the list the loop walks, and it
+wants the filtered list rather than the written one, for the reason
+python takes _PYTHON_VERSIONS_ACCEPTED.  With them devel/apel gives
 
-I had been saying the lisp goes somewhere Emacs already searches
-without ever checking it, so I did.  I installed the ones that build,
-listed every .elc they own -- 390 files -- and asked Emacs for each by
-the name it would be required under.  All 390 are on load-path:
-share/emacs/30.2/site-lisp and its first-level subdirectories, with
-share/emacs/site-lisp still there beside them, so a package that has
-not moved yet is unaffected.  Requiring the main library of each
-package works for 24 of 33.  The nine that fail are worth a word,
-because I nearly wrote them up as damage: they fail for reasons inside
-the elisp, not for where it lives.  markdown-mode and rmail-mime want
-eieio-make-class-predicate, which this Emacs does not have even after
-(require 'eieio); verilog-mode wants XEmacs's lucid; gnuserv wants
-XEmacs's temp-directory.  I copied three of the nine into the old
-shared site-lisp and required them from there, and they fail with the
-same messages, character for character.
+  PKGNAME=emacs30-apel-10.8.0.20201107nb2
+  PKGNAME=emacs29-apel-10.8.0.20201107nb2
+  PKGNAME=emacs31-apel-10.8.0.20201107nb2
 
-The lisp moves and the info files do not, and that turns out to matter
-more than it sounds.  _EMACS_INFODIR is picked by flavour, not by
-version, so every GNU Emacs gets ${PKGINFODIR} and every XEmacs gets
-lib/xemacs/site-packages/info.  With the version in the name, two
-builds of the same package are two packages that write the same info
-file, and pkg_add stops the second:
+with the default first; devel/pcl-cvs, which takes emacs20 and
+nothing else, gives one line; devel/gmake, which never includes
+modules.mk, is untouched.
+
+Then three things that building found, all invisible while only one
+Emacs can be installed.
+
+EMACS_BIN was ${PREFIX}/bin/${_EMACS_FLAVOR}, so building for emacs29
+byte-compiled with whichever Emacs owned bin/emacs, which was 30.2.
+It is now the versioned binary for GNU Emacs.  XEmacs keeps the plain
+name on purpose: 21.5 installs bin/xemacs-21.5-b36 but 21.4 installs
+no versioned executable at all, only a bin/xemacs-21.4.25-<hash>.dmp.
+I built 21.4 to find that out rather than guess a name.
+
+Each nox version.mk was a copy of its X11 twin with one line changed,
+and the copies had rotted: editors/emacs29-nox11/version.mk said 29.1
+while the package builds 29.4, so the lisp went to
+share/emacs/29.1/site-lisp and the build's load path pointed at a
+directory that does not exist.  The nox file now includes its twin
+and sets only what differs, and the ABI floor that each buildlink3.mk
+wrote a third time has moved into version.mk, so the version is
+written in one place per Emacs.
+
+Info and etc move under the version with the lisp, since with the
+version in the name two builds of one package are two packages that
+write the same file, and pkg_add stops the second:
 
   pkg_add: emacs29-skk-17.1nb2: conflicting PLIST with
            emacs30-skk-17.1nb2: info/skk.info
 
-That is inputmethod/skk built twice, once against each Emacs, and 30
-of the 87 install info files.  Getting as far as being able to run
-that took three other things first, and they are worth listing because
-each was invisible while only one Emacs could be installed:
-editors/emacs29-nox11/version.mk still says 29.1 although the package
-it builds is 29.4, so the lisp went to share/emacs/29.1/site-lisp and
-the build's load path pointed at a directory that does not exist;
-EMACS_BIN is ${PREFIX}/bin/${_EMACS_FLAVOR}, so building for emacs29
-byte-compiled with whichever Emacs owned bin/emacs, which was 30.2;
-and the two Emacs packages themselves will not coexist.  I first hit it by
-accident, rebuilding flim against the stock modules.mk while the
-prefixed one was still installed, which is the same collision wearing
-different names.  The two apels sat side by side happily through
-all of it, because apel installs no info file and flim installs two.
-XEmacs has the same shape: xemacs214 and xemacs215 both give
-lib/xemacs/site-packages/info.
+That is inputmethod/skk built twice, once against each Emacs; 30 of
+the 87 install info.  For etc it is share/emacs/<version>/etc, safe
+because the two packages that use it bake the path in at build time.
+For info I have gone through PKGINFODIR rather than a path of the
+framework's own: modules.mk sets it to share/emacs/<version>/info
+once the version is known, and everything pkgsrc already does for
+info files -- the info/ canonicalisation in plist-info.awk, the
+--infodir that gnu-configure.mk passes, the dir file -- follows
+without a package being told.  A PLIST that spells info/foo.info is
+still right.  I tried the other way first, a path of its own with
+eleven PLISTs rewritten to ${EMACS_INFOPREFIX}/, and it was worse in
+every direction: mail/mailutils passes --infodir=${PREFIX}/${PKGINFODIR}
+and so wrote to the old place while its PLIST looked in the new, and
+devel/cqual the opposite.  With PKGINFODIR neither needs a line.
 
-Three other variables are picked the same way and I have taken two of
-them with the lisp.  EMACS_ETCPREFIX was share, so emacs29-mew and
-emacs30-mew would both write share/mew; it is now
-share/emacs/<version>/etc, which is safe because the two packages that
-use it have the path baked in at build time and nothing has to be told
-where it went.  math/ess spells ${EMACS_ETCPREFIX} on both sides and
-needs nothing; mail/mew passes it to the build but writes share/mew in
-its PLIST, so it wants the one-line change the three lisp ones wanted,
-and the diff is below.  EMACS_BIN was
-${PREFIX}/bin/${_EMACS_FLAVOR}, so building for emacs29 byte-compiled
-with whichever Emacs owned bin/emacs; it is now the versioned binary
-for GNU Emacs.  XEmacs keeps the plain name, and that is not an
-oversight I have left lying: 21.5 installs bin/xemacs-21.5-b36 but
-21.4 installs no versioned executable at all, only a
-bin/xemacs-21.4.25-<hash>.dmp, so there is nothing to point at.  I
-built 21.4 here to find that out rather than guess a name.
-
-The third is EMACS_INFOPREFIX, and that one needs a receiving half, so
-rather than describe it I have written it.  Info is found at run time
-rather than baked in: Info-default-directory-list comes from the
-Emacs's own --infodir when it is configured, and the only runtime lever
-is INFOPATH.  So moving the files alone would put them where nothing
-looks -- I checked, and Emacs does not find them.  The Emacs packages
-now write a two-line site-start.el beside their site-lisp:
+Info does need a receiving half, unlike the lisp: Emacs finds it
+through Info-default-directory-list, built from its own --infodir at
+configure time, and the only runtime lever is INFOPATH.  So the Emacs
+packages now install a two-line site-start.el beside their site-lisp:
 
   (add-to-list (quote Info-default-directory-list)
     (expand-file-name "../info" (file-name-directory load-file-name)) t)
 
-and with that, inputmethod/skk installs share/emacs/30.2/info/skk.info
-and C-h i finds it.  The path is relative to the file, so nothing has
-to be substituted.
+and skk installs share/emacs/30.2/info/skk.info and C-h i finds it;
+without the file it does not.  It takes over site-start.el, which is
+a name an administrator may want -- a site-start.d read by a one-line
+site-start.el would leave that free, and I did not want to invent a
+convention for the tree without asking.  Which packages I built with
+the info change, and which are still unmeasured, is under 4.
 
-Two things about it are worth your eye rather than mine.  It takes over
-site-start.el, which is a name an administrator may want; a
-site-start.d read by a one-line site-start.el would leave that free,
-and I did not want to invent a convention for the tree.  And fourteen
-PLISTs spell info/ by hand rather than ${EMACS_INFOPREFIX}, so they
-need the same one-line change the lisp ones needed -- eleven files, in
-the diff below.  Seventeen already use the variable and need nothing.
+One more that was mine: EMACSLOADPATH for the build still named the
+old shared site-lisp, so anything byte-compiling against another
+elisp package stopped with "Cannot open load file".  Only building
+found it; EMACS_LISPPREFIX was right all along.
 
-It is also worth saying this is not the first collision in that
-directory: 66 of the 93 files the two Emacs packages share are their
-own info files, so the Emacsen have the same problem one floor up.
+What this part does not do is let two Emacsen coexist.  editors/emacs29
+and editors/emacs30 declare no conflict with each other and share 93
+files -- bin/emacs, bin/ctags, bin/etags, bin/emacsclient,
+bin/ebrowse, include/emacs-module.h, 66 info files, 15 under share --
+so pkg_add stops the second one over bin/ctags.  With those 93 files
+removed by hand the two run side by side, emacs 29.4 and emacs 30.2,
+and everything above was measured that way.  Versioning the binaries
+the way python313 does is a bigger change than the three you asked
+about and I have not made it; it does set the ceiling on what the
+per-version name buys until it is made: a bulk build can make every
+version and the name records which Emacs a binary package is for, but
+two of them still cannot sit on one machine.
 
-So being able to build every version is not yet being able to install
-them.  Moving info under the version as well is the obvious answer and
-I have not done it, because Emacs finds info through INFOPATH and the
-dir file rather than by looking beside the lisp, so it is a change
-with a second half I would rather agree with you first.
+Two costs of the prefix that I would rather put in front of you than
+decide.  It takes a package out of the vulnerability list's reach:
+pkg_admin audit-pkg reports CAN-2004-0422 for flim-1.14.2 and nothing
+for emacs30-flim-1.14.2 -- or for xemacs-flim-1.14.2, so this is
+already true of the xemacs- packages today.  An advisory can cover it
+by enumerating, {,emacs30-}flim<1.14.3, and 3778 of the 30234 entries
+in the list already open with a brace; nothing currently in it is
+affected, since the only advisory for an elisp package rather than
+for Emacs itself is flim<1.14.3 and pkgsrc has 1.14.9.  And CONFLICTS
+patterns that name a renamed package stop matching -- that one is in
+the fixes, where it bit.
 
-Then I went one level up and found the same thing, larger.  I was
-building skk for emacs29 to show the collision above, and the Emacs
-itself would not install:
+Diffs: modules.mk (402 lines against 1.42), pbulk-index.mk (20), and
+the four to the Emacs packages.
 
-  pkg_add: emacs29-nox11-29.4: conflicting PLIST with
-           emacs30-nox11-30.2nb1: bin/ctags
+[framework diffs]
 
-editors/emacs29 and editors/emacs30 do not declare a conflict with
-each other -- each names only its own nox twin, and the built packages
-carry @pkgcfl emacs29-[0-9]* and @pkgcfl emacs30-[0-9]* and nothing
-else -- but their file lists overlap in 93 places: bin/emacs,
-bin/ctags, bin/etags, bin/emacsclient, bin/ebrowse, include/
-emacs-module.h, 66 info files and 15 under share.  So two versions of
-Emacs cannot be installed side by side today, and nothing says so
-until pkg_add trips over it.  python313 versions every one of its
-binaries -- bin/python3.13, bin/pydoc3.13 -- which is why py312- and
-py313- packages are worth having on one machine.
 
-I am not proposing to fix that here; it is a bigger change than the
-three you asked about, and it is yours to want or not.  But it does
-set the ceiling on what the second point buys: with the Emacsen as
-they are, a per-version name is worth having because a bulk build can
-make every version and because the name records which Emacs a binary
-package was made for -- not because two of them can sit on one machine
-yet.  The info collision above is the same disease one floor down.
+2. Bug fixes -- wrong on trunk today
+=====================================
 
-One cost of the second point that I have not seen raised.  Putting the
-prefix in PKGNAME takes the package out of the vulnerability list's
-reach, quietly:
+Twenty packages.  I have grouped them by what is wrong, and each was
+built with its diff under the framework; the ones marked (x) were
+also built against your modules.mk with an xemacs-nox11 21.5.36, since
+XEmacs already has a prefix and shows them today.
 
-  pkg_admin audit-pkg flim-1.14.2             -> reports CAN-2004-0422
-  pkg_admin audit-pkg emacs30-flim-1.14.2     -> nothing
-  pkg_admin audit-pkg xemacs-flim-1.14.2      -> nothing
+Cannot be built at all:
 
-The third line is the one that matters: this is already true of the
-xemacs- packages in pkgsrc today.  An advisory can be written to cover
-it, but only by enumerating -- {,emacs30-}flim<1.14.3 matches while
-*-flim<1.14.3 and emacs*-flim<1.14.3 do not, because the glob does not
-combine with a version bound.  That shape is at least not a novelty:
-of the 30234 entries in the list 3778 already open with a brace list,
-1183 of them with the empty alternative, and w3m{,-img}<0.3.2.2 shows
-a brace and a version bound together.  So the cost is the width of the
-line rather than a new mechanism -- with the prefix carrying the
-flavour only it is {,xemacs-}, and with the version in it every
-advisory for an elisp package has to name every Emacs.  Nothing in the
-current list is affected: I decompressed it and went through the 92
-entries whose name starts with emacs or xemacs, and every one is
-bounded below what pkgsrc ships.  The only advisory for an elisp
-package rather than for Emacs itself is flim<1.14.3, and pkgsrc has
-1.14.9.
+  cad/dinotrace-mode   EMACS_VERSIONS_ACCEPTED names emacs26, which is
+                       gone.  Costs nothing while emacs29 is also in
+                       the list, which is why it has sat there.  I
+                       built it with emacs29 alone before narrowing
+                       it, since the comment above worries about
+                       athena widgets: it builds against
+                       emacs29-nox11, which has no toolkit, and loads.
+  devel/semi           the semi-bbdb option includes
+                       misc/bbdb2/buildlink3.mk, and bbdb2 went with
+                       emacs21, so the option fails to parse.
+                       Pointing it at bbdb3 was my first try and is
+                       wrong: mime-bbdb.el is BBDB 2 code and
+                       byte-compiles with six functions undefined,
+                       none of which bbdb-3.2.2a has under any name.
+                       The diff takes the option out; what the
+                       feature needs is a port of mime-bbdb.el.
+  mail/mu              PLIST.emacs lists mu4e-dbus.elc unconditionally
+                       while mu4e/meson.build only byte-compiles it
+                       when the Emacs has dbusbind, so it cannot be
+                       packaged against any nox Emacs.  The guard is
+                       not needed -- both requires pass 'noerror, and
+                       against emacs30-nox11 the .elc builds and
+                       loads -- so the patch drops it.  Nobody builds
+                       mu against a nox Emacs today, which is why
+                       nobody has seen it.  Its -Dinfodir=info is in
+                       the same diff, for the reason under 4.
 
-CONFLICTS goes the same way, and that one has teeth.
-inputmethod/tamago-tsunagi says CONFLICTS= tamago-[0-9]*, which matches
-tamago-20020909nb5 and does not match emacs20-tamago-20020909nb5:
+Declarations that do not match what they name:
 
-  pkg_admin pmatch 'tamago-[0-9]*' tamago-20020909nb5          matches
-  pkg_admin pmatch 'tamago-[0-9]*' emacs20-tamago-20020909nb5  does not
+  editors/gnuserv (x)  CONFLICTS names xemacs-current-[0-9]*, which
+                       matches nothing, and xemacs-[0-9]*, which
+                       misses the nox packages.  I found it by having
+                       it happen: pkg_add refused xemacs-nox11 over
+                       bin/gnuattach instead of the line refusing it
+                       first.  Also share/doc/${PKGBASE} in
+                       INSTALLATION_DIRS while doc-install writes
+                       share/doc/gnuserv, so under xemacs that name
+                       becomes a 484-byte file holding whichever
+                       README went last.
+  textproc/dictem (x)  the same pair: installs share/doc/xemacs-dictem
+                       while the PLIST asks for share/doc/dictem.
+  inputmethod/tamago-tsunagi
+                       CONFLICTS= tamago-[0-9]* does not match
+                       emacs20-tamago-20020909nb5, so two packages
+                       that select emacs20 land in the same egg
+                       directory with nothing declared between them.
+                       With the prefix in the pattern it matches
+                       emacs20-tamago while tamago-tsunagi is built
+                       for emacs20 and not under emacs30, which is
+                       right: they only collide when they share a
+                       lisp directory.
 
-Two packages that both select emacs20 would then land in the same
-share/emacs/20.7/site-lisp/egg with nothing declared between them.
-Spelling the prefix in the pattern fixes it and sharpens it at the
-same time -- with ${EMACS_PKGNAME_PREFIX}tamago-[0-9]* the line matches
-emacs20-tamago while tamago-tsunagi is built for emacs20, and does not
-match it under emacs30, which is right: the two only collide when
-they share a lisp directory.  That one is in emacs-framework/pkg-fixes/
-on the branch, with the rest of the package changes; say the word and I
-will paste whichever of them you want to look at into a mail instead.
+Wrong under XEmacs today:
 
-I watched the shape of this happen for real, though for a different
-reason: editors/gnuserv's CONFLICTS names a pattern that matches no
-package, and pkg_add refused xemacs-nox11 over bin/gnuattach instead
-of the line refusing it first.  So wherever the prefix moves PKGNAME,
-the CONFLICTS lines pointing at that package want looking at.  The
-vulnerability list is the same mechanism without a fix I can offer, so
-I would rather put that half in front of you than decide it.
+  editors/matlab-mode (x)
+  textproc/xslide (x)  both stop at the byte-compile, "Cannot open
+                       load file: tempo" and "sendmail".  Neither
+                       library is in XEmacs; both are in
+                       editors/xemacs-packages and neither package
+                       depends on it -- devel/doxymacs and
+                       textproc/migemo-elisp carry that line in their
+                       xemacs branch, so there was a precedent to
+                       copy.  Past that both hit a ${PKGBASE} pair:
+                       matlab-mode creates
+                       ${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||} and
+                       installs into ${EMACS_LISPPREFIX}/${PKGBASE},
+                       xslide installs into ${PKGBASE} while its PLIST
+                       says xslide.  With both fixes they build:
+                       xemacs-matlab-mode-2.3.1nb4, xemacs-xslide-0.2.2nb4.
 
-The elisp package diffs are below.  The framework itself -- modules.mk,
-pbulk-index.mk, and the changes to the Emacs packages themselves
-(version.mk, buildlink3.mk, and the site-start.el above) -- is on the
-branch rather than pasted here, since that part is what we are talking
-about rather than something to apply.  They go on to trunk as
-of today in the order given and reversed, with no offset and no fuzz.
+Wrong under every current GNU Emacs today, and the one I would put
+first:
 
-Happy to split any of this up however suits you -- the package fixes
-stand on their own whether or not you want the framework part.
+  lang/eieio           has no EMACS_VERSIONS_ACCEPTED, so it builds
+                       for emacs30, and eieio has been part of GNU
+                       Emacs since 24.1.  site-lisp comes before
+                       lisp/ on load-path, so with emacs30-eieio-0.17
+                       installed (require 'eieio) loads the 2004 copy
+                       and eieio-make-class-predicate is void; mail/mu
+                       then fails to build its man pages through
+                       org-export, and earlier I had blamed
+                       markdown-mode and rmail-mime for wanting that
+                       function "which this Emacs does not have" --
+                       it has it, eieio 0.17 was hiding it.  The same
+                       is true of share/emacs/site-lisp today.  The
+                       diff limits it to emacs20 and XEmacs, which do
+                       not bundle it (xemacs-packages carries one);
+                       devel/semantic is its only dependent and
+                       accepts exactly those.
+
+Not using the framework -- the path is right today only because it
+happens to coincide with the variable, and the tree already has the
+variable for exactly this:
+
+  devel/cqual          bundled makefile decides lispdir; the PLIST
+                       spells share/emacs/site-lisp/cqual.  Both
+                       lines, because with only one the two halves
+                       split.  This one and tamago-tsunagi build green
+                       into the old directory under the framework
+                       with no fix, which I think is the worst shape.
+  editors/tamago       bundled configure decides lispdir.
+  inputmethod/tamago-tsunagi
+                       bundled makefile; the PLIST spells the path.
+  devel/pcl-cvs        bundled makefile; there is no "lispdir" in the
+                       package Makefile to grep for, only building
+                       finds it.
+  devel/rsltc          its own Makefile spells
+                       ${PREFIX}/share/emacs/site-lisp/rsl three
+                       times, and the PLIST too.
+  net/twittering-mode
+  textproc/emacs-dict-client
+  mail/mailutils       PLIST spells the path; the install already
+                       follows the variable.
+  misc/emacs-wiki      passes no ELISPDIR to its install; and asks for
+                       semi>=1.14.6 without the prefix, which can
+                       never be satisfied once semi is renamed.
+  devel/flim           adds an unprefixed apel>=10.8 to
+                       BUILDLINK_API_DEPENDS.apel, beside apel's own
+                       ${EMACS_PKGNAME_PREFIX}apel>=10.  Under xemacs
+                       that already asks for two different packages.
+  www/emacs-w3m        passes no --with-lispdir, so the install writes
+                       the old shared site-lisp while the PLIST
+                       follows the variable; and --infodir=${PREFIX}/info
+                       where the tree writes ${PKGINFODIR}.  I had
+                       earlier read its WRKSRC=${WRKDIR}/${PKGBASE}-...
+                       as a ${PKGBASE} problem; it is not, because
+                       emacs-w3m never puts the prefix in PKGNAME.
+  devel/apel           tests EMACS_TYPE to choose its packing list,
+                       and EMACS_TYPE is what the user asked for.
+                       Today that is always what gets built, so it is
+                       right by accident; once a package can fall back
+                       it is not: with EMACS_TYPE=emacs20 apel builds
+                       for emacs29 and is given the Emacs 19 list.
+                       EMACS_VERSION_MAJOR is the version in use and
+                       six other packages already test that.  It is
+                       the only package of the 87 that tests
+                       EMACS_TYPE in a condition.
+
+devel/rsltc has a caveat: it wants devel/gentle, which pkgsrc marks
+broken on LP64, and the only reason it reached the packing list here
+is a gentle I had built with that line removed.  gentle builds on
+amd64 11.0 with K&R-era warnings, turns all eleven of its grammars
+into C, and rsltc works against it:
+
+  $ rsltc HELLO.rsl
+  Checking HELLO ...
+  rsltc completed: 0 error(s) 0 warning(s)
+  $ rsltc bad.rsl
+  bad.rsl:3:13: syntax error
+
+On i386 -- 9.4 and 11.0, both throwaway VMs -- gentle builds and dies
+on the first grammar with a segfault.  So the line has it backwards,
+but I am not asking you to change it on three data points and no
+backtrace; since i386 is not marked, devel/rsltc is failing there in
+any bulk build today, and that is also what keeps it out of the one
+on amd64.
+
+Four more CONFLICTS match nothing today and cost nothing, but what
+they guard may still be true: devel/pcl-cvs (emacs-21.*),
+inputmethod/skk (ddskk-[0-9]*), mail/mew (mew-xemacs-[0-9]*) and
+tamago-tsunagi's tamago-anthy-[0-9]* (only in wip).  I checked each
+with pkg_admin pmatch rather than by eye -- mail/elm's looked wrong
+and is fine, its PKGNAME is elm-2.5.8nb5.  No diff for those, since I
+do not know what they were for.
+
+And three I looked at and did not fix, because each is a maintainer's
+call rather than a bug with one answer:
+
+  devel/ecb            cannot be built by anything.  With
+                       GITHUB_PROJECT= ecb it gets past the fetch and
+                       stops at "Symbol's function definition is void:
+                       semantic-mode", which ecb-2.50's own Makefile
+                       writes into the compile script; with
+                       xemacs-nox11-21.5.36 and xemacs-packages-1.19
+                       (fboundp 'semantic-mode) is nil bare and after
+                       (require 'semantic), and the package accepts
+                       xemacs214/215 and nothing else.
+                       editors/xemacs-packages already installs ECB,
+                       63 files under lisp/ecb.
+  misc/elscreen        accepts emacs20 and includes apel's
+                       buildlink3.mk at top level; apel takes emacs29
+                       and up and names emacs20 in
+                       EMACS_VERSIONS_INCOMPATIBLE.  The dependency is
+                       real (elscreen.el requires alist and static),
+                       so there is no version where the two meet.  Its
+                       own comment says to try wip/elscreen-current.
+  misc/bbdb3           CONFLICTS+= xemacs-packages-[0-9]* stopped a
+                       build here: mail/wl-snapshot wants bbdb and
+                       pkg_add refused it because xemacs-packages was
+                       installed.  bbdb3 accepts no xemacs, so it
+                       cannot write under lib/xemacs; I compared the
+                       two packing lists, 38 files and 7840, and not
+                       one name is shared.  Is that line left from
+                       when bbdb3 accepted xemacs, or is there a
+                       collision I am not seeing?
+
+[fixes diffs]
+
+
+3. Adaptations -- right today, wrong once the prefix lands
+==========================================================
+
+Six diffs, and all of one kind: something rests on ${PKGBASE}, and
+the prefix moves PKGBASE.  Six variables under mk/ default to it --
+PKGWILDCARD and PKG_SYSCONFVAR in bsd.pkg.mk, FILEBASE in
+pkgformat/pkg/package.mk, GITHUB_PROJECT, GITLAB_PROJECT and
+CODEBERG_PROJECT in mk/fetch.
+
+  devel/zig-mode
+  devel/lua-mode
+  misc/emacs-neotree
+  textproc/markdown-mode
+                       fetch from GitHub without GITHUB_PROJECT, so
+                       the fetch asks for
+                       github.com/ziglang/emacs30-zig-mode and 404s,
+                       and WRKSRC points where the archive does not
+                       unpack.  Ten of the 87 fetch from GitHub; these
+                       four are the ones that lack the line.  None
+                       uses gitlab or codeberg.
+  devel/doxymacs       under emacs20 or emacs21 asks for w3-[0-9]*,
+                       and www/w3 becomes emacs20-w3.  Only under
+                       emacs20, which is why a default sweep goes
+                       straight past it.
+  mail/mew             passes ${EMACS_ETCPREFIX} to its build and
+                       writes share/mew in its PLIST, so the etc move
+                       splits the two.  math/ess spells the variable
+                       on both sides and needs nothing.
+
+There is a second, larger class I have not touched: 24 of the 87 do
+not put EMACS_PKGNAME_PREFIX in PKGNAME at all -- some set PKGNAME in
+options.mk, some not at all -- and gain nothing from the change until
+they do.  I took one, misc/color-theme, added the line and built it,
+and it broke twice over: MASTER_SITES is .../releases/${PKGBASE}/ and
+404s, and the install writes ELISPDIR=${EMACS_LISPPREFIX}/${PKGBASE}
+while the PLIST says color-theme.  Three of the 24 spell ${PKGBASE}
+themselves (color-theme, mailutils, emacs-w3m) and are the ones to
+look at first; for the other 21 it may well be the one line, but I
+would rather not say so until they have been through a build.
+
+[adaptations diffs]
+
+
+4. How far it got, and what is not measured
+============================================
+
+The sweep: of the 57 packages that read modules.mk and do not want
+bazel, TeX Live, rust or a gcc bootstrap, on a tree with none of the
+fixes applied and the framework dropped in, 36 build and 21 fail --
+13 because of the change, 2 behind one of those 13 (semi and
+emacs-w3m, waiting on flim), 6 for reasons of their own (three have
+lost their distfile: cobol-mode 402, flyspell and ispell-emacs 404;
+mu, vm-in-my-copy, and wl-snapshot are above).  Every package named
+in 2 and 3 was then built with its diff, and the 13 build.  Two do
+not fail and are green in the wrong place -- cqual and tamago-tsunagi,
+above -- which only the packing list of the built package shows.
+
+Where: NetBSD 11.0/amd64 for all of it.  apel, flim, zig-mode,
+dictem, gnuserv, emacs-w3m, twittering-mode, emacs-dict-client, cqual
+and tamago-tsunagi also on i386 11.0 in a throwaway VM, with the same
+names and the same directories.  Nothing on another platform.
+
+The info move is the newest part and the least measured.  Built with
+it and landing in share/emacs/30.2/info: [INFO-LIST].  Not built:
+[INFO-NOT-BUILT], and those 30 are all the packages that install
+info, so the rest is by reading.  I would take that part as the one
+to look hardest at.
+
+Two things I have not done and would want a word on first: the
+site-start.el name, and the 93 shared files between the Emacsen.  And
+the four dead CONFLICTS and the bbdb3 line are questions rather than
+diffs.
 
 Showta
-
---- devel/apel/Makefile.orig
-+++ devel/apel/Makefile
-@@ -40,8 +40,13 @@
- .include "../../editors/emacs/modules.mk"
- 
- PLIST_VARS+=	emacs23 emacs19
--.if empty(EMACS_TYPE:Mxemacs)
--.  if !empty(EMACS_TYPE:Memacs2[3-9]*) || !empty(EMACS_TYPE:Memacs3[0-9]*)
-+# Ask which Emacs is being built for, not which one the user asked for.
-+# They are the same today because EMACS_TYPE is used as the answer, but
-+# it is a request, and a package that does not accept it is built for
-+# something else -- and then this test reads the request and picks the
-+# wrong list.  EMACS_VERSION_MAJOR is the version actually in use.
-+.if ${EMACS_FLAVOR} != "xemacs"
-+.  if ${EMACS_VERSION_MAJOR} >= 23
- PLIST.emacs23=	yes
- .  else
- PLIST.emacs19=	yes
-
---- devel/cqual/Makefile.orig
-+++ devel/cqual/Makefile
-@@ -12,6 +12,7 @@
- MAKE_JOBS_SAFE=		no
- USE_PKGLOCALEDIR=	yes
- GNU_CONFIGURE=		yes
-+INSTALL_MAKE_FLAGS+=	lispdir=${EMACS_LISPPREFIX}/cqual
- USE_TOOLS+=		gmake perl:run bison m4
- 
- REPLACE_PERL+=		bin/*
-
---- textproc/dictem/Makefile.orig
-+++ textproc/dictem/Makefile
-@@ -16,7 +16,7 @@
- SRCS=			dictem.el
- DOCS=			README NEWS COPYING # ChangeLog
- 
--INSTALLATION_DIRS+=	share/doc/${PKGBASE} ${EMACS_LISPPREFIX}
-+INSTALLATION_DIRS+=	share/doc/dictem ${EMACS_LISPPREFIX}
- 
- do-build:
- .for f in ${SRCS}
-@@ -29,7 +29,7 @@
- 	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc}	\
- 			${DESTDIR}${EMACS_LISPPREFIX};		\
- 	cd ${WRKSRC} && ${INSTALL_DATA} ${DOCS}				\
--			${DESTDIR}${PREFIX}/share/doc/${PKGBASE}
-+			${DESTDIR}${PREFIX}/share/doc/dictem
- 
- .include "../../editors/emacs/modules.mk"
- .include "../../mk/bsd.pkg.mk"
-
---- cad/dinotrace-mode/Makefile.orig
-+++ cad/dinotrace-mode/Makefile
-@@ -18,7 +18,10 @@
- DEPENDS+=	${EMACS_PKGNAME_PREFIX}verilog-mode>=3.13:../../cad/verilog-mode
- 
- # failed to build with emacs28; needs athena widgets which are not enabled by default
--EMACS_VERSIONS_ACCEPTED=	emacs26 emacs29
-+# (emacs26 was in this list until editors/emacs26 was removed; it named an
-+# Emacs pkgsrc no longer has, and cost nothing only because emacs29 was
-+# beside it)
-+EMACS_VERSIONS_ACCEPTED=	emacs29
- 
- .include "../../mk/bsd.prefs.mk"
- .include "../../editors/emacs/modules.mk"
-
---- devel/doxymacs/Makefile.orig
-+++ devel/doxymacs/Makefile
-@@ -24,7 +24,7 @@
- .if ${EMACS_FLAVOR} == xemacs
- DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
- .elif ${EMACS_VERSION_MAJOR} <= 21
--DEPENDS+=	w3-[0-9]*:../../www/w3
-+DEPENDS+=	${EMACS_PKGNAME_PREFIX}w3-[0-9]*:../../www/w3
- .endif
- 
- GNU_CONFIGURE=		yes
-
---- misc/emacs-neotree/Makefile.orig
-+++ misc/emacs-neotree/Makefile
-@@ -5,6 +5,7 @@
- PKGREVISION=	1
- CATEGORIES=	misc
- MASTER_SITES=	${MASTER_SITE_GITHUB:=jaypei/}
-+GITHUB_PROJECT=	emacs-neotree
- GITHUB_TAG=	98fe21334affaffe2334bf7c987edaf1980d2d0b
- 
- MAINTAINER=	pkgsrc-users@NetBSD.org
-
---- www/emacs-w3m/Makefile.orig
-+++ www/emacs-w3m/Makefile
-@@ -20,6 +20,7 @@
- 
- HAS_CONFIGURE=		yes
- CONFIGURE_ARGS+=	--with-emacs=${EMACS_BIN:Q}
-+CONFIGURE_ARGS+=	--with-lispdir=${EMACS_LISPPREFIX:Q}/w3m
- CONFIGURE_ARGS+=	--with-icondir=${ICONDIR}
- CONFIGURE_ARGS+=	--infodir=${PREFIX}/info
- BUILD_TARGET=		default
-
---- misc/emacs-wiki/Makefile.orig
-+++ misc/emacs-wiki/Makefile
-@@ -15,11 +15,12 @@
- 
- EMACSWIKI=		emacs-wiki
- EMACSWIKIVERSION=	2.72
--DEPENDS=		semi>=1.14.6:../../devel/semi
-+DEPENDS=		${EMACS_PKGNAME_PREFIX}semi>=1.14.6:../../devel/semi
- 
- USE_TOOLS+=		gmake makeinfo
- INFO_FILES=		yes
- INSTALL_MAKE_FLAGS+=	PREFIX=${DESTDIR}${PREFIX}
-+INSTALL_MAKE_FLAGS+=	ELISPDIR=${DESTDIR}${EMACS_LISPPREFIX}/emacs-wiki
- 
- .include "../../editors/emacs/modules.mk"
- .include "../../mk/bsd.pkg.mk"
-
---- devel/flim/Makefile.orig
-+++ devel/flim/Makefile
-@@ -66,7 +66,7 @@
- .include "../../editors/emacs/modules.mk"
- 
- .if (${EMACS_FLAVOR} != "xemacs")
--BUILDLINK_API_DEPENDS.apel+=	apel>=10.8
-+BUILDLINK_API_DEPENDS.apel+=	${EMACS_PKGNAME_PREFIX}apel>=10.8
- .include "../../devel/apel/buildlink3.mk"
- .endif
- 
-
---- editors/gnuserv/Makefile.orig
-+++ editors/gnuserv/Makefile
-@@ -10,7 +10,7 @@
- HOMEPAGE=	https://www.emacswiki.org/emacs/GnuClient
- COMMENT=	Improved version of emacsserver for GNU Emacs
- 
--CONFLICTS+=	xemacs-[0-9]* xemacs-current-[0-9]* # bin/gnuattach; bin/gnuclient
-+CONFLICTS+=	xemacs-[0-9]* xemacs-nox11-[0-9]* # bin/gnuattach; bin/gnuclient
- GNU_CONFIGURE=	YES
- 
- CONFIGURE_ARGS+=	--with-x	# X support
-@@ -22,7 +22,7 @@
- EL_FILES=		devices.el gnuserv.el gnuserv-compat.el
- 
- INSTALLATION_DIRS+=	${EMACS_LISPPREFIX} share/applications	\
--			share/doc/${PKGBASE}
-+			share/doc/gnuserv
- 
- .PHONY: el-install doc-install
- 
-
---- devel/flim/PLIST.orig
-+++ devel/flim/PLIST
-@@ -1,6 +1,6 @@
- @comment $NetBSD: PLIST,v 1.12 2023/09/03 14:58:38 mef Exp $
--info/mime-en.info
--info/mime-ja.info
-+${EMACS_INFOPREFIX}/mime-en.info
-+${EMACS_INFOPREFIX}/mime-ja.info
- ${EMACS_LISPPREFIX}/flim/eword-decode.el
- ${EMACS_LISPPREFIX}/flim/eword-decode.elc
- ${EMACS_LISPPREFIX}/flim/eword-encode.el
---- inputmethod/skk/PLIST.orig
-+++ inputmethod/skk/PLIST
-@@ -1,5 +1,5 @@
- @comment $NetBSD: PLIST,v 1.20 2020/08/24 20:40:00 ryoon Exp $
--info/skk.info
-+${EMACS_INFOPREFIX}/skk.info
- ${EMACS_LISPPREFIX}/skk/ccc.el
- ${EMACS_LISPPREFIX}/skk/ccc.elc
- ${EMACS_LISPPREFIX}/skk/cdb.el
---- mail/mailutils/PLIST.orig
-+++ mail/mailutils/PLIST
-@@ -148,7 +148,7 @@
- include/mailutils/version.h
- include/mailutils/wordsplit.h
- include/mailutils/yyloc.h
--info/mailutils.info
-+${EMACS_INFOPREFIX}/mailutils.info
- ${PLIST.guile}lib/libguile-mailutils-v-3.15.so
- lib/libmailutils.la
- lib/libmu_auth.la
---- mail/mew/PLIST.orig
-+++ mail/mew/PLIST
-@@ -8,7 +8,7 @@
- bin/mewest
- bin/mewl
- bin/smew
--info/mew.info
-+${EMACS_INFOPREFIX}/mew.info
- man/man1/cmew.1
- man/man1/incm.1
- man/man1/mew-pinentry.1
---- mail/mu/PLIST.emacs.orig
-+++ mail/mu/PLIST.emacs
-@@ -1,5 +1,5 @@
- @comment $NetBSD: PLIST.emacs,v 1.3 2026/05/30 12:56:30 ryoon Exp $
--info/mu4e.info
-+${EMACS_INFOPREFIX}/mu4e.info
- man/man1/mu-add.1
- man/man1/mu-cfind.1
- man/man1/mu-extract.1
---- mail/vm/PLIST.orig
-+++ mail/vm/PLIST
-@@ -3,8 +3,8 @@
- bin/base64-encode
- bin/qp-decode
- bin/qp-encode
--info/vm-pcrisis.info
--info/vm.info
-+${EMACS_INFOPREFIX}/vm-pcrisis.info
-+${EMACS_INFOPREFIX}/vm.info
- share/doc/vm/CHANGES
- share/doc/vm/COPYING
- share/doc/vm/NEWS
---- mail/wl-snapshot/PLIST.orig
-+++ mail/wl-snapshot/PLIST
-@@ -1,6 +1,6 @@
- @comment $NetBSD: PLIST,v 1.3 2023/09/16 11:24:17 mef Exp $
--info/wl-ja.info
--info/wl.info
-+${EMACS_INFOPREFIX}/wl-ja.info
-+${EMACS_INFOPREFIX}/wl.info
- share/doc/wl/en/BUGS
- share/doc/wl/en/NEWS
- share/doc/wl/en/README.md
---- misc/emacs-wiki/PLIST.orig
-+++ misc/emacs-wiki/PLIST
-@@ -1,5 +1,5 @@
- @comment $NetBSD: PLIST,v 1.3 2011/02/13 09:59:34 ryoon Exp $
--info/emacs-wiki
-+${EMACS_INFOPREFIX}/emacs-wiki
- ${EMACS_LISPPREFIX}/emacs-wiki/contrib/cgi.el
- ${EMACS_LISPPREFIX}/emacs-wiki/contrib/htmlize.el
- ${EMACS_LISPPREFIX}/emacs-wiki/contrib/httpd.el
---- print/auctex/PLIST.orig
-+++ print/auctex/PLIST
-@@ -1,6 +1,6 @@
- @comment $NetBSD: PLIST,v 1.21 2024/05/01 20:36:20 wiz Exp $
--info/auctex.info
--info/preview-latex.info
-+${EMACS_INFOPREFIX}/auctex.info
-+${EMACS_INFOPREFIX}/preview-latex.info
- share/doc/auctex/tex-ref.pdf
- ${EMACS_LISPPREFIX}/auctex.el
- ${EMACS_LISPPREFIX}/auctex/bib-cite.el
---- www/emacs-w3m/PLIST.orig
-+++ www/emacs-w3m/PLIST
-@@ -1,6 +1,6 @@
- @comment $NetBSD: PLIST,v 1.16 2024/07/02 13:13:25 mef Exp $
--info/emacs-w3m-ja.info.gz
--info/emacs-w3m.info.gz
-+${EMACS_INFOPREFIX}/emacs-w3m-ja.info.gz
-+${EMACS_INFOPREFIX}/emacs-w3m.info.gz
- share/emacs-w3m/COPYING
- share/emacs-w3m/ChangeLog
- share/emacs-w3m/ChangeLog.1
---- lang/bigloo/PLIST.orig
-+++ lang/bigloo/PLIST
-@@ -19,7 +19,7 @@
- bin/bigloo.sh
- bin/bigloo${PKGVERSION}
- ${PLIST.emacs}bin/cigloo
--info/bigloo.info
-+${EMACS_INFOPREFIX}/bigloo.info
- lib/bigloo/${PKGVERSION}/Makefile.api
- lib/bigloo/${PKGVERSION}/Makefile.api-safe
- lib/bigloo/${PKGVERSION}/Makefile.config
-
---- devel/lua-mode/Makefile.orig
-+++ devel/lua-mode/Makefile
-@@ -5,6 +5,7 @@
- PKGREVISION=	1
- CATEGORIES=	devel lua
- MASTER_SITES=	${MASTER_SITE_GITHUB:=immerrr/}
-+GITHUB_PROJECT=	lua-mode
- GITHUB_TAG=	v${PKGVERSION_NOREV}
- 
- MAINTAINER=	cheusov@NetBSD.org
-
---- textproc/markdown-mode/Makefile.orig
-+++ textproc/markdown-mode/Makefile
-@@ -5,6 +5,7 @@
- PKGREVISION=	1
- CATEGORIES=	textproc
- MASTER_SITES=	${MASTER_SITE_GITHUB:=jrblevin/}
-+GITHUB_PROJECT=	markdown-mode
- GITHUB_TAG=	v${PKGVERSION_NOREV}
- 
- MAINTAINER=	minskim@NetBSD.org
-
---- editors/matlab-mode/Makefile.orig
-+++ editors/matlab-mode/Makefile
-@@ -23,6 +23,9 @@
- EMACS=	emacs
- .else
- EMACS=	xemacs
-+# matlab.el requires tempo, which lives in xemacs-packages rather
-+# than in XEmacs itself, so the byte-compile below cannot find it.
-+DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
- .endif
- 
- SRCS=	matlab.el
-@@ -34,7 +37,7 @@
- 	done
- 
- do-install:
--	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^xemacs-||}
--	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
-+	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
-+	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
- 
- .include "../../mk/bsd.pkg.mk"
-
---- mail/mew/PLIST.orig
-+++ mail/mew/PLIST
-@@ -153,36 +153,36 @@
- ${EMACS_LISPPREFIX}/mew/mew-win32.el
- ${EMACS_LISPPREFIX}/mew/mew.el
- ${EMACS_LISPPREFIX}/mew/mew.elc
--share/mew/Mew.img
--share/mew/Mew.png
--share/mew/Mew.xbm
--share/mew/Mew.xpm
--share/mew/mew-Audio.xpm
--share/mew/mew-Blank.xpm
--share/mew/mew-External.xpm
--share/mew/mew-Folder.xpm
--share/mew/mew-Image.xpm
--share/mew/mew-Octet-Stream.xpm
--share/mew/mew-Postscript.xpm
--share/mew/mew-Rfc822.xpm
--share/mew/mew-Text.xpm
--share/mew/mew-Unknown.xpm
--share/mew/mew-Video.xpm
--share/mew/mew-attach.xpm
--share/mew/mew-cite.xpm
--share/mew/mew-forward.xpm
--share/mew/mew-inc.xpm
--share/mew/mew-lock.xpm
--share/mew/mew-next.xpm
--share/mew/mew-pgp-enc.xpm
--share/mew/mew-pgp-sigenc.xpm
--share/mew/mew-pgp-sign.xpm
--share/mew/mew-prev.xpm
--share/mew/mew-queue.xpm
--share/mew/mew-refile.xpm
--share/mew/mew-reply.xpm
--share/mew/mew-send.xpm
--share/mew/mew-sep.xpm
--share/mew/mew-show.xpm
--share/mew/mew-write.xpm
--share/mew/mew-yank.xpm
-+${EMACS_ETCPREFIX}/mew/Mew.img
-+${EMACS_ETCPREFIX}/mew/Mew.png
-+${EMACS_ETCPREFIX}/mew/Mew.xbm
-+${EMACS_ETCPREFIX}/mew/Mew.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Audio.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Blank.xpm
-+${EMACS_ETCPREFIX}/mew/mew-External.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Folder.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Image.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Octet-Stream.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Postscript.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Rfc822.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Text.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Unknown.xpm
-+${EMACS_ETCPREFIX}/mew/mew-Video.xpm
-+${EMACS_ETCPREFIX}/mew/mew-attach.xpm
-+${EMACS_ETCPREFIX}/mew/mew-cite.xpm
-+${EMACS_ETCPREFIX}/mew/mew-forward.xpm
-+${EMACS_ETCPREFIX}/mew/mew-inc.xpm
-+${EMACS_ETCPREFIX}/mew/mew-lock.xpm
-+${EMACS_ETCPREFIX}/mew/mew-next.xpm
-+${EMACS_ETCPREFIX}/mew/mew-pgp-enc.xpm
-+${EMACS_ETCPREFIX}/mew/mew-pgp-sigenc.xpm
-+${EMACS_ETCPREFIX}/mew/mew-pgp-sign.xpm
-+${EMACS_ETCPREFIX}/mew/mew-prev.xpm
-+${EMACS_ETCPREFIX}/mew/mew-queue.xpm
-+${EMACS_ETCPREFIX}/mew/mew-refile.xpm
-+${EMACS_ETCPREFIX}/mew/mew-reply.xpm
-+${EMACS_ETCPREFIX}/mew/mew-send.xpm
-+${EMACS_ETCPREFIX}/mew/mew-sep.xpm
-+${EMACS_ETCPREFIX}/mew/mew-show.xpm
-+${EMACS_ETCPREFIX}/mew/mew-write.xpm
-+${EMACS_ETCPREFIX}/mew/mew-yank.xpm
-
---- mail/mu/patches/patch-mu4e_meson.build.orig
-+++ mail/mu/patches/patch-mu4e_meson.build
-@@ -2,9 +2,33 @@
- 
- Don't care about info errors
- 
-+Byte-compile mu4e-dbus.el unconditionally.  The build asks the Emacs whether
-+dbusbind is compiled in and skips the file when it is not, but PLIST.emacs
-+lists mu4e-dbus.elc with no condition, so the package cannot be built against
-+an Emacs without D-Bus -- every *nox one, and an emacs30 with the dbus option
-+off.  The file compiles clean without D-Bus: both of its requires pass
-+'noerror.
-+
- --- mu4e/meson.build.orig	2026-08-09 13:09:56.075658158 +0000
- +++ mu4e/meson.build
--@@ -156,6 +156,7 @@ if makeinfo.found()
-+@@ -80,13 +80,9 @@
-+ 
-+ # do have we have dbus support?
-+ mu4e_srcs += 'mu4e-dbus.el'
-+-emacs_dbus = run_command(emacs, '--batch', '--eval', '(kill-emacs (if (featurep \'dbusbind) 0 1))',
-+-                         check: false)
-+-if emacs_dbus.returncode() == 0
-+-  mu4e_bc_srcs += 'mu4e-dbus.el'
-+-else
-+-  message('mu4e-dbus.el cannot be byte-compiled')
-+-endif
-++# Byte-compile this whether or not the Emacs has dbusbind; both of its
-++# requires are 'noerror, so it compiles without D-Bus.
-++mu4e_bc_srcs += 'mu4e-dbus.el'
-+ 
-+ # note, we cannot compile mu4e-config.el without incurring
-+ #  WARNING: Source item
-+@@ -156,6 +152,7 @@ if makeinfo.found()
-                  install: true,
-                  depends: fdl_texi,
-                  command: [makeinfo,
-
---- mail/mu/distinfo.orig
-+++ mail/mu/distinfo
-@@ -4,4 +4,4 @@
- SHA512 (mu-1.14.3.tar.gz) = 7ac28e81f646a9bdd0dd1140d7d0517b8a83eb4383c2a2e1b9e44ca1b1130e408c6db15da85b73f0ffd894a1b449bdb70a896fbd7527d79a843b42c4ae4b80fa
- Size (mu-1.14.3.tar.gz) = 1338427 bytes
- SHA1 (patch-lib_message_mu-contact.hh) = cc4cc391ab4bbd16f6c38e222057b392d68485e6
--SHA1 (patch-mu4e_meson.build) = 3581ab81c473ae058869b90e979fc77c96cf0670
-+SHA1 (patch-mu4e_meson.build) = 7119708a5472bcc1b048a900e2db3b059e84aa0f
-
---- devel/pcl-cvs/Makefile.orig
-+++ devel/pcl-cvs/Makefile
-@@ -23,6 +23,7 @@
- .endif
- 
- INSTALL_MAKE_FLAGS+=	PREFIX=${DESTDIR:Q}${PREFIX:Q}
-+INSTALL_MAKE_FLAGS+=	lispdir=${DESTDIR:Q}${EMACS_LISPPREFIX:Q}
- 
- BUILD_TARGET=	default
- INFO_FILES=	yes
-
---- devel/semi/options.mk.orig
-+++ devel/semi/options.mk
-@@ -1,7 +1,7 @@
- # $NetBSD: options.mk,v 1.7 2022/06/05 02:39:18 mef Exp $
- 
- PKG_OPTIONS_VAR=		PKG_OPTIONS.semi
--PKG_SUPPORTED_OPTIONS=		semi-bbdb
-+PKG_SUPPORTED_OPTIONS=		# empty
- PKG_OPTIONS_OPTIONAL_GROUPS=	semi-browser
- PKG_OPTIONS_GROUP.semi-browser=	w3 w3m
- PKG_SUGGESTED_OPTIONS=
-@@ -10,10 +10,14 @@
- 
- PLIST_VARS+=	bbdb w3
- 
--.if !empty(PKG_OPTIONS:Msemi-bbdb)
--.include "../../misc/bbdb2/buildlink3.mk"
--PLIST.bbdb=	yes
--.endif
-+# The semi-bbdb option included misc/bbdb2, which went away with
-+# emacs21.  Pointing it at misc/bbdb3 does not work: mime-bbdb.el is
-+# written against BBDB 2 and byte-compiles with bbdb-record-getprop,
-+# bbdb-record-putprop, bbdb-search-simple, bbdb-pop-up-bbdb-buffer,
-+# bbdb-record-edit-notes and bbdb-annotate-notes all undefined, none
-+# of which BBDB 3 defines.  Without a port of mime-bbdb.el there is
-+# nothing for the option to select, and leaving it in makes the
-+# package fail to parse rather than fail to build.
- 
- .if !empty(PKG_OPTIONS:Mw3)
- .include "../../www/w3/buildlink3.mk"
-
---- inputmethod/tamago-tsunagi/Makefile.orig
-+++ inputmethod/tamago-tsunagi/Makefile
-@@ -12,9 +12,14 @@
- LICENSE=	gnu-gpl-v2
- 
- CONFLICTS=	tamago-anthy-[0-9]*
--CONFLICTS+=	tamago-[0-9]*
-+# editors/tamago puts its lisp in the same egg/ directory, so the two
-+# collide whenever they are built for the same Emacs -- and only then.
-+# Spell the prefix, or the pattern stops matching as soon as the name
-+# carries the version: tamago-[0-9]* does not match emacs20-tamago-...
-+CONFLICTS+=	${EMACS_PKGNAME_PREFIX}tamago-[0-9]*
- 
- GNU_CONFIGURE=		yes
-+INSTALL_MAKE_FLAGS+=	lispdir=${EMACS_LISPPREFIX}
- 
- .include "../../editors/emacs/modules.mk"
- .include "../../mk/bsd.pkg.mk"
-
---- editors/tamago/Makefile.orig
-+++ editors/tamago/Makefile
-@@ -11,6 +11,7 @@
- COMMENT=	CJK characters inputting system for emacs + leim
- 
- GNU_CONFIGURE=	yes
-+MAKE_FLAGS+=	lispdir=${DESTDIR}${EMACS_LISPPREFIX}
- MAKE_FLAGS+=	prefix=${DESTDIR}${PREFIX}
- # XXX please someone adjust paths and PLIST for XEmacs...
- EMACS_VERSIONS_ACCEPTED=	emacs20
-
---- textproc/xslide/Makefile.orig
-+++ textproc/xslide/Makefile
-@@ -17,6 +17,9 @@
- EMACS=	emacs
- .else
- EMACS=	xemacs
-+# The byte-compile below loads sendmail, which lives in
-+# xemacs-packages rather than in XEmacs itself.
-+DEPENDS+=	xemacs-packages-[0-9]*:../../editors/xemacs-packages
- .endif
- 
- SRCS=	xslide-abbrev.el xslide-data.el xslide-font.el xslide-process.el xslide.el
-@@ -32,8 +35,8 @@
- 	done
- 
- do-install:
--	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
--	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
-+	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
-+	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
- 	${INSTALL_DATA_DIR} ${DESTDIR}${PREFIX}/share/doc/xslide
- 	${INSTALL_DATA} ${WRKSRC}/README.TXT ${DESTDIR}${PREFIX}/share/doc/xslide
- 	${INSTALL_DATA} ${WRKSRC}/dot_emacs ${DESTDIR}${PREFIX}/share/doc/xslide
-
---- devel/zig-mode/Makefile.orig
-+++ devel/zig-mode/Makefile
-@@ -5,6 +5,7 @@
- PKGREVISION=	1
- CATEGORIES=	devel
- MASTER_SITES=	${MASTER_SITE_GITHUB:=ziglang/}
-+GITHUB_PROJECT=	zig-mode
- GITHUB_TAG=	aa20d630b8c413dab8d6bd120ec3ed5db5c9da70
- 
- MAINTAINER=	pkgsrc-users@NetBSD.org
-

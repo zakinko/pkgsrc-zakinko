@@ -37,17 +37,18 @@
  #		Default value:
  #			emacs31 emacs31nox
  #			emacs30 emacs30nox
-@@ -115,6 +131,9 @@
+@@ -115,6 +131,10 @@
  #			Path to the directory Info files should be
  #			installed into.  Unlike EMACS_ETCPREFIX or
  #			EMACS_LISPPREFIX, a subdirectory is not needed.
 +#			For GNU Emacs this is PKGINFODIR, which this file
-+#			sets to the version directory, so a PLIST may
-+#			spell either ${EMACS_INFOPREFIX}/ or info/.
++#			sets to the version directory when PKGNAME carries
++#			EMACS_PKGNAME_PREFIX, so a PLIST may spell either
++#			${EMACS_INFOPREFIX}/ or info/.
  #		Possible values:
  #			${PREFIX}/${PKGINFODIR}
  #			${PREFIX}/lib/xemacs/site-packages/info
-@@ -131,8 +150,21 @@
+@@ -131,8 +151,21 @@
  #		Description:
  #			The prefix of PKGNAME and DEPENDS lines.  All ELPs
  #			must honour this!
@@ -70,7 +71,7 @@
  #
  #	EMACS_VERSION_MAJOR
  #		Description:
-@@ -233,10 +265,14 @@
+@@ -233,10 +266,14 @@
  # Constants
  #
  
@@ -88,7 +89,7 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -251,9 +287,24 @@
+@@ -251,9 +288,24 @@
  	xemacs215@../../editors/xemacs-current \
  	xemacs215nox@../../editors/xemacs-current-nox11
  
@@ -115,7 +116,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,24 +327,211 @@
+@@ -276,24 +328,218 @@
  #		abort;
  #
  
@@ -257,19 +258,26 @@
  
  .include "${_EMACS_PKGDIR}/version.mk"
  
++# Info goes under the version exactly when the package's name does.
++# The name is what makes emacs29-foo and emacs30-foo two packages, and
++# two packages are what collide on info/foo.info; a package that keeps
++# one name whatever Emacs it is built for -- mail/mailutils and
++# lang/bigloo, whose Emacs support is an option -- has one info file
++# and keeps it where the user's PKGINFODIR says.  The test is deferred
++# (= not :=) because PKGNAME is not known here.
+ #
 +# Unlike the lisp, Emacs does not find info under its version directory
 +# by itself: Info-default-directory-list is built from the Emacs's own
 +# --infodir at configure time, and the only runtime lever is INFOPATH.
 +# The Emacs packages install a site-start.el beside their site-lisp that
 +# adds ../info to the list, which is the receiving half of this; without
-+# it the files land where nothing looks.  This overrides a PKGINFODIR
-+# from mk.conf for the packages that read this file, in the same way
-+# that the lisp directory is not the user's to place.
++# it the files land where nothing looks.
 +.if ${_EMACS_FLAVOR} == "emacs"
-+PKGINFODIR=	share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info
++_EMACS_PKGINFODIR_DEFAULT:=	${PKGINFODIR}
++PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
 +.endif
 +
- #
++#
  # Dependencies and conflicts
  #
  
@@ -333,7 +341,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,17 +544,48 @@
+@@ -306,17 +552,48 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -386,7 +394,7 @@
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
  .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
-@@ -354,7 +623,12 @@
+@@ -354,7 +631,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
