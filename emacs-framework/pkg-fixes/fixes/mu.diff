@@ -1,3 +1,22 @@
+--- mail/mu/Makefile.orig
++++ mail/mu/Makefile
+@@ -11,7 +11,7 @@
+ COMMENT=	E-mail searching and indexing tools
+ LICENSE=	gnu-gpl-v3
+ 
+-MESON_ARGS+=	-Dinfodir=info
++MESON_ARGS+=	-Dinfodir=${PKGINFODIR}
+ MESON_ARGS+=	-Dlispdir=${EMACS_LISPPREFIX}
+ USE_LANGUAGES=	c c++
+ USE_TOOLS+=	pkg-config
+--- mail/mu/distinfo.orig
++++ mail/mu/distinfo
+@@ -4,4 +4,4 @@
+ SHA512 (mu-1.14.3.tar.gz) = 7ac28e81f646a9bdd0dd1140d7d0517b8a83eb4383c2a2e1b9e44ca1b1130e408c6db15da85b73f0ffd894a1b449bdb70a896fbd7527d79a843b42c4ae4b80fa
+ Size (mu-1.14.3.tar.gz) = 1338427 bytes
+ SHA1 (patch-lib_message_mu-contact.hh) = cc4cc391ab4bbd16f6c38e222057b392d68485e6
+-SHA1 (patch-mu4e_meson.build) = 3581ab81c473ae058869b90e979fc77c96cf0670
++SHA1 (patch-mu4e_meson.build) = 7119708a5472bcc1b048a900e2db3b059e84aa0f
 --- mail/mu/patches/patch-mu4e_meson.build.orig
 +++ mail/mu/patches/patch-mu4e_meson.build
 @@ -2,9 +2,33 @@

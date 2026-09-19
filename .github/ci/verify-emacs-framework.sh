@@ -36,9 +36,28 @@ SRC=$TREE/zakinko/emacs-framework
 
 EMACS_TYPE=${EMACS_TYPE:-emacs30nox}
 PKGS=${VERIFY_OPTS:-}
-[ -n "$PKGS" ] || PKGS="devel/apel devel/flim devel/zig-mode textproc/dictem editors/gnuserv www/emacs-w3m"
+# 後ろの四つは PLIST か install が lisp の置き場を手で綴っていた物。
+# 置き場が版の下へ動いて初めて割れるので、この枠組みの下で建ててこそ
+# 測ったことになる。rsltc も同じ組だが gentle が i386 で落ちるので
+# ここでは建てない (amd64 の techne で建てた)。mailutils は重いので同じく。
+[ -n "$PKGS" ] || PKGS="devel/apel devel/flim devel/zig-mode textproc/dictem editors/gnuserv www/emacs-w3m \
+	net/twittering-mode textproc/emacs-dict-client devel/cqual inputmethod/tamago-tsunagi"
 
 echo "=== 当てる先の版を見る ==="
+# fetch-trunk-files.sh (ホスト側) が trunk の現物を $SRC/trunk に敷いて
+# いれば、差分が触る file だけをそれで被せる。image の /usr/pkgsrc は
+# 焼いた日 (2026-08-25) で止まっていて、そこへ当てても trunk に当たるか
+# は測れない。被せる前後の版を両方出す。
+if [ -f "$SRC/trunk/COMMIT" ]; then
+	echo "  trunk $(cat "$SRC/trunk/COMMIT") の現物を $(wc -l < "$SRC/trunk/FILES" | tr -d ' ') file 被せる"
+	while read -r f; do
+		[ -f "$SRC/trunk/$f" ] || continue
+		mkdir -p "$TREE/$(dirname "$f")"
+		cp "$SRC/trunk/$f" "$TREE/$f"
+	done < "$SRC/trunk/FILES"
+else
+	echo "  ★ $SRC/trunk が無い。image の木のまま当てる (trunk に当たるかは測れない)"
+fi
 # 木を丸ごと置き換える設計にしていたら、初回で捕まった。
 #
 #	ツリー: modules.mk,v 1.40 2026/08/25
@@ -81,7 +100,12 @@ done
 
 echo "=== package の直しを当てる ==="
 fail=0
-for d in "$SRC"/pkg-fixes/*.diff; do
+# wiz さんの三分割 (2026-09-19) に合わせて部屋が三つ。framework →
+# fixes → adaptations の順に当てる。順序に依存しないことは手元で名前順と
+# 逆順の両方で確かめてあるが、CI が読む順は一つに決めておく。
+# not-sent/ は建てられない物 (ecb) で、送らないので当てない。
+for d in "$SRC"/pkg-fixes/framework/*.diff "$SRC"/pkg-fixes/fixes/*.diff \
+         "$SRC"/pkg-fixes/adaptations/*.diff; do
 	[ -f "$d" ] || continue
 	n=${d##*/}
 	# 空当てで見てから当てる。-f が無いと当たらない相手に問い返して

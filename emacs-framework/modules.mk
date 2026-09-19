@@ -131,6 +131,9 @@
 #			Path to the directory Info files should be
 #			installed into.  Unlike EMACS_ETCPREFIX or
 #			EMACS_LISPPREFIX, a subdirectory is not needed.
+#			For GNU Emacs this is PKGINFODIR, which this file
+#			sets to the version directory, so a PLIST may
+#			spell either ${EMACS_INFOPREFIX}/ or info/.
 #		Possible values:
 #			${PREFIX}/${PKGINFODIR}
 #			${PREFIX}/lib/xemacs/site-packages/info
@@ -290,13 +293,14 @@ _EMACS_PKGDIR_MAP= \
 # where it went -- unlike info, which Emacs looks for at run time.
 # Without this, emacs29-mew and emacs30-mew would both write share/mew.
 _EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
-# Info goes under the version with the lisp.  Unlike the lisp, Emacs does
-# not find it by itself: Info-default-directory-list is built from the
-# Emacs's own --infodir when it is configured, and the only runtime lever
-# is INFOPATH.  The Emacs packages install a site-start.el beside their
-# site-lisp that adds ../info to the list, which is the receiving half of
-# this.  Without that half the files land where nothing looks.
-_EMACS_INFODIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info
+# Info goes under the version too, but by way of PKGINFODIR (set once
+# the version is known, below) rather than by a path of its own, so
+# that everything pkgsrc already does for info files -- the PLIST
+# canonicalisation in mk/plist/plist-info.awk, the --infodir that
+# gnu-configure.mk passes, the dir file install-info maintains --
+# follows without any package being told.  A PLIST that spells
+# info/foo.info is still right.
+_EMACS_INFODIR.emacs=		${PKGINFODIR}
 # Put the lisp under the version directory of the Emacs it was built
 # for.  Emacs already searches share/emacs/<version>/site-lisp, so what
 # lands there is seen by that Emacs and by no other.
@@ -456,6 +460,18 @@ _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
 
 .include "${_EMACS_PKGDIR}/version.mk"
 
+# Unlike the lisp, Emacs does not find info under its version directory
+# by itself: Info-default-directory-list is built from the Emacs's own
+# --infodir at configure time, and the only runtime lever is INFOPATH.
+# The Emacs packages install a site-start.el beside their site-lisp that
+# adds ../info to the list, which is the receiving half of this; without
+# it the files land where nothing looks.  This overrides a PKGINFODIR
+# from mk.conf for the packages that read this file, in the same way
+# that the lisp directory is not the user's to place.
+.if ${_EMACS_FLAVOR} == "emacs"
+PKGINFODIR=	share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info
+.endif
+
 #
 # Dependencies and conflicts
 #
@@ -569,8 +585,6 @@ EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
 .else
 EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
 .endif
-
-GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
 
 _EMACS_PLIST_SUBST=
 .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs

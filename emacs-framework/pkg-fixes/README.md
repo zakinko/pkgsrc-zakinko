@@ -1,3 +1,36 @@
+# package 側の差分 — wiz さんの三分割
+
+2026-09-19、wiz さんの返事で「framework / いま壊れている物の直し / この変更で
+要る適応、の三つに分けてほしい」と言われたので、部屋を三つにした。
+
+	framework/     editors/emacs*/ と xemacs*/ の配線。modules.mk と
+	               pbulk-index.mk 本体は一つ上の階 (CI が別扱いで当てる)
+	fixes/         いまの trunk で既に間違っている物。この変更が無くても直す
+	               価値が有り、freeze 中でも commit できる筋
+	adaptations/   いまは正しく、この変更が入って初めて壊れる物
+	not-sent/      当てても建たないので送らない物 (ecb)
+
+線の引き方は「trunk の今日の modules.mk で、pkgsrc に在るどれかの Emacs
+で壊れるか」。xemacs で今日壊れる物 (gnuserv, dictem, matlab-mode, xslide,
+emacs-w3m) と emacs20 で今日壊れる物 (doxymacs) は fixes。lisp の置き場を
+`${EMACS_LISPPREFIX}` でなく手で綴る物 (cqual, tamago, tamago-tsunagi,
+pcl-cvs, rsltc, emacs-wiki, twittering-mode, emacs-dict-client, mailutils)
+も fixes に入れた。今日は共有 site-lisp と同じ場所を指すので害は無いが、
+枠組みを使っていない、という wiz さんの分類のとおり。`GITHUB_PROJECT` を
+省いている四つ、emacs20 の下で w3 を prefix 無しで求める doxymacs、mew の
+etc PLIST は今日は正しいので adaptations。
+
+info は PLIST を書き換える形をやめた (2026-09-19)。modules.mk が PKGINFODIR
+を版の下に立てれば、plist-info.awk の正規化と gnu-configure.mk の --infodir
+が付いてくるので、PLIST の `info/` はそのままで正しい。`info-plist-prefix.diff`
+(11 PLIST) はそれで要らなくなった。残るのは `info` を直書きしている二つ
+(emacs-w3m の --infodir、mu の -Dinfodir) で、それぞれの fixes に入っている。
+
+全 29 本 (framework 4、fixes 19、adaptations 6) を trunk (2026-09-18 22:08Z、
+c8e5216) の現物へ、名前順・逆順・部屋順・部屋逆順の四通りで `-F0` の空当て
+→ 本当てで通した。rej 0。modules.mk.diff と pbulk-index.mk.diff も同じ
+trunk へ空当てで通る。
+
 # 置き場の配線が要る package
 
 `_EMACS_LISPDIR` を版の下へ動かすと、**PLIST は `${EMACS_LISPPREFIX}` に追従するが、

@@ -1,0 +1,18 @@
+--- textproc/emacs-dict-client/PLIST.orig
++++ textproc/emacs-dict-client/PLIST
+@@ -1,8 +1,8 @@
+ @comment $NetBSD: PLIST,v 1.2 2009/06/14 18:17:15 joerg Exp $
+-share/emacs/site-lisp/dictionary/connection.el
+-share/emacs/site-lisp/dictionary/connection.elc
+-share/emacs/site-lisp/dictionary/dictionary-init.el
+-share/emacs/site-lisp/dictionary/dictionary.el
+-share/emacs/site-lisp/dictionary/dictionary.elc
+-share/emacs/site-lisp/dictionary/link.el
+-share/emacs/site-lisp/dictionary/link.elc
++${EMACS_LISPPREFIX}/dictionary/connection.el
++${EMACS_LISPPREFIX}/dictionary/connection.elc
++${EMACS_LISPPREFIX}/dictionary/dictionary-init.el
++${EMACS_LISPPREFIX}/dictionary/dictionary.el
++${EMACS_LISPPREFIX}/dictionary/dictionary.elc
++${EMACS_LISPPREFIX}/dictionary/link.el
++${EMACS_LISPPREFIX}/dictionary/link.elc
