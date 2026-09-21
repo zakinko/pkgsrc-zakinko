@@ -226,7 +226,12 @@ ${WRKDIR}/cacerts.out:
 	mv ${.TARGET}.tmp ${.TARGET}
 
 do-build:
-	rm -f ${WRKSRC}/make/data/fontconfig/*.orig
+# The build copies every *.properties* under make/data/fontconfig into the
+# image, backups included.  The tree removes the .orig that patches/ leave;
+# the BSD port comes in through PATCHFILES here, and pkgsrc backs those up
+# as .orig_dist, which then lands in lib/ as fontconfig.properties.orig_dist.src
+# and fails the PLIST check.
+	rm -f ${WRKSRC}/make/data/fontconfig/*.orig ${WRKSRC}/make/data/fontconfig/*.orig_dist
 	${_ULIMIT_CMD} cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} LD_LIBRARY_PATH=${ALT_BOOTDIR}/lib ${MAKE_PROGRAM}
 
 do-install:
