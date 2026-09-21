@@ -99,11 +99,14 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 		# code は一行も変えないので、対照としての素の振舞いは保たれる。
 		( cd "$T/$1" && patch -s -p0 -f -i "$DIR/patches/patch-configure" \
 		    >/dev/null 2>&1 </dev/null ) ;;
-	*)	for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 \
-		          patch-configure patch-libhttpd.c patch-thttpd.c; do
-			( cd "$T/$1" && patch -s -p0 -f -i "$DIR/patches/$pp" \
+	*)	# 一覧を書き下すと当て物を足したときに古びる。patch-ag を
+		# patch-CVE-2005-3124 に改名したとき、この一覧から漏れて
+		# tarball 側の syslogtocern が素のままになっていた。
+		for pp in "$DIR"/patches/patch-*; do
+			[ -f "$pp" ] || continue
+			( cd "$T/$1" && patch -s -p0 -f -i "$pp" \
 			    >/dev/null 2>&1 </dev/null ) \
-			    || { echo "  !! $pp が $1 に当たらない" >&2; return 1; }
+			    || { echo "  !! ${pp##*/} が $1 に当たらない" >&2; return 1; }
 		done ;;
 	esac
 	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="$CC $OSCFLAGS $3" thttpd >bl.log 2>&1 )
@@ -137,6 +140,9 @@ else
 	done
 	echo "  診断: bsd.prefs.mk が OBJECT_FMT をどう定義しているか"
 	grep -n 'OBJECT_FMT' "$TREE/mk/bsd.prefs.mk" | sed 's/^/    /' | head -12
+	echo "  診断: bmake が実際に開いた bsd.own.mk"
+	( cd "$DIR" && $PKGMAKE -dm -V OBJECT_FMT ) 2>&1 \
+	    | grep -i 'own\.mk' | sed 's/^/    /' | head -6
 	sbuild patchedbin yes "" || { echo "!! tarball build も失敗"; exit 1; }
 	BIN=$T/patchedbin/thttpd
 	echo "MODE: tarball + pkgsrc patch の $BIN を検査する"
@@ -430,21 +436,30 @@ case $PKGN in *'${'*|'') PKGN="" ;; esac
 if [ -z "$PKGN" ]; then echo "  PKGNAME を引けない。skip"
 else
 	echo "  この package は $PKGN"
-	V="$T/vuln"; mkdir -p "$V"
-	for mode in before after; do
-		case $mode in
-		before)	pat='thttpd-[0-9]*' ;;
-		after)	pat='thttpd<2.29nb1' ;;
-		esac
-		{ echo '#FORMAT 1.0.0'
-		  printf '%s\tescape-sequence-injection\thttps://nvd.nist.gov/vuln/detail/CVE-2009-4491\n' "$pat"
-		  printf '%s\tdenial-of-service\thttps://nvd.nist.gov/vuln/detail/CVE-2012-5640\n' "$pat"
-		  printf '%s\tbuffer-underflow\thttps://nvd.nist.gov/vuln/detail/CVE-2007-0158\n' "$pat"
-		} > "$V/pkg-vulnerabilities"
-		n=$($PREFIX/sbin/pkg_admin -K "$V" audit-pkg "$PKGN" 2>/dev/null | grep -c . || true)
-		echo "  $mode ($pat): $n 件"
-		eval "n_$mode=$n"
-	done
+	# 本物を取ってきて、そこへ差分と同じ書き換えを当てる。合成した file で
+	# 測ると、書き方が違っていても気づけない。pkg_admin は libarchive 越しに
+	# 読むので **圧縮されていないと "Unrecognized archive format" で黙る**。
+	# 配られている物は名前に .gz が付かないまま gzip されているので、
+	# grep も sed もそのままでは静かに 0 件を返す。
+	V="$T/vuln"; rm -rf "$V"; mkdir -p "$V/before" "$V/after"
+	$PREFIX/sbin/pkg_admin -K "$V/before" fetch-pkg-vulnerabilities >/dev/null 2>&1 || true
+	RAW="$V/before/pkg-vulnerabilities"
+	if [ ! -s "$RAW" ]; then echo "  pkg-vulnerabilities を取れない。skip"
+	else
+		gzip -dc "$RAW" > "$V/plain" 2>/dev/null || cp "$RAW" "$V/plain"
+		nl=$(grep -c '^thttpd' "$V/plain" || true)
+		echo "  取ってきた file の thttpd 行: $nl"
+		sed 's,^thttpd-\[0-9\]\*,thttpd<2.29nb1,' "$V/plain" > "$V/plain.after"
+		nc=$(grep -c '^thttpd<2.29nb1' "$V/plain.after" || true)
+		echo "  書き換わった行: $nc"
+		gzip -c "$V/plain"       > "$V/before/pkg-vulnerabilities"
+		gzip -c "$V/plain.after" > "$V/after/pkg-vulnerabilities"
+		for mode in before after; do
+			n=$($PREFIX/sbin/pkg_admin -K "$V/$mode" audit-pkg "$PKGN" 2>/dev/null | grep -c . || true)
+			echo "  $mode: $n 件"
+			eval "n_$mode=$n"
+		done
+	fi
 	if [ "${n_before:-0}" -ge 3 ] && [ "${n_after:-1}" = 0 ]; then
 		echo "  上限を狭めると鳴り止む"
 	else
