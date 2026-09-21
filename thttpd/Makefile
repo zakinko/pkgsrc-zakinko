@@ -4,9 +4,9 @@ DISTNAME=	thttpd-2.29
 PKGREVISION=	1
 CATEGORIES=	www
 MASTER_SITES=	https://www.acme.com/software/thttpd/
+DIST_SUBDIR=	${PKGNAME_NOREV}
 DISTFILES=	${DISTNAME}${EXTRACT_SUFX} \
 		${NETBSD_LOGO}
-DIST_SUBDIR=	${PKGNAME_NOREV}
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://www.acme.com/software/thttpd/
@@ -19,6 +19,8 @@ NETBSD_LOGO=		sitedrivenby.gif
 SITES.${NETBSD_LOGO}=	http://www.NetBSD.org/images/logos/
 
 GNU_CONFIGURE=	yes
+
+.include "../../mk/bsd.prefs.mk"
 
 # Note: this pkg auto-detects IPv6.
 BUILD_DEFS+=		IPV6_READY
@@ -39,6 +41,27 @@ SUBST_FILES.paths=	thttpd.conf README.pkgsrc
 SUBST_VARS.paths=	PREFIX
 SUBST_STAGE.paths=	pre-configure
 
+# htpasswd(1) is a common name, so the package installs it as thtpasswd.
+# The files are renamed in post-patch, which is after the patches (they
+# still name extras/htpasswd.c) and before this substitution runs.
+SUBST_CLASSES+=		thtpasswd
+SUBST_STAGE.thtpasswd=	pre-configure
+SUBST_MESSAGE.thtpasswd=Renaming htpasswd to thtpasswd.
+SUBST_FILES.thtpasswd=	thttpd.8 extras/Makefile.in extras/thtpasswd.c
+SUBST_SED.thtpasswd=	-e 's,\.htpasswd,@DOTHTPASSWD@,g'
+SUBST_SED.thtpasswd+=	-e 's,htpasswd,thtpasswd,g'
+SUBST_SED.thtpasswd+=	-e 's,@DOTHTPASSWD@,.htpasswd,g'
+
+SUBST_CLASSES+=		logfac
+SUBST_STAGE.logfac=	pre-configure
+SUBST_MESSAGE.logfac=	Setting the syslog facility.
+SUBST_FILES.logfac=	config.h
+SUBST_SED.logfac=	-e 's,LOG_DAEMON,${THTTPD_LOG_FACILITY},'
+
+# cgi-src/Makefile.in builds strerror.o by running make in the parent
+# directory ("cd .. ; $(MAKE) strerror.o"), and the top Makefile runs
+# "all: this subdirs", so with -j the parent's own build and the
+# subdirectory's can compile that object into the same file at once.
 MAKE_JOBS_SAFE=	no
 
 # glibc declares sigset(3) only under _XOPEN_SOURCE.  configure finds the
@@ -59,17 +82,9 @@ post-extract:
 	${CP} ${FILESDIR}/thttpd.conf ${WRKSRC}
 	${CP} ${FILESDIR}/README.pkgsrc ${WRKSRC}
 
-pre-configure:
+post-patch:
 	${MV} ${WRKSRC}/extras/htpasswd.1 ${WRKSRC}/extras/thtpasswd.1
 	${MV} ${WRKSRC}/extras/htpasswd.c ${WRKSRC}/extras/thtpasswd.c
-	for FILE in thttpd.8 extras/Makefile.in extras/thtpasswd.c; do	\
-		${MV} -f ${WRKSRC}/$${FILE} ${WRKSRC}/$${FILE}.bak;	\
-		${SED}	-e "s,\.htpasswd,XXX,g;s,htpasswd,thtpasswd,g;s,XXX,.htpasswd,g" \
-			${WRKSRC}/$${FILE}.bak > ${WRKSRC}/$${FILE};	\
-	done
-	${MV} -f ${WRKSRC}/config.h ${WRKSRC}/config.h.bak
-	${SED} -e "s/LOG_DAEMON/${THTTPD_LOG_FACILITY}/" ${WRKSRC}/config.h.bak \
-			> ${WRKSRC}/config.h
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/README.pkgsrc ${DESTDIR}${PREFIX}/share/doc/thttpd

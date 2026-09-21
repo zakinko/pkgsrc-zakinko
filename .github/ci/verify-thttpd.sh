@@ -124,8 +124,17 @@ else
 	# 木の側の話で当て物とは関係ないが、原因を突き止めるまで隠れるので
 	# 判断の材料をここで出す。
 	echo "  診断: env の OBJECT_FMT 系"; env | grep -i object_fmt | sed 's/^/    /' || echo "    (無し)"
-	echo "  診断: bmake から見た値"
-	( cd "$DIR" && $PKGMAKE -V OBJECT_FMT -V NATIVE_OBJECT_FMT -V USE_CROSS_COMPILE ) 2>&1 | sed 's/^/    /' | head -8
+	echo "  診断: bmake から見た値 (-V は展開するので再帰だと読めない)"
+	( cd "$DIR" && $PKGMAKE -V USE_CROSS_COMPILE ) 2>&1 | sed 's/^/    /' | head -3
+	echo "  診断: 生の定義 (-v は展開しない)"
+	for v in OBJECT_FMT NATIVE_OBJECT_FMT CROSS_OBJECT_FMT; do
+		printf '    %-20s ' "$v"
+		( cd "$DIR" && $PKGMAKE -v "$v" ) 2>&1 | head -2 | tr '\n' ' '
+		echo
+	done
+	echo "  診断: 読んだ bsd.own.mk"
+	( cd "$DIR" && $PKGMAKE -V .MAKE.MAKEFILES ) 2>&1 | tr ' ' '\n' \
+	    | grep -i 'own\|prefs' | sed 's/^/    /' | head -4
 	sbuild patchedbin yes "" || { echo "!! tarball build も失敗"; exit 1; }
 	BIN=$T/patchedbin/thttpd
 	echo "MODE: tarball + pkgsrc patch の $BIN を検査する"
@@ -351,6 +360,80 @@ if asan_works; then
 	fi
 else
 	echo "  ASan が使えない箱。live テストは skip"
+fi
+
+########################################################################
+# CVE-2005-3124 の当て物 (patch-ag) が本当に効いているか。入れた script が
+# shell として読めるかどうかは、報告で「直した」と書く以上、機械で見る。
+echo "########## patch-ag (syslogtocern) on $OS ##########"
+SC=$PREFIX/sbin/syslogtocern
+[ -f "$SC" ] || SC=$PREFIX/bin/syslogtocern
+if [ -f "$SC" ]; then
+	if sh -n "$SC" 2>"$T/sc.err"; then
+		echo "  patched: 構文が通る"
+	else
+		echo "  !! patched の syslogtocern が構文で落ちる"; rc=1
+		sed 's/^/    /' "$T/sc.err"
+	fi
+	# 素の syslog 行を食わせて、CERN 形式の二つが出来るかを見る。
+	D="$T/sc"; rm -rf "$D"; mkdir -p "$D"
+	printf 'Sep 22 03:00:00 h thttpd[1]: 10.0.0.1 - - "GET /x HTTP/1.0" 200 3 "" "" - - - - -\n' > "$D/m.log"
+	printf 'Sep 22 03:00:01 h thttpd[1]: tried to retrieve an auth file\n' >> "$D/m.log"
+	( cd "$D" && sh "$SC" m.log ) >"$D/out" 2>&1 || true
+	if [ -s "$D/access_log" ] && [ -s "$D/error_log" ]; then
+		echo "  patched: access_log と error_log を書いた"
+		sed 's/^/    /' "$D/access_log" | head -1
+	else
+		echo "  !! patched が log を変換しない"; rc=1
+		sed 's/^/    /' "$D/out" | head -4
+	fi
+	# 対照: backtick を一つ戻すと落ちる、を見せる。原因がその一文字で
+	# あることを、言葉ではなく shell に言わせる。
+	# この file には latin-1 の (c) が入っているので、UTF-8 の locale だと
+	# sed が "illegal byte sequence" で何も出さない。空 file は構文が通って
+	# しまうので、対照が黙って無効になる。LC_ALL=C は先頭で立ててあるが、
+	# 置き換わったことも数えて確かめる。
+	sed 's,tmp1=`mktemp,tmp1=``mktemp,' "$SC" > "$D/before"
+	if [ "$(grep -c 'tmp1=``mktemp' "$D/before" 2>/dev/null)" != 1 ]; then
+		echo "  !! 対照を作れない (sed が置き換えていない)"; rc=1
+	elif sh -n "$D/before" 2>"$D/before.err"; then
+		echo "  !! backtick を戻しても構文が通る。対照になっていない"; rc=1
+	else
+		echo "  対照: backtick を一つ戻すと落ちる"
+		sed 's/^/    /' "$D/before.err" | head -2
+	fi
+else
+	echo "  syslogtocern が入っていない箱。skip"
+fi
+
+########################################################################
+# doc/pkg-vulnerabilities の上限を thttpd<2.29nb1 へ狭める変更が、本当に
+# audit を黙らせるか。「直した」と書く以上、鳴り止むことも機械で見る。
+echo "########## pkg-vulnerabilities on $OS ##########"
+PKGN=$( ( cd "$DIR" && $PKGMAKE -V PKGNAME ) 2>/dev/null )
+if [ -z "$PKGN" ]; then echo "  PKGNAME を引けない。skip"
+else
+	echo "  この package は $PKGN"
+	V="$T/vuln"; mkdir -p "$V"
+	for mode in before after; do
+		case $mode in
+		before)	pat='thttpd-[0-9]*' ;;
+		after)	pat='thttpd<2.29nb1' ;;
+		esac
+		{ echo '#FORMAT 1.0.0'
+		  printf '%s\tescape-sequence-injection\thttps://nvd.nist.gov/vuln/detail/CVE-2009-4491\n' "$pat"
+		  printf '%s\tdenial-of-service\thttps://nvd.nist.gov/vuln/detail/CVE-2012-5640\n' "$pat"
+		  printf '%s\tbuffer-underflow\thttps://nvd.nist.gov/vuln/detail/CVE-2007-0158\n' "$pat"
+		} > "$V/pkg-vulnerabilities"
+		n=$($PREFIX/sbin/pkg_admin -K "$V" audit-pkg "$PKGN" 2>/dev/null | grep -c . || true)
+		echo "  $mode ($pat): $n 件"
+		eval "n_$mode=$n"
+	done
+	if [ "${n_before:-0}" -ge 3 ] && [ "${n_after:-1}" = 0 ]; then
+		echo "  上限を狭めると鳴り止む"
+	else
+		echo "  !! 上限の効き方が期待どおりでない"; rc=1
+	fi
 fi
 
 rm -rf "$T"
