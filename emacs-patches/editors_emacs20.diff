@@ -1,6 +1,6 @@
 diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Makefile
 --- /usr/pkgsrc/editors/emacs20/Makefile	2026-09-18 05:45:57.215520598 +0000
-+++ editors/emacs20/Makefile	2026-09-21 14:10:40.346217643 +0000
++++ editors/emacs20/Makefile	2026-09-21 14:49:15.546459853 +0000
 @@ -2,7 +2,7 @@
  
  DISTNAME=	emacs-20.7
@@ -10,14 +10,34 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Ma
  CATEGORIES=	editors
  MASTER_SITES=	http://ftp.gnu.org/pub/old-gnu/emacs/
  MASTER_SITES+=	ftp://ftp.gnu.org/pub/old-gnu/emacs
+@@ -104,6 +104,18 @@
+ 	${CP} ${FILESDIR}/amd64.h ${WRKSRC}/src/m
+ 	${CP} ${FILESDIR}/dragonfly.h ${WRKSRC}/src/s
+ 
++# lisp/files.el is patched, but the dumped emacs carries the files.elc
++# from the distfile and temacs cannot load the source in its place, so
++# compile it with the first dump and dump again.  loadup numbers the
++# build from the emacs-20.7.* files left in src, so remove the first
++# dump's output to keep the .1 names the PLIST expects.
++post-build:
++	cd ${WRKSRC}/lisp && ../src/emacs -batch -q --no-site-file \
++		-f batch-byte-compile files.el
++	cd ${WRKSRC} && ${RM} -f src/emacs src/emacs-${PKGVERSION_NOREV}.1 \
++		etc/DOC-${PKGVERSION_NOREV}.1 lib-src/fns-${PKGVERSION_NOREV}.1.el
++	cd ${WRKSRC}/src && ${BUILD_MAKE_CMD} emacs
++
+ pre-install:
+ 	@${FIND} ${WRKSRC} -type f -name "*.orig*" -print | ${XARGS} ${RM} -f
+ 
 diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/distinfo editors/emacs20/distinfo
 --- /usr/pkgsrc/editors/emacs20/distinfo	2021-12-29 03:40:23.000000000 +0000
-+++ editors/emacs20/distinfo	2026-09-21 14:05:21.819528078 +0000
-@@ -54,4 +54,5 @@
++++ editors/emacs20/distinfo	2026-09-21 14:43:55.337700080 +0000
+@@ -54,4 +54,6 @@
  SHA1 (patch-ce) = df4d2a5639a72d2c719662496f17db35686f4ac2
  SHA1 (patch-cf) = 1b5b83eb02872414fd7ca29c344c0560feaf1b7e
  SHA1 (patch-cg) = b2bd4cbff399922e44ad54459255ffb1d61e1bd4
 +SHA1 (patch-lib-src_etags.c) = b660a50193b2ce8d5f3ac718fd97c01f05211f9f
++SHA1 (patch-lisp_files.el) = e4d8fa857dd92d382243c573ba43478f1bceab74
  SHA1 (patch-src_m_aarch64.h) = 861757ce6568303ea55cb9c9f290abc6100d3dc2
 diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c editors/emacs20/patches/patch-lib-src_etags.c
 --- /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c	1970-01-01 00:00:00.000000000 +0000
@@ -114,3 +134,45 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags
 + 	}
 +       append_to_tagfile = TRUE;
 +     }
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el editors/emacs20/patches/patch-lisp_files.el
+--- /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs20/patches/patch-lisp_files.el	2026-09-21 14:43:54.308278185 +0000
+@@ -0,0 +1,38 @@
++$NetBSD$
++
++CVE-2017-1000383: copy-file creates the backup with the default modes and
++only then copies the original file's modes over it, so the backup of a
++private file is world-readable until that chmod.  Create it under a
++0700 umask; the chmod that follows still sets the final modes.  Same
++fix as Emacs 25.3's backup-buffer-copy, in Emacs 20's files.el.
++
++--- lisp/files.el.orig
+++++ lisp/files.el
++@@ -1996,7 +1996,16 @@
++ 			    (or delete-old-versions
++ 				(y-or-n-p (format "Delete excess backup versions of %s? "
++ 						  real-file-name))))))
++-		  ;; Actually write the back up file.
+++		  ;; Actually write the back up file.  copy-file creates
+++		  ;; it with the default modes and only then copies the
+++		  ;; original's, so a private file's backup is readable
+++		  ;; by anyone until that chmod (CVE-2017-1000383).
+++		  ;; Create it under a strict umask; copy-file's chmod
+++		  ;; sets the final modes.
+++		  (let ((umask (default-file-modes)))
+++		    (unwind-protect
+++			(progn
+++			  (set-default-file-modes ?\700)
++ 		  (condition-case ()
++ 		      (if (or file-precious-flag
++     ;			  (file-symlink-p buffer-file-name)
++@@ -2035,7 +2044,8 @@
++ 			(if (and (file-exists-p backupname)
++ 				 (not (file-writable-p backupname)))
++ 			    (delete-file backupname))
++-			(copy-file real-file-name backupname t t)))))
+++			(copy-file real-file-name backupname t t))))))
+++		      (set-default-file-modes umask)))
++ 		  (setq buffer-backed-up t)
++ 		  ;; Now delete the old versions, if desired.
++ 		  (if delete-old-versions

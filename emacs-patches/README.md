@@ -24,6 +24,7 @@ patch file carries a description and the origin; PKGREVISION is bumped.
 | editors/emacs30 | include <sys/signal.h> in process.h | DragonFly DPorts | |
 | editors/emacs30 | pgtk: fall back to the terminal when there is no display | Fedora | |
 | editors/emacs20 | etags/ctags -u ran "mv ... OTAGS; fgrep ..." through the shell with the file name unquoted; filter in C instead (Emacs 28.2's fix, rewritten for the K&R source) | own, after Debian's XEmacs version | CVE-2022-45939 |
+| editors/emacs20 | backup-buffer creates the backup under a 0700 umask; copy-file created it with the default modes and copied the original's over it afterwards, so a private file's backup was world-readable in between. files.elc is recompiled and emacs dumped again in post-build, since the distfile's files.elc is what gets dumped | own, after Emacs 25.3's backup-buffer-copy | CVE-2017-1000383 |
 | editors/xemacs (21.4.25) | the same etags fix; movemail drops the privileged gid around the file operations | Debian xemacs21 | CVE-2022-45939, CVE-2010-0825 |
 | editors/xemacs-current (21.5.36) | the movemail fix, rebased by hand (the gid assignments sit after the declarations, so -Wdeclaration-after-statement stays quiet); 21.5.36's etags already filters in C, so CVE-2022-45939 does not apply | Debian xemacs21, rebased | CVE-2010-0825 |
 | chat/emacs-jabber | make-obsolete WHEN argument (Emacs 28); autoloads through loaddefs-generate (Emacs 30).  With these it builds on emacs29-31, so they are accepted now | Gentoo, own | |
@@ -55,8 +56,6 @@ patch file carries a description and the origin; PKGREVISION is bumped.
 
 ## Not resolved
 
-- editors/emacs20 is also listed for CVE-2017-1000383 (backup files
-  ignore umask); not patched here.
 - Reviving jde/bbdb2/nxml-mode for emacs20: nxml-mode refuses Emacs 20
   itself, bbdb2 2.35 needs mail-parse (Gnus), jde's dependency chain
   did not complete here.
