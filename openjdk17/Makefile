@@ -85,12 +85,15 @@ BOOT_JVMARGS=	-XX:+UnlockDiagnosticVMOptions
 # to use -j.  Disable it and configure ourselves via configure arguments.
 MAKE_JOBS_METHOD=	manual
 
-# configure decides native vs cross by comparing the two autoconf triples as
-# strings, not the platforms they name, so pkgsrc's x86_64--netbsd against
-# config.guess's x86_64-unknown-netbsd10.1 makes a native build look like a
-# cross compile -- and then it builds a second, complete JDK to compile the
-# first one with.  Give both the same name.
-CONFIGURE_ARGS+=	--build=${MACHINE_GNU_PLATFORM}
+# The tree passes only --openjdk-target.  Adding --build beside it, to stop
+# configure from reading pkgsrc's x86_64--netbsd against config.guess's
+# x86_64-unknown-netbsd10.1 as a cross build, is refused by this release:
+#
+#   Error: Specifying --openjdk-target together with autoconf
+#   legacy cross-compilation flags is not supported.
+#
+# so the build never reached make.  The double-JDK cost that --build was
+# meant to avoid is a separate matter from getting a build at all.
 CONFIGURE_ARGS+=	--openjdk-target=${MACHINE_GNU_PLATFORM}
 CONFIGURE_ARGS+=	--with-boot-jdk=${ALT_BOOTDIR}
 CONFIGURE_ARGS+=	--with-boot-jdk-jvmargs=${BOOT_JVMARGS:Q}
