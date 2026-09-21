@@ -1,0 +1,155 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs-current/Makefile editors/xemacs-current/Makefile
+--- /usr/pkgsrc/editors/xemacs-current/Makefile	2026-07-04 08:27:42.000000000 +0000
++++ editors/xemacs-current/Makefile	2026-09-21 14:35:59.742541199 +0000
+@@ -1,7 +1,7 @@
+ # $NetBSD: Makefile,v 1.126 2026/07/04 08:27:42 wiz Exp $
+ 
+ PKGNAME=	${DISTNAME}
+-PKGREVISION=	1
++PKGREVISION=	2
+ COMMENT=	XEmacs text editor version ${PKGVERSION_NOREV}
+ 
+ .include "Makefile.common"
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs-current/distinfo editors/xemacs-current/distinfo
+--- /usr/pkgsrc/editors/xemacs-current/distinfo	2025-09-23 16:41:10.000000000 +0000
++++ editors/xemacs-current/distinfo	2026-09-21 14:36:00.492651338 +0000
+@@ -6,6 +6,7 @@
+ SHA1 (patch-Makefile.in.in) = 5048ca8d2eaf09500edc6efc6bd5c4ac8e67a079
+ SHA1 (patch-configure) = 7169ad26f4b845e15c9b53bb1241ca7a8b6cd539
+ SHA1 (patch-lib-src_Makefile.in.in) = 5e19f13bc96f92999aa221831cabc1645605115c
++SHA1 (patch-lib-src_movemail.c) = 39439092e09f4c8a58017e34e73fa05085ab35dc
+ SHA1 (patch-lwlib_Makefile.in.in) = 8d243f1c85122429187b8250c18221dee8423ed0
+ SHA1 (patch-modules_common_Makefile.common) = d62a23a05e72cc196557e2f7fbbccea791ee0101
+ SHA1 (patch-src_Makefile.in.in) = 2a661f2c12bd2c27146285f60dec8b9d407fefcd
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs-current/patches/patch-lib-src_movemail.c editors/xemacs-current/patches/patch-lib-src_movemail.c
+--- /usr/pkgsrc/editors/xemacs-current/patches/patch-lib-src_movemail.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/xemacs-current/patches/patch-lib-src_movemail.c	2026-09-21 14:35:59.739790011 +0000
+@@ -0,0 +1,128 @@
++$NetBSD$
++
++CVE-2010-0825: movemail is installed setgid mail and did not drop the
++privileged group before touching the destination, so a local user could
++read, modify or delete arbitrary mailbox files through a symlink.  Drop
++to the real gid around the file operations.  Debian's fix for 21.4,
++rebased onto 21.5.36.
++
++--- lib-src/movemail.c.orig
+++++ lib-src/movemail.c
++@@ -210,12 +210,18 @@
++ #ifndef DISABLE_DIRECT_ACCESS
++   int indesc, outdesc;
++   int nread;
+++  uid_t real_gid, priv_gid;
++   int status;
++ #endif
++ 
++   int lock_method = DEFAULT_LOCKING;
++ 
++   char *maybe_lock_env;
+++
+++#ifndef DISABLE_DIRECT_ACCESS
+++  real_gid = getgid();
+++  priv_gid = getegid();
+++#endif
++ 
++   maybe_lock_env = getenv("EMACSLOCKMETHOD");
++   if (maybe_lock_env)
++@@ -308,26 +314,6 @@
++   if (*outname == 0)
++     fatal ("Destination file name is empty", 0);
++ 
++-  VERBOSE(("checking access to output file\n"));
++-  /* Check access to output file.  */
++-  if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
++-    pfatal_with_name (outname);
++-
++-  /* Also check that outname's directory is writable to the real uid.  */
++-  {
++-    char *buf = (char *) xmalloc (strlen (outname) + 1);
++-    char *cp;
++-    strcpy (buf, outname);
++-    cp = buf + strlen (buf);
++-    while (cp > buf && !IS_DIRECTORY_SEP (cp[-1]))
++-      *--cp = 0;
++-    if (cp == buf)
++-      *cp++ = '.';
++-    if (access (buf, W_OK) != 0)
++-      pfatal_with_name (buf);
++-    free (buf);
++-  }
++-
++ #ifdef MAIL_USE_POP
++   if (!strncmp (inname, "po:", 3))
++     {
++@@ -336,7 +322,8 @@
++     }
++ 
++ #ifndef WIN32_NATIVE
++-  setuid (getuid ());
+++  if ( setuid (getuid ()) < 0 )
+++	  fatal ("Failed to drop privileges", 0);
++ #endif
++ #else /* MAIL_USE_POP */
++   (void) (poppass); /* Silence compiler warning. */
++@@ -344,14 +331,10 @@
++ 
++ #ifndef DISABLE_DIRECT_ACCESS
++ 
++-  /* Check access to input file.  */
++-  if (access (inname, R_OK | W_OK) != 0)
++-    pfatal_with_name (inname);
++-
++-
++   if (fork () == 0)
++     {
++-      setuid (getuid ());
+++      if ( setuid (getuid ()) < 0 || setegid (real_gid) < 0 )
+++		  fatal("Failed to drop privileges", 0);
++ 
++       VERBOSE(("opening input file\n"));
++ 
++@@ -396,6 +379,9 @@
++       if (outdesc < 0)
++ 	pfatal_with_name (outname);
++ 
+++      if ( setegid(priv_gid) < 0 )
+++          fatal("Failed to regain privileges", 0);
+++
++       VERBOSE(("locking input file\n"));
++ 
++       switch (lock_method)
++@@ -451,6 +437,10 @@
++       /* Check to make sure no errors before we zap the inbox.  */
++       if (close (outdesc) != 0)
++ 	pfatal_and_delete (outname);
+++
+++      /* Prevent symlink attacks truncating other users' mailboxes */
+++      if ( setegid (real_gid) < 0 )
+++          fatal("Failed to drop privileges", 0);
++ 
++       VERBOSE(("deleting or truncating input file\n"));
++ 
++@@ -462,7 +452,11 @@
++ #ifdef HAVE_FTRUNCATE
++ 	  ftruncate (indesc, 0L);
++ #else
++-	  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
+++	  int indesc2 = open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666);
+++      if ( indesc2 < 0 )
+++          pfatal_with_name (inname) 
+++
+++              close (indesc2);
++ #endif
++ 	  close (indesc);
++ 	  break;
++@@ -476,6 +470,10 @@
++ 	  break;
++ 	}
++ 
+++      /* End of mailbox truncation */
+++      if ( setegid(priv_gid) < 0 )
+++          fatal("Failed to regain privileges", 0);
+++
++       exit (0);
++     }
++ 

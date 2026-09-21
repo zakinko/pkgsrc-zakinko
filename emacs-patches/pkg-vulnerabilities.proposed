@@ -23,7 +23,5 @@ xemacs<21.4.25nb2		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE
 xemacs-nox11<21.4.25nb2		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45939
 xemacs<21.4.25nb2		symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2010-0825
 xemacs-nox11<21.4.25nb2		symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2010-0825
-# xemacs 21.5.36 (editors/xemacs-current) has the CVE-2010-0825 movemail
-# code too and no fix yet; Debian's patch does not apply to 21.5.
-xemacs>=21.5<21.5.37		symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2010-0825
-xemacs-nox11>=21.5<21.5.37	symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2010-0825
+xemacs>=21.5<21.5.36nb2		symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2010-0825
+xemacs-nox11>=21.5<21.5.36nb2	symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2010-0825
