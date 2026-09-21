@@ -225,6 +225,25 @@ jobs:
             make print-PLIST > "$WS/PLIST.new" || true
             wc -l "$WS/PLIST.new" || true
 
+            # 持ち帰りは vmactions が rsync でやるが、その rsync は上で image の
+            # binary package ごと消している。openjdk25 と openjdk11 の run
+            # (35632286074 / 35632290045) は package まで出来ていたのに
+            #
+            #   exec: rsync: not found
+            #   rsync error: error in rsync protocol data stream (code 12)
+            #
+            # で workspace が戻らず、cache も PLIST も落ちた。ここで binary から
+            # 入れ直す。rsync は bash / lz4 / popt / xxhash / zstd を連れてくるが、
+            # make package はもう終わっているので pkgsrc との衝突は問題にならない。
+            # 最初に入れると、pkgsrc が建てる zstd 等と版が噛み合わない。
+            echo "=== 持ち帰り用の rsync を入れ直す ==="
+            PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages/NetBSD/amd64/$REL/All" \
+              /usr/sbin/pkg_add -U rsync 2>&1 | tail -3 || :
+            command -v rsync || ls /usr/pkg/bin/rsync || {
+              echo "rsync が入らなかった。持ち帰りが失敗する"
+              exit 1
+            }
+
       - name: 起こした PLIST を持ち帰る
         uses: actions/upload-artifact@v4
         with:
