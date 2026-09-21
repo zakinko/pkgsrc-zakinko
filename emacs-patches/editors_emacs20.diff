@@ -1,0 +1,116 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Makefile
+--- /usr/pkgsrc/editors/emacs20/Makefile	2026-09-18 05:45:57.215520598 +0000
++++ editors/emacs20/Makefile	2026-09-21 14:10:40.346217643 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=	emacs-20.7
+ PKGNAME=	${DISTNAME:S/emacs/emacs20/}
+-PKGREVISION=	26
++PKGREVISION=	27
+ CATEGORIES=	editors
+ MASTER_SITES=	http://ftp.gnu.org/pub/old-gnu/emacs/
+ MASTER_SITES+=	ftp://ftp.gnu.org/pub/old-gnu/emacs
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/distinfo editors/emacs20/distinfo
+--- /usr/pkgsrc/editors/emacs20/distinfo	2021-12-29 03:40:23.000000000 +0000
++++ editors/emacs20/distinfo	2026-09-21 14:05:21.819528078 +0000
+@@ -54,4 +54,5 @@
+ SHA1 (patch-ce) = df4d2a5639a72d2c719662496f17db35686f4ac2
+ SHA1 (patch-cf) = 1b5b83eb02872414fd7ca29c344c0560feaf1b7e
+ SHA1 (patch-cg) = b2bd4cbff399922e44ad54459255ffb1d61e1bd4
++SHA1 (patch-lib-src_etags.c) = b660a50193b2ce8d5f3ac718fd97c01f05211f9f
+ SHA1 (patch-src_m_aarch64.h) = 861757ce6568303ea55cb9c9f290abc6100d3dc2
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c editors/emacs20/patches/patch-lib-src_etags.c
+--- /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs20/patches/patch-lib-src_etags.c	2026-09-21 14:05:21.444444653 +0000
+@@ -0,0 +1,91 @@
++$NetBSD$
++
++CVE-2022-45939: etags -u ran "mv ... OTAGS; fgrep ..." through the shell
++with the file name unquoted, so a crafted file name ran commands.  Do the
++filtering in C instead, as Emacs 28.2 does.
++
++--- lib-src/etags.c.orig
+++++ lib-src/etags.c
++@@ -213,6 +213,7 @@
++ int total_size_of_entries ();
++ long readline ();
++ long readline_internal ();
+++void clean_matched_file_tag ();
++ #ifdef ETAGS_REGEXPS
++ void analyse_regex ();
++ void add_regex ();
++@@ -763,6 +764,56 @@
++ #endif /* VMS */
++ 
++ 
+++/*
+++ * Remove from TAGFILE the entries that came from MATCH_FILE_NAME.
+++ * Equivalent to what used to be done with
+++ *   mv TAGFILE OTAGS; fgrep -v '\tMATCH\t' OTAGS > TAGFILE; rm OTAGS
+++ * through system(), which ran whatever shell metacharacters the file
+++ * name carried (CVE-2022-45939).
+++ */
+++void
+++clean_matched_file_tag (tagfile, match_file_name)
+++     char *tagfile;
+++     char *match_file_name;
+++{
+++  FILE *otags_f, *tag_f;
+++  struct linebuffer line;
+++  char *pattern;
+++  int patlen;
+++
+++  tag_f = fopen (tagfile, "r");
+++  if (tag_f == NULL)
+++    pfatal (tagfile);
+++  otags_f = fopen ("OTAGS", "w");
+++  if (otags_f == NULL)
+++    pfatal ("OTAGS");
+++
+++  patlen = strlen (match_file_name) + 3;
+++  pattern = xnew (patlen, char);
+++  sprintf (pattern, "\t%s\t", match_file_name);
+++  initbuffer (&line);
+++  while (readline_internal (&line, tag_f) > 0)
+++    {
+++      if (ferror (tag_f))
+++	pfatal (tagfile);
+++      if (strstr (line.buffer, pattern) == NULL)
+++	{
+++	  fputs (line.buffer, otags_f);
+++	  putc ('\n', otags_f);
+++	  if (ferror (otags_f))
+++	    pfatal ("OTAGS");
+++	}
+++    }
+++  free (line.buffer);
+++  free (pattern);
+++  if (fclose (otags_f) == EOF)
+++    pfatal ("OTAGS");
+++  if (fclose (tag_f) == EOF)
+++    pfatal (tagfile);
+++  if (rename ("OTAGS", tagfile) < 0)
+++    pfatal (tagfile);
+++}
+++
++ int
++ main (argc, argv)
++      int argc;
++@@ -1028,16 +1079,11 @@
++ 
++   if (update)
++     {
++-      char cmd[BUFSIZ];
++       for (i = 0; i < current_arg; ++i)
++ 	{
++ 	  if (argbuffer[i].arg_type != at_filename)
++ 	    continue;
++-	  sprintf (cmd,
++-		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
++-		   tagfile, argbuffer[i].what, tagfile);
++-	  if (system (cmd) != GOOD)
++-	    fatal ("failed to execute shell command", (char *)NULL);
+++	  clean_matched_file_tag (tagfile, argbuffer[i].what);
++ 	}
++       append_to_tagfile = TRUE;
++     }

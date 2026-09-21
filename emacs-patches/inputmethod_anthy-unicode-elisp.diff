@@ -1,0 +1,31 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/anthy-unicode-elisp/Makefile inputmethod/anthy-unicode-elisp/Makefile
+--- /usr/pkgsrc/inputmethod/anthy-unicode-elisp/Makefile	2026-09-18 05:46:58.639824805 +0000
++++ inputmethod/anthy-unicode-elisp/Makefile	2026-09-21 14:03:21.449223752 +0000
+@@ -3,6 +3,7 @@
+ .include	"../../inputmethod/anthy-unicode/Makefile.common"
+ 
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}anthy-unicode-elisp-${ANTHY_UNICODE_VERSION}
++PKGREVISION=	1
+ CATEGORIES=	inputmethod editors
+ 
+ MAINTAINER=	pkgsrc-users@NetBSD.org
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/anthy-unicode-elisp/patches/patch-src-util_anthy.el inputmethod/anthy-unicode-elisp/patches/patch-src-util_anthy.el
+--- /usr/pkgsrc/inputmethod/anthy-unicode-elisp/patches/patch-src-util_anthy.el	1970-01-01 00:00:00.000000000 +0000
++++ inputmethod/anthy-unicode-elisp/patches/patch-src-util_anthy.el	2026-09-21 13:57:45.948082406 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++Use a marker for the preedit start so it survives buffer changes.
++From Debian.
++
++--- src-util/anthy.el.orig
+++++ src-util/anthy.el
++@@ -462,7 +462,7 @@
++ 
++     (anthy-disable-preedit-keymap)
++     ;; insert new preedit
++-    (setq anthy-preedit-start (point))
+++    (setq anthy-preedit-start (point-marker))
++     (setq anthy-enum-candidate-p nil)
++     (setq anthy-enum-rcandidate-p nil)
++     (if (member stat '(2 3 4))

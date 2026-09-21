@@ -1,0 +1,86 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/gnuserv/Makefile editors/gnuserv/Makefile
+--- /usr/pkgsrc/editors/gnuserv/Makefile	2023-09-11 21:18:49.000000000 +0000
++++ editors/gnuserv/Makefile	2026-09-21 14:03:21.437822023 +0000
+@@ -2,6 +2,7 @@
+ 
+ DISTNAME=	gnuserv-3.12.8
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
++PKGREVISION=	1
+ CATEGORIES=	editors
+ MASTER_SITES=	https://gentoo.mirror.garr.it/distfiles/f8/
+ LICENSE=	gnu-gpl-v2
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/gnuserv/distinfo editors/gnuserv/distinfo
+--- /usr/pkgsrc/editors/gnuserv/distinfo	2023-09-11 21:18:49.000000000 +0000
++++ editors/gnuserv/distinfo	2026-09-21 14:01:45.586536455 +0000
+@@ -5,7 +5,7 @@
+ Size (gnuserv-3.12.8.tar.gz) = 124070 bytes
+ SHA1 (patch-aa) = c7dcbc654199c20d2c63f5bcf05754028d2dc8f4
+ SHA1 (patch-ab) = 05df71e2531d13f801a0d0ab2a9acb8faa2742ea
+-SHA1 (patch-gnuserv-compat.el) = da60d701fccf4556b9e58478310ec0bb42eb54a5
++SHA1 (patch-gnuserv-compat.el) = 3ace6717dd1b438b5db67d6280dba34e22e061e3
+ SHA1 (patch-gnuserv.1) = 3dfb5c2399dfa9bfc34d3620d50feb7c64795e69
+ SHA1 (patch-gnuserv.el) = 7b2b93ef28c7aa421d988bd87ba50f4ded87495d
+-SHA1 (patch-sysfile.h) = c52db231b302f5bcd9e183dbdd0853b927dab2d8
++SHA1 (patch-sysfile.h) = 53377884435bc266013297b3e5e5a1626eca3f9e
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/gnuserv/patches/patch-gnuserv-compat.el editors/gnuserv/patches/patch-gnuserv-compat.el
+--- /usr/pkgsrc/editors/gnuserv/patches/patch-gnuserv-compat.el	2023-09-09 22:58:51.000000000 +0000
++++ editors/gnuserv/patches/patch-gnuserv-compat.el	2026-09-21 14:01:45.266773468 +0000
+@@ -1,18 +1,36 @@
+-$NetBSD: patch-gnuserv-compat.el,v 1.1 2023/09/09 22:58:51 mef Exp $
++$NetBSD$
+ 
+-old-style-backquote
++Old-style backquote in gnuserv-compat.el.  From Debian.
+ 
+---- gnuserv-compat.el.orig	2003-05-09 10:26:42.000000000 +0900
+-+++ gnuserv-compat.el	2023-09-09 18:28:42.549473704 +0900
+-@@ -193,9 +193,9 @@ undefined.  On Unix it is obtained from 
++--- gnuserv-compat.el.orig
+++++ gnuserv-compat.el
++@@ -193,9 +193,9 @@
+      (defmacro defgroup (&rest args)
+        nil)
+      (defmacro defcustom (var value doc &rest args)
+ -      (` (defvar (, var) (, value) (, doc))))
+-+       ` (defvar  , var   , value   , doc ) )
+++      `(defvar (, var) (, value) (, doc)))
+      (defmacro defface (var value doc &rest args)
+ -      (` (make-face (, var))))
+-+       ` (make-face (, var)) )
+++      `(make-face (, var)))
+      (defmacro define-widget (&rest args)
+        nil)))
+  
++--- gnuserv-compat.el.orig
+++++ gnuserv-compat.el
++@@ -52,8 +52,13 @@
++ (require 'cl)
++ 
++ (eval-and-compile
++-  (unless (fboundp 'define-obsolete-variable-alias)
++-    (defalias 'define-obsolete-variable-alias 'make-obsolete-variable))
+++  (if (string-match "XEmacs" (emacs-version))
+++      (defun define-obsolete-variable-alias (name current when)
+++        "only old-style make-obsolete-variable supported in xemacs"
+++        (defvaralias name current)
+++        (make-obsolete-variable name current))
+++    (unless (fboundp 'define-obsolete-variable-alias)
+++      (defalias 'define-obsolete-variable-alias 'make-obsolete-variable)))
++ 
++   (unless (fboundp 'functionp)
++     (defun functionp (object)
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/gnuserv/patches/patch-sysfile.h editors/gnuserv/patches/patch-sysfile.h
+--- /usr/pkgsrc/editors/gnuserv/patches/patch-sysfile.h	2023-09-11 21:18:49.000000000 +0000
++++ editors/gnuserv/patches/patch-sysfile.h	2026-09-21 14:01:45.267095018 +0000
+@@ -1,8 +1,8 @@
+-$NetBSD: patch-sysfile.h,v 1.1 2023/09/11 21:18:49 vins Exp $
++$NetBSD$
+ 
+-This hack is not really needed.
++Use strerror rather than sys_errlist.  From Debian.
+ 
+---- sysfile.h.orig	2007-10-20 22:23:32.000000000 +0000
++--- sysfile.h.orig
+ +++ sysfile.h
+ @@ -422,14 +422,6 @@ extern int h_errno;
+  int dup2 (int oldd, int newd);

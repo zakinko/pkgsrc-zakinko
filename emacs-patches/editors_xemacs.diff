@@ -1,0 +1,370 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs/Makefile editors/xemacs/Makefile
+--- /usr/pkgsrc/editors/xemacs/Makefile	2026-07-04 08:27:42.000000000 +0000
++++ editors/xemacs/Makefile	2026-09-21 14:10:40.355775283 +0000
+@@ -1,7 +1,7 @@
+ # $NetBSD: Makefile,v 1.145 2026/07/04 08:27:42 wiz Exp $
+ 
+ PKGNAME=	${DISTNAME}
+-PKGREVISION=	1
++PKGREVISION=	2
+ COMMENT=	XEmacs text editor version 21.4
+ 
+ .include "Makefile.common"
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs/distinfo editors/xemacs/distinfo
+--- /usr/pkgsrc/editors/xemacs/distinfo	2026-01-20 22:27:15.000000000 +0000
++++ editors/xemacs/distinfo	2026-09-21 13:58:42.982768378 +0000
+@@ -5,4 +5,6 @@
+ Size (xemacs/xemacs-21.4.25.tar.gz) = 8427805 bytes
+ SHA1 (patch-configure) = 260a4562450db001396379023a99cccdf240f719
+ SHA1 (patch-lib-src_Makefile.in.in) = 5e11bf2904145804f521fed0ef956da94e5f21bd
++SHA1 (patch-lib-src_etags.c) = 71c4a3b076909b0a3176037c9f08f8e9b1ec36b6
++SHA1 (patch-lib-src_movemail.c) = 0d1a9c8f9419081a45722338bf81b12f592c0236
+ SHA1 (patch-src_device-x.c) = 864e4a9efbc6bff4058283e0fd8d3a3eb248a832
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs/patches/patch-lib-src_etags.c editors/xemacs/patches/patch-lib-src_etags.c
+--- /usr/pkgsrc/editors/xemacs/patches/patch-lib-src_etags.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/xemacs/patches/patch-lib-src_etags.c	2026-09-21 13:58:36.378393241 +0000
+@@ -0,0 +1,222 @@
++$NetBSD$
++
++CVE-2022-45939: etags -u ran "mv ... OTAGS; fgrep ..." through the shell
++with the file name unquoted, so a crafted file name ran commands.  Do the
++work in C instead.  Same fix as Emacs 28.2, adapted by Debian for XEmacs.
++
++--- lib-src/etags.c.orig
+++++ lib-src/etags.c
++@@ -406,7 +406,7 @@
++ static language *get_language_from_interpreter __P((char *));
++ static language *get_language_from_filename __P((char *, bool));
++ static void readline __P((linebuffer *, FILE *));
++-static long readline_internal __P((linebuffer *, FILE *));
+++static long readline_internal __P((linebuffer *, FILE *, const bool));
++ static bool nocase_tail __P((char *));
++ static void get_tag __P((char *, char **));
++ 
++@@ -429,7 +429,9 @@
++ static void make_tag __P((char *, int, bool, char *, int, int, long));
++ static void invalidate_nodes __P((fdesc *, node **));
++ static void put_entries __P((node *));
+++static void clean_matched_file_tag __P((char const * const, char const * const));
++ 
+++static void do_move_file __P((const char *, const char *));
++ static char *concat __P((char *, char *, char *));
++ static char *skip_spaces __P((char *));
++ static char *skip_non_spaces __P((char *));
++@@ -1448,7 +1450,7 @@
++ 		  if (parsing_stdin)
++ 		    fatal ("cannot parse standard input AND read file names from it",
++ 			   (char *)NULL);
++-		  while (readline_internal (&filename_lb, stdin) > 0)
+++		  while (readline_internal (&filename_lb, stdin, 0) > 0)
++ 		    process_file_name (filename_lb.buffer, lang);
++ 		}
++ 	      else
++@@ -1496,7 +1498,6 @@
++ 
++   if (update)
++     {
++-      char cmd[BUFSIZ];
++       for (i = 0; i < current_arg; ++i)
++ 	{
++ 	  switch (argbuffer[i].arg_type)
++@@ -1507,11 +1508,7 @@
++ 	    default:
++ 	      continue;		/* the for loop */
++ 	    }
++-	  sprintf (cmd,
++-		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
++-		   tagfile, argbuffer[i].what, tagfile);
++-	  if (system (cmd) != EXIT_SUCCESS)
++-	    fatal ("failed to execute shell command", (char *)NULL);
+++          clean_matched_file_tag (tagfile, argbuffer[i].what);
++ 	}
++       append_to_tagfile = TRUE;
++     }
++@@ -1538,6 +1535,51 @@
++   return EXIT_SUCCESS;
++ }
++ 
+++/*
+++ * Equivalent to: mv tags OTAGS;grep -Fv ' filename ' OTAGS >tags;rm OTAGS
+++ */
+++static void
+++clean_matched_file_tag (const char* tagfile, const char* match_file_name)
+++{
+++  FILE *otags_f = fopen ("OTAGS", "wb");
+++  FILE *tag_f = fopen (tagfile, "rb");
+++
+++  if (otags_f == NULL)
+++    pfatal ("OTAGS");
+++
+++  if (tag_f == NULL)
+++    pfatal (tagfile);
+++
+++  int buf_len = strlen (match_file_name) + sizeof ("\t\t ") + 1;
+++  char *buf = xmalloc (buf_len);
+++  snprintf (buf, buf_len, "\t%s\t", match_file_name);
+++
+++  linebuffer line;
+++  linebuffer_init (&line);
+++  while (readline_internal (&line, tag_f, 1) > 0)
+++    {
+++      if (ferror (tag_f))
+++        pfatal (tagfile);
+++
+++      if (strstr (line.buffer, buf) == NULL)
+++        {
+++          fprintf (otags_f, "%s\n", line.buffer);
+++          if (ferror (tag_f))
+++            pfatal (tagfile);
+++        }
+++    }
+++  free (buf);
+++  free (line.buffer);
+++
+++  if (fclose (otags_f) == EOF)
+++    pfatal ("OTAGS");
+++
+++  if (fclose (tag_f) == EOF)
+++    pfatal (tagfile);
+++
+++  do_move_file ("OTAGS", tagfile);
+++  return;
+++}
++ 
++ /*
++  * Return a compressor given the file name.  If EXTPTR is non-zero,
++@@ -1920,7 +1962,7 @@
++ 
++   /* Else look for sharp-bang as the first two characters. */
++   if (parser == NULL
++-      && readline_internal (&lb, inf) > 0
+++      && readline_internal (&lb, inf, 0) > 0
++       && lb.len >= 2
++       && lb.buffer[0] == '#'
++       && lb.buffer[1] == '!')
++@@ -5885,7 +5927,7 @@
++ 	    return;
++ 	  }
++ 	linebuffer_init (&regexbuf);
++-	while (readline_internal (&regexbuf, regexfp) > 0)
+++	while (readline_internal (&regexbuf, regexfp, 0) > 0)
++ 	  analyse_regex (regexbuf.buffer);
++ 	free (regexbuf.buffer);
++ 	fclose (regexfp);
++@@ -6227,11 +6269,13 @@
++ 
++ /*
++  * Read a line of text from `stream' into `lbp', excluding the
++- * newline or CR-NL, if any.  Return the number of characters read from
++- * `stream', which is the length of the line including the newline.
+++ * newline or CR-NL (if `leave_cr` is false), if any.  Return the
+++ * number of characters read from `stream', which is the length
+++ * of the line including the newline.
++  *
++- * On DOS or Windows we do not count the CR character, if any before the
++- * NL, in the returned length; this mirrors the behavior of Emacs on those
+++ * On DOS or Windows, if `leave_cr` is false, we do not count the
+++ * CR character, if any before the NL, in the returned length;
+++ * this mirrors the behavior of Emacs on those
++  * platforms (for text files, it translates CR-NL to NL as it reads in the
++  * file).
++  *
++@@ -6239,9 +6283,10 @@
++  * appended to `filebuf'.
++  */
++ static long
++-readline_internal (lbp, stream)
+++readline_internal (lbp, stream, leave_cr)
++      linebuffer *lbp;
++      register FILE *stream;
+++     const bool leave_cr;
++ {
++   char *buffer = lbp->buffer;
++   register char *p = lbp->buffer;
++@@ -6270,7 +6315,7 @@
++ 	}
++       if (c == '\n')
++ 	{
++-	  if (p > buffer && p[-1] == '\r')
+++	  if (!leave_cr && p > buffer && p[-1] == '\r')
++ 	    {
++ 	      p -= 1;
++ #ifdef DOS_NT
++@@ -6326,7 +6371,7 @@
++   long result;
++ 
++   linecharno = charno;		/* update global char number of line start */
++-  result = readline_internal (lbp, stream); /* read line */
+++  result = readline_internal (lbp, stream, 0); /* read line */
++   lineno += 1;			/* increment global line number */
++   charno += result;		/* increment global char number */
++ 
++@@ -6748,6 +6793,46 @@
++ #endif /* not HAVE_GETCWD */
++ }
++ 
+++static void
+++do_move_file(const char *src_file, const char *dst_file)
+++{
+++  if (rename (src_file, dst_file) == 0)
+++    return;
+++
+++  FILE *src_f = fopen (src_file, "rb");
+++  FILE *dst_f = fopen (dst_file, "wb");
+++
+++  if (src_f == NULL)
+++    pfatal (src_file);
+++
+++  if (dst_f == NULL)
+++    pfatal (dst_file);
+++
+++  int c;
+++  while ((c = fgetc (src_f)) != EOF)
+++    {
+++      if (ferror (src_f))
+++        pfatal (src_file);
+++
+++      if (ferror (dst_f))
+++        pfatal (dst_file);
+++
+++      if (fputc (c, dst_f) == EOF)
+++        pfatal ("cannot write");
+++    }
+++
+++  if (fclose (src_f) == EOF)
+++    pfatal (src_file);
+++
+++  if (fclose (dst_f) == EOF)
+++    pfatal (dst_file);
+++
+++  if (unlink (src_file) == -1)
+++    pfatal ("unlink error");
+++
+++  return;
+++}
+++
++ /* Return a newly allocated string containing the file name of FILE
++    relative to the absolute directory DIR (which should end with a slash). */
++ static char *
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/xemacs/patches/patch-lib-src_movemail.c editors/xemacs/patches/patch-lib-src_movemail.c
+--- /usr/pkgsrc/editors/xemacs/patches/patch-lib-src_movemail.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/xemacs/patches/patch-lib-src_movemail.c	2026-09-21 13:58:36.378880733 +0000
+@@ -0,0 +1,118 @@
++$NetBSD$
++
++CVE-2010-0825: movemail is installed setgid mail and did not drop the
++privileged group before touching the destination, so a local user could
++read, modify or delete arbitrary mailbox files through a symlink.  Drop
++to the real gid around the file operations.  From Debian.
++
++--- lib-src/movemail.c.orig
+++++ lib-src/movemail.c
++@@ -214,7 +214,11 @@
++ #ifndef DISABLE_DIRECT_ACCESS
++   int indesc, outdesc;
++   int nread;
+++  uid_t real_gid, priv_gid;
++   int status;
+++
+++  real_gid = getgid();
+++  priv_gid = getegid();
++ #endif
++ 
++   int lock_method = DEFAULT_LOCKING;
++@@ -312,26 +316,6 @@
++   if (*outname == 0)
++     fatal ("Destination file name is empty", 0);
++ 
++-  VERBOSE(("checking access to output file\n"));
++-  /* Check access to output file.  */
++-  if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
++-    pfatal_with_name (outname);
++-
++-  /* Also check that outname's directory is writable to the real uid.  */
++-  {
++-    char *buf = (char *) xmalloc (strlen (outname) + 1);
++-    char *cp;
++-    strcpy (buf, outname);
++-    cp = buf + strlen (buf);
++-    while (cp > buf && !IS_DIRECTORY_SEP (cp[-1]))
++-      *--cp = 0;
++-    if (cp == buf)
++-      *cp++ = '.';
++-    if (access (buf, W_OK) != 0)
++-      pfatal_with_name (buf);
++-    free (buf);
++-  }
++-
++ #ifdef MAIL_USE_POP
++   if (!strncmp (inname, "po:", 3))
++     {
++@@ -340,20 +324,17 @@
++     }
++ 
++ #ifndef WIN32_NATIVE
++-  setuid (getuid ());
+++  if ( setuid (getuid ()) < 0 )
+++	  fatal ("Failed to drop privileges", 0);
++ #endif
++ #endif /* MAIL_USE_POP */
++ 
++ #ifndef DISABLE_DIRECT_ACCESS
++ 
++-  /* Check access to input file.  */
++-  if (access (inname, R_OK | W_OK) != 0)
++-    pfatal_with_name (inname);
++-
++-
++   if (fork () == 0)
++     {
++-      setuid (getuid ());
+++      if ( setuid (getuid ()) < 0 || setegid (real_gid) < 0 )
+++		  fatal("Failed to drop privileges", 0);
++ 
++       VERBOSE(("opening input file\n"));
++ 
++@@ -398,6 +379,9 @@
++       if (outdesc < 0)
++ 	pfatal_with_name (outname);
++ 
+++      if ( setegid(priv_gid) < 0 )
+++          fatal("Failed to regain privileges", 0);
+++
++       VERBOSE(("locking input file\n"));
++ 
++       switch (lock_method)
++@@ -454,6 +438,10 @@
++       if (close (outdesc) != 0)
++ 	pfatal_and_delete (outname);
++ 
+++      /* Prevent symlink attacks truncating other users' mailboxes */
+++      if ( setegid (real_gid) < 0 )
+++          fatal("Failed to drop privileges", 0);
+++
++       VERBOSE(("deleting or truncating input file\n"));
++ 
++       switch (lock_method)
++@@ -464,7 +452,11 @@
++ #ifdef HAVE_FTRUNCATE
++ 	  ftruncate (indesc, 0L);
++ #else
++-	  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
+++	  int indesc2 = open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666);
+++      if ( indesc2 < 0 )
+++          pfatal_with_name (inname) 
+++
+++              close (indesc2);
++ #endif
++ 	  close (indesc);
++ 	  break;
++@@ -478,6 +470,10 @@
++ 	  break;
++ 	}
++ 
+++      /* End of mailbox truncation */
+++      if ( setegid(priv_gid) < 0 )
+++          fatal("Failed to regain privileges", 0);
+++
++       exit (0);
++     }
++ 

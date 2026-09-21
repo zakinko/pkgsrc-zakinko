@@ -1,0 +1,677 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/Makefile editors/emacs29/Makefile
+--- /usr/pkgsrc/editors/emacs29/Makefile	2026-09-18 05:45:58.407710108 +0000
++++ editors/emacs29/Makefile	2026-09-21 14:10:40.290539338 +0000
+@@ -2,7 +2,7 @@
+ 
+ CONFLICTS+=	emacs29-nox11-[0-9]*
+ 
+-PKGREVISION=	31
++PKGREVISION=	32
+ 
+ .include "../../editors/emacs29/Makefile.common"
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/distinfo editors/emacs29/distinfo
+--- /usr/pkgsrc/editors/emacs29/distinfo	2026-09-18 05:45:58.413813119 +0000
++++ editors/emacs29/distinfo	2026-09-21 13:56:53.072875920 +0000
+@@ -4,5 +4,18 @@
+ SHA512 (emacs-29.4.tar.xz) = 66b38081cb01d2c46ff7beefb45986cc225b4c922c30712ad0d456c6cae5507176ed99418c8f26948c5375c8afde4e4b2507d23ed997dbb5392d12150a121d80
+ Size (emacs-29.4.tar.xz) = 52210344 bytes
+ SHA1 (patch-Makefile.in) = cb43792c8996c781f382ae102ea771af8f3d3190
++SHA1 (patch-lisp_epg.el) = bacca3b6f81efbd528b80281354ccc0f901912e8
++SHA1 (patch-lisp_files.el) = 96f467a85fe542579fc5b34fc243443af32b644a
++SHA1 (patch-lisp_ielm.el) = 2744d66f46e193dedd836c497735e54c35fff612
+ SHA1 (patch-lisp_man.el) = 31f79fdca013bfb725d82877263ca1ebe16505f5
++SHA1 (patch-lisp_net_tramp-gvfs.el) = ddc1f3d3a4d2f601612e26172fbab51543af3b25
++SHA1 (patch-lisp_net_tramp-rclone.el) = 7c585d442cc053e90e1ad1316bc109d69a7229d5
++SHA1 (patch-lisp_net_tramp-smb.el) = 69802a0a8d1774333c3cf1cb631223dd4ca5df70
++SHA1 (patch-lisp_net_tramp.el) = 48cfdfee374ffab212f0b4b5b5ea7524023e42fa
++SHA1 (patch-lisp_progmodes_cc-fonts.el) = 78a8750082f3d8b2161b6853a677a452e1a9514c
++SHA1 (patch-lisp_progmodes_elisp-mode.el) = 7b6c4b9e965235dbeac7f7faf9d680b8f0d5d723
++SHA1 (patch-lisp_progmodes_flymake.el) = 8d612cd70183cf51cc131804b0ee209366e72fb4
++SHA1 (patch-lisp_simple.el) = 3daf8bed9c492fcfd724c6c132e9d8ce0e809e50
++SHA1 (patch-lisp_vc_vc-hooks.el) = fafb01fba171c066ffa39f4d585cd0ea4cf56a6b
++SHA1 (patch-src_image.c) = 647decc278c005ec6a87fefc70fb96c3bd61ec50
+ SHA1 (patch-src_treesit.c) = f58370000074137997b8119ab55f49f2964010bb
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_epg.el editors/emacs29/patches/patch-lisp_epg.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_epg.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_epg.el	2026-09-21 13:41:15.646141237 +0000
+@@ -0,0 +1,21 @@
++$NetBSD$
++
++Do not enable pinentry loopback mode for gpgsm (debbugs 67012).
++From emacs master, via Gentoo.
++
++--- lisp/epg.el.orig
+++++ lisp/epg.el
++@@ -595,7 +595,12 @@ epg--start
++ 		       (if (epg-context-textmode context) '("--textmode"))
++ 		       (if (epg-context-output-file context)
++ 			   (list "--output" (epg-context-output-file context)))
++-		       (if (epg-context-pinentry-mode context)
+++		       (if (and (epg-context-pinentry-mode context)
+++				(not
+++				 ;; loopback doesn't work with gpgsm
+++				 (and (eq (epg-context-protocol context) 'CMS)
+++				      (eq (epg-context-pinentry-mode context)
+++					  'loopback))))
++ 			   (list "--pinentry-mode"
++ 				 (symbol-name (epg-context-pinentry-mode
++ 					       context))))
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_files.el editors/emacs29/patches/patch-lisp_files.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_files.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_files.el	2026-09-21 13:41:15.696407123 +0000
+@@ -0,0 +1,67 @@
++$NetBSD$
++
++Fix arbitrary code execution through elisp-completion-at-point in
++untrusted buffers (CVE-2024-53920): backport of the trusted-content
++mechanism from Emacs 30.1.  Via Gentoo.
++
++--- lisp/files.el.orig
+++++ lisp/files.el
++@@ -703,6 +703,58 @@
++ This variable might be subject to change without notice.")
++ (put 'untrusted-content 'permanent-local t)
++ 
+++(defcustom trusted-content nil
+++  "List of files and directories whose content we trust.
+++Be extra careful here since trusting means that Emacs might execute the
+++code contained within those files and directories without an explicit
+++request by the user.
+++One important case when this might happen is when `flymake-mode' is
+++enabled (for example, when it is added to a mode hook).
+++Each element of the list should be a string:
+++- If it ends in \"/\", it is considered as a directory name and means that
+++  Emacs should trust all the files whose name has this directory as a prefix.
+++- Otherwise, it is considered a file name.
+++Use abbreviated file names.  For example, an entry \"~/mycode/\" means
+++that Emacs will trust all the files in your directory \"mycode\".
+++This variable can also be set to `:all', in which case Emacs will trust
+++all files, which opens a gaping security hole.  Emacs Lisp authors
+++should note that this value must never be set by a major or minor mode."
+++  :type '(choice (repeat :tag "List" file)
+++                 (const :tag "Trust everything (DANGEROUS!)" :all))
+++  :version "30.1")
+++(put 'trusted-content 'risky-local-variable t)
+++
+++(defun trusted-content-p ()
+++  "Return non-nil if we trust the contents of the current buffer.
+++Here, \"trust\" means that we are willing to run code found inside of it.
+++See also `trusted-content'."
+++  ;; We compare with `buffer-file-truename' i.s.o `buffer-file-name'
+++  ;; to try and avoid marking as trusted a file that's merely accessed
+++  ;; via a symlink that happens to be inside a trusted dir.
+++  (and (not untrusted-content)
+++       (or
+++        (eq trusted-content :all)
+++        (and
+++         buffer-file-truename
+++         (with-demoted-errors "trusted-content-p: %S"
+++           (let ((exists (file-exists-p buffer-file-truename)))
+++             (or
+++              ;; We can't avoid trusting the user's init file.
+++              (if (and exists user-init-file)
+++                  (file-equal-p buffer-file-truename user-init-file)
+++                (equal buffer-file-truename user-init-file))
+++              (let ((file (abbreviate-file-name buffer-file-truename))
+++                    (trusted nil))
+++                (dolist (tf trusted-content)
+++                  (when (or (if exists (file-equal-p tf file) (equal tf file))
+++                            ;; We don't use `file-in-directory-p' here, because
+++                            ;; we want to err on the conservative side: "guilty
+++                            ;; until proven innocent".
+++                            (and (string-suffix-p "/" tf)
+++                                 (string-prefix-p tf file)))
+++                    (setq trusted t)))
+++                trusted))))))))
+++
++ ;; This is an odd variable IMO.
++ ;; You might wonder why it is needed, when we could just do:
++ ;; (setq-local enable-local-variables nil)
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_ielm.el editors/emacs29/patches/patch-lisp_ielm.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_ielm.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_ielm.el	2026-09-21 13:41:15.697021167 +0000
+@@ -0,0 +1,18 @@
++$NetBSD$
++
++Fix arbitrary code execution through elisp-completion-at-point in
++untrusted buffers (CVE-2024-53920): backport of the trusted-content
++mechanism from Emacs 30.1.  Via Gentoo.
++
++--- lisp/ielm.el.orig
+++++ lisp/ielm.el
++@@ -647,7 +647,8 @@
++     (unless (comint-check-proc buf-name)
++       (with-current-buffer (get-buffer-create buf-name)
++         (unless (zerop (buffer-size)) (setq old-point (point)))
++-        (inferior-emacs-lisp-mode)))
+++        (inferior-emacs-lisp-mode)
+++        (setq-local trusted-content :all)))
++     (pop-to-buffer-same-window buf-name)
++     (when old-point (push-mark old-point))))
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp-gvfs.el editors/emacs29/patches/patch-lisp_net_tramp-gvfs.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp-gvfs.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_net_tramp-gvfs.el	2026-09-21 13:41:15.697903961 +0000
+@@ -0,0 +1,126 @@
++$NetBSD$
++
++CVE-2026-79992: fix local command execution vulnerability in tramp.
++Original patch by Michael Albinus, backported from Emacs 31, via Gentoo.
++The same fix is in editors/emacs30 already.
++
++--- lisp/net/tramp-gvfs.el.orig
+++++ lisp/net/tramp-gvfs.el
++@@ -1202,7 +1202,7 @@
++ 		 (tramp-compat-rx bos "/" (+ (not "/")) (group "/.." (? "/")))
++ 		 localname)
++ 	    (setq localname (replace-match "/" t t localname 1)))
++-	(when (string-match (rx bol "/.." (? "/")) localname)
+++	(when (string-match (rx bos "/.." (? "/")) localname)
++ 	  (setq localname (replace-match "/" t t localname))))
++       ;; There might be a double slash.  Remove this.
++       (while (string-match "//" localname)
++@@ -1296,9 +1296,9 @@
++   (with-parsed-tramp-file-name filename nil
++     (setq localname (tramp-compat-file-name-unquote localname))
++     (if (or (and (string-match-p
++-		  (rx bol (| "afp" (: "dav" (? "s")) "smb") eol) method)
+++		  (rx bos (| "afp" (: "dav" (? "s")) "smb") eos) method)
++ 		 (string-match-p
++-		  (tramp-compat-rx bol (? "/") (+ (not "/")) eol) localname))
+++		  (tramp-compat-rx bos (? "/") (+ (not "/")) eos) localname))
++ 	    (string-equal localname "/"))
++ 	(tramp-gvfs-get-root-attributes filename)
++       (assoc
++@@ -1755,7 +1755,7 @@
++   "Retrieve file name from D-Bus OBJECT-PATH."
++   (dbus-unescape-from-identifier
++    (replace-regexp-in-string
++-    (tramp-compat-rx bol (* nonl) "/" (group (+ (not "/"))) eol) "\\1"
+++    (tramp-compat-rx bos (* nonl) "/" (group (+ (not "/"))) eos) "\\1"
++     object-path)))
++ 
++ (defun tramp-gvfs-url-host (url)
++@@ -1763,7 +1763,7 @@
++ We cannot use `url-host', because `url-generic-parse-url' returns
++ a downcased host name only."
++   (and (stringp url)
++-       (string-match (rx bol (+ alnum) "://" (group (+ (not (any "/:"))))) url)
+++       (string-match (rx bos (+ alnum) "://" (group (+ (not (any "/:"))))) url)
++        (match-string 1 url)))
++ 
++ 
++@@ -1899,7 +1899,7 @@
++ 		   (cadr (assoc "ssl" (cadr mount-spec)))))
++ 	     (uri (tramp-gvfs-dbus-byte-array-to-string
++ 		   (cadr (assoc "uri" (cadr mount-spec))))))
++-	(when (string-match (rx bol (group (| "afp" "smb"))) method)
+++	(when (string-match (rx bos (group (| "afp" "smb"))) method)
++ 	  (setq method (match-string 1 method)))
++ 	(when (and (string-equal "dav" method) (string-equal "true" ssl))
++ 	  (setq method "davs"))
++@@ -1999,7 +1999,7 @@
++ 		      (or
++ 		       (cadr (assoc "share" (cadr mount-spec)))
++ 		       (cadr (assoc "volume" (cadr mount-spec)))))))
++-	 (when (string-match (rx bol (group (| "afp" "smb"))) method)
+++	 (when (string-match (rx bos (group (| "afp" "smb"))) method)
++ 	   (setq method (match-string 1 method)))
++ 	 (when (and (string-equal "dav" method) (string-equal "true" ssl))
++ 	   (setq method "davs"))
++@@ -2032,7 +2032,7 @@
++ 		(string-equal host (tramp-file-name-host vec))
++ 		(string-equal port (tramp-file-name-port vec))
++ 		(string-match-p
++-		 (tramp-compat-rx bol "/" (literal (or share "")))
+++		 (tramp-compat-rx bos "/" (literal (or share "")))
++ 		 (tramp-file-name-unquote-localname vec)))
++ 	   ;; Set mountpoint and location.
++ 	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
++@@ -2058,7 +2058,7 @@
++ (defun tramp-gvfs-mount-spec-entry (key value)
++   "Construct a mount-spec entry to be used in a mount_spec.
++ It was \"a(say)\", but has changed to \"a{sv})\"."
++-  (if (string-match-p (rx bol "(aya{sv})") tramp-gvfs-mountlocation-signature)
+++  (if (string-match-p (rx bos "(aya{sv})") tramp-gvfs-mountlocation-signature)
++       (list :dict-entry key
++ 	    (list :variant (tramp-gvfs-dbus-string-to-byte-array value)))
++     (list :struct key (tramp-gvfs-dbus-string-to-byte-array value))))
++@@ -2077,10 +2077,10 @@
++ 		   (tramp-media-device-port media) (tramp-file-name-port vec)))
++ 	 (localname (tramp-file-name-unquote-localname vec))
++ 	 (share (when (string-match
++-		       (tramp-compat-rx bol (? "/") (group (+ (not "/"))))
+++		       (tramp-compat-rx bos (? "/") (group (+ (not "/"))))
++ 		       localname)
++ 		  (match-string 1 localname)))
++-	 (ssl (if (string-match-p (rx bol (| "davs" "nextcloud")) method)
+++	 (ssl (if (string-match-p (rx bos (| "davs" "nextcloud")) method)
++ 		  "true" "false"))
++ 	 (mount-spec
++           `(:array
++@@ -2089,7 +2089,7 @@
++                 (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
++                       (tramp-gvfs-mount-spec-entry "server" host)
++                       (tramp-gvfs-mount-spec-entry "share" share)))
++-               ((string-match-p (rx bol (| "davs" "nextcloud")) method)
+++               ((string-match-p (rx bos (| "davs" "nextcloud")) method)
++                 (list (tramp-gvfs-mount-spec-entry "type" "dav")
++                       (tramp-gvfs-mount-spec-entry "host" host)
++                       (tramp-gvfs-mount-spec-entry "ssl" ssl)))
++@@ -2103,7 +2103,7 @@
++                ((string-equal "nextcloud" method)
++                 (list (tramp-gvfs-mount-spec-entry "type" "owncloud")
++                       (tramp-gvfs-mount-spec-entry "host" host)))
++-               ((string-match-p (rx bol "http") method)
+++               ((string-match-p (rx bos "http") method)
++                 (list (tramp-gvfs-mount-spec-entry "type" "http")
++                       (tramp-gvfs-mount-spec-entry
++ 		       "uri"
++@@ -2120,9 +2120,9 @@
++             ,@(when port
++                 (list (tramp-gvfs-mount-spec-entry "port" port)))))
++ 	 (mount-pref
++-          (if (and (string-match-p (rx bol "dav") method)
+++          (if (and (string-match-p (rx bos "dav") method)
++                    (string-match
++-		    (tramp-compat-rx bol (? "/") (+ (not "/"))) localname))
+++		    (tramp-compat-rx bos (? "/") (+ (not "/"))) localname))
++               (match-string 0 localname)
++ 	    (tramp-gvfs-get-remote-prefix vec))))
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp-rclone.el editors/emacs29/patches/patch-lisp_net_tramp-rclone.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp-rclone.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_net_tramp-rclone.el	2026-09-21 13:41:15.698548457 +0000
+@@ -0,0 +1,26 @@
++$NetBSD$
++
++CVE-2026-79992: fix local command execution vulnerability in tramp.
++Original patch by Michael Albinus, backported from Emacs 31, via Gentoo.
++The same fix is in editors/emacs30 already.
++
++--- lisp/net/tramp-rclone.el.orig
+++++ lisp/net/tramp-rclone.el
++@@ -188,7 +188,7 @@
++     (delq nil
++ 	  (mapcar
++ 	   (lambda (line)
++-	     (when (string-match (rx bol (group (+ (not blank))) ":" eol) line)
+++	     (when (string-match (rx bos (group (+ (not blank))) ":" eos) line)
++ 	       `(nil ,(match-string 1 line))))
++ 	   (tramp-process-lines nil tramp-rclone-program "listremotes")))))
++ 
++@@ -362,7 +362,7 @@
++ 	  (tramp-rclone-maybe-open-connection v)
++ 	  ;; TODO: This shall be handled by `expand-file-name'.
++ 	  (setq localname
++-		(replace-regexp-in-string (rx bol ".") "" (or localname "")))
+++		(replace-regexp-in-string (rx bos ".") "" (or localname "")))
++ 	  (format "%s%s" (tramp-fuse-mounted-p v) localname)))
++     ;; It is a local file name.
++     filename))
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp-smb.el editors/emacs29/patches/patch-lisp_net_tramp-smb.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp-smb.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_net_tramp-smb.el	2026-09-21 13:41:15.699277600 +0000
+@@ -0,0 +1,35 @@
++$NetBSD$
++
++CVE-2026-79992: fix local command execution vulnerability in tramp.
++Original patch by Michael Albinus, backported from Emacs 31, via Gentoo.
++The same fix is in editors/emacs30 already.
++
++--- lisp/net/tramp-smb.el.orig
+++++ lisp/net/tramp-smb.el
++@@ -1650,7 +1650,7 @@
++   (save-match-data
++     (let ((localname (tramp-file-name-unquote-localname vec)))
++       (when (string-match
++-	     (tramp-compat-rx bol (? "/") (group (+ (not "/"))) "/") localname)
+++	     (tramp-compat-rx bos (? "/") (group (+ (not "/"))) "/") localname)
++ 	(match-string 1 localname)))))
++ 
++ (defun tramp-smb-get-localname (vec)
++@@ -1661,7 +1661,7 @@
++       (setq
++        localname
++        (if (string-match
++-	    (tramp-compat-rx bol (? "/") (+ (not "/")) (group "/" (* nonl)))
+++	    (tramp-compat-rx bos (? "/") (+ (not "/")) (group "/" (* nonl)))
++ 	    localname)
++ 	   ;; There is a share, separated by "/".
++ 	   (if (not (tramp-smb-get-cifs-capabilities vec))
++@@ -1671,7 +1671,7 @@
++ 	     (match-string 1 localname))
++ 	 ;; There is just a share.
++ 	 (if (string-match
++-	      (tramp-compat-rx bol (? "/") (group (+ (not "/"))) eol) localname)
+++	      (tramp-compat-rx bos (? "/") (group (+ (not "/"))) eos) localname)
++ 	     (match-string 1 localname)
++ 	   "")))
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp.el editors/emacs29/patches/patch-lisp_net_tramp.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_net_tramp.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_net_tramp.el	2026-09-21 13:41:15.699908406 +0000
+@@ -0,0 +1,65 @@
++$NetBSD$
++
++CVE-2026-79992: fix local command execution vulnerability in tramp.
++Original patch by Michael Albinus, backported from Emacs 31, via Gentoo.
++The same fix is in editors/emacs30 already.
++
++--- lisp/net/tramp.el.orig
+++++ lisp/net/tramp.el
++@@ -931,11 +931,11 @@
++ 
++ (defun tramp-build-prefix-regexp ()
++   "Return `tramp-prefix-regexp'."
++-  (tramp-compat-rx bol (literal (tramp-build-prefix-format))))
+++  (tramp-compat-rx bos (literal (tramp-build-prefix-format))))
++ 
++ (defvar tramp-prefix-regexp nil ; Initialized when defining `tramp-syntax'!
++   "Regexp matching the very beginning of Tramp file names.
++-Should always start with \"^\".  Derived from `tramp-prefix-format'.")
+++Should always start with \"\\\\=`\".  Derived from `tramp-prefix-format'.")
++ 
++ (defconst tramp-method-regexp-alist
++   `((default . ,(tramp-compat-rx
++@@ -976,7 +976,10 @@
++   "Regexp matching delimiter between method and user or host names.
++ Derived from `tramp-postfix-method-format'.")
++ 
++-(defconst tramp-user-regexp (rx (+ (not (any "/:|" blank))))
+++(defconst tramp-user-regexp
+++  (rx (| (+ (not (any "/\\^$?*:;|[]{}()<>`'\"" blank)))
+++	 ;; Environment variable.
+++	 (: "$" (+ (any "_" alnum)))))
++   "Regexp matching user names.")
++ 
++ (defconst tramp-prefix-domain-format "%"
++@@ -1735,6 +1738,8 @@
++ 	    (hop       (match-string (nth 5 tramp-file-name-structure) name))
++ 	    domain port v)
++ 	(when user
+++	  (while (string-match (rx bos "$" (group (+ (any "_" alnum))) eos) user)
+++	    (setq user (getenv (match-string 1 user))))
++ 	  (when (string-match tramp-user-with-domain-regexp user)
++ 	    (setq domain (match-string 2 user)
++ 		  user (match-string 1 user))))
++@@ -2753,9 +2758,9 @@
++ 	;; `file-remote-p' is called for everything, even for symbolic
++ 	;; links which look remote.  We don't want to get an error.
++ 	(non-essential (or non-essential (eq operation 'file-remote-p))))
+++    (setq filename (tramp-replace-environment-variables filename))
++     (if (tramp-tramp-file-p filename)
++ 	(save-match-data
++-          (setq filename (tramp-replace-environment-variables filename))
++           (with-parsed-tramp-file-name filename nil
++             (let ((current-connection tramp-current-connection)
++ 		  (foreign
++@@ -6352,6 +6357,10 @@
++ 				 (caar attr))
++ 				(decode-coding-string
++ 				 (match-string 1 (caar attr)) 'utf-8))))
+++		 ;; Quote remote-like symlink.
+++		 (when (and (stringp (car attr))
+++			    (tramp-tramp-file-p (car attr)))
+++		   (setcar attr (file-name-quote (car attr) 'top)))
++ 		 ;; Set file's gid change bit.
++ 		 (setcar
++ 		  (nthcdr 9 attr)
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_progmodes_cc-fonts.el editors/emacs29/patches/patch-lisp_progmodes_cc-fonts.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_progmodes_cc-fonts.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_progmodes_cc-fonts.el	2026-09-21 13:41:15.700492838 +0000
+@@ -0,0 +1,25 @@
++$NetBSD$
++
++Nullify read-symbol-shorthands around risky intern calls: a crafted file
++could run arbitrary Lisp when visited (debbugs 80574).
++From emacs commit 8466eb44991707d128110bdc549fad14c8e1d61e, via Gentoo/Debian.
++
++--- lisp/progmodes/cc-fonts.el.orig
+++++ lisp/progmodes/cc-fonts.el
++@@ -2489,9 +2489,13 @@
++   (let* ((doc-keywords (c-get-doc-comment-style))
++ 	 (list (nconc (c--mapcan
++ 		       (lambda (doc-style)
++-			 (let ((sym (intern
++-				     (concat (symbol-name doc-style)
++-					     "-font-lock-keywords"))))
+++			 (let ((sym
+++				;; Guard `intern' from potentially
+++				;; malicious shorthands.
+++				(let (read-symbol-shorthands)
+++				  (intern
+++				   (concat (symbol-name doc-style)
+++					   "-font-lock-keywords")))))
++ 			   (cond ((fboundp sym)
++ 				  (funcall sym))
++ 				 ((boundp sym)
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_progmodes_elisp-mode.el editors/emacs29/patches/patch-lisp_progmodes_elisp-mode.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_progmodes_elisp-mode.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_progmodes_elisp-mode.el	2026-09-21 13:41:15.701103809 +0000
+@@ -0,0 +1,93 @@
++$NetBSD$
++
++Fix arbitrary code execution through elisp-completion-at-point in
++untrusted buffers (CVE-2024-53920): backport of the trusted-content
++mechanism from Emacs 30.1.  Via Gentoo.
++
++--- lisp/progmodes/elisp-mode.el.orig
+++++ lisp/progmodes/elisp-mode.el
++@@ -430,6 +430,44 @@
++ 
++ (defvar warning-minimum-log-level)
++ 
+++(defvar elisp--local-macroenv
+++  `((cl-eval-when . ,(lambda (&rest args) `(progn . ,(cdr args))))
+++    (eval-when-compile . ,(lambda (&rest args) `(progn . ,args)))
+++    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args))))
+++  "Environment to use while tentatively expanding macros.
+++This is used to try and avoid the most egregious problems linked to the
+++use of `macroexpand-all' as a way to find the \"underlying raw code\".")
+++
+++(defvar elisp--macroexpand-untrusted-warning t)
+++
+++(defun elisp--safe-macroexpand-all (sexp)
+++  (if (not (trusted-content-p))
+++      ;; FIXME: We should try and do better here, either using a notion
+++      ;; of "safe" macros, or with `bwrap', or ...
+++      (progn
+++        (when elisp--macroexpand-untrusted-warning
+++          (setq-local elisp--macroexpand-untrusted-warning nil) ;Don't spam!
+++          (let ((inhibit-message t))      ;Only log.
+++            (message "Completion of local vars is disabled in %s (untrusted content)"
+++                     (buffer-name))))
+++        sexp)
+++    (let ((macroexpand-advice
+++           (lambda (expander form &rest args)
+++             (condition-case err
+++                 (apply expander form args)
+++               (error
+++                (message "Ignoring macroexpansion error: %S" err) form)))))
+++      (unwind-protect
+++          ;; Silence any macro expansion errors when
+++          ;; attempting completion at point (bug#58148).
+++          (let ((inhibit-message t)
+++                (warning-minimum-log-level :emergency))
+++            (advice-add 'macroexpand :around macroexpand-advice)
+++            (condition-case nil
+++                (macroexpand-all sexp elisp--local-macroenv)
+++              (error sexp)))
+++        (advice-remove 'macroexpand macroexpand-advice)))))
+++
++ (defun elisp--local-variables ()
++   "Return a list of locally let-bound variables at point."
++   (save-excursion
++@@ -445,22 +483,8 @@
++                        (car (read-from-string
++                              (concat txt "elisp--witness--lisp" closer)))
++                      ((invalid-read-syntax end-of-file) nil)))
++-             (macroexpand-advice (lambda (expander form &rest args)
++-                                   (condition-case nil
++-                                       (apply expander form args)
++-                                     (error form))))
++-             (sexp
++-              (unwind-protect
++-                  ;; Silence any macro expansion errors when
++-                  ;; attempting completion at point (bug#58148).
++-                  (let ((inhibit-message t)
++-                        (warning-minimum-log-level :emergency))
++-                    (advice-add 'macroexpand :around macroexpand-advice)
++-                    (condition-case nil
++-                        (macroexpand-all sexp)
++-                      (error sexp)))
++-                (advice-remove 'macroexpand macroexpand-advice)))
++-             (vars (elisp--local-variables-1 nil sexp)))
+++             (vars (elisp--local-variables-1
+++                    nil (elisp--safe-macroexpand-all sexp))))
++         (delq nil
++               (mapcar (lambda (var)
++                         (and (symbolp var)
++@@ -2164,6 +2188,14 @@
++   "A Flymake backend for elisp byte compilation.
++ Spawn an Emacs process that byte-compiles a file representing the
++ current buffer state and calls REPORT-FN when done."
+++  (unless (trusted-content-p)
+++    ;; FIXME: Use `bwrap' and friends to compile untrusted content.
+++    ;; FIXME: We emit a message *and* signal an error, because by default
+++    ;; Flymake doesn't display the warning it puts into "*flmake log*".
+++    (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
+++             (buffer-name))
+++    (user-error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
+++                (buffer-name)))
++   (when elisp-flymake--byte-compile-process
++     (when (process-live-p elisp-flymake--byte-compile-process)
++       (kill-process elisp-flymake--byte-compile-process)))
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_progmodes_flymake.el editors/emacs29/patches/patch-lisp_progmodes_flymake.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_progmodes_flymake.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_progmodes_flymake.el	2026-09-21 13:41:15.701764508 +0000
+@@ -0,0 +1,24 @@
++$NetBSD$
++
++Copy trusted-content-p to flymake.el so flymake does not run backends
++on untrusted content (Gentoo bug 982533).
++From emacs commit 49c77fb219cbab8fc9d1b172fe754c2a2e4d9c53 (emacs-31 branch).
++
++--- lisp/progmodes/flymake.el.orig
+++++ lisp/progmodes/flymake.el
++@@ -1000,8 +1000,13 @@
++     ;; backend) will trigger an annoying backtrace.
++     ;;
++     (condition-case err
++-        (apply backend (flymake-make-report-fn backend run-token)
++-               args)
+++        (if (or (trusted-content-p) (function-get backend 'flymake-always-safe))
+++            (apply backend (flymake-make-report-fn backend run-token)
+++                   args)
+++          (message "Disabling %S in %s (untrusted content)"
+++                   backend (buffer-name))
+++          (user-error "Disabling %S in %s (untrusted content)"
+++                      backend (buffer-name)))
++       (error
++        (flymake--disable-backend backend err)))))
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_simple.el editors/emacs29/patches/patch-lisp_simple.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_simple.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_simple.el	2026-09-21 13:41:15.702447276 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++Fix arbitrary code execution through elisp-completion-at-point in
++untrusted buffers (CVE-2024-53920): backport of the trusted-content
++mechanism from Emacs 30.1.  Via Gentoo.
++
++--- lisp/simple.el.orig
+++++ lisp/simple.el
++@@ -2029,6 +2029,7 @@
++         (set-syntax-table emacs-lisp-mode-syntax-table)
++         (add-hook 'completion-at-point-functions
++                   #'elisp-completion-at-point nil t)
+++        (setq-local trusted-content :all)
++         (run-hooks 'eval-expression-minibuffer-setup-hook))
++     (read-from-minibuffer prompt initial-contents
++                           read--expression-map t
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-lisp_vc_vc-hooks.el editors/emacs29/patches/patch-lisp_vc_vc-hooks.el
+--- /usr/pkgsrc/editors/emacs29/patches/patch-lisp_vc_vc-hooks.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-lisp_vc_vc-hooks.el	2026-09-21 13:41:15.703386222 +0000
+@@ -0,0 +1,20 @@
++$NetBSD$
++
++Nullify read-symbol-shorthands around risky intern calls: a crafted file
++could run arbitrary Lisp when visited (debbugs 80574).
++From emacs commit 8466eb44991707d128110bdc549fad14c8e1d61e, via Gentoo/Debian.
++
++--- lisp/vc/vc-hooks.el.orig
+++++ lisp/vc/vc-hooks.el
++@@ -224,7 +224,10 @@
++   "Return BACKEND-specific implementation of FUN.
++ If there is no such implementation, return the default implementation;
++ if that doesn't exist either, return nil."
++-  (let ((f (vc-make-backend-sym backend fun)))
+++  ;; Nullify `read-symbol-shorthands' to guard the `intern' calls below
+++  ;; and in `vc-make-backend-sym' from potentially malicious shorthands.
+++  (let* ((read-symbol-shorthands nil)
+++         (f (vc-make-backend-sym backend fun)))
++     (if (fboundp f) f
++       ;; Load vc-BACKEND.el if needed.
++       (require (intern (concat "vc-" (downcase (symbol-name backend)))))
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs29/patches/patch-src_image.c editors/emacs29/patches/patch-src_image.c
+--- /usr/pkgsrc/editors/emacs29/patches/patch-src_image.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs29/patches/patch-src_image.c	2026-09-21 13:56:36.656230229 +0000
+@@ -0,0 +1,55 @@
++$NetBSD$
++
++CVE-2026-6861: svg_load_image wrote one byte past the CSS string
++(bug#80851).  From emacs upstream commit 8f535370b9efbc91673b20c6987a5cae4f6dc562, via Debian.
++
++CVE-2026-77219: integer overflow in the PBM/PPM/PGM loader let a crafted
++image read heap memory past the buffer (bug#81344).  From emacs commit
++b07e634e4cf45162ae0178e32092b040587f2c6c (in 31.0.91), with
++INT_MULTIPLY_WRAPV in place of ckd_mul, which Emacs 29 does not have.
++
++--- src/image.c.orig
+++++ src/image.c
++@@ -6957,19 +6957,23 @@
++     }
++   else
++     {
++-      int expected_size = height * width;
++       bool two_byte = 255 < max_color_idx;
++-      if (two_byte)
++-	expected_size *= 2;
++-      if (type == PBM_COLOR)
++-	expected_size *= 3;
++ 
++-      if (raw_p && p + expected_size > end)
+++      if (raw_p)
++ 	{
++-	  image_destroy_x_image (ximg);
++-	  image_clear_image (f, img);
++-	  image_error ("Invalid image size in image `%s'", img->spec);
++-	  goto error;
+++	  ptrdiff_t expected_size;
+++	  bool bad = INT_MULTIPLY_WRAPV (height, width, &expected_size);
+++	  bad |= INT_MULTIPLY_WRAPV (expected_size,
+++				     (two_byte ? 2 : 1) * (type == PBM_COLOR ? 3 : 1),
+++				     &expected_size);
+++	  bad |= end - p < expected_size;
+++	  if (bad)
+++	    {
+++	      image_destroy_x_image (ximg);
+++	      image_clear_image (f, img);
+++	      image_error ("Invalid image size in image `%s'", img->spec);
+++	      goto error;
+++	    }
++ 	}
++ 
++       for (y = 0; y < height; ++y)
++@@ -11247,7 +11251,7 @@
++     {
++       css = xmalloc (SBYTES (lcss) + 1);
++       strncpy (css, SSDATA (lcss), SBYTES (lcss));
++-      *(css + SBYTES (lcss) + 1) = 0;
+++      *(css + SBYTES (lcss)) = 0;
++     }
++ #endif
++ 

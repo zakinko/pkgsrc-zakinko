@@ -1,0 +1,85 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/emacs-muse/Makefile textproc/emacs-muse/Makefile
+--- /usr/pkgsrc/textproc/emacs-muse/Makefile	2023-12-30 16:40:42.000000000 +0000
++++ textproc/emacs-muse/Makefile	2026-09-21 14:03:07.801852368 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=	muse-3.20
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}emacs-${DISTNAME}
+-PKGREVISION=	2
++PKGREVISION=	3
+ CATEGORIES=	textproc editors
+ MASTER_SITES=	#
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/emacs-muse/distinfo textproc/emacs-muse/distinfo
+--- /usr/pkgsrc/textproc/emacs-muse/distinfo	2021-10-26 11:21:52.000000000 +0000
++++ textproc/emacs-muse/distinfo	2026-09-21 13:58:01.455456667 +0000
+@@ -3,3 +3,6 @@
+ BLAKE2s (muse-3.20.tar.gz) = 0a88d8b69890ecf49647a05edb89d98c27a6c2febe1f323ab39dd5502e39d9fb
+ SHA512 (muse-3.20.tar.gz) = 23cd0e864586f907418753bc3284afde51b4f8559c5d043c52baa70de70ec4a845d9e8362b93e701308dbbd662e3429035df8ad440916e61d5909498cd55f7be
+ Size (muse-3.20.tar.gz) = 411316 bytes
++SHA1 (patch-lisp_muse-context.el) = b983884ee0a14a149ddcbc110f6c6517895cda45
++SHA1 (patch-lisp_muse-groff.el) = a28b6099f5ec2ecd903376436f1bc765b2f0ba05
++SHA1 (patch-lisp_muse-texinfo.el) = 591e511d86912c932d3866c6eb3009743de8483c
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/emacs-muse/patches/patch-lisp_muse-context.el textproc/emacs-muse/patches/patch-lisp_muse-context.el
+--- /usr/pkgsrc/textproc/emacs-muse/patches/patch-lisp_muse-context.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/emacs-muse/patches/patch-lisp_muse-context.el	2026-09-21 13:58:01.205688051 +0000
+@@ -0,0 +1,17 @@
++$NetBSD$
++
++Quote the file name passed to the shell; a file name with shell
++metacharacters would otherwise be executed.  Same fix as Debian carries,
++without Debian's change of the viewer command.
++
++--- lisp/muse-context.el.orig
+++++ lisp/muse-context.el
++@@ -393,7 +393,7 @@
++       "")))
++ 
++ (defun muse-context-pdf-browse-file (file)
++-  (shell-command (concat "open " file)))
+++  (shell-command (concat "open " (shell-quote-argument file))))
++ 
++ (defun muse-context-pdf-generate (file output-path final-target)
++   (apply
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/emacs-muse/patches/patch-lisp_muse-groff.el textproc/emacs-muse/patches/patch-lisp_muse-groff.el
+--- /usr/pkgsrc/textproc/emacs-muse/patches/patch-lisp_muse-groff.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/emacs-muse/patches/patch-lisp_muse-groff.el	2026-09-21 13:58:01.206195937 +0000
+@@ -0,0 +1,17 @@
++$NetBSD$
++
++Quote the file name passed to the shell; a file name with shell
++metacharacters would otherwise be executed.  Same fix as Debian carries,
++without Debian's change of the viewer command.
++
++--- lisp/muse-groff.el.orig
+++++ lisp/muse-groff.el
++@@ -227,7 +227,7 @@
++   (muse-groff-concat-lists))
++ 
++ (defun muse-groff-pdf-browse-file (file)
++-  (shell-command (concat "open " file)))
+++  (shell-command (concat "open " (shell-quote-argument file))))
++ 
++ (defun muse-groff-pdf-generate (file output-path final-target)
++   (muse-publish-transform-output
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/emacs-muse/patches/patch-lisp_muse-texinfo.el textproc/emacs-muse/patches/patch-lisp_muse-texinfo.el
+--- /usr/pkgsrc/textproc/emacs-muse/patches/patch-lisp_muse-texinfo.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/emacs-muse/patches/patch-lisp_muse-texinfo.el	2026-09-21 13:58:01.206687061 +0000
+@@ -0,0 +1,17 @@
++$NetBSD$
++
++Quote the file name passed to the shell; a file name with shell
++metacharacters would otherwise be executed.  Same fix as Debian carries,
++without Debian's change of the viewer command.
++
++--- lisp/muse-texinfo.el.orig
+++++ lisp/muse-texinfo.el
++@@ -272,7 +272,7 @@
++   (texinfo-all-menus-update t))
++ 
++ (defun muse-texinfo-pdf-browse-file (file)
++-  (shell-command (concat "open " file)))
+++  (shell-command (concat "open " (shell-quote-argument file))))
++ 
++ (defun muse-texinfo-info-generate (file output-path final-target)
++   ;; The version of `texinfmt.el' that comes with Emacs 21 doesn't

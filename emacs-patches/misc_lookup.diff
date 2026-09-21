@@ -1,0 +1,883 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/Makefile misc/lookup/Makefile
+--- /usr/pkgsrc/misc/lookup/Makefile	2026-09-18 05:47:54.025258987 +0000
++++ misc/lookup/Makefile	2026-09-21 14:03:07.760797988 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=	lookup-1.4.1
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	3
++PKGREVISION=	4
+ CATEGORIES=	textproc
+ MASTER_SITES=	http://openlab.jp/edict/lookup/dist/
+ 
+@@ -14,7 +14,7 @@
+ 
+ DEPENDS+=	eblook>=1.4:../../textproc/eblook
+ 
+-EMACS_VERSIONS_ACCEPTED=	emacs20 xemacs214 xemacs215
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox emacs20 xemacs214 xemacs215
+ EMACS_BUILDLINK=		# defined
+ 
+ GNU_CONFIGURE=	YES
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/distinfo misc/lookup/distinfo
+--- /usr/pkgsrc/misc/lookup/distinfo	2021-10-26 10:59:14.000000000 +0000
++++ misc/lookup/distinfo	2026-09-21 14:01:33.043466875 +0000
+@@ -3,3 +3,29 @@
+ BLAKE2s (lookup-1.4.1.tar.gz) = 16584a72e7cf5fa52f07186eed01b14d8458591492d3b955bfa10c34d50a7d23
+ SHA512 (lookup-1.4.1.tar.gz) = a28a770ba58f07db5a7b2452792fc0e83b74e3b45556e84a9729c73773df661dbb7d356c1f7be803feb66f23e154aa825dab610f841bbe655bc76bd7120370bf
+ Size (lookup-1.4.1.tar.gz) = 346391 bytes
++SHA1 (patch-install.el) = cdc332ead21800e76b9d194c77ef220e5013e8fb
++SHA1 (patch-lisp_evi.el) = 9ef8e9b649cb44f31e0e408fb7e2c98e168abe5e
++SHA1 (patch-lisp_lookup-content.el) = 3473b0911fff64a2b7cc087ed386913701d6014f
++SHA1 (patch-lisp_lookup-entry.el) = 5a265fea1de70905282983ceeda5b39b403774cd
++SHA1 (patch-lisp_lookup-kanji.el) = ddc9a4b71234e5d168a4b3bc48dc101f67a7da0b
++SHA1 (patch-lisp_lookup-package.el) = 36ddbd59db8979b1bcad83a96f1d02afdda59516
++SHA1 (patch-lisp_lookup-select.el) = 34bb8f1a16d6b302e7a3fe9b64d72dad6d63149f
++SHA1 (patch-lisp_lookup-types.el) = a599966e0b019ea4b1e0bcfe5b449a11e0858dd0
++SHA1 (patch-lisp_lookup-utils.el) = e0d0fcd2ff6ebdf88774ceead394cfd91ddfc9be
++SHA1 (patch-lisp_lookup-vars.el.in) = 6885df17ec3af6f3fbcc39181416fdfa93483384
++SHA1 (patch-lisp_lookup-vse.el) = d0aecf38a3da138404f243566cd7758f728cbfa6
++SHA1 (patch-lisp_lookup.el) = dc8b71c188bf2738282bd8c72f1186eb84b1ddb7
++SHA1 (patch-lisp_ndeb-binary.el) = 2ec48dde0976d84023b7c4d8294f096ce4519b21
++SHA1 (patch-lisp_ndeb.el) = 6d3784c67d1cd23f4b53f0a2f6591599561a10d8
++SHA1 (patch-lisp_ndic.el) = 6e8c5f1c35d0722d68cbb9a85c17e1f8714a0d7d
++SHA1 (patch-lisp_ndict.el) = 0cf2b55ff8bad9ba53a118ba68d038ee6b2bb6ae
++SHA1 (patch-lisp_ndkks.el) = 47e25e025433055c76b76126132d5b5166490040
++SHA1 (patch-lisp_ndnmz.el) = 19589195982a6e10ebb5476ca98321d281ce5ff6
++SHA1 (patch-lisp_ndspell.el) = c8456cd6bf7edf15577782347673d7ecccf29431
++SHA1 (patch-lisp_ndsrd.el) = 887ea1717ba924e8710b70e1bd23208d0d31c2e9
++SHA1 (patch-lisp_ndtp.el) = 9f719bf126bff7c23f70da7331db6b5839d8883d
++SHA1 (patch-lisp_sdicf.el) = acece7762c547c129bf67a059074939d5a409216
++SHA1 (patch-lisp_stem-english.el) = e2db59cc884eb32294180fb4b2c5cb770b57c884
++SHA1 (patch-packages_colloc.el) = 68f3f4d8168018dbc46c7f75cbbbb651e8361700
++SHA1 (patch-packages_genius.el) = ff6bced95c3fc39015b9569b705d9584803a6bf2
++SHA1 (patch-packages_wdic.el) = ddea3ebb128f3deb68d7ff2d2086e5ef284da3b6
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-install.el misc/lookup/patches/patch-install.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-install.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-install.el	2026-09-21 14:01:32.408466058 +0000
+@@ -0,0 +1,38 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- install.el.orig
+++++ install.el
++@@ -1,4 +1,4 @@
++-;;; install.el --- Lookup installer
+++;;; install.el --- Lookup installer  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 NISHIDA Keisuke <knishida@ring.aist.go.jp>
++ 
++ ;; $Id: install.el,v 1.2 2004/01/27 09:09:49 kazuhiko Exp $
++--- install.el.orig
+++++ install.el
++@@ -47,16 +47,16 @@
++ 
++ (or (fboundp 'with-current-buffer)
++     (defmacro with-current-buffer (buffer &rest body)
++-      (` (save-current-buffer
++-	   (set-buffer (, buffer))
++-	   (,@ body)))))
+++      `(save-current-buffer
+++	   (set-buffer ,buffer)
+++	   ,@body)))
++ 
++ (or (fboundp 'save-current-buffer)
++     (defmacro save-current-buffer (&rest body)
++-      (` (let ((evi-orig-buffer (current-buffer)))
+++      `(let ((evi-orig-buffer (current-buffer)))
++            (unwind-protect
++-               (progn (,@ body))
++-             (set-buffer evi-orig-buffer))))))
+++               (progn ,@body)
+++             (set-buffer evi-orig-buffer)))))
++ 
++ 
++ ;; get the version number of lookup
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_evi.el misc/lookup/patches/patch-lisp_evi.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_evi.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_evi.el	2026-09-21 14:01:32.409256102 +0000
+@@ -0,0 +1,91 @@
++$NetBSD$
++
++Old-style backquotes are no longer accepted by the Emacs reader.
++From Debian.
++
++--- lisp/evi.el.orig
+++++ lisp/evi.el
++@@ -23,9 +23,9 @@
++ ;;; Code:
++ 
++ (or (fboundp 'when)
++-    (defmacro when (cond &rest body) (` (if (, cond) (progn (,@ body))))))
+++    (defmacro when (cond &rest body) `(if ,cond (progn ,@body))))
++ (or (fboundp 'unless)
++-    (defmacro unless (cond &rest body) (` (if (, cond) nil (,@ body)))))
+++    (defmacro unless (cond &rest body) `(if ,cond nil ,@body)))
++ 
++ (or (fboundp 'caar) (defun caar (obj) (car (car obj))))
++ (or (fboundp 'cadr) (defun cadr (obj) (car (cdr obj))))
++@@ -75,50 +75,50 @@
++ 
++ (or (fboundp 'save-current-buffer)
++     (defmacro save-current-buffer (&rest body)
++-      (` (let ((evi-orig-buffer (current-buffer)))
+++      `(let ((evi-orig-buffer (current-buffer)))
++ 	   (unwind-protect
++-	       (progn (,@ body))
++-	     (set-buffer evi-orig-buffer))))))
+++	       (progn ,@body)
+++	     (set-buffer evi-orig-buffer)))))
++ 
++ (or (fboundp 'save-selected-window)
++     (defmacro save-selected-window (&rest body)
++-      (` (let ((save-selected-window-window (selected-window)))
+++      `(let ((save-selected-window-window (selected-window)))
++ 	   (unwind-protect
++-	       (progn (,@ body))
++-	     (select-window save-selected-window-window))))))
+++	       (progn ,@body)
+++	     (select-window save-selected-window-window)))))
++ 
++ (or (fboundp 'with-current-buffer)
++     (defmacro with-current-buffer (buffer &rest body)
++-      (` (save-current-buffer
++-	   (set-buffer (, buffer))
++-	   (,@ body)))))
+++      `(save-current-buffer
+++	   (set-buffer ,buffer)
+++	   ,@body)))
++ 
++ (or (fboundp 'with-temp-buffer)
++     (defmacro with-temp-buffer (&rest forms)
++       (let ((temp-buffer (make-symbol "temp-buffer")))
++-	(` (let (((, temp-buffer)
+++	`(let ((,temp-buffer
++ 		  (get-buffer-create (generate-new-buffer-name " *temp*"))))
++ 	     (unwind-protect
++-		 (with-current-buffer (, temp-buffer)
++-		   (,@ forms))
++-	       (and (buffer-name (, temp-buffer))
++-		    (kill-buffer (, temp-buffer)))))))))
+++		 (with-current-buffer ,temp-buffer
+++		   ,@forms)
+++	       (and (buffer-name ,temp-buffer)
+++		    (kill-buffer ,temp-buffer)))))))
++ 
++ (or (fboundp 'with-temp-file)
++     (defmacro with-temp-file (file &rest forms)
++       (let ((temp-file (make-symbol "temp-file"))
++ 	    (temp-buffer (make-symbol "temp-buffer")))
++-	(` (let (((, temp-file) (, file))
++-		 ((, temp-buffer) (get-buffer-create
+++	`(let ((,temp-file ,file)
+++		 (,temp-buffer (get-buffer-create
++ 				   (generate-new-buffer-name " *temp file*"))))
++ 	     (unwind-protect
++-		 (prog1 (with-current-buffer (, temp-buffer) (,@ forms))
++-		   (with-current-buffer (, temp-buffer)
+++		 (prog1 (with-current-buffer ,temp-buffer ,@forms)
+++		   (with-current-buffer ,temp-buffer
++ 		     (widen)
++ 		     (write-region (point-min) (point-max)
++-				   (, temp-file) nil 0)))
++-	       (and (buffer-name (, temp-buffer))
++-		    (kill-buffer (, temp-buffer)))))))))
+++				   ,temp-file nil 0)))
+++	       (and (buffer-name ,temp-buffer)
+++		    (kill-buffer ,temp-buffer)))))))
++ 
++ (or (fboundp 'add-to-list)
++     (defun add-to-list (symbol element)
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-content.el misc/lookup/patches/patch-lisp_lookup-content.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-content.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-content.el	2026-09-21 14:01:32.409905626 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-content.el.orig
+++++ lisp/lookup-content.el
++@@ -1,4 +1,4 @@
++-;;; lookup-content.el --- lookup-content-mode
+++;;; lookup-content.el --- lookup-content-mode  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-entry.el misc/lookup/patches/patch-lisp_lookup-entry.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-entry.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-entry.el	2026-09-21 14:01:32.410430832 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-entry.el.orig
+++++ lisp/lookup-entry.el
++@@ -1,4 +1,4 @@
++-;;; lookup-entry.el --- lookup-entry-mode
+++;;; lookup-entry.el --- lookup-entry-mode  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-kanji.el misc/lookup/patches/patch-lisp_lookup-kanji.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-kanji.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-kanji.el	2026-09-21 14:01:32.410952687 +0000
+@@ -0,0 +1,26 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-kanji.el.orig
+++++ lisp/lookup-kanji.el
++@@ -1,4 +1,4 @@
++-;;; lookup-kanji.el --- Lookup Kanji-Kana Converter
+++;;; lookup-kanji.el --- Lookup Kanji-Kana Converter  -*-coding: euc-japan;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>
++--- lisp/lookup-kanji.el.orig
+++++ lisp/lookup-kanji.el
++@@ -68,7 +68,9 @@
++ 		   lookup-kanji-command
++ 		   lookup-kanji-option)))
++     (sit-for 0.1)
++-    (process-kill-without-query lookup-kanji-process))
+++    (if (fboundp 'set-process-query-on-exit-flag)
+++	(set-process-query-on-exit-flag lookup-kanji-process nil)
+++      (process-kill-without-query lookup-kanji-process)))
++   lookup-kanji-process)
++ 
++ (defun lookup-kanji-send-string (str)
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-package.el misc/lookup/patches/patch-lisp_lookup-package.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-package.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-package.el	2026-09-21 14:01:32.411456661 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-package.el.orig
+++++ lisp/lookup-package.el
++@@ -1,4 +1,4 @@
++-;;; lookup-package.el --- management of supplement package
+++;;; lookup-package.el --- management of supplement package  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-select.el misc/lookup/patches/patch-lisp_lookup-select.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-select.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-select.el	2026-09-21 14:01:32.411967899 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-select.el.orig
+++++ lisp/lookup-select.el
++@@ -1,4 +1,4 @@
++-;;; lookup-select.el --- lookup-select-mode
+++;;; lookup-select.el --- lookup-select-mode  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-types.el misc/lookup/patches/patch-lisp_lookup-types.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-types.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-types.el	2026-09-21 14:01:32.412471315 +0000
+@@ -0,0 +1,30 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-types.el.orig
+++++ lisp/lookup-types.el
++@@ -1,4 +1,4 @@
++-;;; lookup-types.el --- Lookup various data types
+++;;; lookup-types.el --- Lookup various data types  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
++--- lisp/lookup-types.el.orig
+++++ lisp/lookup-types.el
++@@ -101,11 +101,11 @@
++ 	      (list 'defmacro f-plist (list name '&optional 'plist)
++ 		    (list 'if 'plist
++ 			  (if lookup-debug-mode
++-			      (` (list 'set (list 'aref (, name) (, n)) plist))
+++			      `(list 'set (list 'aref ,name ,n) plist)
++ 			    (list 'list ''aset name n 'plist))
++ 			  (if lookup-debug-mode
++-			      (` (list 'symbol-value
++-				       (list 'aref (, name) (, n))))
+++			      `(list 'symbol-value
+++				       (list 'aref ,name ,n))
++ 			    (list 'list ''aref name n))))
++ 	      ;; (defun lookup-NAME-get-property (NAME prop)
++ 	      ;;   (plist-get (lookup-NAME-plist NAME) prop))
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-utils.el misc/lookup/patches/patch-lisp_lookup-utils.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-utils.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-utils.el	2026-09-21 14:01:32.412979481 +0000
+@@ -0,0 +1,58 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-utils.el.orig
+++++ lisp/lookup-utils.el
++@@ -1,4 +1,4 @@
++-;;; lookup-utils.el --- Lookup various utilities
+++;;; lookup-utils.el --- Lookup various utilities  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
++--- lisp/lookup-utils.el.orig
+++++ lisp/lookup-utils.el
++@@ -196,28 +196,28 @@ PROP $B$N3+;OCOE@!#(BEND $B$O=*N;COE@!#(BVALUE $B$O(B property $B$NCM!#(
++ (put 'lookup-with-coding-system 'lisp-indent-function 1)
++ (defmacro lookup-with-coding-system (coding &rest body)
++   "$BF~=PNO$NJ8;z%3!<%I$r(B CODING $B$K@_Dj$7$F(B BODY $B$r<B9T$9$k!#(B"
++-  (` (let (;; for GNU Emacs 20 and XEmacs 20
++-	   (coding-system-for-read (, coding))
++-	   (coding-system-for-write (, coding))
+++  `(let (;; for GNU Emacs 20 and XEmacs 20
+++	   (coding-system-for-read ,coding)
+++	   (coding-system-for-write ,coding)
++ 	   ;; for XEmacs
++-	   (file-name-coding-system (, coding))
+++	   (file-name-coding-system ,coding)
++ 	   ;; for Mule 2.3
++-	   (process-input-coding-system (, coding))
++-	   (process-output-coding-system (, coding))
++-	   (default-process-coding-system (cons (, coding) (, coding)))
++-	   (file-coding-system-for-read (, coding)))
++-       (,@ body))))
+++	   (process-input-coding-system ,coding)
+++	   (process-output-coding-system ,coding)
+++	   (default-process-coding-system (cons ,coding ,coding))
+++	   (file-coding-system-for-read ,coding))
+++       ,@body))
++ 
++ (put 'lookup-with-buffer-and-window 'lisp-indent-function 1)
++ (defmacro lookup-with-buffer-and-window (buffer &rest body)
++   "current-buffer $B$r(B BUFFER $B$K@_Dj$7!"99$K(B selected-window $B$r(B BUFFER $B$N(B
++ window $B$K@_Dj$7$?>uBV$G(B BODY $B$r<B9T$9$k!#(B"
++-  (` (with-current-buffer (, buffer)
+++  `(with-current-buffer ,buffer
++        (save-selected-window
++-	 (if (get-buffer-window (, buffer))
++-	     (select-window (get-buffer-window (, buffer)))
++-	   (error "No window for buffer `%s'" (, buffer)))
++-	 (,@ body)))))
+++	 (if (get-buffer-window ,buffer)
+++	     (select-window (get-buffer-window ,buffer))
+++	   (error "No window for buffer `%s'" ,buffer))
+++	 ,@body)))
++ 
++ (defun lookup-parse-table (func start end)
++   (let ((table nil) value)
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-vars.el.in misc/lookup/patches/patch-lisp_lookup-vars.el.in
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-vars.el.in	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-vars.el.in	2026-09-21 14:01:32.413490998 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-vars.el.in.orig
+++++ lisp/lookup-vars.el.in
++@@ -1,4 +1,4 @@
++-;;; lookup-vars.el --- Lookup variable list
+++;;; lookup-vars.el --- Lookup variable list  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-vse.el misc/lookup/patches/patch-lisp_lookup-vse.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup-vse.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup-vse.el	2026-09-21 14:01:32.413990503 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup-vse.el.orig
+++++ lisp/lookup-vse.el
++@@ -1,4 +1,4 @@
++-;;; lookup-vse.el --- Lookup Virtual Search Engine
+++;;; lookup-vse.el --- Lookup Virtual Search Engine  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup.el misc/lookup/patches/patch-lisp_lookup.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_lookup.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_lookup.el	2026-09-21 14:01:32.414498668 +0000
+@@ -0,0 +1,36 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/lookup.el.orig
+++++ lisp/lookup.el
++@@ -1,4 +1,4 @@
++-;;; lookup.el --- Search interface to electronic dictionaries
+++;;; lookup.el --- Search interface to electronic dictionaries  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999-2001 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
++--- lisp/lookup.el.orig
+++++ lisp/lookup.el
++@@ -407,15 +407,15 @@ ID $B$O<-=q(BID$B!#(BTAG $B$O%*%W%7%g%s$N%?%0!#(BVALUE $B$O%;%C%H$9$kCM!#
++ ;; $B;~E@$G(B `lookup-current-session' $B$HF1$8CM$K%;%C%H$5$l$k!#(B
++ 
++ (defmacro lookup-start-session (module type &rest body)
++-  (` (unwind-protect
++-	 (let ((lookup-current-session (lookup-make-session (, module) (, type))))
++-	   (lookup-module-setup (, module))
+++  `(unwind-protect
+++	 (let ((lookup-current-session (lookup-make-session ,module ,type)))
+++	   (lookup-module-setup ,module)
++ 	   (lookup-dictionary-alist t) ; $BJQ?t(B lookup-dictionary-alist $B$NCM$r99?7$7$F$*$/(B
++-	   (,@ body)
+++	   ,@body
++ 	   (unless (eq lookup-last-session lookup-current-session)
++ 	     (lookup-open-session)))
++        ;; $B%;%C%7%g%s$NESCf$G%(%i!<$,H/@8$7$?$H$-$O:G8e$N%;%C%7%g%s$KLa$9!#(B
++-       (setq lookup-current-session lookup-last-session))))
+++       (setq lookup-current-session lookup-last-session)))
++ 
++ (defun lookup-open-session ()
++   (lookup-session-display lookup-current-session)
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndeb-binary.el misc/lookup/patches/patch-lisp_ndeb-binary.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndeb-binary.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndeb-binary.el	2026-09-21 14:01:32.415003481 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/ndeb-binary.el.orig
+++++ lisp/ndeb-binary.el
++@@ -1,4 +1,4 @@
++-;;; ndeb-binary.el --- binary data support for ndeb agent
+++;;; ndeb-binary.el --- binary data support for ndeb agent  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999-2002 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Satomi I. <satomi@ring.gr.jp>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndeb.el misc/lookup/patches/patch-lisp_ndeb.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndeb.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndeb.el	2026-09-21 14:01:32.415514440 +0000
+@@ -0,0 +1,67 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/ndeb.el.orig
+++++ lisp/ndeb.el
++@@ -1,4 +1,4 @@
++-;;; ndeb.el --- Lookup eblook interface
+++;;; ndeb.el --- Lookup eblook interface  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
++--- lisp/ndeb.el.orig
+++++ lisp/ndeb.el
++@@ -162,28 +162,28 @@
++ 
++ (put 'ndeb-with-agent 'lisp-indent-function 1)
++ (defmacro ndeb-with-agent (agent &rest body)
++-  (` (let ((ndeb-current-agent (, agent))
++-	   (ndeb-current-process (ndeb-agent-process (, agent))))
++-       (,@ body))))
+++  `(let ((ndeb-current-agent ,agent)
+++	   (ndeb-current-process (ndeb-agent-process ,agent)))
+++       ,@body))
++ 
++ (put 'ndeb-with-dictionary 'lisp-indent-function 1)
++ (defmacro ndeb-with-dictionary (dictionary &rest body)
++-  (` (ndeb-with-agent (lookup-dictionary-agent (, dictionary))
++-       (let ((ndeb-current-dictionary (, dictionary)))
++-	 (unless (eq (, dictionary)
+++  `(ndeb-with-agent (lookup-dictionary-agent ,dictionary)
+++       (let ((ndeb-current-dictionary ,dictionary))
+++	 (unless (eq ,dictionary
++ 		     (lookup-agent-get-property ndeb-current-agent 'ndeb-dict))
++ 	   ;; $BI,MW$J$H$-$@$1<-=q$r(B select $B$9$k!#(B
++ 	   ;; $B30It%W%m%;%9$H$d$j$H$j$9$k$h$j$3$NJ}$,9bB.$@$m$&$7!"(B
++ 	   ;; $B%G%P%C%0$N$H$-%P%C%U%!$,$4$A$c$4$A$c$9$k$N$O$&$6$C$?$$!#(B
++ 	   (ndeb-process-require
++-	    (concat "select " (lookup-dictionary-code (, dictionary))))
+++	    (concat "select " (lookup-dictionary-code ,dictionary)))
++ 	   (lookup-agent-put-property ndeb-current-agent 'ndeb-dict
++-				      (, dictionary))
+++				      ,dictionary)
++ 	   ;; $B<-=qKh$KJ8;z%3!<%I$r@_Dj$9$k!#(B
++-	   (let ((code (ndeb-dictionary-coding (, dictionary))))
+++	   (let ((code (ndeb-dictionary-coding ,dictionary)))
++ 	     (when code
++ 	       (set-process-coding-system ndeb-current-process code code))))
++-	 (,@ body)))))
+++	 ,@body)))
++ 
++ (defun ndeb-agent-process (agent)
++   (let ((process (lookup-agent-get-property agent 'ndeb-process)))
++--- lisp/ndeb.el.orig
+++++ lisp/ndeb.el
++@@ -363,7 +363,9 @@
++ 			   (cons directory (if appendix (list appendix))))))
++ 	 (buffer (lookup-open-process-buffer (concat " *ndeb+" directory "*")))
++ 	 (process (apply 'start-process "ndeb" buffer ndeb-program-name args)))
++-    (process-kill-without-query process)
+++    (if (fboundp 'set-process-query-on-exit-flag)
+++	(set-process-query-on-exit-flag process nil)
+++      (process-kill-without-query process))
++     (accept-process-output process)
++     (with-current-buffer (or buffer (lookup-temp-buffer))
++       (save-excursion
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndic.el misc/lookup/patches/patch-lisp_ndic.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndic.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndic.el	2026-09-21 14:01:32.416257272 +0000
+@@ -0,0 +1,12 @@
++$NetBSD$
++
++Fix a typo in a docstring.  From Debian.
++
++--- lisp/ndic.el.orig
+++++ lisp/ndic.el
++@@ -1,4 +1,4 @@
++-e;;; ndic.el --- Lookup by free dictionaries
+++;;; ndic.el --- Lookup by free dictionaries
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndict.el misc/lookup/patches/patch-lisp_ndict.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndict.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndict.el	2026-09-21 14:01:32.416774376 +0000
+@@ -0,0 +1,42 @@
++$NetBSD$
++
++Old-style backquotes are no longer accepted by the Emacs reader.
++From Debian.
++
++--- lisp/ndict.el.orig
+++++ lisp/ndict.el
++@@ -112,15 +112,15 @@
++ 
++ (put 'ndict-with-agent 'lisp-indent-function 1)
++ (defmacro ndict-with-agent (agent &rest body)
++-  (` (let ((ndict-current-agent (, agent))
++-	   (ndict-current-process (ndict-agent-process (, agent))))
++-       (,@ body))))
+++  `(let ((ndict-current-agent ,agent)
+++	   (ndict-current-process (ndict-agent-process ,agent)))
+++       ,@body))
++ 
++ (put 'ndict-with-dictionary 'lisp-indent-function 1)
++ (defmacro ndict-with-dictionary (dictionary &rest body)
++-  (` (ndict-with-agent (lookup-dictionary-agent (, dictionary))
++-       (let ((ndict-current-dictionary (, dictionary)))
++-	 (,@ body)))))
+++  `(ndict-with-agent (lookup-dictionary-agent ,dictionary)
+++       (let ((ndict-current-dictionary ,dictionary))
+++	 ,@body)))
++ 
++ (defun ndict-agent-process (agent)
++   (let ((process (lookup-agent-get-property agent 'ndict-process)))
++--- lisp/ndict.el.orig
+++++ lisp/ndict.el
++@@ -231,7 +231,9 @@
++   (let* ((buffer (lookup-open-process-buffer " *ndict*"))
++ 	 (process (open-network-stream "ndict" buffer server service)))
++     (accept-process-output process)
++-    (process-kill-without-query process)
+++    (if (fboundp 'set-process-query-on-exit-flag)
+++	(set-process-query-on-exit-flag process nil)
+++      (process-kill-without-query process))
++     process))
++ 
++ (put 'ndict-process-require 'lisp-indent-function 1)
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndkks.el misc/lookup/patches/patch-lisp_ndkks.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndkks.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndkks.el	2026-09-21 14:01:32.417303215 +0000
+@@ -0,0 +1,26 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/ndkks.el.orig
+++++ lisp/ndkks.el
++@@ -1,4 +1,4 @@
++-;;; ndkks.el --- Lookup KAKASI interface
+++;;; ndkks.el --- Lookup KAKASI interface  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
++--- lisp/ndkks.el.orig
+++++ lisp/ndkks.el
++@@ -155,7 +155,9 @@
++       (let ((buffer (lookup-open-process-buffer " *ndkks*")))
++ 	(setq process (apply 'start-process "ndkks" buffer
++ 			     ndkks-program-name args))
++-	(process-kill-without-query process)
+++	(if (fboundp 'set-process-query-on-exit-flag)
+++	    (set-process-query-on-exit-flag process nil)
+++	  (process-kill-without-query process))
++ 	;; $B5/F08e!">/$7;~4V$rCV$+$J$$$H!":G=i$N8!:w$,$&$^$/$$$+$J$$!#(B
++ 	(sleep-for 0.1)
++ 	(let ((coding ndkks-process-coding-system))
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndnmz.el misc/lookup/patches/patch-lisp_ndnmz.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndnmz.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndnmz.el	2026-09-21 14:01:32.417826745 +0000
+@@ -0,0 +1,33 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/ndnmz.el.orig
+++++ lisp/ndnmz.el
++@@ -1,4 +1,4 @@
++-;;; ndnmz.el --- Lookup Namazu interface
+++;;; ndnmz.el --- Lookup Namazu interface  -*-coding: euc-japan;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>
++--- lisp/ndnmz.el.orig
+++++ lisp/ndnmz.el
++@@ -111,14 +111,14 @@
++ (put 'ndnmz-with-temp-buffer 'lisp-indent-function 0)
++ (defmacro ndnmz-with-temp-buffer (&rest body)
++   "°ì»þ¥Ð¥Ã¥Õ¥¡¤ò¥«¥ì¥ó¥È¥Ð¥Ã¥Õ¥¡¤È¤·¤Æ body ¤ò¼Â¹Ô¤·¡¢¤½¤Î¸å°ì»þ¥Ð¥Ã¥Õ¥¡¤òÁÝ½ü¤¹¤ë¥Þ¥¯¥í"
++-  (` (let ((original-buffer (current-buffer)))
+++  `(let ((original-buffer (current-buffer)))
++        (unwind-protect
++ 	   (progn
++ 	     (set-buffer (ndnmz-generate-temp-buffer))
++ 	     (unwind-protect
++-		 (progn (,@ body))
+++		 (progn ,@body)
++ 	       (delete-region (point-min) (point-max))))
++-	 (set-buffer original-buffer)))))
+++	 (set-buffer original-buffer))))
++ 
++ (defsubst ndnmz-dictionary-type (dictionary)
++   "¸¡º÷ÂÐ¾Ý¤Î¥Õ¥¡¥¤¥ë¤ÎÀ­¼Á¤ò»ØÄê¤¹¤ë¥ª¥×¥·¥ç¥ó¤òÄ´¤Ù¤ë´Ø¿ô"
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndspell.el misc/lookup/patches/patch-lisp_ndspell.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndspell.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndspell.el	2026-09-21 14:01:32.418397488 +0000
+@@ -0,0 +1,18 @@
++$NetBSD$
++
++process-kill-without-query is obsolete; use set-process-query-on-exit-flag
++where it exists.  From Debian.
++
++--- lisp/ndspell.el.orig
+++++ lisp/ndspell.el
++@@ -184,7 +184,9 @@
++       (setq ndspell-process
++ 	    (start-process "ndspell" buffer ndspell-ispell-program
++ 			   "-a" "-m" "-C"))
++-      (process-kill-without-query ndspell-process)
+++      (if (fboundp 'set-process-query-on-exit-flag)
+++	  (set-process-query-on-exit-flag ndspell-process nil)
+++	(process-kill-without-query ndspell-process))
++       (accept-process-output ndspell-process)
++       (let ((coding ndspell-process-coding-system))
++ 	(when coding
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndsrd.el misc/lookup/patches/patch-lisp_ndsrd.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndsrd.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndsrd.el	2026-09-21 14:01:32.418955938 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/ndsrd.el.orig
+++++ lisp/ndsrd.el
++@@ -1,4 +1,4 @@
++-;;; ndsrd.el --- search agent for $B>.3X4[!X%i%s%@%`%O%&%91Q8l<-E5!Y(B
+++;;; ndsrd.el --- search agent for $B>.3X4[!X%i%s%@%`%O%&%91Q8l<-E5!Y(B  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndtp.el misc/lookup/patches/patch-lisp_ndtp.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_ndtp.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_ndtp.el	2026-09-21 14:01:32.419725031 +0000
+@@ -0,0 +1,66 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/ndtp.el.orig
+++++ lisp/ndtp.el
++@@ -1,4 +1,4 @@
++-;;; ndtp.el --- Lookup NDTP client
+++;;; ndtp.el --- Lookup NDTP client  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
++--- lisp/ndtp.el.orig
+++++ lisp/ndtp.el
++@@ -128,27 +128,27 @@
++ 
++ (put 'ndtp-with-agent 'lisp-indent-function 1)
++ (defmacro ndtp-with-agent (agent &rest body)
++-  (` (let ((ndtp-current-agent (, agent))
++-	   (ndtp-current-process (ndtp-agent-process (, agent))))
++-       (,@ body))))
+++  `(let ((ndtp-current-agent ,agent)
+++	   (ndtp-current-process (ndtp-agent-process ,agent)))
+++       ,@body))
++ 
++ (put 'ndtp-with-dictionary 'lisp-indent-function 1)
++ (defmacro ndtp-with-dictionary (dictionary &rest body)
++-  (` (ndtp-with-agent (lookup-dictionary-agent (, dictionary))
++-       (let ((ndtp-current-dictionary (, dictionary)))
++-	 (unless (eq (, dictionary)
+++  `(ndtp-with-agent (lookup-dictionary-agent ,dictionary)
+++       (let ((ndtp-current-dictionary ,dictionary))
+++	 (unless (eq ,dictionary
++ 		     (lookup-agent-get-property ndtp-current-agent 'ndtp-dict))
++ 	   ;; $BI,MW$J$H$-$@$1<-=q$r(B select $B$9$k!#(B
++ 	   ;; $B30It%W%m%;%9$H$d$j$H$j$9$k$h$j$3$NJ}$,9bB.$@$m$&$7!"(B
++ 	   ;; $B%G%P%C%0$N$H$-%P%C%U%!$,$4$A$c$4$A$c$9$k$N$O$&$6$C$?$$!#(B
++-	   (ndtp-require-select (, dictionary))
+++	   (ndtp-require-select ,dictionary)
++ 	   (lookup-agent-put-property ndtp-current-agent 'ndtp-dict
++-				      (, dictionary))
+++				      ,dictionary)
++ 	   ;; $B<-=qKh$KJ8;z%3!<%I$r@_Dj$9$k!#(B
++-	   (let ((code (ndtp-dictionary-coding (, dictionary))))
+++	   (let ((code (ndtp-dictionary-coding ,dictionary)))
++ 	     (when code
++ 	       (set-process-coding-system ndtp-current-process code code))))
++-	 (,@ body)))))
+++	 ,@body)))
++ 
++ (defun ndtp-agent-process (agent)
++   (let ((process (lookup-agent-get-property agent 'ndtp-process)))
++--- lisp/ndtp.el.orig
+++++ lisp/ndtp.el
++@@ -299,7 +299,9 @@
++   (lookup-proceeding-message (format "connecting to %s..." server))
++   (let* ((buffer (lookup-open-process-buffer (concat " *ndtp+" server "*")))
++ 	 (process (open-network-stream "ndtp" buffer server service)))
++-    (process-kill-without-query process)
+++    (if (fboundp 'set-process-query-on-exit-flag)
+++	(set-process-query-on-exit-flag process nil)
+++      (process-kill-without-query process))
++     process))
++ 
++ (put 'ndtp-process-require 'lisp-indent-function 2)
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_sdicf.el misc/lookup/patches/patch-lisp_sdicf.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_sdicf.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_sdicf.el	2026-09-21 14:01:32.420258618 +0000
+@@ -0,0 +1,26 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/sdicf.el.orig
+++++ lisp/sdicf.el
++@@ -1,4 +1,4 @@
++-;;; sdicf.el --- Search library for SDIC format dictionary
+++;;; sdicf.el --- Search library for SDIC format dictionary  -*-coding: iso-2022-jp;-*-
++ ;;; $Id: sdicf.el,v 1.1.1.1 2001/11/28 18:32:43 kazuhiko Exp $
++ 
++ ;; Copyright (C) 1999 TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>
++--- lisp/sdicf.el.orig
+++++ lisp/sdicf.el
++@@ -344,7 +344,9 @@ sdicf-egrep-command $B$G;XDj$5$l$?%3%^%s%I$r;H$&!#(B"
++ 	  (accept-process-output proc)
++ 	  (process-send-string proc "order index\n")
++ 	  (accept-process-output proc)
++-	  (process-kill-without-query proc)
+++	  (if (fboundp 'set-process-query-on-exit-flag)
+++	      (set-process-query-on-exit-flag proc nil)
+++	    (process-kill-without-query proc))
++ 	  (set-process-filter proc 'sdicf-array-wait-prompt)
++ 	  t))))
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-lisp_stem-english.el misc/lookup/patches/patch-lisp_stem-english.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-lisp_stem-english.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-lisp_stem-english.el	2026-09-21 14:01:32.420767342 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- lisp/stem-english.el.orig
+++++ lisp/stem-english.el
++@@ -1,4 +1,4 @@
++-;;; stem.el ---- routines for stemming
+++;;; stem.el ---- routines for stemming  -*-coding: euc-japan;-*-
++ ;;; $Id: stem-english.el,v 1.1.1.1 2001/11/28 18:32:52 kazuhiko Exp $
++ 
++ ;;; Author: Tsuchiya Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-packages_colloc.el misc/lookup/patches/patch-packages_colloc.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-packages_colloc.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-packages_colloc.el	2026-09-21 14:01:32.421283329 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- packages/colloc.el.orig
+++++ packages/colloc.el
++@@ -1,4 +1,4 @@
++-;;; colloc.el --- supplement package for $B!X?7JT(B $B1QOB3hMQBg<-E5!Y(B
+++;;; colloc.el --- supplement package for $B!X?7JT(B $B1QOB3hMQBg<-E5!Y(B  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-packages_genius.el misc/lookup/patches/patch-packages_genius.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-packages_genius.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-packages_genius.el	2026-09-21 14:01:32.421842060 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- packages/genius.el.orig
+++++ packages/genius.el
++@@ -1,4 +1,4 @@
++-;;; genius.el --- supplement package for $B!X%8!<%K%"%91QOB!&OB1Q<-E5!Y(B
+++;;; genius.el --- supplement package for $B!X%8!<%K%"%91QOB!&OB1Q<-E5!Y(B  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Keisuke Nishida <kei@psn.net>
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/lookup/patches/patch-packages_wdic.el misc/lookup/patches/patch-packages_wdic.el
+--- /usr/pkgsrc/misc/lookup/patches/patch-packages_wdic.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/lookup/patches/patch-packages_wdic.el	2026-09-21 14:01:32.422363355 +0000
+@@ -0,0 +1,13 @@
++$NetBSD$
++
++Add coding tags so the files are read as the encoding they are in.
++From Debian.
++
++--- packages/wdic.el.orig
+++++ packages/wdic.el
++@@ -1,4 +1,4 @@
++-;;; wdic.el --- supplement package for $B!XDL?.MQ8l$N4pACCN<1!Y(B
+++;;; wdic.el --- supplement package for $B!XDL?.MQ8l$N4pACCN<1!Y(B  -*-coding: iso-2022-jp;-*-
++ ;; Copyright (C) 1999 Lookup Development Team <lookup@ring.gr.jp>
++ 
++ ;; Author: Mito <mit@nines.nec.co.jp>

@@ -1,0 +1,574 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/Makefile editors/emacs30/Makefile
+--- /usr/pkgsrc/editors/emacs30/Makefile	2026-09-18 05:45:58.488021154 +0000
++++ editors/emacs30/Makefile	2026-09-21 14:10:40.309010401 +0000
+@@ -2,7 +2,7 @@
+ 
+ CONFLICTS+=	emacs30-nox11-[0-9]*
+ 
+-PKGREVISION= 14
++PKGREVISION=	15
+ .include "../../editors/emacs30/Makefile.common"
+ 
+ .include "options.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/distinfo editors/emacs30/distinfo
+--- /usr/pkgsrc/editors/emacs30/distinfo	2026-08-25 17:44:23.000000000 +0000
++++ editors/emacs30/distinfo	2026-09-21 13:53:38.424147939 +0000
+@@ -8,5 +8,14 @@
+ SHA1 (patch-lisp_net_tramp-rclone.el) = ca52b50099cb06259be32e40045848164b96fca7
+ SHA1 (patch-lisp_net_tramp-smb.el) = 4cbf31f75638a2ad97260d4c1c41fd3549848a8b
+ SHA1 (patch-lisp_net_tramp.el) = 783c3303b40e9404a8ec3c01828b401ace217b0f
+-SHA1 (patch-src_treesit.c) = fc3165a2febcb4dda2e87d031524fa5b90721c38
++SHA1 (patch-lisp_progmodes_cc-fonts.el) = a47df9c3c48c58eeb46df696307a8cd31ed717ca
++SHA1 (patch-lisp_progmodes_flymake.el) = da4295d52e6e07d9822507b7ce1ae711f7aac285
++SHA1 (patch-lisp_progmodes_ruby-mode.el) = a6adaea299f608d0f4bc0964e6c8b2b531e1d182
++SHA1 (patch-lisp_vc_vc-hooks.el) = 6f099fb34dfcea60589ae7e18f3b046d31e28ab5
++SHA1 (patch-src_dispnew.c) = 2fe2400e6cdd902196998d087f51bd6abe831daa
++SHA1 (patch-src_image.c) = ba6109266e111a043ae0eb5cdce20b24bb151e05
++SHA1 (patch-src_pgtkfns.c) = 531ad50e6ee2a2020221225109b4ba37c8869bd6
++SHA1 (patch-src_process.h) = 4d99d8b401f61a60ec4cfdb290803594072718cd
++SHA1 (patch-src_treesit.c) = 599287058129fb2b46129e1544afda59b7567142
++SHA1 (patch-src_xsettings.c) = e83e3fb56b4350aaff964a0183d126d97c676dfe
+ SHA1 (patch-test_lisp_net_tramp-tests.el) = d37ffc57f21fda19121f7a0e3339cbd299e43d51
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-lisp_progmodes_cc-fonts.el editors/emacs30/patches/patch-lisp_progmodes_cc-fonts.el
+--- /usr/pkgsrc/editors/emacs30/patches/patch-lisp_progmodes_cc-fonts.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-lisp_progmodes_cc-fonts.el	2026-09-21 13:34:06.385134601 +0000
+@@ -0,0 +1,25 @@
++$NetBSD$
++
++Nullify read-symbol-shorthands around risky intern calls: a crafted file
++could run arbitrary Lisp when visited (debbugs 80574).
++From emacs commit 8466eb44991707d128110bdc549fad14c8e1d61e, via Gentoo/Debian.
++
++--- lisp/progmodes/cc-fonts.el.orig
+++++ lisp/progmodes/cc-fonts.el
++@@ -2566,9 +2566,13 @@
++   (let* ((doc-keywords (c-get-doc-comment-style))
++ 	 (list (nconc (c--mapcan
++ 		       (lambda (doc-style)
++-			 (let ((sym (intern
++-				     (concat (symbol-name doc-style)
++-					     "-font-lock-keywords"))))
+++			 (let ((sym
+++				;; Guard `intern' from potentially
+++				;; malicious shorthands.
+++				(let (read-symbol-shorthands)
+++				  (intern
+++				   (concat (symbol-name doc-style)
+++					   "-font-lock-keywords")))))
++ 			   (cond ((fboundp sym)
++ 				  (funcall sym))
++ 				 ((boundp sym)
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-lisp_progmodes_flymake.el editors/emacs30/patches/patch-lisp_progmodes_flymake.el
+--- /usr/pkgsrc/editors/emacs30/patches/patch-lisp_progmodes_flymake.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-lisp_progmodes_flymake.el	2026-09-21 13:34:06.385606169 +0000
+@@ -0,0 +1,24 @@
++$NetBSD$
++
++Copy trusted-content-p to flymake.el so flymake does not run backends
++on untrusted content (Gentoo bug 982533).
++From emacs commit 49c77fb219cbab8fc9d1b172fe754c2a2e4d9c53 (emacs-31 branch).
++
++--- lisp/progmodes/flymake.el.orig
+++++ lisp/progmodes/flymake.el
++@@ -1254,8 +1254,13 @@
++             (flymake--state-disabled state) nil
++             (flymake--state-reported-p state) nil))
++     (condition-case-unless-debug err
++-        (apply backend (flymake-make-report-fn backend run-token)
++-               args)
+++        (if (or (trusted-content-p) (function-get backend 'flymake-always-safe))
+++            (apply backend (flymake-make-report-fn backend run-token)
+++                   args)
+++          (message "Disabling %S in %s (untrusted content)"
+++                   backend (buffer-name))
+++          (user-error "Disabling %S in %s (untrusted content)"
+++                      backend (buffer-name)))
++       (error
++        (flymake--disable-backend backend err)))))
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-lisp_progmodes_ruby-mode.el editors/emacs30/patches/patch-lisp_progmodes_ruby-mode.el
+--- /usr/pkgsrc/editors/emacs30/patches/patch-lisp_progmodes_ruby-mode.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-lisp_progmodes_ruby-mode.el	2026-09-21 13:34:06.386085839 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++Fix flymake ruby backend with ruby 4.0 (debbugs 79257).
++From the emacs-31 branch, via Gentoo.
++
++--- lisp/progmodes/ruby-mode.el.orig
+++++ lisp/progmodes/ruby-mode.el
++@@ -2517,7 +2517,7 @@
++      (goto-char (point-min))
++      (cl-loop
++       while (search-forward-regexp
++-             "^\\(?:.*.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
+++             "^\\(?:[^:|]+: \\)?\\(?:.*\\.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
++              nil t)
++       for msg = (match-string 2)
++       for (beg . end) = (flymake-diag-region
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-lisp_vc_vc-hooks.el editors/emacs30/patches/patch-lisp_vc_vc-hooks.el
+--- /usr/pkgsrc/editors/emacs30/patches/patch-lisp_vc_vc-hooks.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-lisp_vc_vc-hooks.el	2026-09-21 13:34:06.386538690 +0000
+@@ -0,0 +1,20 @@
++$NetBSD$
++
++Nullify read-symbol-shorthands around risky intern calls: a crafted file
++could run arbitrary Lisp when visited (debbugs 80574).
++From emacs commit 8466eb44991707d128110bdc549fad14c8e1d61e, via Gentoo/Debian.
++
++--- lisp/vc/vc-hooks.el.orig
+++++ lisp/vc/vc-hooks.el
++@@ -234,7 +234,10 @@
++   "Return BACKEND-specific implementation of FUN.
++ If there is no such implementation, return the default implementation;
++ if that doesn't exist either, return nil."
++-  (let ((f (vc-make-backend-sym backend fun)))
+++  ;; Nullify `read-symbol-shorthands' to guard the `intern' calls below
+++  ;; and in `vc-make-backend-sym' from potentially malicious shorthands.
+++  (let* ((read-symbol-shorthands nil)
+++         (f (vc-make-backend-sym backend fun)))
++     (if (fboundp f) f
++       ;; Load vc-BACKEND.el if needed.
++       (require (intern (concat "vc-" (downcase (symbol-name backend)))))
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-src_dispnew.c editors/emacs30/patches/patch-src_dispnew.c
+--- /usr/pkgsrc/editors/emacs30/patches/patch-src_dispnew.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-src_dispnew.c	2026-09-21 13:34:06.387247719 +0000
+@@ -0,0 +1,45 @@
++$NetBSD$
++
++With the pgtk toolkit, fall back to the terminal when no display
++(WAYLAND_DISPLAY, DISPLAY, BROADWAY_DISPLAY) is available instead of
++aborting.  From Fedora.
++
++--- src/dispnew.c.orig
+++++ src/dispnew.c
++@@ -6557,10 +6557,33 @@ init_display_interactive (void)
++ #endif
++ 
++ #ifdef HAVE_PGTK
++-  if (!inhibit_window_system && !will_dump_p ())
+++  if (!inhibit_window_system)
++     {
++-      Vinitial_window_system = Qpgtk;
++-      return;
+++      if (!display_arg && !will_dump_p ())
+++	{
+++	  int i;
+++	  const char *gdk_display_variables[] = {
+++	    "WAYLAND_DISPLAY",
+++	    "DISPLAY",
+++	    "BROADWAY_DISPLAY",
+++	  };
+++	  size_t n = ARRAYELTS (gdk_display_variables);
+++
+++	  for (i = 0; i < n; i++)
+++	    {
+++	      char *display;
+++	      display = getenv (gdk_display_variables[i]);
+++	      if (display != 0 && *display != 0)
+++		{
+++		  display_arg = 1;
+++		  break;
+++		}
+++	    }
+++	}
+++      if (display_arg) {
+++	Vinitial_window_system = Qpgtk;
+++	return;
+++      }
++     }
++ #endif
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-src_image.c editors/emacs30/patches/patch-src_image.c
+--- /usr/pkgsrc/editors/emacs30/patches/patch-src_image.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-src_image.c	2026-09-21 13:53:20.657894128 +0000
+@@ -0,0 +1,53 @@
++$NetBSD$
++
++CVE-2026-6861: svg_load_image wrote one byte past the CSS string
++(bug#80851).  From emacs upstream commit 8f535370b9efbc91673b20c6987a5cae4f6dc562, via Debian.
++
++CVE-2026-77219: integer overflow in the PBM/PPM/PGM loader let a crafted
++image read heap memory past the buffer (bug#81344).  From emacs commit
++b07e634e4cf45162ae0178e32092b040587f2c6c (in 31.0.91).
++
++--- src/image.c.orig
+++++ src/image.c
++@@ -7701,19 +7701,22 @@
++     }
++   else
++     {
++-      int expected_size = height * width;
++       bool two_byte = 255 < max_color_idx;
++-      if (two_byte)
++-	expected_size *= 2;
++-      if (type == PBM_COLOR)
++-	expected_size *= 3;
++ 
++-      if (raw_p && p + expected_size > end)
+++      if (raw_p)
++ 	{
++-	  image_destroy_x_image (ximg);
++-	  image_clear_image (f, img);
++-	  image_error ("Invalid image size in image `%s'", img->spec);
++-	  goto error;
+++	  ptrdiff_t expected_size;
+++	  bool bad = ckd_mul (&expected_size, height, width);
+++	  bad |= ckd_mul (&expected_size, expected_size,
+++			  (two_byte ? 2 : 1) * (type == PBM_COLOR ? 3 : 1));
+++	  bad |= end - p < expected_size;
+++	  if (bad)
+++	    {
+++	      image_destroy_x_image (ximg);
+++	      image_clear_image (f, img);
+++	      image_error ("Invalid image size in image `%s'", img->spec);
+++	      goto error;
+++	    }
++ 	}
++ 
++       for (y = 0; y < height; ++y)
++@@ -12052,7 +12055,7 @@
++     {
++       css = xmalloc (SBYTES (lcss) + 1);
++       strncpy (css, SSDATA (lcss), SBYTES (lcss));
++-      *(css + SBYTES (lcss) + 1) = 0;
+++      *(css + SBYTES (lcss)) = 0;
++     }
++ #endif
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-src_pgtkfns.c editors/emacs30/patches/patch-src_pgtkfns.c
+--- /usr/pkgsrc/editors/emacs30/patches/patch-src_pgtkfns.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-src_pgtkfns.c	2026-09-21 13:34:06.389003808 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++Do not dereference a NULL GSettingsSchemaSource when no GSettings
++schemas are installed (seen on macOS).  From MacPorts.
++
++--- src/pgtkfns.c.orig
+++++ src/pgtkfns.c
++@@ -1885,6 +1885,8 @@
++ 
++   /* check existence of setting_key */
++   GSettingsSchemaSource *ssrc = g_settings_schema_source_get_default ();
+++  if (ssrc == NULL)
+++    return NULL;	/* no GSettings schemas installed. */
++   GSettingsSchema *scm = g_settings_schema_source_lookup (ssrc, SCHEMA_ID, TRUE);
++   if (!scm)
++     return NULL;	/* *.schema.xml is not installed. */
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-src_process.h editors/emacs30/patches/patch-src_process.h
+--- /usr/pkgsrc/editors/emacs30/patches/patch-src_process.h	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-src_process.h	2026-09-21 13:34:06.389546894 +0000
+@@ -0,0 +1,15 @@
++$NetBSD$
++
++Include <sys/signal.h> for sigset_t and friends; needed on DragonFly.
++From DragonFly DPorts.
++
++--- src/process.h.orig
+++++ src/process.h
++@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http
++ #endif
++ 
++ #include <unistd.h>
+++#include <sys/signal.h>
++ 
++ #ifdef HAVE_GNUTLS
++ #include "gnutls.h"
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-src_treesit.c editors/emacs30/patches/patch-src_treesit.c
+--- /usr/pkgsrc/editors/emacs30/patches/patch-src_treesit.c	2025-12-21 06:35:26.000000000 +0000
++++ editors/emacs30/patches/patch-src_treesit.c	2026-09-21 13:34:22.759484972 +0000
+@@ -9,94 +9,175 @@
+ 
+     Support Tree-sitter version 0.26 and later
+ 
+---- src/treesit.c.orig	2025-07-05 09:56:00.000000000 +0000
++Also change the query predicate names (bug#79687), from
++commit b01435306a36e4e75671fbe7bacea351f89947d5 via Gentoo/Debian.
++
++--- src/treesit.c.orig
+ +++ src/treesit.c
+-@@ -34,7 +34,11 @@ along with GNU Emacs.  If not, see <http
+- # include "w32common.h"
+- 
+- /* In alphabetical order.  */
+-+#if TREE_SITTER_LANGUAGE_VERSION >= 15
+-+#undef ts_language_abi_version
+-+#else
+- #undef ts_language_version
+-+#endif
+- #undef ts_node_child
+- #undef ts_node_child_by_field_name
+- #undef ts_node_child_count
+-@@ -89,7 +93,11 @@ along with GNU Emacs.  If not, see <http
+- #undef ts_tree_get_changed_ranges
+- #undef ts_tree_root_node
+- 
+-+#if TREE_SITTER_LANGUAGE_VERSION >= 15
+-+DEF_DLL_FN (uint32_t, ts_language_abi_version, (const TSLanguage *));
+-+#else
+- DEF_DLL_FN (uint32_t, ts_language_version, (const TSLanguage *));
+-+#endif
+- DEF_DLL_FN (TSNode, ts_node_child, (TSNode, uint32_t));
+- DEF_DLL_FN (TSNode, ts_node_child_by_field_name,
+- 	    (TSNode, const char *, uint32_t));
+-@@ -166,7 +174,11 @@ init_treesit_functions (void)
+-   if (!library)
+-     return false;
+- 
+-+#if TREE_SITTER_LANGUAGE_VERSION >= 15
+-+  LOAD_DLL_FN (library, ts_language_abi_version);
+-+#else
+-   LOAD_DLL_FN (library, ts_language_version);
+-+#endif
+-   LOAD_DLL_FN (library, ts_node_child);
+-   LOAD_DLL_FN (library, ts_node_child_by_field_name);
+-   LOAD_DLL_FN (library, ts_node_child_count);
+-@@ -224,7 +236,11 @@ init_treesit_functions (void)
+-   return true;
+- }
+- 
+-+#if TREE_SITTER_LANGUAGE_VERSION >= 15
+-+#define ts_language_abi_version fn_ts_language_abi_version
+-+#else
+- #define ts_language_version fn_ts_language_version
+-+#endif
+- #define ts_node_child fn_ts_node_child
+- #define ts_node_child_by_field_name fn_ts_node_child_by_field_name
+- #define ts_node_child_count fn_ts_node_child_count
+-@@ -632,6 +648,22 @@ treesit_load_language_push_for_each_suff
+-     }
++@@ -431,17 +431,17 @@
++ static Lisp_Object Vtreesit_str_question_mark;
++ static Lisp_Object Vtreesit_str_star;
++ static Lisp_Object Vtreesit_str_plus;
++-static Lisp_Object Vtreesit_str_pound_equal;
++-static Lisp_Object Vtreesit_str_pound_match;
++-static Lisp_Object Vtreesit_str_pound_pred;
+++static Lisp_Object Vtreesit_str_pound_eq_question_mark;
+++static Lisp_Object Vtreesit_str_pound_match_question_mark;
+++static Lisp_Object Vtreesit_str_pound_pred_question_mark;
++ static Lisp_Object Vtreesit_str_open_bracket;
++ static Lisp_Object Vtreesit_str_close_bracket;
++ static Lisp_Object Vtreesit_str_open_paren;
++ static Lisp_Object Vtreesit_str_close_paren;
++ static Lisp_Object Vtreesit_str_space;
++-static Lisp_Object Vtreesit_str_equal;
++-static Lisp_Object Vtreesit_str_match;
++-static Lisp_Object Vtreesit_str_pred;
+++static Lisp_Object Vtreesit_str_eq_question_mark;
+++static Lisp_Object Vtreesit_str_match_question_mark;
+++static Lisp_Object Vtreesit_str_pred_question_mark;
++ static Lisp_Object Vtreesit_str_empty;
++ 
++ /* This is the limit on recursion levels for some tree-sitter
++@@ -2636,12 +2636,12 @@
++     return Vtreesit_str_star;
++   if (BASE_EQ (pattern, QCplus))
++     return Vtreesit_str_plus;
++-  if (BASE_EQ (pattern, QCequal))
++-    return Vtreesit_str_pound_equal;
++-  if (BASE_EQ (pattern, QCmatch))
++-    return Vtreesit_str_pound_match;
++-  if (BASE_EQ (pattern, QCpred))
++-    return Vtreesit_str_pound_pred;
+++  if (BASE_EQ (pattern, QCequal) || BASE_EQ (pattern, QCeq_q))
+++    return Vtreesit_str_pound_eq_question_mark;
+++  if (BASE_EQ (pattern, QCmatch) || BASE_EQ (pattern, QCmatch_q))
+++    return Vtreesit_str_pound_match_question_mark;
+++  if (BASE_EQ (pattern, QCpred) || BASE_EQ (pattern, QCpred_q))
+++    return Vtreesit_str_pound_pred_question_mark;
++   Lisp_Object opening_delimeter
++     = VECTORP (pattern)
++       ? Vtreesit_str_open_bracket : Vtreesit_str_open_paren;
++@@ -2672,7 +2672,9 @@
++     :*
++     :+
++     :equal
+++    :eq?
++     :match
+++    :match?
++     (TYPE PATTERN...)
++     [PATTERN...]
++     FIELD-NAME:
++@@ -2835,7 +2837,7 @@
++   return !NILP (Fstring_equal (text1, text2));
+  }
+  
+-+/* This function is a compatibility shim.  Tree-sitter 0.25 introduced
+-+   ts_language_abi_version as a replacement for ts_language_version, and
+-+   tree-sitter 0.26 removed ts_language_version.  Here we use the fact
+-+   that 0.25 bumped TREE_SITTER_LANGUAGE_VERSION to 15, to use the new
+-+   function instead of the old one, when Emacs is compiled against
+-+   tree-sitter version 0.25 or newer.  */
+-+static uint32_t
+-+treesit_language_abi_version (const TSLanguage *ts_lang)
+-+{
+-+#if TREE_SITTER_LANGUAGE_VERSION >= 15
+-+  return ts_language_abi_version (ts_lang);
+-+#else
+-+  return ts_language_version (ts_lang);
+-+#endif
+-+}
+-+
+- /* Load the dynamic library of LANGUAGE_SYMBOL and return the pointer
+-    to the language definition.
+- 
+-@@ -746,7 +778,7 @@ treesit_load_language (Lisp_Object langu
++-/* Handles predicate (#match "regexp" @node).  Return true if "regexp"
+++/* Handles predicate (#match? "regexp" @node).  Return true if "regexp"
++    matches the text spanned by @node; return false otherwise.
++    Matching is case-sensitive.  If everything goes fine, don't touch
++    SIGNAL_DATA; if error occurs, set it to a suitable signal data.  */
++@@ -2845,26 +2847,24 @@
++ {
++   if (list_length (args) != 2)
+      {
+-       *signal_symbol = Qtreesit_load_language_error;
+-       *signal_data = list2 (Qversion_mismatch,
+--			    make_fixnum (ts_language_version (lang)));
+-+			    make_fixnum (treesit_language_abi_version (lang)));
+-       return NULL;
+-     }
+-   return lang;
+-@@ -817,7 +849,7 @@ Return nil if a grammar library for LANG
+- 						       &signal_data);
+-       if (ts_language == NULL)
+- 	return Qnil;
+--      uint32_t version =  ts_language_version (ts_language);
+-+      uint32_t version =  treesit_language_abi_version (ts_language);
+-       return make_fixnum((ptrdiff_t) version);
++-      *signal_data = list2 (build_string ("Predicate `match' requires two "
+++      *signal_data = list2 (build_string ("Predicate `match?' requires two "
++ 					  "arguments but got"),
++ 			    Flength (args));
++       return false;
+      }
+- }
++-  Lisp_Object regexp = XCAR (args);
++-  Lisp_Object capture_name = XCAR (XCDR (args));
+++  Lisp_Object arg1 = XCAR (args);
+++  Lisp_Object arg2 = XCAR (XCDR (args));
+++  Lisp_Object regexp = SYMBOLP (arg2) ? arg1 : arg2;
+++  Lisp_Object capture_name = SYMBOLP (arg2) ? arg2 : arg1;
++ 
++-  /* It's probably common to get the argument order backwards.  Catch
++-     this mistake early and show helpful explanation, because Emacs
++-     loves you.  (We put the regexp first because that's what
++-     string-match does.)  */
++-  if (!STRINGP (regexp))
++-    xsignal1 (Qtreesit_query_error,
++-	      build_string ("The first argument to `match' should "
++-		            "be a regexp string, not a capture name"));
++-  if (!SYMBOLP (capture_name))
++-    xsignal1 (Qtreesit_query_error,
++-	      build_string ("The second argument to `match' should "
++-		            "be a capture name, not a string"));
+++  if (!STRINGP (regexp) || !SYMBOLP (capture_name))
+++    {
+++      *signal_data = list2 (build_string ("Predicate `match?' takes a regexp "
+++	                                  "and a node capture (order doesn't "
+++					  "matter), but got"),
+++			    Flength (args));
+++      return false;
+++    }
++ 
++   Lisp_Object node = Qnil;
++   if (!treesit_predicate_capture_name_to_node (capture_name, captures, &node,
++@@ -2948,11 +2948,11 @@
++       Lisp_Object predicate = XCAR (tail);
++       Lisp_Object fn = XCAR (predicate);
++       Lisp_Object args = XCDR (predicate);
++-      if (!NILP (Fstring_equal (fn, Vtreesit_str_equal)))
+++      if (!NILP (Fstring_equal (fn, Vtreesit_str_eq_question_mark)))
++ 	pass &= treesit_predicate_equal (args, captures, signal_data);
++-      else if (!NILP (Fstring_equal (fn, Vtreesit_str_match)))
+++      else if (!NILP (Fstring_equal (fn, Vtreesit_str_match_question_mark)))
++ 	pass &= treesit_predicate_match (args, captures, signal_data);
++-      else if (!NILP (Fstring_equal (fn, Vtreesit_str_pred)))
+++      else if (!NILP (Fstring_equal (fn, Vtreesit_str_pred_question_mark)))
++ 	pass &= treesit_predicate_pred (args, captures, signal_data);
++       else
++ 	{
++@@ -4224,8 +4224,11 @@
++   DEFSYM (QCstar, ":*");
++   DEFSYM (QCplus, ":+");
++   DEFSYM (QCequal, ":equal");
+++  DEFSYM (QCeq_q, ":eq?");
++   DEFSYM (QCmatch, ":match");
+++  DEFSYM (QCmatch_q, ":match?");
++   DEFSYM (QCpred, ":pred");
+++  DEFSYM (QCpred_q, ":pred?");
++ 
++   DEFSYM (Qnot_found, "not-found");
++   DEFSYM (Qsymbol_error, "symbol-error");
++@@ -4356,12 +4359,12 @@
++   Vtreesit_str_star = build_pure_c_string ("*");
++   staticpro (&Vtreesit_str_plus);
++   Vtreesit_str_plus = build_pure_c_string ("+");
++-  staticpro (&Vtreesit_str_pound_equal);
++-  Vtreesit_str_pound_equal = build_pure_c_string ("#equal");
++-  staticpro (&Vtreesit_str_pound_match);
++-  Vtreesit_str_pound_match = build_pure_c_string ("#match");
++-  staticpro (&Vtreesit_str_pound_pred);
++-  Vtreesit_str_pound_pred = build_pure_c_string ("#pred");
+++  staticpro (&Vtreesit_str_pound_eq_question_mark);
+++  Vtreesit_str_pound_eq_question_mark = build_pure_c_string ("#eq?");
+++  staticpro (&Vtreesit_str_pound_match_question_mark);
+++  Vtreesit_str_pound_match_question_mark = build_pure_c_string ("#match?");
+++  staticpro (&Vtreesit_str_pound_pred_question_mark);
+++  Vtreesit_str_pound_pred_question_mark = build_pure_c_string ("#pred?");
++   staticpro (&Vtreesit_str_open_bracket);
++   Vtreesit_str_open_bracket = build_pure_c_string ("[");
++   staticpro (&Vtreesit_str_close_bracket);
++@@ -4372,12 +4375,12 @@
++   Vtreesit_str_close_paren = build_pure_c_string (")");
++   staticpro (&Vtreesit_str_space);
++   Vtreesit_str_space = build_pure_c_string (" ");
++-  staticpro (&Vtreesit_str_equal);
++-  Vtreesit_str_equal = build_pure_c_string ("equal");
++-  staticpro (&Vtreesit_str_match);
++-  Vtreesit_str_match = build_pure_c_string ("match");
++-  staticpro (&Vtreesit_str_pred);
++-  Vtreesit_str_pred = build_pure_c_string ("pred");
+++  staticpro (&Vtreesit_str_eq_question_mark);
+++  Vtreesit_str_eq_question_mark = build_pure_c_string ("eq?");
+++  staticpro (&Vtreesit_str_match_question_mark);
+++  Vtreesit_str_match_question_mark = build_pure_c_string ("match?");
+++  staticpro (&Vtreesit_str_pred_question_mark);
+++  Vtreesit_str_pred_question_mark = build_pure_c_string ("pred?");
++   staticpro (&Vtreesit_str_empty);
++   Vtreesit_str_empty = build_pure_c_string ("");
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs30/patches/patch-src_xsettings.c editors/emacs30/patches/patch-src_xsettings.c
+--- /usr/pkgsrc/editors/emacs30/patches/patch-src_xsettings.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs30/patches/patch-src_xsettings.c	2026-09-21 13:34:06.390024329 +0000
+@@ -0,0 +1,28 @@
++$NetBSD$
++
++Do not dereference a NULL GSettingsSchemaSource when no GSettings
++schemas are installed (seen on macOS).  From MacPorts.
++
++--- src/xsettings.c.orig
+++++ src/xsettings.c
++@@ -1054,12 +1054,14 @@
++ 
++ #if GLIB_CHECK_VERSION (2, 32, 0)
++   {
++-    GSettingsSchema *sc = g_settings_schema_source_lookup
++-      (g_settings_schema_source_get_default (),
++-       GSETTINGS_SCHEMA,
++-       true);
++-    schema_found = sc != NULL;
++-    if (sc) g_settings_schema_unref (sc);
+++    GSettingsSchemaSource *source = g_settings_schema_source_get_default ();
+++    if (source != NULL)
+++      {
+++	GSettingsSchema *sc = g_settings_schema_source_lookup
+++	  (source, GSETTINGS_SCHEMA, true);
+++	schema_found = sc != NULL;
+++	if (sc) g_settings_schema_unref (sc);
+++      }
++   }
++ #else
++   {

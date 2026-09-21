@@ -1,0 +1,48 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs31/Makefile editors/emacs31/Makefile
+--- /usr/pkgsrc/editors/emacs31/Makefile	2026-09-18 05:45:58.497645561 +0000
++++ editors/emacs31/Makefile	2026-09-21 14:10:40.326755393 +0000
+@@ -4,7 +4,7 @@
+ 
+ .include "../../editors/emacs31/Makefile.common"
+ 
+-PKGREVISION=	2
++PKGREVISION=	3
+ 
+ .include "options.mk"
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs31/distinfo editors/emacs31/distinfo
+--- /usr/pkgsrc/editors/emacs31/distinfo	2026-08-25 17:22:38.000000000 +0000
++++ editors/emacs31/distinfo	2026-09-21 13:42:03.346751790 +0000
+@@ -3,3 +3,4 @@
+ BLAKE2s (emacs-31.1.tar.xz) = 7ba508747b7a4daf6744b45e548e4e1fe8d10563b9d8ed08233d69c07986e69f
+ SHA512 (emacs-31.1.tar.xz) = 25cb810d09eaaa58306f4c10f406466c424517657dd1c9db056dadb624f0bc33db58f3bcdf527d81e5059e492b81c237f164eb3997bf4357bd84c696537f6836
+ Size (emacs-31.1.tar.xz) = 57977476 bytes
++SHA1 (patch-lisp_progmodes_flymake.el) = e6e06eda34368938080e018a3c6bd68ae8c94bdb
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs31/patches/patch-lisp_progmodes_flymake.el editors/emacs31/patches/patch-lisp_progmodes_flymake.el
+--- /usr/pkgsrc/editors/emacs31/patches/patch-lisp_progmodes_flymake.el	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs31/patches/patch-lisp_progmodes_flymake.el	2026-09-21 13:41:57.521449133 +0000
+@@ -0,0 +1,24 @@
++$NetBSD$
++
++Copy trusted-content-p to flymake.el so flymake does not run backends
++on untrusted content (Gentoo bug 982533).
++From emacs commit 49c77fb219cbab8fc9d1b172fe754c2a2e4d9c53 (emacs-31 branch).
++
++--- lisp/progmodes/flymake.el.orig
+++++ lisp/progmodes/flymake.el
++@@ -1271,8 +1271,13 @@
++             (flymake--state-disabled state) nil
++             (flymake--state-reported-p state) nil))
++     (condition-case-unless-debug err
++-        (apply backend (flymake-make-report-fn backend run-token)
++-               args)
+++        (if (or (trusted-content-p) (function-get backend 'flymake-always-safe))
+++            (apply backend (flymake-make-report-fn backend run-token)
+++                   args)
+++          (message "Disabling %S in %s (untrusted content)"
+++                   backend (buffer-name))
+++          (user-error "Disabling %S in %s (untrusted content)"
+++                      backend (buffer-name)))
++       (error
++        (flymake--disable-backend backend err)))))
++ 

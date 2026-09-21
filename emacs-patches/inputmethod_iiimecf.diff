@@ -1,0 +1,61 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/iiimecf/Makefile inputmethod/iiimecf/Makefile
+--- /usr/pkgsrc/inputmethod/iiimecf/Makefile	2026-09-18 05:47:01.526412067 +0000
++++ inputmethod/iiimecf/Makefile	2026-09-21 14:03:07.828218568 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=	IIIMECF-0.6
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}iiimecf-0.6
+-PKGREVISION=	3
++PKGREVISION=	4
+ CATEGORIES=	japanese inputmethod
+ MASTER_SITES=	http://unit.aist.go.jp/itri/itri-gist/ftp.m17n.org/pub/mule/IIIM/
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/iiimecf/distinfo inputmethod/iiimecf/distinfo
+--- /usr/pkgsrc/inputmethod/iiimecf/distinfo	2021-10-26 10:49:36.000000000 +0000
++++ inputmethod/iiimecf/distinfo	2026-09-21 13:58:14.599762158 +0000
+@@ -3,3 +3,4 @@
+ BLAKE2s (IIIMECF-0.6.tar.gz) = b64f10634bddefff617c5c3d66f6137ebd1df099daef8e67c76516e53a26c970
+ SHA512 (IIIMECF-0.6.tar.gz) = 5c349c1ffbd633c3f65b1a830df7ad1e0ec9424598ce3c721d75209204dd8b7c116385ba969e64f0b20f87098f98d48824e99553ab02f687703fc8d2ee97fdfa
+ Size (IIIMECF-0.6.tar.gz) = 71565 bytes
++SHA1 (patch-lisp_iiimcf.el) = 736471cc83482acdf55911237ce41cb84e0d177d
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/iiimecf/patches/patch-lisp_iiimcf.el inputmethod/iiimecf/patches/patch-lisp_iiimcf.el
+--- /usr/pkgsrc/inputmethod/iiimecf/patches/patch-lisp_iiimcf.el	1970-01-01 00:00:00.000000000 +0000
++++ inputmethod/iiimecf/patches/patch-lisp_iiimcf.el	2026-09-21 13:58:14.370693659 +0000
+@@ -0,0 +1,37 @@
++$NetBSD$
++
++Add the symbol keys to the input table.  From Debian.
++
++--- lisp/iiimcf.el.orig
+++++ lisp/iiimcf.el
++@@ -322,6 +322,22 @@
++     (modechange 31 65535)
++     (kana 21 65535)
++     (kanji 25 65535)
+++    (?! 517 ?!)
+++    (?\" 152 ?\")
+++    (?# 520 ?#)
+++    (?$ 515 ?$)
+++    (?% 53 ?%) ; with shift key
+++    (?& 150 ?&)
+++    (?' 222 ?')
+++    (?\( 519 ?\()
+++    (?\) 522 ?\))
+++    (?{ 161 ?{)
+++    (?} 162 ?})
+++    (?+ 521 ?+)
+++    (?< 153 ?<)
+++    (?> 160 ?>)
+++    (?? 47 ??)
+++    (?_ 523 ?_)
++     (undefined 0)
++     (char-undefined 0)))
++ 
++@@ -438,6 +454,7 @@
++ 	      kchar (or (nth 2 slot)
++ 			kcode))
++       (setq kcode (iiimcf-basic-event-type-to-keycode base)))
+++    (if (eq base ?%) (setq kmod 1))
++     (if (numberp kcode)
++ 	(list (cons 0 kcode)
++ 	      (cons 0 kchar)
