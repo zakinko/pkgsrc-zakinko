@@ -21,9 +21,7 @@ USE_TOOLS+=	pax
 
 WRKSRC=		${WRKDIR}/${DISTNAME}/lisp
 
-# XEmacs has its own JDE package.  2.3.2 is the last source release and
-# byte-compiles and loads on Emacs 20; the modern Emacsen have other Java
-# modes.
+# XEmacs has its own JDE package
 EMACS_VERSIONS_ACCEPTED=	emacs20
 
 .include "../../editors/emacs/modules.mk"
