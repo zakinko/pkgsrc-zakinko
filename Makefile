@@ -72,6 +72,7 @@ SUBDIR+=	openjdk8
 SUBDIR+=	pcl-cvs
 SUBDIR+=	stnsd
 SUBDIR+=	tamago
+SUBDIR+=	thttpd
 SUBDIR+=	uim-mozc
 SUBDIR+=	w3
 SUBDIR+=	xemacs

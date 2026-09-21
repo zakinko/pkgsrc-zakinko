@@ -1,0 +1,45 @@
+name: thttpd CVE patch
+
+# zakinko/thttpd の patch-libhttpd.c (CVE-2012-5640, CVE-2009-4491) を
+# 上流の tarball に当てて、素と当て物入りを同じ入力に掛ける。中身は
+# .github/ci/verify-thttpd-cve.sh。
+#
+# 5640 は crypt() が NULL を返す libc でしか落ちない。NetBSD (bambi で
+# 測った) も今の Linux (libxcrypt) も "*0" を返す。illumos は NULL を
+# 返すので、本物の落ち方はそこで見る。Linux は shim で代役。
+#
+# pkgsrc の bootstrap は要らないので数分で終わる。
+
+on:
+  push:
+    branches: [thttpd]
+    paths: [thttpd/**, .github/workflows/thttpd-cve.yml, .github/ci/verify-thttpd-cve.sh]
+  workflow_dispatch:
+
+concurrency:
+  group: thttpd-cve-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux (crypt は shim で NULL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh .github/ci/verify-thttpd-cve.sh thttpd/patches
+
+  illumos:
+    name: illumos (crypt が NULL を返す libc)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/omnios-vm@v1
+        with:
+          release: 'r151058'
+          prepare: |
+            pkg install developer/gcc14 developer/build/gnu-make web/curl || true
+          run: |
+            PATH=/opt/gcc-14/bin:$PATH; export PATH
+            sh .github/ci/verify-thttpd-cve.sh thttpd/patches
