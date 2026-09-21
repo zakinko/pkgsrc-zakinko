@@ -94,12 +94,13 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 		# 無く、C99 を通さない compiler では "C compiler cannot create
 		# executables" で止まる。この当て物はそこだけを直し、thttpd の
 		# code は一行も変えないので、対照としての素の振舞いは保たれる。
-		( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/patch-configure" \
+		( cd "$T/$1" && patch -s -p0 -f -i "$DIR/patches/patch-configure" \
 		    >/dev/null 2>&1 </dev/null ) ;;
 	*)	for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 \
 		          patch-configure patch-libhttpd.c patch-thttpd.c; do
-			( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/$pp" \
-			    >/dev/null 2>&1 </dev/null )
+			( cd "$T/$1" && patch -s -p0 -f -i "$DIR/patches/$pp" \
+			    >/dev/null 2>&1 </dev/null ) \
+			    || { echo "  !! $pp が $1 に当たらない" >&2; return 1; }
 		done ;;
 	esac
 	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="$CC $OSCFLAGS $3" thttpd >bl.log 2>&1 )
