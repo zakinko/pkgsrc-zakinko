@@ -39,6 +39,12 @@ SUBST_STAGE.paths=	pre-configure
 
 MAKE_JOBS_SAFE=	no
 
+# glibc declares sigset(3) only under _XOPEN_SOURCE.  configure finds the
+# symbol anyway (it links), so HAVE_SIGSET is defined and thttpd.c calls it
+# with no prototype in scope -- an error with gcc 14 and later, where C23
+# made implicit declarations fatal.
+CFLAGS.Linux+=	-D_GNU_SOURCE
+
 CFLAGS.SCO_SV+=	-DMAXPATHLEN=255 -DS_IFSOCK=0
 
 post-extract:
