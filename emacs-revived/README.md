@@ -12,5 +12,9 @@ the tree as it was just before the removal.
 | editors/jde (2.3.2) | the "won't compile with emacs20" note in the old Makefile is stale: all 37 files byte-compile with Emacs 20.7 against speedbar, eieio, semantic and elib, `(require 'jde)` loads and jde-mode indents a Java file. **The pkgsrc build itself was not run**: `mk/java-vm.mk` needs a JDK installed in the prefix, and none of the prefixes on the build box has one (building openjdk there takes hours). To be built on a box with a binary openjdk before this goes anywhere |
 | textproc/nxml-mode (20041004) | not revived. Upstream's README says Emacs 20 will not work, and it does not: the sources use the `#x` reader syntax (Emacs 21) about 830 times, `replace-regexp-in-string` everywhere, and Unicode characters Emacs 20 cannot represent without Mule-UCS. Emacs 23 and later bundle nxml-mode |
 
+editors/leim21 went with the same commit and is not brought back: it was
+the input-method library for emacs21 only, and editors/leim20 is still
+there for emacs20.
+
 A PKGREVISION bump is not carried here: the packages are being re-added,
 and pkgsrc's rule for that is to keep the last revision.
