@@ -30,8 +30,18 @@ unset PKG_PATH
 rc=0
 T=${TMPDIR:-/tmp}/thttpd-v.$$; mkdir -p "$T"
 DIR=$TREE/zakinko/thttpd
-if [ "$OS" = NetBSD ]; then PKGMAKE=make; else PKGMAKE=bmake; fi
-command -v $PKGMAKE >/dev/null 2>&1 || PKGMAKE="$PREFIX/bin/bmake"
+# pkgsrc で建てた bmake を先に見る。PATH は /usr/bin が $PREFIX/bin より
+# 先なので、base にも bmake が在る箱 (FreeBSD) ではそちらが拾われる。
+# base の bmake の既定 sys path は /usr/share/mk で、FreeBSD の
+# bsd.own.mk は OBJECT_FMT を定義しない。すると bsd.prefs.mk の
+#   NATIVE_OBJECT_FMT:= ${OBJECT_FMT}
+# が未定義の参照をそのまま残し、次の行の定義と噛み合って
+#   Variable OBJECT_FMT is recursive
+# になる。pkgsrc の木を読ませるなら pkgsrc の bmake でなければならない。
+if [ -x "$PREFIX/bin/bmake" ]; then PKGMAKE="$PREFIX/bin/bmake"
+elif [ "$OS" = NetBSD ]; then PKGMAKE=make
+else PKGMAKE=bmake; fi
+echo "使う make: $PKGMAKE"
 
 # 取得の道具は箱によって違う。NetBSD と OpenBSD には curl も wget も無く、
 # base の ftp(1) が URL を取れる。
