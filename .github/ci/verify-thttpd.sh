@@ -30,7 +30,11 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 	rm -rf "$T/$1"
 	( cd "$T" && [ -f thttpd-2.29.tar.gz ] || $DL https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz )
 	( cd "$T" && gzip -dc thttpd-2.29.tar.gz | tar xf - && mv thttpd-2.29 "$1" )
-	[ "$2" = no ] || ( cd "$T/$1" && patch -p0 -f < "$DIR/patches/patch-libhttpd.c" >/dev/null )
+	if [ "$2" != no ]; then
+		for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 patch-libhttpd.c; do
+			( cd "$T/$1" && patch -p0 -f < "$DIR/patches/$pp" >/dev/null )
+		done
+	fi
 	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="${CC:-cc} $3" thttpd >bl.log 2>&1 )
 	test -x "$T/$1/thttpd"
 }

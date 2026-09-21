@@ -1,9 +1,13 @@
 $NetBSD$
 
-Same class as the expand_symlinks()/auth_check2() underflows patched in
-patch-libhttpd.c: fgets() is not checked and pass[strlen(pass)-1] reads
-before the buffer when it fails (pass is left uninitialized) or when the
-first byte read is a NUL.
+Not a CVE: the same length-1 indexing shape as patch-CVE-2007-0158, in
+the htpasswd utility.  fgets() is not checked, so pass is left
+uninitialised when it fails, and a leading NUL byte leaves strlen() at
+0; either way pass[strlen(pass)-1] reads before the buffer.  This is a
+local tool reading its own stdin, not the server.
+
+Neither FreeBSD ports nor Debian patches this; their htpasswd changes
+are elsewhere in the file.
 
 --- extras/htpasswd.c.orig
 +++ extras/htpasswd.c
