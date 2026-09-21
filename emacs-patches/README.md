@@ -37,6 +37,7 @@ patch file carries a description and the origin; PKGREVISION is bumped.
 | inputmethod/anthy-unicode-elisp | anthy.el: use a marker for the preedit start | Debian anthy | |
 | inputmethod/iiimecf | symbol keys in the input table | Debian | |
 | devel/semantic | pass LOADPATH to the bundled Makefile so speedbar and eieio are found (it did not build under emacs20) | own | |
+| misc/color-theme | make-variable-frame-local, set-face-property, the modeline face, user-variable-p and cl are gone from Emacs 26–29, so color-theme-print died with a void user-variable-p and per-frame themes could not be set (Gentoo); the themes directory was joined as DIR//themes, which Emacs 20 reads as /themes, so it never found its own theme files (own). color-theme-print runs on emacs30 and emacs20 | Gentoo (Drew Adams), own | |
 
 ## Read and not taken
 
@@ -56,6 +57,10 @@ patch file carries a description and the origin; PKGREVISION is bumped.
   locale.
 - Debian gnuserv 1-fix-bufferovs (already in 3.12.8) and 4-xauth (does
   not apply to 3.12.8).
+- Gentoo mailcrypt backquotes: the old-style backquote sits in a
+  with-current-buffer fallback that never runs on any Emacs pkgsrc has;
+  mc-gpg loads unpatched on emacs30 and emacs20, the patch only silences
+  a byte-compiler warning.
 
 ## Not resolved
 

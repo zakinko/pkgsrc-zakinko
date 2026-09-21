@@ -1,0 +1,245 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/color-theme/Makefile misc/color-theme/Makefile
+--- /usr/pkgsrc/misc/color-theme/Makefile	2022-11-12 09:10:23.000000000 +0000
++++ misc/color-theme/Makefile	2026-09-21 20:49:56.960306025 +0000
+@@ -2,7 +2,7 @@
+ #
+ 
+ DISTNAME=	color-theme-6.6.0
+-PKGREVISION=	2
++PKGREVISION=	3
+ CATEGORIES=	misc
+ MASTER_SITES=	https://download.savannah.gnu.org/releases/${PKGBASE}/
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/color-theme/distinfo misc/color-theme/distinfo
+--- /usr/pkgsrc/misc/color-theme/distinfo	2021-10-26 10:58:59.000000000 +0000
++++ misc/color-theme/distinfo	2026-09-21 20:49:30.667307613 +0000
+@@ -4,3 +4,4 @@
+ SHA512 (color-theme-6.6.0.tar.gz) = 4faa22900f6ad4a1dd57452470e23b57827d3f02bf2b9e3c4eed6f5693432d6478aa5008e67f219a95412a63fe52dbcad15b0ac7a3b4d39f1d28ceda75e5e76c
+ Size (color-theme-6.6.0.tar.gz) = 124858 bytes
+ SHA1 (patch-Makefile) = 728127c250306ca92ad940eb277500f88739b312
++SHA1 (patch-color-theme.el) = 8eae1bb6bc814727e816763906af7cbf564aa8c2
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/color-theme/patches/patch-color-theme.el misc/color-theme/patches/patch-color-theme.el
+--- /usr/pkgsrc/misc/color-theme/patches/patch-color-theme.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/color-theme/patches/patch-color-theme.el	2026-09-21 20:49:30.010119619 +0000
+@@ -0,0 +1,221 @@
++$NetBSD$
++
++Emacs 26 removed make-variable-frame-local and set-face-property, 24.3 the
++modeline face; Emacs 27 removed user-variable-p and 29 cl in favour of
++cl-lib; replace-in-string is an XEmacs function that the file defined as a
++fallback in a way later Emacsen do not need.  Without these, color-theme-print
++fails with a void user-variable-p and per-frame themes cannot be set.
++From Gentoo (Drew Adams for the Emacs 26 part).
++
++The themes directory was built as DIR//themes; Emacs 20 reads a doubled
++slash as a fresh root and tries to load /themes/*.elc, so color-theme could
++not be initialized there.  Join the path with expand-file-name instead.
++
++--- color-theme.el.orig
+++++ color-theme.el
++@@ -50,8 +50,20 @@
++   (require 'reporter)
++   (require 'sendmail))
++ 
++-(require 'cl); set-difference is a function...
++ 
+++;; cl-set-difference lives in cl-seq from Emacs 24.3; older Emacsen only
+++;; have set-difference in cl, and Emacs 20's cl-seq refuses to load first.
+++(eval-and-compile
+++  (if (>= emacs-major-version 25)
+++      (require 'cl-seq)
+++    (require 'cl)
+++    (defalias 'cl-set-difference 'set-difference)))
+++
+++;; custom-variable-p arrived in Emacs 21; before that the test was
+++;; user-variable-p, which Emacs 27 removed.
+++(unless (fboundp 'custom-variable-p)
+++  (defalias 'custom-variable-p 'user-variable-p))
+++
++ ;; for custom-face-attributes-get or face-custom-attributes-get
++ (require 'cus-face)
++ (require 'wid-edit); for widget-apply stuff in cus-face.el
++@@ -72,11 +82,6 @@
++                                   (string-match "XEmacs" emacs-version))
++   "Non-nil if running XEmacs.")
++ 
++-;; Add this since it appears to miss in emacs-2x
++-(or (fboundp 'replace-in-string)
++-    (defun replace-in-string (target old new)
++-      (replace-regexp-in-string old new  target)))
++-
++ ;; face-attr-construct has a problem in Emacs 20.7 and older when
++ ;; dealing with inverse-video faces.  Here is a short test to check
++ ;; wether you are affected.
++@@ -148,7 +153,7 @@
++   "Regexp that matches variable names.
++ Only variables that match this regexp can be changed as part of a color
++ theme.  In addition to matching this name, the variables have to be user
++-variables (see function `user-variable-p')."
+++variables (see function `custom-variable-p')."
++   :type 'regexp
++   :group 'color-theme)
++ 
++@@ -179,7 +184,7 @@
++ frames with different color themes.
++ 
++ setup:
++-    \(require 'color-theme)
+++    \(require \\='color-theme)
++     ;; set default color theme
++     \(color-theme-blue-sea)
++     ;; create some frames with different color themes
++@@ -218,9 +223,10 @@
++   :group 'color-theme)
++ 
++ (defcustom color-theme-libraries (directory-files 
++-                                  (concat 
++-                                   (file-name-directory (locate-library "color-theme"))
++-                                   "/themes") t "^color-theme")
+++                                  (expand-file-name
+++                                   "themes"
+++                                   (file-name-directory (locate-library "color-theme")))
+++                                  t "^color-theme")
++   "A list of files, which will be loaded in color-theme-initialize depending
++ on `color-theme-load-all-themes' value. 
++ This allows a user to prune the default color-themes (which can take a while
++@@ -435,7 +441,7 @@
++ If you defined your own color theme and want to add it to this list,
++ use something like this:
++ 
++-  (add-to-list 'color-themes '(color-theme-gnome2 \"Gnome2\" \"Alex\"))")
+++  (add-to-list \\='color-themes \\='(color-theme-gnome2 \"Gnome2\" \"Alex\"))")
++ 
++ ;;; Functions
++ 
++@@ -518,7 +524,7 @@
++ If you want to install the color theme permanently, put the call to the
++ color theme function into your ~/.emacs:
++ 
++-    \(require 'color-theme)
+++    \(require \\='color-theme)
++     \(color-theme-gnome2)
++ 
++ If you worry about the size of color-theme.el: You are right.  Use
++@@ -612,7 +618,7 @@
++ 
++ If the optional argument EXCLUDE is non-nil, then the sense is
++ reversed: only non-matching elements will be retained."
++-  (let (elem new-list)
+++  (let (elem new-list name)
++     (dolist (elem old-list)
++       (setq name (symbol-name (if (listp elem) (car elem) elem)))
++       (when (or (and (not exclude)
++@@ -866,12 +872,12 @@
++   "Return a list of variable settings usable in a color theme.
++ Such an alist may be installed by `color-theme-install-variables'.
++ The variable names must match `color-theme-legal-variables', and the
++-variable must be a user variable according to `user-variable-p'."
+++variable must be a user variable according to `custom-variable-p'."
++   (let ((vars)
++ 	(val))
++     (mapatoms (lambda (v)
++ 		(and (boundp v)
++-		     (user-variable-p v)
+++		     (custom-variable-p v)
++ 		     (string-match color-theme-legal-variables
++ 				   (symbol-name v))
++ 		     (setq val (eval v))
++@@ -957,12 +963,12 @@
++ 
++ Example:
++ 
++-    \(require 'color-theme)
+++    \(require \\='color-theme)
++     \(defun my-color-theme ()
++       \"Color theme by Alex Schroeder, created 2000-05-17.\"
++       \(interactive)
++       \(color-theme-install
++-       '(...
+++       \\='(...
++ 	 ...
++ 	 ...)))
++     \(my-color-theme)
++@@ -972,7 +978,7 @@
++ 
++ Example:
++ 
++-    \(require 'color-theme)
+++    \(require \\='color-theme)
++     \(color-theme-gnome2)"
++   (interactive)
++   (message "Pretty printing current color theme function...")
++@@ -1082,13 +1088,11 @@
++   (let ((rules '((font-lock-builtin-face font-lock-reference-face)
++ 		 (font-lock-doc-face font-lock-doc-string-face)
++ 		 (font-lock-constant-face font-lock-preprocessor-face)
++-		 ;; In Emacs 21 `modeline' is just an alias for
++-		 ;; `mode-line'.  I recommend the use of
++-		 ;; `modeline' until further notice.
++-		 (modeline mode-line)
++-		 (modeline modeline-buffer-id)
++-		 (modeline modeline-mousable)
++-		 (modeline modeline-mousable-minor-mode)
+++		 ;; D.ADAMS - Emacs 24.3 made `modeline' obsolete, so I've just commented-out these four lines.
+++		 ;; (modeline mode-line)
+++		 ;; (modeline modeline-buffer-id)
+++		 ;; (modeline modeline-mousable)
+++		 ;; (modeline modeline-mousable-minor-mode)
++ 		 (region primary-selection)
++ 		 (region zmacs-region)
++ 		 (font-lock-string-face dired-face-boring "^dired")
++@@ -1259,7 +1263,9 @@
++ 	   (val (cdr (assq param params)))
++ 	   (frame (if color-theme-is-global nil (selected-frame))))
++       (when val
++-	(set-face-property face prop val frame)))))
+++	(if (fboundp 'set-face-property)
+++	    (set-face-property face prop val frame)
+++	  (set-face-attribute face frame prop val))))))
++ 
++ (defun color-theme-alist-reduce (old-list)
++   "Reduce OLD-LIST.
++@@ -1337,7 +1343,9 @@
++     (dolist (var vars)
++       (if (or color-theme-is-global color-theme-xemacs-p)
++ 	  (set (car var) (cdr var))
++-	(make-variable-frame-local (car var))
+++	;; DADAMS
+++	;; `make-variable-frame-local' was removed from Emacs C code in Emacs 26.
+++	(when (fboundp 'make-variable-frame-local) (make-variable-frame-local (car var)))
++ 	(modify-frame-parameters (selected-frame) (list var))))))
++ 
++ (defun color-theme-install-faces (faces)
++@@ -1498,15 +1506,15 @@
++ 			(color-theme-get-vars)
++ 			(color-theme-get-face-definitions)))
++     (delete-frame))
++-  (let ((params (set-difference
+++  (let ((params (cl-set-difference
++ 		 (color-theme-frame-params theme-b)
++ 		 (color-theme-frame-params theme-a)
++ 		 :test 'equal))
++-	(vars (set-difference
+++	(vars (cl-set-difference
++ 	       (color-theme-variables theme-b)
++ 	       (color-theme-variables theme-a)
++ 	       :test 'equal))
++-	(faces (set-difference
+++	(faces (cl-set-difference
++ 		(color-theme-faces theme-b)
++ 		(color-theme-faces theme-a)
++ 		:test 'equal)))
++@@ -1626,9 +1634,10 @@
++        (add-to-list 'color-themes
++                     (list ',n
++                           (upcase-initials
++-                           (replace-in-string
++-                            (replace-in-string 
++-                             (symbol-name ',n) "^color-theme-" "") "-" " "))
+++			   (replace-regexp-in-string
+++			    "-" " "
+++			    (replace-regexp-in-string
+++			     "^color-theme-" "" (symbol-name ',n))))
++                           ,author))
++        (defun ,n ()
++ 	 ,description
