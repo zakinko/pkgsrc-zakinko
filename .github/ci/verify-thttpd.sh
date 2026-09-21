@@ -6,12 +6,17 @@
 #   pkgsrc で建って入る
 #   CVE-2009-4491 (log injection)  どの箱でも。上流に修正が無いので手厚く
 #   CVE-2012-5640 (crypt NULL)     NULL を返す箱は native、返さない箱は shim
-#   CVE-2007-0158 (underflow)      空 symlink + ASan が動く箱で full process を撃つ
+#   CVE-2007-0158 (underflow)      ASan の下で二つの入口を撃つ。長さ 0 の
+#                                  symlink と、NUL で始まる .htpasswd の行
 #
-# pkgsrc の build が道具の都合で落ちる箱がある (Linux の GNU ld は
-# -Wl,-zrelro を受けず、thttpd の 2002 年の configure がそこで止まる)。
-# その場合も当て物の検査は落とさず、同じ patch を上流 tarball に当てて
-# 建て直して続ける。どちらで測ったかは出力に出す。
+# どの CVE も素の 2.29 との対照を取る。素がそのまま建たない箱では
+# patch-configure だけを当てて建て直す (2002 年の configure は試験
+# program の main() に戻り値の型が無く、C99 を通さない compiler で
+# 止まる)。この当て物は thttpd の code を一行も変えないので、対照と
+# しての素の振舞いは保たれる。どちらで建てたかは出力に出す。
+#
+# pkgsrc の build 自体が箱の都合で落ちることもある。その場合も検査は
+# 落とさず、同じ当て物を上流 tarball に当てて建て直して続ける。
 set -e
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
@@ -83,11 +88,20 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 	fi
 	[ -s "$T/thttpd-2.29.tar.gz" ] || { echo "  !! 2.29 の tarball を取れない" >&2; return 1; }
 	( cd "$T" && gzip -dc thttpd-2.29.tar.gz | tar xf - && mv thttpd-2.29 "$1" )
-	if [ "$2" != no ]; then
-		for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 patch-configure patch-libhttpd.c patch-thttpd.c; do
-			( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/$pp" >/dev/null 2>&1 )
-		done
-	fi
+	case $2 in
+	no)	;;
+	conf)	# 2002 年の configure は試験 program の main() に戻り値の型が
+		# 無く、C99 を通さない compiler では "C compiler cannot create
+		# executables" で止まる。この当て物はそこだけを直し、thttpd の
+		# code は一行も変えないので、対照としての素の振舞いは保たれる。
+		( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/patch-configure" \
+		    >/dev/null 2>&1 </dev/null ) ;;
+	*)	for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 \
+		          patch-configure patch-libhttpd.c patch-thttpd.c; do
+			( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/$pp" \
+			    >/dev/null 2>&1 </dev/null )
+		done ;;
+	esac
 	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="$CC $OSCFLAGS $3" thttpd >bl.log 2>&1 )
 	test -x "$T/$1/thttpd"
 }
@@ -129,6 +143,18 @@ serve() { # $1=label $2=binary $3=preload -> code_ alive_ log_
 	eval "code_$1=$code alive_$1=$alive log_$1=$D/log"
 }
 
+# 素の 2.29 を建てる。そのまま建たない箱では configure だけを直して
+# 建て直す。対照が取れないまま「この箱では測れない」で済ませると、
+# 当て物が効いているかを言えるのが一部の箱だけになる。
+STOCKMODE=""
+stockbuild() { # $1=label $2=CCflags
+	if sbuild "$1" no "$2"; then STOCKMODE="素のまま"; return 0; fi
+	if sbuild "$1" conf "$2"; then
+		STOCKMODE="patch-configure のみ (thttpd の code は無変更)"; return 0
+	fi
+	STOCKMODE=""; return 1
+}
+
 ########################################################################
 echo "########## CVE-2009-4491 (log injection) on $OS ##########"
 serve patched "$BIN" ""
@@ -136,7 +162,8 @@ if grep -q "$(printf '\033')" "$log_patched" 2>/dev/null; then echo "  !! patche
 else echo "  patched: 生の ESC なし"; fi
 if grep -q '\\x1b' "$log_patched" 2>/dev/null; then echo "  patched: \\x1b に escape されている"
 else echo "  !! patched log に \\x1b が無い"; rc=1; fi
-if sbuild stock no ""; then
+if stockbuild stock ""; then
+	echo "  対照の素は $STOCKMODE で建てた"
 	serve stock "$T/stock/thttpd" ""
 	if grep -q "$(printf '\033')" "$log_stock" 2>/dev/null; then echo "  stock: 生の ESC が log に入る (再現)"
 	else echo "  !! stock で ESC が再現しない"; rc=1; fi
@@ -191,33 +218,80 @@ fi
 
 ########################################################################
 echo "########## CVE-2007-0158 (underflow) on $OS ##########"
-if ! ln -s "" "$T/et" 2>/dev/null; then
-	rm -f "$T/et"; echo "  空 symlink を作れない箱。live テストは skip"
-elif ! echo 'int main(){return 0;}' | $CC -fsanitize=address -x c - -o "$T/at" 2>/dev/null || ! "$T/at" 2>/dev/null; then
-	rm -f "$T/et" "$T/at"; echo "  ASan が使えない箱 (未対応か ASLR)。live テストは skip"
-else
-	rm -f "$T/et" "$T/at"
-	if sbuild sa yes "-fsanitize=address -g -O0" && sbuild na no "-fsanitize=address -g -O0"; then
-		for lbl in na sa; do
-			D="$T/u-$lbl"; rm -rf "$D"; mkdir -p "$D"; echo hi > "$D/real"; ln -s "" "$D/empty"
-			ASAN_OPTIONS=abort_on_error=0:exitcode=99:detect_leaks=0 "$T/$lbl/thttpd" \
-			    -p 18092 -d "$D" -l "$D/log" -i "$D/pid" -D -nos > "$D/out" 2>&1 &
-			sleep 1
-			http_code "http://127.0.0.1:18092/empty" >/dev/null 2>&1 || true
-			sleep 0.6
-			if grep -qi 'AddressSanitizer\|stack-buffer-underflow' "$D/out"; then f=1; else f=0; fi
-			kill "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null || true
-			eval "asan_$lbl=$f"
+# ASan が動くか。NetBSD は ASLR と shadow の置き場が衝突して起動すらしない
+# ので、binary ごとに外せるなら外して測る。測れない理由が箱の設定なら、
+# その設定の方を外す。
+PAXFIX=0
+asan_works() {
+	echo 'int main(){return 0;}' | $CC -fsanitize=address -x c - -o "$T/at" 2>/dev/null \
+	    || { echo "  この箱の $CC は -fsanitize=address を持たない"; return 1; }
+	"$T/at" 2>/dev/null && return 0
+	if command -v paxctl >/dev/null 2>&1 && paxctl -A "$T/at" >/dev/null 2>&1 \
+	   && "$T/at" 2>/dev/null; then
+		PAXFIX=1
+		echo "  ASLR が ASan を止めていた。paxctl -A で外して測る"
+		return 0
+	fi
+	echo "  ASan を建てられても走らせられない"
+	return 1
+}
+
+# 一つの入口を撃って、ASan が報告するかどうかを返す。
+asan_probe() { # $1=dirlabel $2=binary $3=setup関数 $4=path [$5=auth]
+	D="$T/u-$1"; rm -rf "$D"; mkdir -p "$D"
+	"$3" "$D" || return 2
+	[ "$PAXFIX" = 1 ] && paxctl -A "$2" >/dev/null 2>&1
+	ASAN_OPTIONS=abort_on_error=0:exitcode=99:detect_leaks=0 "$2" \
+	    -p 18092 -d "$D" -l "$D/log" -i "$D/pid" -D -nos > "$D/out" 2>&1 &
+	sleep 1
+	http_code "http://127.0.0.1:18092$4" "" "" "${5:-}" >/dev/null 2>&1 || true
+	sleep 0.6
+	kill "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null || true
+	grep -qi 'AddressSanitizer' "$D/out"
+}
+
+# 入口その一: 配信する木の中の長さ 0 の symlink -> expand_symlinks() の lnk[-1]
+setup_symlink() {
+	echo hi > "$1/real"
+	ln -s "" "$1/empty" 2>/dev/null || return 1
+}
+# 入口その二: NUL で始まる .htpasswd の行 -> auth_check2() の line[-1]
+# Linux は空の symlink を作れないので、同じ CVE をこちらから撃つ。
+setup_nulauth() {
+	mkdir -p "$1/priv"; echo secret > "$1/priv/index.html"
+	printf '\000bob:x\n' > "$1/priv/.htpasswd"
+	[ "$(wc -c < "$1/priv/.htpasswd" | tr -d ' ')" = 7 ] || return 1
+}
+
+if asan_works; then
+	rm -f "$T/at"
+	if sbuild sa yes "-fsanitize=address -g -O0" \
+	   && stockbuild na "-fsanitize=address -g -O0"; then
+		echo "  対照の素は $STOCKMODE で建てた"
+		hit=0
+		for probe in symlink nulauth; do
+			case $probe in
+			symlink) setup=setup_symlink; path=/empty;    auth="" ;;
+			nulauth) setup=setup_nulauth; path=/priv/;    auth="bob:x" ;;
+			esac
+			if ! asan_probe "n-$probe" "$T/na/thttpd" "$setup" "$path" "$auth"; then
+				st=$?
+				if [ "$st" = 2 ]; then echo "  $probe: この箱では仕込めない。skip"
+				else echo "  $probe: stock で ASan が出ない"; fi
+				continue
+			fi
+			hit=1
+			echo "  $probe: stock で ASan が報告 (再現)"
+			if asan_probe "p-$probe" "$T/sa/thttpd" "$setup" "$path" "$auth"; then
+				echo "  !! $probe: patched でも ASan が出る"; rc=1
+			else
+				echo "  $probe: patched は無警告"
+			fi
 		done
-		if [ "${asan_na:-0}" = 1 ]; then
-			echo "  stock: 空 symlink の要求で ASan が underflow を報告 (再現)"
-			[ "${asan_sa:-0}" = 0 ] && echo "  patched: ASan 無警告" || { echo "  !! patched でも ASan が出る"; rc=1; }
-		else
-			# 素でも出ないなら ASan がこの箱で働いていない (NetBSD は ASLR と
-			# 衝突して起動しない)。測れていないだけなので失敗にはしない。
-			echo "  この箱では ASan が働かず live テストにならない。skip"
-		fi
-	else echo "  ASan build 不可。live テストは skip"; fi
+		[ "$hit" = 1 ] || { echo "  !! どちらの入口でも stock が再現しない"; rc=1; }
+	else echo "  ASan 付きで建てられない。live テストは skip"; fi
+else
+	echo "  ASan が使えない箱。live テストは skip"
 fi
 
 rm -rf "$T"
