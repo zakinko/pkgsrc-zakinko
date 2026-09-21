@@ -1,7 +1,7 @@
 diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/Makefile graphics/graphviz-dot-mode/Makefile
 --- /usr/pkgsrc/graphics/graphviz-dot-mode/Makefile	2023-12-22 19:15:06.000000000 +0000
-+++ graphics/graphviz-dot-mode/Makefile	2026-09-21 11:32:59.725902492 +0000
-@@ -1,33 +1,27 @@
++++ graphics/graphviz-dot-mode/Makefile	2026-09-21 18:47:10.650004856 +0000
+@@ -1,33 +1,42 @@
 -# $NetBSD: Makefile,v 1.5 2023/12/22 19:15:06 zafer Exp $
 +# $NetBSD: Makefile,v 1.10 2026/09/12 14:31:49 wiz Exp $
  
@@ -32,28 +32,51 @@ diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/Makefile graphic
 -
 -EMACS_MODULES=	base
 +EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
++# and Emacs 20, with devel/emacs20-compat and devel/cl-lib-el for what
++# 0.5.0 asks of Emacs 25, and files/graphviz-dot-e20.el for the rest
++EMACS_VERSIONS_ACCEPTED+=	emacs20
  
  INSTALLATION_DIRS=	${EMACS_LISPPREFIX}
  
--.include "../../editors/emacs/modules.mk"
--
+ .include "../../editors/emacs/modules.mk"
+ 
++PLIST_VARS+=	emacs20
++.if ${EMACS_VERSION_MAJOR} < 21
++PLIST.emacs20=	yes
++EL_E20=		graphviz-dot-e20.el
++E20_FLAGS=	-L ${EMACS_LISPPREFIX} -l graphviz-dot-e20
++.include "../../devel/cl-lib-el/buildlink3.mk"
++.include "../../devel/emacs20-compat/buildlink3.mk"
++post-extract:
++	${CP} ${FILESDIR}/graphviz-dot-e20.el ${WRKSRC}/
++.endif
++
  do-build:
 -	${EMACS_BIN} --no-init-file --no-site-file -batch \
 -		-f batch-byte-compile ${WRKSRC}/graphviz-dot-mode.el
 +	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
-+		-f batch-byte-compile graphviz-dot-mode.el
++		-L . ${E20_FLAGS} -f batch-byte-compile ${EL_E20} graphviz-dot-mode.el
  
  do-install:
- 	${INSTALL_DATA} ${WRKSRC}/graphviz-dot-mode.el ${WRKSRC}/graphviz-dot-mode.elc \
+-	${INSTALL_DATA} ${WRKSRC}/graphviz-dot-mode.el ${WRKSRC}/graphviz-dot-mode.elc \
 -		${DESTDIR}${EMACS_LISPPREFIX}/
-+		${DESTDIR}${EMACS_LISPPREFIX}
++	cd ${WRKSRC} && ${INSTALL_DATA} ${EL_E20} ${EL_E20:S/.el$/.elc/} \
++		graphviz-dot-mode.el graphviz-dot-mode.elc ${DESTDIR}${EMACS_LISPPREFIX}
  
-+.include "../../editors/emacs/modules.mk"
  .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/PLIST graphics/graphviz-dot-mode/PLIST
+--- /usr/pkgsrc/graphics/graphviz-dot-mode/PLIST	2011-12-09 21:53:44.000000000 +0000
++++ graphics/graphviz-dot-mode/PLIST	2026-09-21 18:46:43.434482492 +0000
+@@ -1,3 +1,5 @@
+ @comment $NetBSD: PLIST,v 1.1.1.1 2011/12/09 21:53:44 minskim Exp $
+ ${EMACS_LISPPREFIX}/graphviz-dot-mode.el
+ ${EMACS_LISPPREFIX}/graphviz-dot-mode.elc
++${PLIST.emacs20}${EMACS_LISPPREFIX}/graphviz-dot-e20.el
++${PLIST.emacs20}${EMACS_LISPPREFIX}/graphviz-dot-e20.elc
 diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/distinfo graphics/graphviz-dot-mode/distinfo
 --- /usr/pkgsrc/graphics/graphviz-dot-mode/distinfo	2021-10-26 10:46:17.000000000 +0000
-+++ graphics/graphviz-dot-mode/distinfo	2026-09-21 11:33:01.039041732 +0000
-@@ -1,5 +1,5 @@
++++ graphics/graphviz-dot-mode/distinfo	2026-09-21 18:47:10.876589520 +0000
+@@ -1,5 +1,6 @@
  $NetBSD: distinfo,v 1.4 2021/10/26 10:46:17 nia Exp $
  
 -BLAKE2s (graphviz-dot-mode.el) = c3a57bd49d6a6fc542647e8ec1da2cf78ca6014fa000323a073786562804b57f
@@ -62,3 +85,67 @@ diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/distinfo graphic
 +BLAKE2s (graphviz-dot-mode-0.5.0.tar.gz) = 0afd45dc98e585dc21b007f9135c2f8e0a4fc5a5f0180887c0f64d63f522b769
 +SHA512 (graphviz-dot-mode-0.5.0.tar.gz) = c7290220401fa3b81e0ce4526ce1f93970f32d4425456e2c1ad3069db17e7179cff2ff1da907057ddc61b5a20c3292b0d1f8041ff02a810f9c6b69e9b6c96bc8
 +Size (graphviz-dot-mode-0.5.0.tar.gz) = 317708 bytes
++SHA1 (patch-graphviz-dot-mode.el) = 23d9757c403efd31ac12cb56b7850153d6d93160
+diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/files/graphviz-dot-e20.el graphics/graphviz-dot-mode/files/graphviz-dot-e20.el
+--- /usr/pkgsrc/graphics/graphviz-dot-mode/files/graphviz-dot-e20.el	1970-01-01 00:00:00.000000000 +0000
++++ graphics/graphviz-dot-mode/files/graphviz-dot-e20.el	2026-09-21 18:47:10.643812449 +0000
+@@ -0,0 +1,40 @@
++;;; graphviz-dot-e20.el --- graphviz-dot-mode 0.5 on Emacs 20
++
++;; graphviz-dot-mode 0.5.0 asks for Emacs 25.  What it needs comes from
++;; devel/cl-lib-el and e20-compat.el (devel/emacs20-compat); the compile.el
++;; table below is the one piece specific to this mode.  Load it before
++;; byte-compiling the mode too, so the macros expand.
++
++(require 'cl-lib)
++(require 'e20-compat)
++
++;; 22: compile.el's table of named error regexps; Emacs 20 has only the
++;; flat list, so the name the mode adds is replaced by its entry.
++(or (boundp 'compilation-error-regexp-alist-alist)
++    (progn
++      (defvar compilation-error-regexp-alist-alist nil)
++      (eval-after-load "graphviz-dot-mode"
++	'(let ((e (assq 'dot compilation-error-regexp-alist-alist)))
++	   (when e
++	     (require 'compile)
++	     (setq compilation-error-regexp-alist
++		   (cons (cdr e) (delq 'dot compilation-error-regexp-alist))))))))
++
++;; Emacs 20 gives a single-character comment starter style a whatever its
++;; flags say, so a "#" line would only end at a style-a newline, while
++;; the mode's newline ends style b, for //.  Swap the two styles on Emacs
++;; 20: // and # become style a, /* */ style b, and the newline ends a.
++(defvar graphviz-dot-e20-propertize-function nil)
++(defun graphviz-dot-e20-setup ()
++  (when (< emacs-major-version 21)
++    (modify-syntax-entry ?/  ". 124" (syntax-table))
++    (modify-syntax-entry ?*  ". 23b" (syntax-table))
++    (modify-syntax-entry ?\n ">"     (syntax-table))
++    (or graphviz-dot-e20-propertize-function
++	(setq graphviz-dot-e20-propertize-function
++	      (syntax-propertize-rules ("^#" (0 "<")))))
++    (set (make-local-variable 'syntax-propertize-function)
++	 graphviz-dot-e20-propertize-function)))
++(add-hook 'graphviz-dot-mode-hook 'graphviz-dot-e20-setup)
++
++(provide 'graphviz-dot-e20)
+diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/patches/patch-graphviz-dot-mode.el graphics/graphviz-dot-mode/patches/patch-graphviz-dot-mode.el
+--- /usr/pkgsrc/graphics/graphviz-dot-mode/patches/patch-graphviz-dot-mode.el	1970-01-01 00:00:00.000000000 +0000
++++ graphics/graphviz-dot-mode/patches/patch-graphviz-dot-mode.el	2026-09-21 18:47:10.645460424 +0000
+@@ -0,0 +1,15 @@
++$NetBSD$
++
++On Emacs 20 load the compatibility file the package installs beside the
++mode (devel/emacs20-compat and devel/cl-lib-el supply the rest).
++
++--- graphviz-dot-mode.el.orig
+++++ graphviz-dot-mode.el
++@@ -48,6 +48,7 @@
++ ;;; Todo:
++ ;;
++ ;;; Code:
+++(if (< emacs-major-version 21) (require 'graphviz-dot-e20))
++ (require 'cl-lib)
++ (require 'compile)
++ (require 'subr-x)
