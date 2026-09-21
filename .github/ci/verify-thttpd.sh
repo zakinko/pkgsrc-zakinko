@@ -124,17 +124,19 @@ else
 	# 木の側の話で当て物とは関係ないが、原因を突き止めるまで隠れるので
 	# 判断の材料をここで出す。
 	echo "  診断: env の OBJECT_FMT 系"; env | grep -i object_fmt | sed 's/^/    /' || echo "    (無し)"
-	echo "  診断: bmake から見た値 (-V は展開するので再帰だと読めない)"
-	( cd "$DIR" && $PKGMAKE -V USE_CROSS_COMPILE ) 2>&1 | sed 's/^/    /' | head -3
-	echo "  診断: 生の定義 (-v は展開しない)"
-	for v in OBJECT_FMT NATIVE_OBJECT_FMT CROSS_OBJECT_FMT; do
-		printf '    %-20s ' "$v"
-		( cd "$DIR" && $PKGMAKE -v "$v" ) 2>&1 | head -2 | tr '\n' ' '
-		echo
+	# 再帰は makefile を読む途中で起きるので、bmake には何も訊けない
+	# (-V も -v も同じ error を返す)。file の方を読む。
+	echo "  診断: 見つかる bsd.own.mk と、その OBJECT_FMT"
+	for f in /usr/share/mk/bsd.own.mk \
+	         "$(dirname "$TREE")"/bootstrap-work/share/mk/bsd.own.mk \
+	         /pkgsrc-ci/bootstrap-work/share/mk/bsd.own.mk \
+	         "$PREFIX"/share/mk/bsd.own.mk; do
+		[ -f "$f" ] || continue
+		echo "    $f"
+		grep -n 'OBJECT_FMT' "$f" | sed 's/^/      /' | head -4
 	done
-	echo "  診断: 読んだ bsd.own.mk"
-	( cd "$DIR" && $PKGMAKE -V .MAKE.MAKEFILES ) 2>&1 | tr ' ' '\n' \
-	    | grep -i 'own\|prefs' | sed 's/^/    /' | head -4
+	echo "  診断: bsd.prefs.mk が OBJECT_FMT をどう定義しているか"
+	grep -n 'OBJECT_FMT' "$TREE/mk/bsd.prefs.mk" | sed 's/^/    /' | head -12
 	sbuild patchedbin yes "" || { echo "!! tarball build も失敗"; exit 1; }
 	BIN=$T/patchedbin/thttpd
 	echo "MODE: tarball + pkgsrc patch の $BIN を検査する"
@@ -165,7 +167,14 @@ stockbuild() { # $1=label $2=CCflags
 	if sbuild "$1" conf "$2"; then
 		STOCKMODE="patch-configure のみ (thttpd の code は無変更)"; return 0
 	fi
-	STOCKMODE=""; return 1
+	STOCKMODE=""
+	# 落ちた理由を捨てない。「対照は略」とだけ出して先へ進むと、
+	# 測れていないことの原因が残らない。
+	for f in "$T/$1/bl.log" "$T/$1/config.log"; do
+		[ -f "$f" ] && { echo "  $1 の ${f##*/} 末尾:"; \
+		    tail -8 "$f" | sed 's/^/    /'; }
+	done
+	return 1
 }
 
 ########################################################################
@@ -366,8 +375,12 @@ fi
 # CVE-2005-3124 の当て物 (patch-ag) が本当に効いているか。入れた script が
 # shell として読めるかどうかは、報告で「直した」と書く以上、機械で見る。
 echo "########## patch-ag (syslogtocern) on $OS ##########"
+# pkgsrc で入った物を優先し、tarball の代役で回っている箱では建てた木の
+# 中の物を見る。入っていないから skip、では当て物を測れていない。
 SC=$PREFIX/sbin/syslogtocern
 [ -f "$SC" ] || SC=$PREFIX/bin/syslogtocern
+[ -f "$SC" ] || SC=$T/patchedbin/extras/syslogtocern
+[ -f "$SC" ] || SC=${BIN%/thttpd}/extras/syslogtocern
 if [ -f "$SC" ]; then
 	if sh -n "$SC" 2>"$T/sc.err"; then
 		echo "  patched: 構文が通る"
@@ -410,7 +423,10 @@ fi
 # doc/pkg-vulnerabilities の上限を thttpd<2.29nb1 へ狭める変更が、本当に
 # audit を黙らせるか。「直した」と書く以上、鳴り止むことも機械で見る。
 echo "########## pkg-vulnerabilities on $OS ##########"
-PKGN=$( ( cd "$DIR" && $PKGMAKE -V PKGNAME ) 2>/dev/null )
+# bmake の -V は版によって展開しない生の値を返す (${DISTNAME}nb${PKGREVISION}
+# がそのまま出た)。pkgsrc 自身の show-var は必ず展開する。
+PKGN=$( ( cd "$DIR" && $PKGMAKE show-var VARNAME=PKGNAME ) 2>/dev/null | tail -1 )
+case $PKGN in *'${'*|'') PKGN="" ;; esac
 if [ -z "$PKGN" ]; then echo "  PKGNAME を引けない。skip"
 else
 	echo "  この package は $PKGN"
