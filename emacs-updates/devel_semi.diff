@@ -1,6 +1,15 @@
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/semi/Makefile devel/semi/Makefile
 --- /usr/pkgsrc/devel/semi/Makefile	2023-12-24 14:24:52.000000000 +0000
-+++ devel/semi/Makefile	2026-09-21 17:36:10.490011337 +0000
++++ devel/semi/Makefile	2026-09-21 21:01:15.926506199 +0000
+@@ -49,7 +49,7 @@
+ 
+ do-install: plist
+ 	cd ${WRKSRC};							\
+-	grep -v '^@' ${PLIST} | grep '/site-lisp/semi/' |		\
++	grep -v '^@' ${PLIST} | grep '/semi/' |			\
+ 	while read file; do						\
+ 		file=$$( basename $$file );				\
+ 		${INSTALL_DATA} $$file					\
 @@ -68,4 +68,8 @@
  
  .include "../../devel/apel/buildlink3.mk"

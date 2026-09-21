@@ -2,7 +2,7 @@ Binary files /usr/pkgsrc/devel/apel/._files and devel/apel/._files differ
 Binary files /usr/pkgsrc/devel/apel/._patches and devel/apel/._patches differ
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
 --- /usr/pkgsrc/devel/apel/Makefile	2026-09-18 05:45:02.008721410 +0000
-+++ devel/apel/Makefile	2026-09-21 17:01:34.067352312 +0000
++++ devel/apel/Makefile	2026-09-21 21:07:01.592067883 +0000
 @@ -1,12 +1,11 @@
  # $NetBSD: Makefile,v 1.46 2026/09/12 14:31:49 wiz Exp $
  
@@ -18,11 +18,22 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
  
  MAINTAINER=	uebayasi@NetBSD.org
  HOMEPAGE=	http://git.chise.org/elisp/apel/
-@@ -25,10 +24,10 @@
+@@ -14,7 +13,6 @@
+ LICENSE=	gnu-gpl-v2 OR gnu-gpl-v3
+ 
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX:C|^${PREFIX}/||}/apel
+-INSTALLATION_DIRS+=	${EMACS_LISPPREFIX:C|^${PREFIX}/||}/emu
+ 
+ PLIST_SRC=	${PKGDIR}/PLIST.${EMACS_FLAVOR}
+ BUILD_TARGET=	${BUILD_TARGET.${EMACS_FLAVOR}}
+@@ -24,11 +22,12 @@
+ MAKE_FLAGS+=	VERSION_SPECIFIC_LISPDIR=${EMACS_LISPPREFIX:Q}
  MAKE_FLAGS+=	${MAKE_FLAGS.${EMACS_FLAVOR}}
  
- # apel is included in xemacs-packages
+-# apel is included in xemacs-packages
 -EMACS_VERSIONS_INCOMPATIBLE=	emacs20
++# xemacs-packages carries an older apel (no detect-mime-charset-string), and
++# flim 1.14.9 needs this one, so XEmacs is accepted here too.
  EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
  EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
  EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
@@ -30,7 +41,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
  
  BUILD_TARGET.emacs=	elc
  BUILD_TARGET.xemacs=	package
-@@ -37,6 +36,11 @@
+@@ -37,8 +36,18 @@
  MAKE_FLAGS.emacs=
  MAKE_FLAGS.xemacs=	PACKAGEDIR=${EMACS_LISPPREFIX:C|/lisp$||}
  
@@ -41,10 +52,50 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
 +
  .include "../../editors/emacs/modules.mk"
  
++# XEmacs gets everything in one package directory; emu/ is GNU Emacs only.
++.if ${EMACS_FLAVOR} == "emacs"
++INSTALLATION_DIRS+=	${EMACS_LISPPREFIX:C|^${PREFIX}/||}/emu
++.endif
++
  PLIST_VARS+=	emacs23 emacs19
+ .if empty(EMACS_TYPE:Mxemacs)
+ .  if !empty(EMACS_TYPE:Memacs2[3-9]*) || !empty(EMACS_TYPE:Memacs3[0-9]*)
+@@ -53,7 +62,7 @@
+ do-install: plist
+ 	cd ${WRKSRC};							\
+ 	for subdir in emu apel; do					\
+-		grep -v '^@' ${PLIST} | grep "/site-lisp/$$subdir/" |	\
++		grep -v '^@' ${PLIST} | grep "/$$subdir/" |		\
+ 		while read file; do					\
+ 			file=$$( basename $$file );			\
+ 			${INSTALL_DATA} $$file				\
+@@ -61,4 +70,14 @@
+ 		done							\
+ 	done
+ 
++# XEmacs packages carry their autoloads and custom dependencies in
++# auto-autoloads.el and custom-load.el; upstream's install-package target
++# generates them into the installed directory, so do the same here.
++.if ${EMACS_FLAVOR} == "xemacs"
++post-install:
++	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${EMACS_BIN} -batch -q -no-site-file \
++	    -l APEL-MK -eval '(progn (config-apel-package)		\
++		(install-update-package-files "apel"			\
++		    "${DESTDIR}${EMACS_LISPPREFIX}/apel" nil))' NONE
++.endif
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/PLIST.xemacs devel/apel/PLIST.xemacs
+--- /usr/pkgsrc/devel/apel/PLIST.xemacs	2009-06-14 17:48:33.000000000 +0000
++++ devel/apel/PLIST.xemacs	2026-09-21 21:07:02.063940984 +0000
+@@ -63,5 +63,3 @@
+ ${EMACS_LISPPREFIX}/apel/richtext.elc
+ ${EMACS_LISPPREFIX}/apel/static.el
+ ${EMACS_LISPPREFIX}/apel/static.elc
+-${EMACS_LISPPREFIX}/apel/timezone.el
+-${EMACS_LISPPREFIX}/apel/timezone.elc
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 --- /usr/pkgsrc/devel/apel/distinfo	2022-01-31 00:17:58.000000000 +0000
-+++ devel/apel/distinfo	2026-09-21 17:11:25.717791684 +0000
++++ devel/apel/distinfo	2026-09-21 21:14:44.190842588 +0000
 @@ -1,5 +1,22 @@
  $NetBSD: distinfo,v 1.13 2022/01/31 00:17:58 mef Exp $
  
@@ -54,20 +105,20 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 +BLAKE2s (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = c6261eba992d1a9e96185964552ccb48661d8c79c31c52cf61fe7e3214460501
 +SHA512 (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 76b01d6e41ad345a96c93d1526a499080546e8f839b7a697895b61a754cf9aa49b995d55909d47c8a957cefe9d3e5f49802390d5c81d168d9d458e86bf003e21
 +Size (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 69826 bytes
-+SHA1 (patch-EMU-ELS) = c5d27ba0de0f09518c29001671192da382697671
++SHA1 (patch-EMU-ELS) = b18d288911f8d603a14627faa802bd5cfacdb3dc
 +SHA1 (patch-calist.el) = 74eed741b268a21cafc9f98b2a7ac4df1dd1daf5
 +SHA1 (patch-emu.el) = 76451bc1331d5760bf273a97ace364824a48ace1
 +SHA1 (patch-filename.el) = 07599cb53c394d86fd5b0f0d243abf9f1fa71b61
 +SHA1 (patch-install.el) = 024ad1e93b240e38f399228c10d9eede9ef1f487
 +SHA1 (patch-invisible.el) = 635da61600e028ca9bf40add41fe3458a13d3d7d
 +SHA1 (patch-mcharset.el) = 1579789f6d05c905e09afc569952e4a5d8bf0469
-+SHA1 (patch-mcs-20.el) = 267f4b8c95c1b6943e82cd3a8e811402eebbe930
++SHA1 (patch-mcs-20.el) = c77800247d6b3f4b0c726b122615623718a95da2
 +SHA1 (patch-mcs-e20.el) = 4185bd017a32cba317fb1e294a3e29ccee8444ac
 +SHA1 (patch-pccl-20.el) = 521d20dde4b609199da6e76c6ff5ff5767684201
 +SHA1 (patch-pccl.el) = c347b8d6d786b9b8b1b06b0b9a9c307907013ad1
 +SHA1 (patch-pces-e20.el) = 021dfe2ebcdac5b6291765de22c2d0e53accf5b0
 +SHA1 (patch-pces.el) = 09b351de96dfc6af5c1a6ae5b53f33a0051cc9ff
-+SHA1 (patch-poe.el) = 1e1a9cd399748bd16da3e6d27899ed34557cf26e
++SHA1 (patch-poe.el) = 75c6d1c06dce4bb5bb4d143d894ae123c1aa410e
 +SHA1 (patch-poem-e20_3.el) = 06ef84c86fb290657402b10ae695575206052bf3
 +SHA1 (patch-poem.el) = 93f4b95175ffe71a5a88a660e6f95011c01cfa2a
 +SHA1 (patch-product.el) = 03e692126e9682b5158bc1250abe8b3fa9aa5a38
@@ -1477,8 +1528,8 @@ Binary files /usr/pkgsrc/devel/apel/patches/._patch-poem.el and devel/apel/patch
 Binary files /usr/pkgsrc/devel/apel/patches/._patch-product.el and devel/apel/patches/._patch-product.el differ
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel/patches/patch-EMU-ELS
 --- /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS	1970-01-01 00:00:00.000000000 +0000
-+++ devel/apel/patches/patch-EMU-ELS	2026-09-21 16:59:53.307191111 +0000
-@@ -0,0 +1,110 @@
++++ devel/apel/patches/patch-EMU-ELS	2026-09-21 21:05:35.925091494 +0000
+@@ -0,0 +1,117 @@
 +$NetBSD$
 +
 +Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
@@ -1486,9 +1537,14 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel
 +it there (misc/lookup, devel/flim, devel/semi).  The functional changes
 +made upstream since are kept.
 +
++The mcharset block is written as a cond again: the 2017 rewrite turned it
++into an if whose XEmacs branch only set emu-modules-not-to-compile and
++returned nil, so mcs-20, mcs-xm and mcharset were neither compiled nor
++installed under XEmacs.
++
 +--- EMU-ELS.orig
 ++++ EMU-ELS
-+@@ -21,27 +21,92 @@
++@@ -21,27 +21,94 @@
 +    '(product apel-ver)
 + 
 +    ;; poe modules; poe modules depend on static.
@@ -1560,17 +1616,19 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel
 +-   '(mcs-20 mcs-e20 mcharset)
 ++   (cond
 ++    ((featurep 'mule)
-++     (if (featurep 'xemacs)
-++	 ;; XEmacs w/ mule.
-++	 (if (featurep 'utf-2000)
-++	     ;; XEmacs w/ UTF-2000.
-++	     (setq emu-modules-not-to-compile
-++		   (cons 'mcs-xmu emu-modules-not-to-compile)))
+++     (cond
+++      ((featurep 'xemacs)
+++       ;; XEmacs w/ mule.
+++       (if (featurep 'utf-2000)
+++	   ;; XEmacs w/ UTF-2000.
+++	   (setq emu-modules-not-to-compile
+++		 (cons 'mcs-xmu emu-modules-not-to-compile)))
 ++       ;; mcs-xm depends mcs-20, so we compile mcs-20 first.
-++       '(mcs-20 mcs-xmu mcs-xm mcharset)
+++       '(mcs-20 mcs-xmu mcs-xm mcharset))
+++      (t
 ++       ;; Emacs 20 and later.
 ++       ;; mcs-e20 depends mcs-20, so we compile mcs-20 first.
-++       '(mcs-20 mcs-e20 mcharset)))
+++       '(mcs-20 mcs-e20 mcharset))))
 ++    (t
 ++     '(mcs-ltn1 mcharset)))
 + 
@@ -2074,8 +2132,8 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcharset.el devel/
 + Return nil if suitable mime-charset is not found."
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/apel/patches/patch-mcs-20.el
 --- /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el	1970-01-01 00:00:00.000000000 +0000
-+++ devel/apel/patches/patch-mcs-20.el	2026-09-21 16:59:53.402224579 +0000
-@@ -0,0 +1,242 @@
++++ devel/apel/patches/patch-mcs-20.el	2026-09-21 21:09:30.792871058 +0000
+@@ -0,0 +1,249 @@
 +$NetBSD$
 +
 +Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
@@ -2270,7 +2328,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/ap
 +   (let ((alist charsets-mime-charset-alist)
 + 	result)
 +     (while alist
-+@@ -183,29 +251,37 @@ In that case, START and END are indexes of the string."
++@@ -183,29 +251,44 @@ In that case, START and END are indexes of the string."
 + (defun detect-mime-charset-string (string)
 +   "Return MIME charset for STRING.
 + 
@@ -2314,6 +2372,13 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/ap
 ++  "Return MIME charset for region between START and END."
 ++  (find-mime-charset-by-charsets (find-charset-region start end)
 ++				 'region start end))
+++
+++;; FLIM's eword-encode has called this since 2020; the old branch never
+++;; had it, only the region version.
+++(defun detect-mime-charset-string (string)
+++  "Return MIME charset for STRING."
+++  (find-mime-charset-by-charsets (find-charset-string string)
+++				 'string string))
 ++))
 + 
 + (defun write-region-as-mime-charset (charset start end filename
@@ -2842,8 +2907,8 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel
 + ;;; @ end
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/patches/patch-poe.el
 --- /usr/pkgsrc/devel/apel/patches/patch-poe.el	1970-01-01 00:00:00.000000000 +0000
-+++ devel/apel/patches/patch-poe.el	2026-09-21 17:11:23.051894592 +0000
-@@ -0,0 +1,1655 @@
++++ devel/apel/patches/patch-poe.el	2026-09-21 21:14:43.965411981 +0000
+@@ -0,0 +1,1662 @@
 +$NetBSD$
 +
 +Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
@@ -3223,7 +3288,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Delete by side effect any elements of ALIST whose car is `equal' to KEY.
 + The modified ALIST is returned.  If the first member of ALIST has a car
 + that is `equal' to KEY, there is no way to remove it by side effect;
-+@@ -71,7 +416,7 @@ the value of `foo'."
++@@ -71,7 +416,7 @@
 +   alist)
 + 
 + ;; XEmacs 19.13 and later: (remassq KEY ALIST)
@@ -3232,7 +3297,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Delete by side effect any elements of ALIST whose car is `eq' to KEY.
 + The modified ALIST is returned.  If the first member of ALIST has a car
 + that is `eq' to KEY, there is no way to remove it by side effect;
-+@@ -94,7 +439,7 @@ the value of `foo'."
++@@ -94,7 +439,7 @@
 +   alist)
 + 
 + ;; XEmacs 19.13 and later: (remrassoc VALUE ALIST)
@@ -3241,7 +3306,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Delete by side effect any elements of ALIST whose cdr is `equal' to VALUE.
 + The modified ALIST is returned.  If the first member of ALIST has a car
 + that is `equal' to VALUE, there is no way to remove it by side effect;
-+@@ -117,7 +462,7 @@ the value of `foo'."
++@@ -117,7 +462,7 @@
 +   alist)
 + 
 + ;; XEmacs 19.13 and later: (remrassq VALUE ALIST)
@@ -3250,7 +3315,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Delete by side effect any elements of ALIST whose cdr is `eq' to VALUE.
 + The modified ALIST is returned.  If the first member of ALIST has a car
 + that is `eq' to VALUE, there is no way to remove it by side effect;
-+@@ -139,6 +484,111 @@ the value of `foo'."
++@@ -139,6 +484,118 @@
 +                   tail (cdr tail))))))
 +   alist)
 + 
@@ -3286,20 +3351,27 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 ++  nil)
 ++
 ++;; Emacs 23 added the WHEN argument; the old two-argument forms error
-++;; on it.  FLIM and SEMI pass it.
+++;; on it.  FLIM and SEMI pass it.  Emacs 20 and 21 keep the originals in
+++;; bytecomp.el, so loading that later puts them back; wrap again then.
 ++(static-if (< emacs-major-version 23)
 ++    (progn
-++      (or (fboundp 'poe-original-make-obsolete)
-++	  (fset 'poe-original-make-obsolete (symbol-function 'make-obsolete)))
-++      (defun make-obsolete (fn new &optional when)
+++      (defun poe-make-obsolete (fn new &optional when)
 ++	"Make the byte-compiler warn that FUNCTION is obsolete; WHEN is ignored."
 ++	(poe-original-make-obsolete fn new))
-++      (or (fboundp 'poe-original-make-obsolete-variable)
-++	  (fset 'poe-original-make-obsolete-variable
-++		(symbol-function 'make-obsolete-variable)))
-++      (defun make-obsolete-variable (var new &optional when access-type)
+++      (defun poe-make-obsolete-variable (var new &optional when access-type)
 ++	"Make the byte-compiler warn that VARIABLE is obsolete; WHEN is ignored."
-++	(poe-original-make-obsolete-variable var new))))
+++	(poe-original-make-obsolete-variable var new))
+++      (defun poe-wrap-make-obsolete ()
+++	(unless (eq (symbol-function 'make-obsolete) 'poe-make-obsolete)
+++	  (fset 'poe-original-make-obsolete (symbol-function 'make-obsolete))
+++	  (fset 'make-obsolete 'poe-make-obsolete))
+++	(unless (eq (symbol-function 'make-obsolete-variable)
+++		    'poe-make-obsolete-variable)
+++	  (fset 'poe-original-make-obsolete-variable
+++		(symbol-function 'make-obsolete-variable))
+++	  (fset 'make-obsolete-variable 'poe-make-obsolete-variable)))
+++      (poe-wrap-make-obsolete)
+++      (eval-after-load "bytecomp" '(poe-wrap-make-obsolete))))
 ++
 ++;; Emacs 22 and later; apel-ver.el uses it in place of interactive-p.
 ++(defun-maybe called-interactively-p (&optional kind)
@@ -3362,7 +3434,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + ;;; @@ Input and display facilities.
 + 
 + ;; XXX: (defun read-passwd (prompt &optional confirm default))
-+@@ -147,12 +597,719 @@ the value of `foo'."
++@@ -147,12 +604,719 @@
 + 
 + ;; Avoid compiler warnings about this variable,
 + ;; which has a special meaning on certain system types.
@@ -4083,7 +4155,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + 
 + ;;; @ Frame commands emulation. (lisp/frame.el)
-+@@ -160,7 +1317,7 @@ On other systems, this variable is normally always nil.")
++@@ -160,7 +1324,7 @@
 + 
 + ;; XEmacs 21.0 and later:
 + ;;  (save-selected-frame &rest BODY)
@@ -4092,7 +4164,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Execute forms in BODY, then restore the selected frame."
 +   (list 'let
 + 	'((save-selected-frame-frame (selected-frame)))
-+@@ -173,18 +1330,342 @@ On other systems, this variable is normally always nil.")
++@@ -173,18 +1337,342 @@
 + ;;;
 + 
 + 
@@ -4437,7 +4509,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Convert keystroke CH into an event structure, replete with bucky bits.
 + Note that CH (the keystroke specifier) can be an integer, a character
 + or a symbol such as \\='clear."
-+@@ -192,18 +1673,24 @@ or a symbol such as \\='clear."
++@@ -192,18 +1680,24 @@
 + 
 + ;; XEmacs 21: (event-to-character EVENT
 + ;;             &optional ALLOW-EXTRA-MODIFIERS ALLOW-META ALLOW-NON-ASCII)
@@ -4472,7 +4544,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + ;; v18: no event; (read-char)
 + ;; Emacs 19, 20.1 and 20.2: (read-event)
-+@@ -211,7 +1698,7 @@ If the event isn't a keypress, this returns nil."
++@@ -211,7 +1705,7 @@
 + ;; Emacs 20.4: (read-event &optional PROMPT INHERIT-INPUT-METHOD)
 + ;; XEmacs: (next-event &optional EVENT PROMPT),
 + ;;         (next-command-event &optional EVENT PROMPT)
@@ -4481,7 +4553,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Read an event object from the input stream.
 + If EVENT is non-nil, it should be an event object and will be filled
 + in and returned; otherwise a new event object will be created and
-+@@ -225,11 +1712,13 @@ the echo area while this function is waiting for an event."
++@@ -225,11 +1719,13 @@
 + ;;; @ MULE 2 emulation.
 + ;;;
 + 

@@ -12,8 +12,8 @@ COMMENT=	Forward compatibility cl-lib for Emacs before 24.3
 LICENSE=	gnu-gpl-v3
 
 # Emacs 24.3 and later bundle cl-lib; this is for the Emacsen before it
-# that pkgsrc still carries.
-EMACS_VERSIONS_ACCEPTED=	emacs20
+# that pkgsrc still carries, and for XEmacs.
+EMACS_VERSIONS_ACCEPTED=	emacs20 xemacs214 xemacs214nox xemacs215 xemacs215nox
 
 WRKSRC=		${WRKDIR}
 NO_CONFIGURE=	yes
