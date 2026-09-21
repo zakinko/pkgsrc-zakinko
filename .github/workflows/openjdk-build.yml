@@ -47,10 +47,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 作りかけ -- distfile、依存の binary package、work -- を持ち越す。
-      # 六時間で切られても次の run が続きから始められる。
-      - name: pkgsrc の作りかけを持ち越す
-        uses: actions/cache@v4
+      # 作りかけ -- distfile と依存の binary package -- を持ち越す。
+      # 六時間で切られても次の run が依存を建て直さずに済む。
+      #
+      # restore と save を分ける。actions/cache 一つだと保存は job が成功した
+      # ときしか走らず、openjdk8 が 5 時間 51 分で切られた run では
+      # "Post ... 持ち越す: skipped" で何も残らなかった。切られた run こそ
+      # 残したいので、保存は下で if: always() にしてある。
+      - name: pkgsrc の作りかけを戻す
+        uses: actions/cache/restore@v4
         with:
           path: |
             pkgsrc-distfiles
@@ -164,8 +169,20 @@ jobs:
 
             echo "=== 建てる ==="
             date
-            make package
+            # job の上限 (350 分) より手前で自分から止める。上限で殺されると
+            # vmactions は workspace を持ち帰らず、建て終えた依存の binary
+            # package まで消える。timeout(1) で止めた場合は 0 で抜けて
+            # 持ち帰らせ、runner 側の step が印を見て job を赤くする。
+            # VM の起動と依存の展開に使った分を引いて 300 分。
+            rm -f "$WS/BUILD_TIMED_OUT"
+            timeout 300m make package; rc=$?
             date
+            if [ "$rc" -eq 124 ]; then
+              echo "300 分で止めた。依存の binary package は持ち帰る"
+              touch "$WS/BUILD_TIMED_OUT"
+            elif [ "$rc" -ne 0 ]; then
+              exit "$rc"
+            fi
 
             echo "=== PLIST を起こす ==="
             make print-PLIST > "$WS/PLIST.new" || true
@@ -178,3 +195,20 @@ jobs:
           path: PLIST.new
           if-no-files-found: warn
         if: always()
+
+      - name: pkgsrc の作りかけを残す
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            pkgsrc-distfiles
+            pkgsrc-packages
+          key: openjdk-netbsd-${{ inputs.pkg || 'openjdk21' }}-${{ github.run_id }}
+        if: always()
+
+      # VM の中では時間切れでも 0 で抜けているので、ここで赤くする。
+      - name: 時間切れなら落とす
+        run: |
+          if [ -f BUILD_TIMED_OUT ]; then
+            echo "make package が 300 分で止まった。作りかけは cache に残した"
+            exit 1
+          fi
