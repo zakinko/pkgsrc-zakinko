@@ -11,16 +11,21 @@
 ONLY_FOR_PLATFORM+=		NetBSD-*-x86_64
 
 # A 9.4 sysroot stops in os_posix.cpp, where PTHREAD_STACK_MIN is undeclared
-# until NetBSD 10, so 10 is as far back as the kit can be built.  Whether a
-# kit built that way also runs on 10 is a separate question -- see
-# README.md -- and until it has been started on a NetBSD 10 machine this
-# floor is the version the source can be built against, not a tested one.
+# until NetBSD 10, so 10 is as far back as the kit can be built.  The kit
+# below was started, and used to compile a program, on NetBSD 10.1 and 11.0
+# (amd64) before it was put where this fetches it from.  NetBSD 10's
+# ld.elf_so accepts only two PT_LOAD segments per object, and the first kit
+# produced had four and could not load libjli.so there; every object in this
+# one carries two.
 .if ${OPSYS} == "NetBSD" && ${OPSYS_VERSION} < 100000
 PKG_FAIL_REASON+=		"Only supports NetBSD >= 10"
 .endif
 
-BOOT.nb10-amd64=		bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260915.tar.xz
-SITES.${BOOT.nb10-amd64}=	${MASTER_SITE_LOCAL:=openjdk25/}
+BOOT.nb10-amd64=		bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260921.tar.xz
+# Fetched from the release the kit was built for, so the package can be
+# tried before it is in the tree.  On import the committer puts the file in
+# LOCAL_PORTS and this becomes ${MASTER_SITE_LOCAL:=openjdk25/}.
+SITES.${BOOT.nb10-amd64}=	https://github.com/zakinko/jdk25u/releases/download/bootstrap-kit-25-20260921/
 .if !empty(MACHINE_PLATFORM:MNetBSD-*-x86_64) || make(distinfo)
 DISTFILES+=			${BOOT.nb10-amd64}
 EXTRACT_ONLY+=			${BOOT.nb10-amd64}

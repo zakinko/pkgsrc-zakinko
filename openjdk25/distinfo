@@ -1,8 +1,8 @@
 $NetBSD$
 
-BLAKE2s (bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260915.tar.xz) = 114855ec5a9b99635cd3a89b881b6fe8f8b77ecc37d6ced277c5163539afe1d2
-SHA512 (bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260915.tar.xz) = 5d3693de5a4f687f6eb0f9c4d8d038012e061b04b0e8d861687d1e86b7488261dd785bb2951bf4302a5360fbd3eaf5d4fa978954a1ad89c5f9042dc44054e3bf
-Size (bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260915.tar.xz) = 188108352 bytes
+BLAKE2s (bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260921.tar.xz) = 3d690d82c2133ba6f0cda851e43e4bc8497ca3eaf49f2b326fa8d43150ab5c73
+SHA512 (bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260921.tar.xz) = 0c30888a57d36c37c9f438efb236b2fb5e25e1f94c4bbe18522bad19f5441808227e91701b4745269225b14fcd7d84506cbfde00dca318756dfb86e39801b3a0
+Size (bootstrap-jdk-1.25.0.5.0-netbsd-10-amd64-20260921.tar.xz) = 178706916 bytes
 BLAKE2s (jdk25u-jdk-25.0.4-7-1.tar.gz) = db81e919589070cbef63d5f4df43a690cb5119a72f75b12eb1a289621b4e2b97
 SHA512 (jdk25u-jdk-25.0.4-7-1.tar.gz) = ac564673ce14b192f3136d3d92e6125d412f1f449b3fcbe1f47dd0af7a6ccf6ec4a8f4c5074dcab17faf09fc2df54e0430c1e28ea7b8e171169ad97f2213b3fe
 Size (jdk25u-jdk-25.0.4-7-1.tar.gz) = 119810522 bytes
