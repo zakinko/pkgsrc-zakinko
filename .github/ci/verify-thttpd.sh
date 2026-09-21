@@ -66,7 +66,22 @@ SunOS)	OSCFLAGS=-D__EXTENSIONS__ ;;
 esac
 sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 	rm -rf "$T/$1"
-	[ -f "$T/thttpd-2.29.tar.gz" ] || fetch_to https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz "$T/thttpd-2.29.tar.gz"
+	# acme.com は落ちていることがある (一度 Operation timed out で job ごと
+	# 落ちた)。pkgsrc が既に取っている物があればそれを使い、無ければ
+	# acme.com、それでも駄目なら pkgsrc の配布物 mirror を当たる。
+	if [ ! -f "$T/thttpd-2.29.tar.gz" ]; then
+		D=$($PKGMAKE -C "$DIR" -V DISTDIR 2>/dev/null || echo "")
+		if [ -n "$D" ] && [ -f "$D/thttpd-2.29/thttpd-2.29.tar.gz" ]; then
+			cp "$D/thttpd-2.29/thttpd-2.29.tar.gz" "$T/thttpd-2.29.tar.gz"
+		else
+			for u in https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz \
+			         http://ftp.NetBSD.org/pub/pkgsrc/distfiles/thttpd-2.29/thttpd-2.29.tar.gz; do
+				fetch_to "$u" "$T/thttpd-2.29.tar.gz" && break
+				rm -f "$T/thttpd-2.29.tar.gz"
+			done
+		fi
+	fi
+	[ -s "$T/thttpd-2.29.tar.gz" ] || { echo "  !! 2.29 の tarball を取れない" >&2; return 1; }
 	( cd "$T" && gzip -dc thttpd-2.29.tar.gz | tar xf - && mv thttpd-2.29 "$1" )
 	if [ "$2" != no ]; then
 		for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 patch-configure patch-libhttpd.c patch-thttpd.c; do
@@ -87,6 +102,12 @@ if [ "$PKGSRC_OK" = 1 ] && [ -x "$BIN" ]; then
 	echo "MODE: pkgsrc で建てた $BIN を検査する"
 else
 	echo "!! pkgsrc build/install がこの箱では通らない。当て物入りを tarball から建てて検査を続ける"
+	# FreeBSD で "Variable OBJECT_FMT is recursive" が出続けている。
+	# 木の側の話で当て物とは関係ないが、原因を突き止めるまで隠れるので
+	# 判断の材料をここで出す。
+	echo "  診断: env の OBJECT_FMT 系"; env | grep -i object_fmt | sed 's/^/    /' || echo "    (無し)"
+	echo "  診断: bmake から見た値"
+	( cd "$DIR" && $PKGMAKE -V OBJECT_FMT -V NATIVE_OBJECT_FMT -V USE_CROSS_COMPILE ) 2>&1 | sed 's/^/    /' | head -8
 	sbuild patchedbin yes "" || { echo "!! tarball build も失敗"; exit 1; }
 	BIN=$T/patchedbin/thttpd
 	echo "MODE: tarball + pkgsrc patch の $BIN を検査する"
