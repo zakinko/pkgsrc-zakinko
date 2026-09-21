@@ -28,7 +28,7 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | devel/rainbow-delimiters-el | 1.3.5 | 2.1.5 | |
 | devel/reformatter-el | – | 0.7 | **new**, needed by zig-mode |
 | devel/ruby-rd-mode | 0.6.38 | 0.6.39 | the one not built through the package: it needs ruby34, whose build here kept pulling rust. The gem was fetched (distinfo is real) and its rd-mode.el byte-compiled and loaded by hand under 30.2 |
-| devel/sml-mode | 3.9.5 (2000) | 6.12 | from GNU ELPA, one file now; needs Emacs 24.3 |
+| devel/sml-mode | 3.9.5 (2000) | 6.12 | from GNU ELPA, one file now; needs Emacs 24.3. With Debian's fixes: the texinfo's direntry line, braces in @center and @setchapternewpage, which newer makeinfo rejects, and sml-indent-level marked safe as a file-local variable |
 | devel/zig-mode | 2022-01-05 snapshot | 2025-11-21 snapshot | depends on reformatter-el |
 | editors/matlab-mode | 2.3.1 | 8.2.1 | upstream moved to mathworks/Emacs-MATLAB-Mode; many more files |
 | graphics/graphviz-dot-mode | 0.3.7 | 0.5.0 | from GitHub. 0.5.0 asks for Emacs 25; the package also accepts emacs20, where devel/cl-lib-el and the new devel/emacs20-compat supply cl-lib, subr-x, setq-local, prog-mode, syntax-ppss and syntax-propertize, and files/graphviz-dot-e20.el the two things particular to this mode (the compile.el error table, and the comment styles: Emacs 20 makes a single-character comment starter style a whatever its flags say, so `//`/`#` and `/* */` swap styles there). Built for emacs20 and emacs30; on both, the same buffer indents the same and fontifies `//`, `/* */` and `#` comments the same |

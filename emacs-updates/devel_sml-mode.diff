@@ -65,17 +65,19 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/PLIST devel/sml-mode/PLIST
 +${EMACS_LISPPREFIX}/sml-mode/sml-mode.elc
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/distinfo devel/sml-mode/distinfo
 --- /usr/pkgsrc/devel/sml-mode/distinfo	2021-10-26 10:19:56.000000000 +0000
-+++ devel/sml-mode/distinfo	2026-09-21 14:56:42.859857505 +0000
-@@ -1,6 +1,6 @@
++++ devel/sml-mode/distinfo	2026-09-21 18:49:21.786311845 +0000
+@@ -1,6 +1,7 @@
  $NetBSD: distinfo,v 1.6 2021/10/26 10:19:56 nia Exp $
  
 -BLAKE2s (sml-mode-3.9.5.tar.gz) = 8ff58963ed5328f20b75cbafa600ae7d85a6fa56457ff552bc47b27aad3344d4
 -SHA512 (sml-mode-3.9.5.tar.gz) = b243cddc20262194a899e0cc2a7191b7b9f8322a96c3085946f0470628583bdc7c682d973646df1ce0a937252ea2f463f9b190f8605f950b8ce81d4cc4c153f1
 -Size (sml-mode-3.9.5.tar.gz) = 61639 bytes
+-SHA1 (patch-aa) = 233a16a580167aae82c023c48cdb802572afa935
 +BLAKE2s (sml-mode-6.12.tar) = fe0ca04fd8601a4f1b4353811ffb3661472bbccd0c3dd284a34b1c45a07c715d
 +SHA512 (sml-mode-6.12.tar) = a1accd5f6ed04d94a03edb7cf91db10cc5efa75b6d5760ba4b31c5e820baa61d684ea978abd1482fa1a978e66886e3a1cae3e4499418145b7d553590743f93b0
 +Size (sml-mode-6.12.tar) = 143360 bytes
- SHA1 (patch-aa) = 233a16a580167aae82c023c48cdb802572afa935
++SHA1 (patch-sml-mode.el) = 3d5be9d8f77c0e3527922942354d0ff25558a233
++SHA1 (patch-sml-mode.texi) = e2134a6caab8ce11c5d939a7358ecc30bfd4bdb8
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-aa devel/sml-mode/patches/patch-aa
 --- /usr/pkgsrc/devel/sml-mode/patches/patch-aa	2001-04-14 23:08:58.000000000 +0000
 +++ devel/sml-mode/patches/patch-aa	1970-01-01 00:00:00.000000000 +0000
@@ -102,3 +104,64 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-aa devel/sml-m
 - startupfile = $(lispdir)/site-start.el
 - 
 - # the directory where you installed the elib .elc files.
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.el devel/sml-mode/patches/patch-sml-mode.el
+--- /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/sml-mode/patches/patch-sml-mode.el	2026-09-21 18:49:43.048417503 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++From Debian: mark sml-indent-level safe as a file-local variable.
++
++--- sml-mode.el.orig
+++++ sml-mode.el
++@@ -136,7 +136,8 @@
++ 
++ (defcustom sml-indent-level 4
++   "Basic indentation step for SML code."
++-  :type 'integer)
+++  :type 'integer
+++  :safe 'integerp)
++ 
++ (defcustom sml-indent-args sml-indent-level
++   "Indentation of args placed on a separate line."
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.texi devel/sml-mode/patches/patch-sml-mode.texi
+--- /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.texi	1970-01-01 00:00:00.000000000 +0000
++++ devel/sml-mode/patches/patch-sml-mode.texi	2026-09-21 18:49:43.049061999 +0000
+@@ -0,0 +1,37 @@
++$NetBSD$
++
++From Debian: the direntry line was not valid texinfo syntax, braces in
++@center are not allowed by newer makeinfo, and @setchapternewpage is
++obsolete.
++
++--- sml-mode.texi.orig
+++++ sml-mode.texi
++@@ -25,17 +25,16 @@
++ @settitle SML mode - The Emacs SML editing mode
++ @dircategory Emacs
++ @direntry
++-* sml:(sml-mode).	Emacs mode for editing SML
+++* SML mode: (sml-mode).	        Emacs mode for editing SML
++ @end direntry
++-@setchapternewpage on
++ 
++ @titlepage
++ @sp 5
++ @center @titlefont{Editing and Running Standard ML}
++ @center @titlefont{under GNU Emacs}
++ @sp 5
++-@center {SML mode, Version $Name$}
++-@center {August 1999}
+++@center SML mode, Version $Name$
+++@center August 1999
++ @sp 2
++ @author Authors: Matthew J.@: Morley and Stefan Monnier
++ 
++@@ -63,7 +62,6 @@
++ 
++ @end titlepage
++ 
++-@setchapternewpage off
++ @headings double
++ 
++ @c ============================================================ TOP NODE
