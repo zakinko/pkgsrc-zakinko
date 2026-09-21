@@ -140,9 +140,15 @@ else
 	done
 	echo "  診断: bsd.prefs.mk が OBJECT_FMT をどう定義しているか"
 	grep -n 'OBJECT_FMT' "$TREE/mk/bsd.prefs.mk" | sed 's/^/    /' | head -12
-	echo "  診断: bmake が実際に開いた bsd.own.mk"
-	( cd "$DIR" && $PKGMAKE -dm -V OBJECT_FMT ) 2>&1 \
-	    | grep -i 'own\.mk' | sed 's/^/    /' | head -6
+	# bsd.prefs.mk を通らない小さな makefile で訊く。再帰はそこで起きる
+	# ので、通さなければ bmake は普通に答えられる。
+	echo "  診断: <bsd.own.mk> はどこから来て、OBJECT_FMT を定義するか"
+	{ echo '.include <bsd.own.mk>'
+	  echo 'all:'
+	  printf '\t@echo "OBJECT_FMT=[${OBJECT_FMT}]"\n'
+	  printf '\t@echo "read: ${.MAKE.MAKEFILES}"\n'
+	} > "$T/own.mk"
+	( cd "$T" && $PKGMAKE -f own.mk ) 2>&1 | sed 's/^/    /' | head -4
 	sbuild patchedbin yes "" || { echo "!! tarball build も失敗"; exit 1; }
 	BIN=$T/patchedbin/thttpd
 	echo "MODE: tarball + pkgsrc patch の $BIN を検査する"
@@ -432,8 +438,15 @@ echo "########## pkg-vulnerabilities on $OS ##########"
 # bmake の -V は版によって展開しない生の値を返す (${DISTNAME}nb${PKGREVISION}
 # がそのまま出た)。pkgsrc 自身の show-var は必ず展開する。
 PKGN=$( ( cd "$DIR" && $PKGMAKE show-var VARNAME=PKGNAME ) 2>/dev/null | tail -1 )
-case $PKGN in *'${'*|'') PKGN="" ;; esac
-if [ -z "$PKGN" ]; then echo "  PKGNAME を引けない。skip"
+# 引けなかったときは bmake の error 文がそのまま入る (FreeBSD は
+# OBJECT_FMT の再帰でここまで来られない)。中身の形で弾く。
+case $PKGN in
+thttpd-[0-9]*) ;;
+*)	echo "  PKGNAME を引けない ($PKGN)"; PKGN="" ;;
+esac
+if [ -z "$PKGN" ]; then
+	echo "  この箱では pkgsrc から PKGNAME を引けないので skip。"
+	echo "  audit の照合は箱に依らないので、他の箱の結果で足りる。"
 else
 	echo "  この package は $PKGN"
 	# 本物を取ってきて、そこへ差分と同じ書き換えを当てる。合成した file で
