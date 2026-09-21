@@ -4,8 +4,8 @@ Fix three CVEs that audit-packages reports against thttpd 2.29, the last
 release ACME shipped (2018).  A 2.30 is listed in the upstream changelog
 but has never been released as a tarball.
 
-CVE-2007-0158 (buffer underflow in expand_symlinks()).  Three places
-index with length-1 without checking the length:
+CVE-2007-0158 (buffer underflow).  Four places index with length-1
+without checking the length.  Three are in expand_symlinks():
 
   - with no_symlink_check (chroot mode) and a path of only slashes, the
     trailing-slash trim drives checkedlen to 0 and then reads
@@ -14,7 +14,13 @@ index with length-1 without checking the length:
   - with a zero-length symlink target in the served tree, readlink()
     returns 0 and lnk[linklen-1] reads before the stack buffer.
 
-All three fire under AddressSanitizer on the routine extracted unchanged
+The fourth is in auth_check2(): fgets() returns non-NULL for a line that
+begins with a NUL byte, strlen() is then 0, and line[l-1] reads before
+the 500-byte stack buffer.  The .htpasswd is user-written, so this is
+reached the same way CVE-2012-5640 is, by requesting a protected
+directory.
+
+All four fire under AddressSanitizer on the routines extracted unchanged
 from 2.29, and are clean once guarded.  FreeBSD ports carries the
 checkedlen/restlen and origfilename guards; the readlink() case is the
 fix ACME lists for the unreleased 2.30 ("off-by-one illegal memory
@@ -63,7 +69,21 @@ not carried by any other packaging I found.
  	    {
  	    /* Ok! */
  	    httpd_realloc_str(
-@@ -1131,8 +1137,9 @@
+@@ -1117,9 +1123,11 @@
+     /* Read it. */
+     while ( fgets( line, sizeof(line), fp ) != (char*) 0 )
+ 	{
+-	/* Nuke newline. */
++	/* Nuke newline.  A NUL byte in the file leaves strlen() at 0, and
++	** line[l-1] would then read before the buffer.
++	*/
+ 	l = strlen( line );
+-	if ( line[l - 1] == '\n' )
++	if ( l > 0 && line[l - 1] == '\n' )
+ 	    line[l - 1] = '\0';
+ 	/* Split into user and encrypted password. */
+ 	cryp = strchr( line, ':' );
+@@ -1131,8 +1139,9 @@
  	    {
  	    /* Yes. */
  	    (void) fclose( fp );
@@ -75,7 +95,7 @@ not carried by any other packaging I found.
  		{
  		/* Ok! */
  		httpd_realloc_str(
-@@ -1486,7 +1493,7 @@
+@@ -1486,7 +1495,7 @@
  	    httpd_realloc_str( &checked, &maxchecked, checkedlen );
  	    (void) strcpy( checked, path );
  	    /* Trim trailing slashes. */
@@ -84,7 +104,7 @@ not carried by any other packaging I found.
  		{
  		checked[checkedlen - 1] = '\0';
  		--checkedlen;
-@@ -1505,7 +1512,7 @@
+@@ -1505,7 +1514,7 @@
      restlen = strlen( path );
      httpd_realloc_str( &rest, &maxrest, restlen );
      (void) strcpy( rest, path );
@@ -93,7 +113,7 @@ not carried by any other packaging I found.
  	rest[--restlen] = '\0';         /* trim trailing slash */
      if ( ! tildemapped )
  	/* Remove any leading slashes. */
-@@ -1623,7 +1630,9 @@
+@@ -1623,7 +1632,9 @@
  	    return (char*) 0;
  	    }
  	lnk[linklen] = '\0';
@@ -104,7 +124,7 @@ not carried by any other packaging I found.
  	    lnk[--linklen] = '\0';     /* trim trailing slash */
  
  	/* Insert the link contents in front of the rest of the filename. */
-@@ -2351,8 +2360,13 @@
+@@ -2351,8 +2362,13 @@
  	{
  	int i;
  	i = strlen( hc->origfilename ) - strlen( hc->pathinfo );
@@ -120,7 +140,7 @@ not carried by any other packaging I found.
  	}
  
      /* If the expanded filename is an absolute path, check that it's still
-@@ -3901,6 +3915,35 @@
+@@ -3901,6 +3917,35 @@
  
      /* And return the status. */
      return r;
@@ -156,7 +176,7 @@ not carried by any other packaging I found.
      }
  
  
-@@ -3910,6 +3953,10 @@
+@@ -3910,6 +3955,10 @@
      char* ru;
      char url[305];
      char bytes[40];
@@ -167,7 +187,7 @@ not carried by any other packaging I found.
  
      if ( hc->hs->no_log )
  	return;
-@@ -3922,7 +3969,7 @@
+@@ -3922,7 +3971,7 @@
  
      /* Format remote user. */
      if ( hc->remoteuser[0] != '\0' )
@@ -176,7 +196,7 @@ not carried by any other packaging I found.
      else
  	ru = "-";
      /* If we're vhosting, prepend the hostname to the url.  This is
-@@ -3937,6 +3984,9 @@
+@@ -3937,6 +3986,9 @@
      else
  	(void) my_snprintf( url, sizeof(url),
  	    "%.200s", hc->encodedurl );
@@ -186,7 +206,7 @@ not carried by any other packaging I found.
      /* Format the bytes. */
      if ( hc->bytes_sent >= 0 )
  	(void) my_snprintf(
-@@ -3985,8 +4035,8 @@
+@@ -3985,8 +4037,8 @@
  	(void) fprintf( hc->hs->logfp,
  	    "%.80s - %.80s [%s] \"%.80s %.300s %.80s\" %d %s \"%.200s\" \"%.200s\"\n",
  	    httpd_ntoa( &hc->client_addr ), ru, date,
@@ -197,7 +217,7 @@ not carried by any other packaging I found.
  #ifdef FLUSH_LOG_EVERY_TIME
  	(void) fflush( hc->hs->logfp );
  #endif
-@@ -3995,8 +4045,8 @@
+@@ -3995,8 +4047,8 @@
  	syslog( LOG_INFO,
  	    "%.80s - %.80s \"%.80s %.200s %.80s\" %d %s \"%.200s\" \"%.200s\"",
  	    httpd_ntoa( &hc->client_addr ), ru,
