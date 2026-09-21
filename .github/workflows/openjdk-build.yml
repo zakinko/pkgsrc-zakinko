@@ -202,14 +202,23 @@ jobs:
             # package まで消える。timeout(1) で止めた場合は 0 で抜けて
             # 持ち帰らせ、runner 側の step が印を見て job を赤くする。
             # VM の起動と依存の展開に使った分を引いて 300 分。
-            rm -f "$WS/BUILD_TIMED_OUT"
+            # 失敗しても非 0 で抜けない。vmactions は step が失敗すると
+            # workspace を持ち帰らず、openjdk11 の run (35611322500) では
+            # PLIST 検査で落ちたときに 1 時間 55 分ぶんの依存が
+            #
+            #   Path Validation Error: Path(s) specified in the action for
+            #   caching do(es) not exist, hence no cache is being saved.
+            #
+            # と消えた。結果は file に書き、runner 側の step が読んで赤くする。
+            rm -f "$WS/BUILD_TIMED_OUT" "$WS/BUILD_FAILED"
             timeout 300m make package; rc=$?
             date
             if [ "$rc" -eq 124 ]; then
               echo "300 分で止めた。依存の binary package は持ち帰る"
               touch "$WS/BUILD_TIMED_OUT"
             elif [ "$rc" -ne 0 ]; then
-              exit "$rc"
+              echo "make package が $rc で落ちた。依存の binary package は持ち帰る"
+              echo "$rc" > "$WS/BUILD_FAILED"
             fi
 
             echo "=== PLIST を起こす ==="
@@ -233,10 +242,14 @@ jobs:
           key: openjdk-netbsd-deps-${{ github.run_id }}
         if: always()
 
-      # VM の中では時間切れでも 0 で抜けているので、ここで赤くする。
-      - name: 時間切れなら落とす
+      # VM の中では時間切れでも失敗でも 0 で抜けているので、ここで赤くする。
+      - name: 時間切れか失敗なら落とす
         run: |
           if [ -f BUILD_TIMED_OUT ]; then
             echo "make package が 300 分で止まった。作りかけは cache に残した"
+            exit 1
+          fi
+          if [ -f BUILD_FAILED ]; then
+            echo "make package が $(cat BUILD_FAILED) で落ちた。log は上。作りかけは cache に残した"
             exit 1
           fi
