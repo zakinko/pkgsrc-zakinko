@@ -14,7 +14,7 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | package | from | to | notes |
 |---|---|---|---|
 | cad/verilog-mode | 3.60 (2005, MASTER_SITE_LOCAL) | 2026.08.31 | veripool ships `verilog-mode.el` without a version in its name; fetched under DIST_SUBDIR |
-| devel/apel | 2020-11-07 snapshot | 2025-05-31 snapshot | |
+| devel/apel | 2020-11-07 snapshot | 2025-05-31 snapshot | and serves Emacs 20 and XEmacs again: the compatibility layer upstream removed in 2020 comes back as 17 patches and 11 files under files/, keeping the fixes made since (pccl-20 uses define-coding-system where it exists, so Emacs 30 still builds it). Built for emacs20 20.7 and emacs30 30.2; misc/lookup, which accepts only emacs20 and XEmacs and needs apel, builds on emacs20 again. devel/flim 1.14.9's own snapshot no longer compiles on Emacs 20 (dolist, ?\s) and is separate work |
 | devel/cflow-mode | 1.7 | 1.8 | |
 | devel/dash-el | 2.19.1 | 2.20.0 | |
 | devel/ecb | 2.50 | 2.52 | now builds and loads with the CEDET bundled in Emacs; accepts emacs29–31 instead of XEmacs only |
@@ -41,9 +41,3 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | textproc/po-mode | 2.2 (gettext 0.18.1.1) | 2.32 (gettext 1.0) | gettext moved the elisp to gettext-tools/emacs |
 | www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
 | www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
-
-Not updated, with the reason:
-
-- devel/apel is a snapshot bump only.  Upstream removed the Emacs 19/20
-  and XEmacs compatibility layer in 2020 (3,392 lines in one commit),
-  so an apel that serves emacs20 is a separate piece of work.

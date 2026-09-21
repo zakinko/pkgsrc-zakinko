@@ -1,6 +1,8 @@
+Binary files /usr/pkgsrc/devel/apel/._files and devel/apel/._files differ
+Binary files /usr/pkgsrc/devel/apel/._patches and devel/apel/._patches differ
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
 --- /usr/pkgsrc/devel/apel/Makefile	2026-09-18 05:45:02.008721410 +0000
-+++ devel/apel/Makefile	2026-09-21 10:58:47.604221943 +0000
++++ devel/apel/Makefile	2026-09-21 17:01:34.067352312 +0000
 @@ -1,12 +1,11 @@
  # $NetBSD: Makefile,v 1.46 2026/09/12 14:31:49 wiz Exp $
  
@@ -16,10 +18,34 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
  
  MAINTAINER=	uebayasi@NetBSD.org
  HOMEPAGE=	http://git.chise.org/elisp/apel/
+@@ -25,10 +24,10 @@
+ MAKE_FLAGS+=	${MAKE_FLAGS.${EMACS_FLAVOR}}
+ 
+ # apel is included in xemacs-packages
+-EMACS_VERSIONS_INCOMPATIBLE=	emacs20
+ EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
+ EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
+ EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
++EMACS_VERSIONS_ACCEPTED+=	emacs20 xemacs214 xemacs214nox xemacs215 xemacs215nox
+ 
+ BUILD_TARGET.emacs=	elc
+ BUILD_TARGET.xemacs=	package
+@@ -37,6 +36,11 @@
+ MAKE_FLAGS.emacs=
+ MAKE_FLAGS.xemacs=	PACKAGEDIR=${EMACS_LISPPREFIX:C|/lisp$||}
+ 
++# The compatibility layer for Emacs 20 and XEmacs that upstream removed in
++# 2020 comes back through the patches and these files.
++post-extract:
++	${CP} ${FILESDIR}/*.el ${WRKSRC}/
++
+ .include "../../editors/emacs/modules.mk"
+ 
+ PLIST_VARS+=	emacs23 emacs19
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 --- /usr/pkgsrc/devel/apel/distinfo	2022-01-31 00:17:58.000000000 +0000
-+++ devel/apel/distinfo	2026-09-21 10:58:48.668575932 +0000
-@@ -1,5 +1,5 @@
++++ devel/apel/distinfo	2026-09-21 17:01:34.344170176 +0000
+@@ -1,5 +1,22 @@
  $NetBSD: distinfo,v 1.13 2022/01/31 00:17:58 mef Exp $
  
 -BLAKE2s (apel-10.8.0.20201107-4e3269b6e702db2dba48cf560563ac883e81e3bf.tar.gz) = aec884724a0e3a8c7c4fd0d90282b7ea783f19b838a18a8a86e4ad138d512ea2
@@ -28,3 +54,4630 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 +BLAKE2s (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = c6261eba992d1a9e96185964552ccb48661d8c79c31c52cf61fe7e3214460501
 +SHA512 (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 76b01d6e41ad345a96c93d1526a499080546e8f839b7a697895b61a754cf9aa49b995d55909d47c8a957cefe9d3e5f49802390d5c81d168d9d458e86bf003e21
 +Size (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 69826 bytes
++SHA1 (patch-EMU-ELS) = c5d27ba0de0f09518c29001671192da382697671
++SHA1 (patch-calist.el) = 74eed741b268a21cafc9f98b2a7ac4df1dd1daf5
++SHA1 (patch-emu.el) = 76451bc1331d5760bf273a97ace364824a48ace1
++SHA1 (patch-filename.el) = 07599cb53c394d86fd5b0f0d243abf9f1fa71b61
++SHA1 (patch-install.el) = 024ad1e93b240e38f399228c10d9eede9ef1f487
++SHA1 (patch-invisible.el) = 635da61600e028ca9bf40add41fe3458a13d3d7d
++SHA1 (patch-mcharset.el) = 1579789f6d05c905e09afc569952e4a5d8bf0469
++SHA1 (patch-mcs-20.el) = 267f4b8c95c1b6943e82cd3a8e811402eebbe930
++SHA1 (patch-mcs-e20.el) = 4185bd017a32cba317fb1e294a3e29ccee8444ac
++SHA1 (patch-pccl-20.el) = 521d20dde4b609199da6e76c6ff5ff5767684201
++SHA1 (patch-pccl.el) = c347b8d6d786b9b8b1b06b0b9a9c307907013ad1
++SHA1 (patch-pces-e20.el) = 021dfe2ebcdac5b6291765de22c2d0e53accf5b0
++SHA1 (patch-pces.el) = 09b351de96dfc6af5c1a6ae5b53f33a0051cc9ff
++SHA1 (patch-poe.el) = cb73509162443923ee6b304639c5fd35b5ad8401
++SHA1 (patch-poem-e20_3.el) = 06ef84c86fb290657402b10ae695575206052bf3
++SHA1 (patch-poem.el) = 93f4b95175ffe71a5a88a660e6f95011c01cfa2a
++SHA1 (patch-product.el) = 03e692126e9682b5158bc1250abe8b3fa9aa5a38
+Binary files /usr/pkgsrc/devel/apel/files/._inv-19.el and devel/apel/files/._inv-19.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._inv-xemacs.el and devel/apel/files/._inv-xemacs.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._mcs-ltn1.el and devel/apel/files/._mcs-ltn1.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._mcs-xm.el and devel/apel/files/._mcs-xm.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._mcs-xmu.el and devel/apel/files/._mcs-xmu.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._pces-raw.el and devel/apel/files/._pces-raw.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._pces-xfc.el and devel/apel/files/._pces-xfc.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._pces-xm.el and devel/apel/files/._pces-xm.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._poe-xemacs.el and devel/apel/files/._poe-xemacs.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._poem-ltn1.el and devel/apel/files/._poem-ltn1.el differ
+Binary files /usr/pkgsrc/devel/apel/files/._poem-xm.el and devel/apel/files/._poem-xm.el differ
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/inv-19.el devel/apel/files/inv-19.el
+--- /usr/pkgsrc/devel/apel/files/inv-19.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/inv-19.el	2026-09-21 16:59:53.557613406 +0000
+@@ -0,0 +1,61 @@
++;;; inv-19.el --- invisible feature implementation for Emacs 19 or later
++
++;; Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <morioka@jaist.ac.jp>
++;; Keywords: invisible, text-property, region, Emacs 19
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++(require 'poe)
++
++(defun enable-invisible ())
++(defun disable-invisible ())
++(defalias 'end-of-invisible 'disable-invisible)
++(make-obsolete 'end-of-invisible 'disable-invisible)
++
++(defun invisible-region (start end)
++  (if (save-excursion
++	(goto-char (1- end))
++	(eq (following-char) ?\n))
++      (setq end (1- end)))
++  (put-text-property start end 'invisible t))
++
++(defun visible-region (start end)
++  (put-text-property start end 'invisible nil))
++
++(defun invisible-p (pos)
++  (get-text-property pos 'invisible))
++
++(defun next-visible-point (pos)
++  (if (setq pos (next-single-property-change pos 'invisible))
++      (if (eq ?\n (char-after pos))
++	  (1+ pos)
++	pos)
++    (point-max)))
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'inv-19) (require 'apel-ver))
++
++;;; inv-19.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/inv-xemacs.el devel/apel/files/inv-xemacs.el
+--- /usr/pkgsrc/devel/apel/files/inv-xemacs.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/inv-xemacs.el	2026-09-21 16:59:53.567079311 +0000
+@@ -0,0 +1,68 @@
++;;; inv-xemacs.el --- invisible feature implementation for XEmacs
++
++;; Copyright (C) 1995 Free Software Foundation, Inc.
++;; Copyright (C) 1995,1996,1997 MORIOKA Tomohiko
++
++;; Author: MORIOKA Tomohiko <morioka@jaist.ac.jp>
++;; Keywords: invisible, text-property, region, XEmacs
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with XEmacs; see the file COPYING.  If not, write to the Free
++;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++;; MA 02110-1301, USA.
++
++;;; Code:
++
++(require 'poe)
++
++(defun enable-invisible ())
++(defun disable-invisible ())
++(defalias 'end-of-invisible 'disable-invisible)
++(make-obsolete 'end-of-invisible 'disable-invisible)
++
++(defun invisible-region (start end)
++  (if (save-excursion
++	(goto-char start)
++	(eq (following-char) ?\n))
++      (setq start (1+ start)))
++  (put-text-property start end 'invisible t))
++
++(defun visible-region (start end)
++  (put-text-property start end 'invisible nil))
++
++(defun invisible-p (pos)
++  (if (save-excursion
++	(goto-char pos)
++	(eq (following-char) ?\n))
++      (setq pos (1+ pos)))
++  (get-text-property pos 'invisible))
++
++(defun next-visible-point (pos)
++  (save-excursion
++    (if (save-excursion
++	  (goto-char pos)
++	  (eq (following-char) ?\n))
++	(setq pos (1+ pos)))
++    (or (next-single-property-change pos 'invisible)
++	(point-max))))
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'inv-xemacs) (require 'apel-ver))
++
++;;; inv-xemacs.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-ltn1.el devel/apel/files/mcs-ltn1.el
+--- /usr/pkgsrc/devel/apel/files/mcs-ltn1.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/mcs-ltn1.el	2026-09-21 16:59:53.577721845 +0000
+@@ -0,0 +1,110 @@
++;;; mcs-ltn1.el --- MIME charset implementation for Emacs 19
++;;;                 and XEmacs without MULE
++
++;; Copyright (C) 1995,1996,1997,1998,2000 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++(defvar charsets-mime-charset-alist
++  '(((ascii) . us-ascii)))
++
++(defvar default-mime-charset 'iso-8859-1)
++
++(defsubst lbt-to-string (lbt)
++  (cdr (assq lbt '((nil . nil)
++		   (CRLF . "\r\n")
++		   (CR . "\r")
++		   (dos . "\r\n")
++		   (mac . "\r"))))
++  )
++
++(defun mime-charset-to-coding-system (charset &optional lbt)
++  (if (stringp charset)
++      (setq charset (intern (downcase charset))))
++  (if (memq charset (list 'us-ascii default-mime-charset))
++      charset))
++
++(defalias 'mime-charset-p 'mime-charset-to-coding-system)
++
++(defun detect-mime-charset-region (start end)
++  "Return MIME charset for region between START and END."
++  (if (save-excursion
++	(goto-char start)
++	(re-search-forward "[\200-\377]" end t))
++      default-mime-charset
++    'us-ascii))
++
++(defun encode-mime-charset-region (start end charset &optional lbt)
++  "Encode the text between START and END as MIME CHARSET."
++  (let ((newline (lbt-to-string lbt)))
++    (if newline
++	(save-excursion
++	  (save-restriction
++	    (narrow-to-region start end)
++	    (goto-char (point-min))
++	    (while (search-forward "\n" nil t)
++	      (replace-match newline))
++	    )))
++      ))
++
++(defun decode-mime-charset-region (start end charset &optional lbt)
++  "Decode the text between START and END as MIME CHARSET."
++  (let ((newline (lbt-to-string lbt)))
++    (if newline
++	(save-excursion
++	  (save-restriction
++	    (narrow-to-region start end)
++	    (goto-char (point-min))
++	    (while (search-forward newline nil t)
++	      (replace-match "\n"))
++	    )))
++      ))
++
++(defun encode-mime-charset-string (string charset &optional lbt)
++  "Encode the STRING as MIME CHARSET."
++  (if lbt
++      (with-temp-buffer
++	(insert string)
++	(encode-mime-charset-region (point-min)(point-max) charset lbt)
++	(buffer-string))
++    string))
++
++(defun decode-mime-charset-string (string charset &optional lbt)
++  "Decode the STRING as MIME CHARSET."
++  (if lbt
++      (with-temp-buffer
++	(insert string)
++	(decode-mime-charset-region (point-min)(point-max) charset lbt)
++	(buffer-string))
++    string))
++
++(defalias 'write-region-as-mime-charset 'write-region)
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'mcs-ltn1) (require 'apel-ver))
++
++;;; mcs-ltn1.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-xm.el devel/apel/files/mcs-xm.el
+--- /usr/pkgsrc/devel/apel/files/mcs-xm.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/mcs-xm.el	2026-09-21 16:59:53.586081622 +0000
+@@ -0,0 +1,202 @@
++;;; mcs-xm.el --- MIME charset implementation for XEmacs-mule
++
++;; Copyright (C) 1997,1998,1999,2000,2002,2010 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: MIME-charset, coding-system, emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Commentary:
++
++;;    This module requires Emacs 20.0.93, XEmacs 20.3-b5 (with mule)
++;;    or later.
++
++;;; Code:
++
++(require 'poem)
++
++
++(defun encode-mime-charset-region (start end charset &optional lbt)
++  "Encode the text between START and END as MIME CHARSET."
++  (let ((cs (mime-charset-to-coding-system charset lbt)))
++    (if cs
++	(encode-coding-region start end cs)
++      )))
++
++
++(defcustom mime-charset-decoder-alist
++  (let ((alist
++	 '((hz-gb-2312 . decode-mime-charset-region-for-hz)
++	   (t . decode-mime-charset-region-default))))
++    (if (featurep 'utf-2000)
++	alist
++      (list*
++       '(iso-2022-jp . decode-mime-charset-region-with-iso646-unification)
++       '(iso-2022-jp-2 . decode-mime-charset-region-with-iso646-unification)
++       alist)))
++  "Alist MIME-charset vs. decoder function."
++  :group 'i18n
++  :type '(repeat (cons mime-charset function)))
++
++(defsubst decode-mime-charset-region-default (start end charset lbt)
++  (let ((cs (mime-charset-to-coding-system charset lbt)))
++    (if cs
++	(decode-coding-region start end cs)
++      )))
++
++(unless (featurep 'utf-2000)
++  (require 'mcs-xmu))
++
++(defun decode-mime-charset-region-for-hz (start end charset lbt)
++  (if lbt
++      (save-restriction
++	(narrow-to-region start end)
++	(decode-coding-region (point-min)(point-max)
++			      (mime-charset-to-coding-system 'raw-text lbt))
++	(decode-hz-region (point-min)(point-max)))
++    (decode-hz-region start end)))
++
++(defun decode-mime-charset-region (start end charset &optional lbt)
++  "Decode the text between START and END as MIME CHARSET."
++  (if (stringp charset)
++      (setq charset (intern (downcase charset)))
++    )
++  (let ((func (cdr (or (assq charset mime-charset-decoder-alist)
++		       (assq t mime-charset-decoder-alist)))))
++    (funcall func start end charset lbt)))
++
++(defun encode-mime-charset-string (string charset &optional lbt)
++  "Encode the STRING as MIME CHARSET."
++  (let ((cs (mime-charset-to-coding-system charset lbt)))
++    (if cs
++	(encode-coding-string string cs)
++      string)))
++
++;; (defsubst decode-mime-charset-string (string charset)
++;;   "Decode the STRING as MIME CHARSET."
++;;   (let ((cs (mime-charset-to-coding-system charset)))
++;;     (if cs
++;;         (decode-coding-string string cs)
++;;       string)))
++(defun decode-mime-charset-string (string charset &optional lbt)
++  "Decode the STRING as MIME CHARSET."
++  (with-temp-buffer
++    (insert string)
++    (decode-mime-charset-region (point-min)(point-max) charset lbt)
++    (buffer-string)))
++
++
++(defvar charsets-mime-charset-alist
++  (delq
++   nil
++   `(((ascii)						. us-ascii)
++     ((ascii latin-iso8859-1)				. iso-8859-1)
++     ((ascii latin-iso8859-2)				. iso-8859-2)
++     ((ascii latin-iso8859-3)				. iso-8859-3)
++     ((ascii latin-iso8859-4)				. iso-8859-4)
++     ,(if (find-coding-system 'iso-8859-15)
++	  '((ascii latin-iso8859-15)			. iso-8859-15))
++     ((ascii cyrillic-iso8859-5)			. iso-8859-5)
++     ;;((ascii cyrillic-iso8859-5)			. koi8-r)
++     ((ascii arabic-iso8859-6)				. iso-8859-6)
++     ((ascii greek-iso8859-7)				. iso-8859-7)
++     ((ascii hebrew-iso8859-8)				. iso-8859-8)
++     ((ascii latin-iso8859-9)				. iso-8859-9)
++     ,(if (find-coding-system 'iso-8859-14)
++	  '((ascii latin-iso8859-14)			. iso-8859-14))
++     ;; ,(if (featurep 'utf-2000)
++     ;;      '((ascii latin-jisx0201
++     ;;               japanese-jisx0208-1978
++     ;;               japanese-jisx0208
++     ;;               japanese-jisx0208-1990)              . iso-2022-jp)
++     ;;    '((ascii latin-jisx0201
++     ;;             japanese-jisx0208-1978 japanese-jisx0208)
++     ;;      . iso-2022-jp))
++     ((ascii latin-jisx0201
++	     japanese-jisx0208-1978 japanese-jisx0208)	. iso-2022-jp)
++     ;; ,(if (featurep 'utf-2000)
++     ;;      '((ascii latin-jisx0201
++     ;;               japanese-jisx0208-1978
++     ;;               japanese-jisx0208
++     ;;               japanese-jisx0208-1990
++     ;;               japanese-jisx0213-1
++     ;;               japanese-jisx0213-2)                 . iso-2022-jp-3)
++     ;;    '((ascii latin-jisx0201
++     ;;             japanese-jisx0208-1978 japanese-jisx0208
++     ;;             japanese-jisx0213-1
++     ;;             japanese-jisx0213-2)                   . iso-2022-jp-3))
++     ,(if (featurep 'utf-2000)
++	  '((ascii latin-jisx0201 katakana-jisx0201
++		   japanese-jisx0208-1990)		. utf-8)
++	'((ascii latin-jisx0201
++		 katakana-jisx0201 japanese-jisx0208)	. shift_jis))
++     ((ascii korean-ksc5601)				. euc-kr)
++     ((ascii chinese-gb2312)				. gb2312)
++     ((ascii chinese-big5-1 chinese-big5-2)		. big5)
++     ((ascii thai-xtis)					. tis-620)
++     ;; ,(if (featurep 'utf-2000)
++     ;;      '((ascii latin-jisx0201 latin-iso8859-1
++     ;;               greek-iso8859-7
++     ;;               japanese-jisx0208-1978 japanese-jisx0208
++     ;;               japanese-jisx0208-1990
++     ;;               japanese-jisx0212
++     ;;               chinese-gb2312
++     ;;               korean-ksc5601)              . iso-2022-jp-2)
++     ;;    '((ascii latin-jisx0201 latin-iso8859-1
++     ;;             greek-iso8859-7
++     ;;             japanese-jisx0208-1978 japanese-jisx0208
++     ;;             japanese-jisx0212
++     ;;             chinese-gb2312
++     ;;             korean-ksc5601)                        . iso-2022-jp-2))
++     ;;((ascii latin-iso8859-1 greek-iso8859-7
++     ;;        latin-jisx0201 japanese-jisx0208-1978
++     ;;        chinese-gb2312 japanese-jisx0208
++     ;;        korean-ksc5601 japanese-jisx0212
++     ;;        chinese-cns11643-1 chinese-cns11643-2)      . iso-2022-int-1)
++     )))
++
++
++(defun coding-system-to-mime-charset (coding-system)
++  "Convert CODING-SYSTEM to a MIME-charset.
++Return nil if corresponding MIME-charset is not found."
++  (setq coding-system
++	(coding-system-name (coding-system-base coding-system)))
++  (or (car (rassq coding-system mime-charset-coding-system-alist))
++      coding-system))
++
++(defun mime-charset-list ()
++  "Return a list of all existing MIME-charset."
++  (let ((dest (mapcar (function car) mime-charset-coding-system-alist))
++	(rest (coding-system-list))
++	cs)
++    (while rest
++      (setq cs (coding-system-name (coding-system-base (car rest))))
++      (unless (memq cs dest)
++	(setq dest (cons cs dest)))
++      (setq rest (cdr rest)))
++    dest))
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'mcs-xm) (require 'apel-ver))
++
++;;; mcs-xm.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-xmu.el devel/apel/files/mcs-xmu.el
+--- /usr/pkgsrc/devel/apel/files/mcs-xmu.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/mcs-xmu.el	2026-09-21 16:59:53.594054189 +0000
+@@ -0,0 +1,101 @@
++;;; mcs-xmu.el --- Functions to unify ISO646 characters for XEmacs-mule
++
++;; Copyright (C) 1997,1998,1999 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <morioka@jaist.ac.jp>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Commentary:
++
++;;    This module will be loaded from mcs-xm automatically.
++;;    There is no guarantee that it will work alone.
++
++;;; Code:
++
++(defcustom mime-iso646-character-unification-alist
++  (eval-when-compile
++    (let (dest
++	  (i 33))
++      (while (< i 92)
++	(setq dest
++	      (cons (cons (char-to-string (make-char 'latin-jisx0201 i))
++			  (format "%c" i))
++		    dest))
++	(setq i (1+ i)))
++      (setq i 93)
++      (while (< i 126)
++	(setq dest
++	      (cons (cons (char-to-string (make-char 'latin-jisx0201 i))
++			  (format "%c" i))
++		    dest))
++	(setq i (1+ i)))
++      (nreverse dest)))
++  "Alist unified string vs. canonical string."
++  :group 'i18n
++  :type '(repeat (cons string string)))
++
++(defcustom mime-unified-character-face nil
++  "Face of unified character."
++  :group 'i18n
++  :type 'face)
++
++(defcustom mime-character-unification-limit-size 2048
++  "Limit size to unify characters.  It is referred by the function
++`decode-mime-charset-region-with-iso646-unification'.  If the length of
++the specified region (start end) is larger than its value, the function
++works for only decoding MIME-CHARSET.  If it is nil, size is unlimited."
++  :group 'i18n
++  :type '(radio (integer :tag "Max size")
++		(const :tag "Unlimited" nil)))
++
++(defun decode-mime-charset-region-with-iso646-unification (start end charset
++								 lbt)
++  (save-excursion
++    (save-restriction
++      (narrow-to-region start end)
++      (if (prog1
++	      (or (null mime-character-unification-limit-size)
++		  (<= (- end start) mime-character-unification-limit-size))
++	    (decode-mime-charset-region-default start end charset lbt))
++	  (let ((rest mime-iso646-character-unification-alist))
++	    (while rest
++	      (let ((pair (car rest))
++		    case-fold-search)
++		(goto-char (point-min))
++		(while (search-forward (car pair) nil t)
++		  (let ((str (cdr pair)))
++		    (if mime-unified-character-face
++			(put-text-property
++			 0 (length str)
++			 'face mime-unified-character-face str))
++		    (replace-match str 'fixed-case 'literal)
++		    )
++		  ))
++	      (setq rest (cdr rest)))))
++      )))
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'mcs-xmu) (require 'apel-ver))
++
++;;; mcs-xmu.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-raw.el devel/apel/files/pces-raw.el
+--- /usr/pkgsrc/devel/apel/files/pces-raw.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/pces-raw.el	2026-09-21 16:59:53.601839588 +0000
+@@ -0,0 +1,172 @@
++;;; pces-raw.el --- pces submodule for emacsen without coding-system features
++
++;; Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++;;; @ coding-system
++;;;
++
++(defun decode-coding-string (string coding-system)
++  "Decode the STRING which is encoded in CODING-SYSTEM."
++  (copy-sequence string))
++
++(defun encode-coding-string (string coding-system)
++  "Encode the STRING as CODING-SYSTEM."
++  (copy-sequence string))
++
++(defun decode-coding-region (start end coding-system)
++  "Decode the text between START and END which is encoded in CODING-SYSTEM."
++  0)
++
++(defun encode-coding-region (start end coding-system)
++  "Encode the text between START and END to CODING-SYSTEM."
++  0)
++
++(defun detect-coding-region (start end)
++  "Detect coding-system of the text in the region between START and END."
++  )
++
++(defun set-buffer-file-coding-system (coding-system &optional force)
++  "Set buffer-file-coding-system of the current buffer to CODING-SYSTEM."
++  )
++
++
++;;; @ without code-conversion
++;;;
++
++(defmacro as-binary-process (&rest body)
++  `(let (selective-display)	; Disable ^M to nl translation.
++     ,@ body))
++
++(defmacro as-binary-input-file (&rest body)
++  `(let ((emx-binary-mode t)) ; Stop CRLF to LF conversion in OS/2
++     ,@ body))
++
++(defmacro as-binary-output-file (&rest body)
++  `(let ((emx-binary-mode t)) ; Stop CRLF to LF conversion in OS/2
++     ,@ body))
++
++(defun write-region-as-binary (start end filename
++				     &optional append visit lockname)
++  "Like `write-region', q.v., but don't code conversion."
++  (let ((emx-binary-mode t))
++    (write-region start end filename append visit lockname)))
++
++(defun insert-file-contents-as-binary (filename
++				       &optional visit beg end replace)
++  "Like `insert-file-contents', q.v., but don't code and format conversion.
++Like `insert-file-contents-literally', but it allows find-file-hooks,
++automatic uncompression, etc.
++
++Namely this function ensures that only format decoding and character
++code conversion will not take place."
++  (let ((emx-binary-mode t))
++    ;; Returns list of absolute file name and length of data inserted.
++    (insert-file-contents filename visit beg end replace)))
++
++(defun write-region-as-raw-text-CRLF (start end filename
++					    &optional append visit lockname)
++  "Like `write-region', q.v., but write as network representation."
++  (let ((the-buf (current-buffer)))
++    (with-temp-buffer
++      (insert-buffer-substring the-buf start end)
++      (goto-char (point-min))
++      (while (re-search-forward "\\(\\=\\|[^\r]\\)\n" nil t)
++	(replace-match "\\1\r\n"))
++      (write-region (point-min)(point-max) filename append visit lockname))))
++
++(defalias 'insert-file-contents-as-raw-text 'insert-file-contents)
++
++(defalias 'insert-file-contents-as-raw-text-CRLF 'insert-file-contents)
++
++(defun find-file-noselect-as-binary (filename &optional nowarn rawfile)
++  "Like `find-file-noselect', q.v., but don't code and format conversion."
++  (let ((emx-binary-mode t))
++    (find-file-noselect filename nowarn rawfile)))
++
++(defalias 'find-file-noselect-as-raw-text 'find-file-noselect)
++
++(defalias 'find-file-noselect-as-raw-text-CRLF 'find-file-noselect)
++
++(defun save-buffer-as-binary (&optional args)
++  "Like `save-buffer', q.v., but don't encode."
++  (let ((emx-binary-mode t))
++    (save-buffer args)))
++
++(defun save-buffer-as-raw-text-CRLF (&optional args)
++  "Like `save-buffer', q.v., but save as network representation."
++  (if (buffer-modified-p)
++      (save-restriction
++	(widen)
++	(let ((the-buf (current-buffer))
++	      (filename (buffer-file-name)))
++	  (if filename
++	      (prog1
++		  (with-temp-buffer
++		    (insert-buffer the-buf)
++		    (goto-char (point-min))
++		    (while (re-search-forward "\\(\\=\\|[^\r]\\)\n" nil t)
++		      (replace-match "\\1\r\n"))
++		    (setq buffer-file-name filename)
++		    (save-buffer args))
++		(set-buffer-modified-p nil)
++		(clear-visited-file-modtime)))))))
++
++(defun open-network-stream-as-binary (name buffer host service)
++  "Like `open-network-stream', q.v., but don't code conversion."
++  (let ((emx-binary-mode t))
++    (open-network-stream name buffer host service)))
++
++
++;;; @ with code-conversion (but actually it might be not done)
++;;;
++
++(defun insert-file-contents-as-coding-system
++  (coding-system filename &optional visit beg end replace)
++  "Like `insert-file-contents', q.v., but CODING-SYSTEM is used to decode."
++  (insert-file-contents filename visit beg end replace))
++
++(defun write-region-as-coding-system
++  (coding-system start end filename &optional append visit lockname)
++  "Like `write-region', q.v., but CODING-SYSTEM is used to encode."
++  (let (jka-compr-compression-info-list jam-zcat-filename-list)
++    (write-region start end filename append visit lockname)))
++
++(defun find-file-noselect-as-coding-system
++  (coding-system filename &optional nowarn rawfile)
++  "Like `find-file-noselect', q.v., CODING-SYSTEM is used to decode."
++  (find-file-noselect filename nowarn rawfile))
++
++(defun save-buffer-as-coding-system (coding-system &optional args)
++  "Like `save-buffer', q.v., CODING-SYSTEM is used to encode."
++  (save-buffer args))
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'pces-raw) (require 'apel-ver))
++
++;;; pces-raw.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-xfc.el devel/apel/files/pces-xfc.el
+--- /usr/pkgsrc/devel/apel/files/pces-xfc.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/pces-xfc.el	2026-09-21 16:59:53.612561414 +0000
+@@ -0,0 +1,48 @@
++;;; pces-xfc.el --- pces module for XEmacs with file coding
++
++;; Copyright (C) 1998,1999 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++;; Redefine if -{dos|mac|unix} is not found.
++(or (find-coding-system 'raw-text-dos)
++    (copy-coding-system 'no-conversion-dos 'raw-text-dos))
++(or (find-coding-system 'raw-text-mac)
++    (copy-coding-system 'no-conversion-mac 'raw-text-mac))
++(or (find-coding-system 'raw-text-unix)
++    (copy-coding-system 'no-conversion-unix 'raw-text-unix))
++
++(if (featurep 'mule)
++    (require 'pces-xm)
++  )
++
++(require 'pces-20)
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'pces-xfc) (require 'apel-ver))
++
++;;; pces-xfc.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-xm.el devel/apel/files/pces-xm.el
+--- /usr/pkgsrc/devel/apel/files/pces-xm.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/pces-xm.el	2026-09-21 16:59:53.620927899 +0000
+@@ -0,0 +1,78 @@
++;;; pces-xm.el --- pces module for XEmacs-mule
++
++;; Copyright (C) 1998,1999 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++;;; @ fix coding-system definition
++;;;
++
++;; It seems not bug, but I can not permit it...
++(and (coding-system-property 'iso-2022-jp 'input-charset-conversion)
++     (copy-coding-system 'iso-2022-7bit 'iso-2022-jp))
++
++(and (coding-system-property 'iso-2022-jp-dos 'input-charset-conversion)
++     (copy-coding-system 'iso-2022-7bit-dos 'iso-2022-jp-dos))
++
++(or (find-coding-system 'ctext-dos)
++    (make-coding-system
++     'ctext 'iso2022
++     "Coding-system used in X as Compound Text Encoding."
++     '(charset-g0 ascii charset-g1 latin-iso8859-1
++		  eol-type nil
++		  mnemonic "CText")))
++
++(or (find-coding-system 'iso-2022-jp-2-dos)
++    (make-coding-system
++     'iso-2022-jp-2 'iso2022
++     "ISO-2022 coding system using SS2 for 96-charset in 7-bit code."
++     '(charset-g0 ascii
++       charset-g2 t ;; unspecified but can be used later.
++       seven t
++       short t
++       mnemonic "ISO7/SS2"
++       eol-type nil)))
++
++(or (find-coding-system 'gb2312-dos)
++    (copy-coding-system 'cn-gb-2312-dos 'gb2312-dos))
++(or (find-coding-system 'gb2312-mac)
++    (copy-coding-system 'cn-gb-2312-mac 'gb2312-mac))
++(or (find-coding-system 'gb2312-unix)
++    (copy-coding-system 'cn-gb-2312-unix 'gb2312-unix))
++
++(or (find-coding-system 'euc-kr-dos)
++    (make-coding-system
++     'euc-kr 'iso2022
++     "Coding-system of Korean EUC (Extended Unix Code)."
++     '(charset-g0 ascii charset-g1 korean-ksc5601
++		  mnemonic "ko/EUC"
++		  eol-type nil)))
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'pces-xm) (require 'apel-ver))
++
++;;; pces-xm.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poe-xemacs.el devel/apel/files/poe-xemacs.el
+--- /usr/pkgsrc/devel/apel/files/poe-xemacs.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/poe-xemacs.el	2026-09-21 16:59:53.630233387 +0000
+@@ -0,0 +1,239 @@
++;;; poe-xemacs.el --- poe submodule for XEmacs
++
++;; Copyright (C) 1995 Free Software Foundation, Inc.
++;; Copyright (C) 1995,1996,1997,1998 MORIOKA Tomohiko
++
++;; Author: MORIOKA Tomohiko <morioka@jaist.ac.jp>
++;; Keywords: emulation, compatibility, XEmacs
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with XEmacs; see the file COPYING.  If not, write to the Free
++;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++;; MA 02110-1301, USA.
++
++;;; Code:
++
++(require 'pym)
++
++
++;;; @ color
++;;;
++
++(defun-maybe set-cursor-color (color-name)
++  "Set the text cursor color of the selected frame to COLOR.
++When called interactively, prompt for the name of the color to use."
++  (interactive "sColor: ")
++  (set-frame-property (selected-frame) 'cursor-color
++                      (if (color-instance-p color-name)
++                          color-name
++                        (make-color-instance color-name))))
++
++
++;;; @ face
++;;;
++
++(defalias-maybe 'face-list 'list-faces)
++
++(or (memq 'underline (face-list))
++    (and (fboundp 'make-face)
++	 (make-face 'underline)))
++
++(or (face-differs-from-default-p 'underline)
++    (set-face-underline-p 'underline t))
++
++
++;;; @ overlay
++;;;
++
++(condition-case nil
++    (require 'overlay)
++  (error
++   (defalias 'make-overlay 'make-extent)
++   (defalias 'overlayp 'extentp)
++   (defalias 'overlay-put 'set-extent-property)
++   (defalias 'overlay-buffer 'extent-buffer)
++   (defun move-overlay (extent start end &optional buffer)
++     (set-extent-endpoints extent start end))
++   (defalias 'delete-overlay 'detach-extent)))
++
++
++;;; @ dired
++;;;
++
++(defun-maybe dired-other-frame (dirname &optional switches)
++  "\"Edit\" directory DIRNAME.  Like `dired' but makes a new frame."
++  (interactive (dired-read-dir-and-switches "in other frame "))
++  (switch-to-buffer-other-frame (dired-noselect dirname switches)))
++
++
++;;; @ timer
++;;;
++
++(condition-case nil
++    (require 'timer-funcs)
++  (error nil))
++(condition-case nil
++    (require 'timer)
++  (error nil))
++(or
++ (or (featurep 'timer-funcs) (featurep 'timer))
++ (progn
++   (require 'itimer)
++   (if (and (= emacs-major-version 19) (<= emacs-minor-version 14))
++       (defun-maybe run-at-time (time repeat function &rest args)
++	 (start-itimer (make-temp-name "rat")
++		       `(lambda ()
++			  (,function ,@args))
++		       time repeat))
++     (defun-maybe run-at-time (time repeat function &rest args)
++       "Function emulating the function of the same name of Emacs.
++TIME should be nil meaning now, or a number of seconds from now.
++Return an itimer object which can be used in either `delete-itimer'
++or `cancel-timer'."
++       (apply #'start-itimer "run-at-time"
++	      function (if time (max time 1e-9) 1e-9)
++	      repeat nil t args)))
++   (defalias 'cancel-timer 'delete-itimer)
++   (defun with-timeout-handler (tag)
++     (throw tag 'timeout))
++   (defmacro-maybe with-timeout (list &rest body)
++     (let ((seconds (car list))
++	   (timeout-forms (cdr list)))
++       `(let ((with-timeout-tag (cons nil nil))
++	      with-timeout-value with-timeout-timer)
++	  (if (catch with-timeout-tag
++		(progn
++		  (setq with-timeout-timer
++			(run-at-time ,seconds nil
++				     'with-timeout-handler
++				     with-timeout-tag))
++		  (setq with-timeout-value (progn . ,body))
++		  nil))
++	      (progn . ,timeout-forms)
++	    (cancel-timer with-timeout-timer)
++	    with-timeout-value))))))
++
++(require 'broken)
++
++(broken-facility run-at-time-tick-tock
++  "`run-at-time' is not punctual."
++  ;; Note that it doesn't support XEmacsen prior to the version 19.15
++  ;; since `start-itimer' doesn't pass arguments to a timer function.
++  (or (and (= emacs-major-version 19) (<= emacs-minor-version 14))
++      (condition-case nil
++	  (progn
++	    (unless (or itimer-process itimer-timer)
++	      (itimer-driver-start))
++	    ;; Check whether there is a bug to which the difference of
++	    ;; the present time and the time when the itimer driver was
++	    ;; woken up is subtracted from the initial itimer value.
++	    (let* ((inhibit-quit t)
++		   (ctime (current-time))
++		   (itimer-timer-last-wakeup
++		    (prog1
++			ctime
++		      (setcar ctime (1- (car ctime)))))
++		   (itimer-list nil)
++		   (itimer (start-itimer "run-at-time" 'ignore 5)))
++	      (sleep-for 0.1) ;; Accept the timeout interrupt.
++	      (prog1
++		  (> (itimer-value itimer) 0)
++		(delete-itimer itimer))))
++	(error nil))))
++
++(when-broken run-at-time-tick-tock
++  (defalias 'run-at-time
++    (lambda (time repeat function &rest args)
++      "Function emulating the function of the same name of Emacs.
++It works correctly for TIME even if there is a bug in the XEmacs core.
++TIME should be nil meaning now, or a number of seconds from now.
++Return an itimer object which can be used in either `delete-itimer'
++or `cancel-timer'."
++      (let ((itimers (list nil)))
++	(setcar
++	 itimers
++	 (apply #'start-itimer "fixed-run-at-time"
++		(lambda (itimers repeat function &rest args)
++		  (let ((itimer (car itimers)))
++		    (if repeat
++			(progn
++			  (set-itimer-function
++			   itimer
++			   (lambda (itimer repeat function &rest args)
++			     (set-itimer-restart itimer repeat)
++			     (set-itimer-function itimer function)
++			     (set-itimer-function-arguments itimer args)
++			     (apply function args)))
++			  (set-itimer-function-arguments
++			   itimer
++			   (append (list itimer repeat function) args)))
++		      (set-itimer-function
++		       itimer
++		       (lambda (itimer function &rest args)
++			 (delete-itimer itimer)
++			 (apply function args)))
++		      (set-itimer-function-arguments
++		       itimer
++		       (append (list itimer function) args)))))
++		1e-9 (if time (max time 1e-9) 1e-9)
++		nil t itimers repeat function args))))))
++
++
++;;; @ to avoid bug of XEmacs 19.14
++;;;
++
++(or (string-match "^../"
++		  (file-relative-name "/usr/local/share" "/usr/local/lib"))
++    ;; This function was imported from Emacs 19.33.
++    (defun file-relative-name (filename &optional directory)
++      "Convert FILENAME to be relative to DIRECTORY
++(default: default-directory)."
++      (setq filename (expand-file-name filename)
++	    directory (file-name-as-directory
++		       (expand-file-name
++			(or directory default-directory))))
++      (let ((ancestor ""))
++	(while (not (string-match (concat "^" (regexp-quote directory))
++				  filename))
++	  (setq directory (file-name-directory (substring directory 0 -1))
++		ancestor (concat "../" ancestor)))
++	(concat ancestor (substring filename (match-end 0))))))
++
++
++;;; @ Emacs 20.3 emulation
++;;;
++
++(defalias-maybe 'line-beginning-position 'point-at-bol)
++(defalias-maybe 'line-end-position 'point-at-eol)
++
++;;; @ XEmacs 21 emulation
++;;;
++
++;; XEmacs 20.5 and later: (set-extent-properties EXTENT PLIST)
++(defun-maybe set-extent-properties (extent plist)
++  "Change some properties of EXTENT.
++PLIST is a property list.
++For a list of built-in properties, see `set-extent-property'."
++  (while plist
++    (set-extent-property extent (car plist) (cadr plist))
++    (setq plist (cddr plist))))  
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'poe-xemacs) (require 'apel-ver))
++
++;;; poe-xemacs.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poem-ltn1.el devel/apel/files/poem-ltn1.el
+--- /usr/pkgsrc/devel/apel/files/poem-ltn1.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/poem-ltn1.el	2026-09-21 16:59:53.638528455 +0000
+@@ -0,0 +1,154 @@
++;;; poem-ltn1.el --- poem implementation for Emacs 19 and XEmacs without MULE
++
++;; Copyright (C) 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++;;; @ buffer representation
++;;;
++
++(eval-when-compile
++  (require 'poe))
++
++(defun-maybe set-buffer-multibyte (flag)
++  "Set the multibyte flag of the current buffer to FLAG.
++If FLAG is t, this makes the buffer a multibyte buffer.
++If FLAG is nil, this makes the buffer a single-byte buffer.
++The buffer contents remain unchanged as a sequence of bytes
++but the contents viewed as characters do change.
++\[Emacs 20.3 emulating macro]"
++  )
++
++
++;;; @ character set
++;;;
++
++(put 'ascii 'charset-description "Character set of ASCII")
++(put 'ascii 'charset-registry "ASCII")
++
++(put 'latin-iso8859-1 'charset-description "Character set of ISO-8859-1")
++(put 'latin-iso8859-1 'charset-registry "ISO8859-1")
++
++(defun charset-description (charset)
++  "Return description of CHARSET."
++  (get charset 'charset-description))
++
++(defun charset-registry (charset)
++  "Return registry name of CHARSET."
++  (get charset 'charset-registry))
++
++(defun charset-width (charset)
++  "Return number of columns a CHARSET occupies when displayed."
++  1)
++
++(defun charset-direction (charset)
++  "Return the direction of a character of CHARSET by
++  0 (left-to-right) or 1 (right-to-left)."
++  0)
++
++(defun find-charset-string (str)
++  "Return a list of charsets in the string."
++  (if (string-match "[\200-\377]" str)
++      '(latin-iso8859-1)
++    ))
++
++(defalias 'find-non-ascii-charset-string 'find-charset-string)
++
++(defun find-charset-region (start end)
++  "Return a list of charsets in the region between START and END."
++  (if (save-excursion
++	(goto-char start)
++	(re-search-forward "[\200-\377]" end t))
++      '(latin-iso8859-1)
++    ))
++
++(defalias 'find-non-ascii-charset-region 'find-charset-region)
++
++
++;;; @ character
++;;;
++
++(defun char-charset (char)
++  "Return the character set of char CHAR."
++  (if (< char 128)
++      'ascii
++    'latin-iso8859-1))
++
++(defun char-bytes (char)
++  "Return number of bytes a character in CHAR occupies in a buffer."
++  1)
++
++(defun char-width (char)
++  "Return number of columns a CHAR occupies when displayed."
++  1)
++
++(defun split-char (character)
++  "Return list of charset and one or two position-codes of CHARACTER."
++  (cons (char-charset character) character))
++
++(defalias 'char-length 'char-bytes)
++
++(defmacro char-next-index (char index)
++  "Return index of character succeeding CHAR whose index is INDEX."
++  `(1+ ,index))
++
++
++;;; @ string
++;;;
++
++(defalias 'string-width 'length)
++
++(defun string-to-char-list (str)
++  (mapcar (function identity) str))
++
++(defalias 'string-to-int-list 'string-to-char-list)
++
++(defalias 'sref 'aref)
++
++(defun truncate-string (str width &optional start-column)
++  "Truncate STR to fit in WIDTH columns.
++Optional non-nil arg START-COLUMN specifies the starting column.
++\[emu-latin1.el; MULE 2.3 emulating function]"
++  (or start-column
++      (setq start-column 0))
++  (if (> (length str) width)
++      (substring str start-column width)
++    str))
++
++(defalias 'looking-at-as-unibyte 'looking-at)
++
++;;; @@ obsoleted aliases
++;;;
++;;; You should not use them.
++
++(defalias 'string-columns 'length)
++(make-obsolete 'string-columns 'string-width)
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'poem-ltn1) (require 'apel-ver))
++
++;;; poem-ltn1.el ends here
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poem-xm.el devel/apel/files/poem-xm.el
+--- /usr/pkgsrc/devel/apel/files/poem-xm.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/files/poem-xm.el	2026-09-21 16:59:53.646769939 +0000
+@@ -0,0 +1,99 @@
++;;; poem-xm.el --- poem module for XEmacs-mule; -*-byte-compile-dynamic: t;-*-
++
++;; Copyright (C) 1998,1999,2002,2003,2005 Free Software Foundation, Inc.
++
++;; Author: MORIOKA Tomohiko <tomo@m17n.org>
++;; Keywords: emulation, compatibility, Mule
++
++;; This file is part of APEL (A Portable Emacs Library).
++
++;; This program is free software; you can redistribute it and/or
++;; modify it under the terms of the GNU General Public License as
++;; published by the Free Software Foundation; either version 2, or (at
++;; your option) any later version.
++
++;; This program is distributed in the hope that it will be useful, but
++;; WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++;; General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs; see the file COPYING.  If not, write to the
++;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++;; Boston, MA 02110-1301, USA.
++
++;;; Code:
++
++(eval-when-compile
++  (require 'poe))
++
++
++;;; @ buffer representation
++;;;
++
++(defsubst-maybe set-buffer-multibyte (flag)
++  "Set the multibyte flag of the current buffer to FLAG.
++If FLAG is t, this makes the buffer a multibyte buffer.
++If FLAG is nil, this makes the buffer a single-byte buffer.
++The buffer contents remain unchanged as a sequence of bytes
++but the contents viewed as characters do change.
++\[Emacs 20.3 emulating function]"
++  flag)
++
++
++;;; @ character
++;;;
++
++;; avoid bug of XEmacs
++(or (integerp (car (cdr (split-char ?a))))
++    (defun split-char (char)
++      "Return list of charset and one or two position-codes of CHAR."
++      (let ((charset (char-charset char)))
++	(if (eq charset 'ascii)
++	    (list charset (char-int char))
++	  (let ((i 0)
++		(len (charset-dimension charset))
++		(code (if (integerp char)
++			  char
++			(char-int char)))
++		dest)
++	    (while (< i len)
++	      (setq dest (cons (logand code 127) dest)
++		    code (lsh code -7)
++		    i (1+ i)))
++	    (cons charset dest)))))
++    )
++
++(defmacro char-next-index (char index)
++  "Return index of character succeeding CHAR whose index is INDEX."
++  `(1+ ,index))
++
++(if (not (fboundp 'char-length))
++    (defalias 'char-length
++      (lambda (char)
++	"Return number of bytes a CHARACTER occupies in a string or buffer.
++It always returns 1 in XEmacs.  It is for compatibility with MULE 2.3."
++	1)))
++
++(defalias-maybe 'char-valid-p 'characterp)
++
++
++;;; @ string
++;;;
++
++(defun-maybe string-to-int-list (str)
++  (mapcar #'char-int str))
++
++(defun-maybe string-to-char-list (str)
++  (mapcar #'identity str))
++
++(defalias 'looking-at-as-unibyte 'looking-at)
++
++
++;;; @ end
++;;;
++
++(require 'product)
++(product-provide (provide 'poem-xm) (require 'apel-ver))
++
++;;; poem-xm.el ends here
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-EMU-ELS and devel/apel/patches/._patch-EMU-ELS differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-calist.el and devel/apel/patches/._patch-calist.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-emu.el and devel/apel/patches/._patch-emu.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-filename.el and devel/apel/patches/._patch-filename.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-install.el and devel/apel/patches/._patch-install.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-invisible.el and devel/apel/patches/._patch-invisible.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-mcharset.el and devel/apel/patches/._patch-mcharset.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-mcs-20.el and devel/apel/patches/._patch-mcs-20.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-mcs-e20.el and devel/apel/patches/._patch-mcs-e20.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-pccl-20.el and devel/apel/patches/._patch-pccl-20.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-pccl.el and devel/apel/patches/._patch-pccl.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-pces-e20.el and devel/apel/patches/._patch-pces-e20.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-pces.el and devel/apel/patches/._patch-pces.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-poe.el and devel/apel/patches/._patch-poe.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-poem-e20_3.el and devel/apel/patches/._patch-poem-e20_3.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-poem.el and devel/apel/patches/._patch-poem.el differ
+Binary files /usr/pkgsrc/devel/apel/patches/._patch-product.el and devel/apel/patches/._patch-product.el differ
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel/patches/patch-EMU-ELS
+--- /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-EMU-ELS	2026-09-21 16:59:53.307191111 +0000
+@@ -0,0 +1,110 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- EMU-ELS.orig
+++++ EMU-ELS
++@@ -21,27 +21,92 @@
++    '(product apel-ver)
++ 
++    ;; poe modules; poe modules depend on static.
++-   '(pym poe)
+++   '(pym)
+++   (if (featurep 'xemacs)
+++       ;; XEmacs.
+++       '(poe-xemacs poe)
+++     ;; Emacs 20 and later.
+++     '(poe))
++ 
++    ;; pcustom modules; pcustom modules depend on poe.
++    '(pcustom)
++ 
++    ;; pccl modules; pccl modules depend on broken.
++-   '(pccl-20 pccl)
+++   (cond
+++    ((featurep 'xemacs)
+++     (cond
+++      ;; XEmacs 21 w/ mule.
+++      ((and (featurep 'mule)
+++	    (>= emacs-major-version 21))
+++       '(pccl-20 pccl))
+++      (t
+++       '(pccl))))
+++    ((featurep 'mule)
+++     ;; Emacs 20.
+++     '(pccl-20 pccl))
+++    (t
+++     '(pccl)))
++ 
++    ;; pces modules; pces modules depend on poe.
++-   ;; pces-e20 depends pces-20, so we compile pces-20 first.
++-   '(pces-20 pces-e20 pces)
+++   (cond
+++    ((featurep 'xemacs)
+++     (cond
+++      ((featurep 'mule)
+++       ;; XEmacs w/ mule.
+++       ;; pces-xfc depends pces-20, so we compile pces-20 first.
+++       '(pces-20 pces-xm pces-xfc pces))
+++      ((featurep 'file-coding)
+++       ;; XEmacs w/ file-coding.
+++       ;; pces-xfc depends pces-20, so we compile pces-20 first.
+++       '(pces-20 pces-xfc pces))
+++      (t
+++       '(pces-raw pces))))
+++    ((featurep 'mule)
+++     ;; Emacs 20.3 and later.
+++     ;; pces-e20 depends pces-20, so we compile pces-20 first.
+++     '(pces-20 pces-e20 pces))
+++    (t
+++     '(pces-raw pces)))
++ 
++    ;; poem modules; poem modules depend on pces.
++-   '(poem-e20_3 poem-e20 poem)
+++   (cond
+++    ((featurep 'mule)
+++     (if (featurep 'xemacs)
+++	 ;; XEmacs w/ mule.
+++	 '(poem-xm poem)
+++       ;; Emacs 20.3 and later.
+++       '(poem-e20_3 poem-e20 poem)))
+++    (t
+++     '(poem-ltn1 poem)))
++ 
++    ;; mcharset modules; mcharset modules depend on poem and pcustom.
++-   ;; mcs-e20 depends mcs-20, so we compile mcs-20 first.
++-   '(mcs-20 mcs-e20 mcharset)
+++   (cond
+++    ((featurep 'mule)
+++     (if (featurep 'xemacs)
+++	 ;; XEmacs w/ mule.
+++	 (if (featurep 'utf-2000)
+++	     ;; XEmacs w/ UTF-2000.
+++	     (setq emu-modules-not-to-compile
+++		   (cons 'mcs-xmu emu-modules-not-to-compile)))
+++       ;; mcs-xm depends mcs-20, so we compile mcs-20 first.
+++       '(mcs-20 mcs-xmu mcs-xm mcharset)
+++       ;; Emacs 20 and later.
+++       ;; mcs-e20 depends mcs-20, so we compile mcs-20 first.
+++       '(mcs-20 mcs-e20 mcharset)))
+++    (t
+++     '(mcs-ltn1 mcharset)))
++ 
++    ;; invisible modules; provided for backward compatibility with old "tm".
++-   '(inv-23 invisible)
+++   (cond
+++    ((featurep 'xemacs)
+++     ;; XEmacs.
+++     '(inv-xemacs invisible))
+++    ((>= emacs-major-version 23)
+++     ;; Emacs 23 and later
+++     '(inv-23 invisible))
+++    (t
+++     ;; Emacs 19 and later.
+++     '(inv-19 invisible)))
++ 
++    ;; emu modules; provided for backward compatibility with old "tm".
++    '(emu)
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-calist.el devel/apel/patches/patch-calist.el
+--- /usr/pkgsrc/devel/apel/patches/patch-calist.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-calist.el	2026-09-21 16:59:53.320340111 +0000
+@@ -0,0 +1,36 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- calist.el.orig
+++++ calist.el
++@@ -26,7 +26,8 @@
++ 
++ ;;; Code:
++ 
++-(require 'cl-lib)
+++(eval-when-compile (require 'cl))
+++
++ (require 'alist)
++ 
++ (defvar calist-package-alist nil)
++@@ -284,11 +285,11 @@ even if other rules are matched for ALIST."
++ 					  (delete ret (copy-alist calist))))
++ 				   (cdr ctree)))
++ 		   (setcdr ctree
++-			   (cl-list* (list t)
++-				     (cons (cdr ret)
++-					   (calist-to-ctree
++-					    (delete ret (copy-alist calist))))
++-				     (cdr ctree)))
+++			   (list* (list t)
+++				  (cons (cdr ret)
+++					(calist-to-ctree
+++					 (delete ret (copy-alist calist))))
+++				  (cdr ctree)))
++ 		   ))
++ 	     (catch 'tag
++ 	       (while values
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-emu.el devel/apel/patches/patch-emu.el
+--- /usr/pkgsrc/devel/apel/patches/patch-emu.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-emu.el	2026-09-21 16:59:53.333651278 +0000
+@@ -0,0 +1,131 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- emu.el.orig
+++++ emu.el
++@@ -27,10 +27,11 @@
++ (require 'poe)
++ 
++ (defvar running-emacs-18 nil)
++-(defvar running-xemacs nil)
+++(defvar running-xemacs (featurep 'xemacs))
++ 
++-(defvar running-mule-merged-emacs t)
++-(defvar running-xemacs-with-mule nil)
+++(defvar running-mule-merged-emacs (and (not (boundp 'MULE))
+++				       (not running-xemacs) (featurep 'mule)))
+++(defvar running-xemacs-with-mule (and running-xemacs (featurep 'mule)))
++ 
++ (defvar running-emacs-19 nil)
++ (defvar running-emacs-19_29-or-later t)
++@@ -39,10 +40,18 @@
++ (defvar running-xemacs-20-or-later running-xemacs)
++ (defvar running-xemacs-19_14-or-later running-xemacs-20-or-later)
++ 
++-;; mouse
++-(defvar mouse-button-1 [mouse-1])
++-(defvar mouse-button-2 [mouse-2])
++-(defvar mouse-button-3 [down-mouse-3])
+++(cond (running-xemacs
+++       ;; for XEmacs
+++       (defvar mouse-button-1 'button1)
+++       (defvar mouse-button-2 'button2)
+++       (defvar mouse-button-3 'button3)
+++       )
+++      (t
+++       ;; mouse
+++       (defvar mouse-button-1 [mouse-1])
+++       (defvar mouse-button-2 [mouse-2])
+++       (defvar mouse-button-3 [down-mouse-3])
+++       ))
++ 
++ (require 'poem)
++ (require 'mcharset)
++@@ -52,15 +61,58 @@
++   "Convert list of character CHAR-LIST to string."
++   (apply (function string) char-list))
++ 
++-(defalias 'insert-binary-file-contents-literally
++-  'insert-file-contents-literally)
+++(cond ((featurep 'mule)
+++       (cond ((featurep 'xemacs) ; for XEmacs with MULE
+++	      ;; old Mule emulating aliases
++ 
++-;; old Mule emulating aliases
++-(defun char-category (character)
++-  "Return string of category mnemonics for CHAR in TABLE.
+++	      ;;(defalias 'char-leading-char 'char-charset)
+++
+++	      (defun char-category (character)
+++		"Return string of category mnemonics for CHAR in TABLE.
+++CHAR can be any multilingual character
+++TABLE defaults to the current buffer's category table."
+++		(mapconcat (lambda (chr)
+++			     (if (integerp chr)
+++				 (char-to-string (int-char chr))
+++			       (char-to-string chr)))
+++			   ;; `char-category-list' returns a list of
+++			   ;; characters in XEmacs 21.2.25 and later,
+++			   ;; otherwise integers.
+++			   (char-category-list character)
+++			   ""))
+++	      )
+++	     (t ; for Emacs 20
+++	      (defalias 'insert-binary-file-contents-literally
+++		'insert-file-contents-literally)
+++	      
+++	      ;; old Mule emulating aliases
+++	      (defun char-category (character)
+++		"Return string of category mnemonics for CHAR in TABLE.
++ CHAR can be any multilingual character
++ TABLE defaults to the current buffer's category table."
++-  (category-set-mnemonics (char-category-set character)))
+++		(category-set-mnemonics (char-category-set character)))
+++	      ))
+++       )
+++      (t
+++       ;; for Emacs 19 and XEmacs without MULE
+++       
+++       ;; old MULE emulation
+++       (defconst *internal* nil)
+++       (defconst *ctext* nil)
+++       (defconst *noconv* nil)
+++       
+++       (defun code-convert-string (str ic oc)
+++	 "Convert code in STRING from SOURCE code to TARGET code,
+++On successful conversion, returns the result string,
+++else returns nil. [emu-latin1.el; old MULE emulating function]"
+++	 str)
+++
+++       (defun code-convert-region (beg end ic oc)
+++	 "Convert code of the text between BEGIN and END from SOURCE
+++to TARGET. On successful conversion returns t,
+++else returns nil. [emu-latin1.el; old MULE emulating function]"
+++	 t)
+++       ))
++ 
++ 
++ ;;; @ Mule emulating aliases
++@@ -81,6 +133,18 @@ It is obsolete, so don't use it."))
++ (make-obsolete 'insert-binary-file-contents 'insert-file-contents-as-binary
++ 	       "17 Sep 1998")
++ 
+++(defun-maybe insert-binary-file-contents-literally (filename
+++						    &optional visit
+++						    beg end replace)
+++  "Like `insert-file-contents-literally', q.v., but don't code conversion.
+++A buffer may be modified in several ways after reading into the buffer due
+++to advanced Emacs features, such as file-name-handlers, format decoding,
+++find-file-hooks, etc.
+++  This function ensures that none of these modifications will take place."
+++  (as-binary-input-file
+++   ;; Returns list absolute file name and length of data inserted.
+++   (insert-file-contents-literally filename visit beg end replace)))
+++
++ 
++ ;;; @ end
++ ;;;
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-filename.el devel/apel/patches/patch-filename.el
+--- /usr/pkgsrc/devel/apel/patches/patch-filename.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-filename.el	2026-09-21 16:59:53.345091481 +0000
+@@ -0,0 +1,18 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- filename.el.orig
+++++ filename.el
++@@ -48,7 +48,7 @@ For example, (poly-funcall \\='(car number-to-string) \\='(100)) returns
++ (defvar filename-limit-length 21 "Limit size of file-name.")
++ 
++ (defvar filename-replacement-alist
++-  '(((?\s ?\t) . "_")
+++  '(((?\  ?\t) . "_")
++     ((?! ?\" ?# ?$ ?% ?& ?' ?\( ?\) ?* ?/
++ 	 ?: ?\; ?< ?> ?? ?\[ ?\\ ?\] ?` ?{ ?| ?}) . "_")
++     (filename-control-p . ""))
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-install.el devel/apel/patches/patch-install.el
+--- /usr/pkgsrc/devel/apel/patches/patch-install.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-install.el	2026-09-21 16:59:53.356424559 +0000
+@@ -0,0 +1,201 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- install.el.orig
+++++ install.el
++@@ -1,4 +1,4 @@
++-;;; install.el --- Emacs Lisp package install utility  -*- lexical-binding: t -*-
+++;;; install.el --- Emacs Lisp package install utility
++ 
++ ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2006
++ ;; 	Free Software Foundation, Inc.
++@@ -26,6 +26,7 @@
++ 
++ ;;; Code:
++ 
+++(require 'poe)				; make-directory for v18
++ (require 'path-util)			; default-load-path
++ 
++ 
++@@ -42,8 +43,9 @@
++ 
++ (defun compile-elisp-modules (modules &optional path every-time)
++   (mapcar
++-   (lambda (module)
++-     (compile-elisp-module module path every-time))
+++   (function
+++    (lambda (module)
+++      (compile-elisp-module module path every-time)))
++    modules))
++ 
++ 
++@@ -78,8 +80,9 @@
++       (file-exists-p dest)
++       (make-directory dest t))
++   (mapcar
++-   (lambda (file)
++-     (install-file file src dest move overwrite just-print))
+++   (function
+++    (lambda (file)
+++      (install-file file src dest move overwrite just-print)))
++    files))
++ 
++ 
++@@ -131,8 +134,9 @@
++       (file-exists-p dest)
++       (make-directory dest t))
++   (mapcar
++-   (lambda (module)
++-     (install-elisp-module module src dest just-print del-elc))
+++   (function
+++    (lambda (module)
+++      (install-elisp-module module src dest just-print del-elc)))
++    modules))
++ 
++ 
++@@ -141,12 +145,17 @@
++ 
++ ;; install to shared directory (maybe "/usr/local")
++ (defvar install-prefix
++-  (if (and (eq system-type 'windows-nt) ; for NTEmacs
++-	   ;; Exclude the case that built by running the same
++-	   ;; configure script as on all other platforms.
++-	   (equal (file-name-nondirectory
++-		   (expand-file-name "." exec-directory))
++-		  "bin"))
+++  (if (or (<= emacs-major-version 18)
+++	  (featurep 'xemacs)
+++	  (featurep 'meadow) ; for Meadow
+++	  (and (eq system-type 'windows-nt) ; for NTEmacs
+++	       (>= emacs-major-version 20)
+++	       ;; Exclude the case that built by running the same
+++	       ;; configure script as on all other platforms.
+++	       (equal (file-name-nondirectory
+++		       (expand-file-name "." exec-directory))
+++		      "bin")
+++	       ))
++       (expand-file-name "../../.." exec-directory)
++     (expand-file-name "../../../.." data-directory)))
++ 
++@@ -165,14 +174,27 @@
++ 	(let ((rest (delq nil (copy-sequence default-load-path)))
++ 	      (regexp
++ 	       (concat "^"
++-		       (regexp-quote (file-name-as-directory
++-				      (expand-file-name prefix)))
+++		       (regexp-quote (if (featurep 'xemacs)
+++					 ;; Handle backslashes (Windows)
+++					 (replace-in-string
+++					  (file-name-as-directory
+++					   (expand-file-name prefix))
+++					  "\\\\" "/")
+++				       (file-name-as-directory
+++					(expand-file-name prefix))))
++ 		       ".*/"
++-		       (regexp-quote elisp-prefix)
+++		       (regexp-quote
+++			(if (featurep 'xemacs)
+++			    ;; Handle backslashes (Windows)
+++			    (replace-in-string elisp-prefix "\\\\" "/")
+++			  elisp-prefix))
++ 		       "/?$"))
++ 	      dir)
++ 	  (while rest
++-	    (setq dir (car rest))
+++	    (setq dir (if (featurep 'xemacs)
+++			  ;; Handle backslashes (Windows)
+++			  (replace-in-string (car rest) "\\\\" "/")
+++			(car rest)))
++ 	    (if (string-match regexp dir)
++ 		(if (or allow-version-specific
++ 			(not (string-match (format "/%d\\.%d"
++@@ -181,7 +203,15 @@
++ 					   dir)))
++ 		    (throw 'tag (car rest))))
++ 	    (setq rest (cdr rest)))))
++-      (expand-file-name (concat "share/emacs/" elisp-prefix)
+++      (expand-file-name (concat (if (featurep 'xemacs)
+++				    "lib/"
+++				  "share/")
+++				(if (featurep 'xemacs)
+++				    (if (featurep 'mule)
+++					"xmule/"
+++				      "xemacs/")
+++				  "emacs/")
+++				elisp-prefix)
++ 			prefix)))
++ 
++ (defvar install-default-elisp-directory
++@@ -192,12 +222,62 @@
++ ;;;
++ 
++ (defun install-get-default-package-directory ()
++-  ;; Dummy function.  Do nothing.
++-  nil)
++-
++-(defun install-update-package-files (_package _dir &optional _just-print)
++-  ;; Dummy function.  Do nothing.
++-  nil)
+++  (let ((dirs (append
+++	       (cond
+++		((boundp 'early-package-hierarchies)
+++		 (append (if early-package-load-path
+++			     early-package-hierarchies)
+++			 (if late-package-load-path
+++			     late-package-hierarchies)
+++			 (if last-package-load-path
+++			     last-package-hierarchies)) )
+++		((boundp 'early-packages)
+++		 (append (if early-package-load-path
+++			     early-packages)
+++			 (if late-package-load-path
+++			     late-packages)
+++			 (if last-package-load-path
+++			     last-packages)) ))
+++	       (if (and (boundp 'configure-package-path)
+++			(listp configure-package-path))
+++		   (delete "" configure-package-path))))
+++	dir)
+++    (while (and (setq dir (car dirs))
+++		(not (file-exists-p dir)))
+++      (setq dirs (cdr dirs)))
+++    dir))
+++
+++(defun install-update-package-files (package dir &optional just-print)
+++  (cond
+++   (just-print
+++    (princ (format "Updating autoloads in directory %s..\n\n" dir))
+++
+++    (princ (format "Processing %s\n" dir))
+++    (princ "Generating custom-load.el...\n\n")
+++
+++    (princ (format "Compiling %s...\n"
+++		   (expand-file-name "auto-autoloads.el" dir)))
+++    (princ (format "Wrote %s\n"
+++		   (expand-file-name "auto-autoloads.elc" dir)))
+++
+++    (princ (format "Compiling %s...\n"
+++		   (expand-file-name "custom-load.el" dir)))
+++    (princ (format "Wrote %s\n"
+++		   (expand-file-name "custom-load.elc" dir))))
+++   (t
+++    (if (fboundp 'batch-update-directory-autoloads)
+++	;; XEmacs 21.5.19 and newer.
+++	(let ((command-line-args-left (list package dir)))
+++	  (batch-update-directory-autoloads))
+++      (setq autoload-package-name package)
+++      (let ((command-line-args-left (list dir)))
+++	(batch-update-directory)))
+++
+++    (let ((command-line-args-left (list dir)))
+++      (Custom-make-dependencies))
+++
+++    (byte-compile-file (expand-file-name "auto-autoloads.el" dir))
+++    (byte-compile-file (expand-file-name "custom-load.el" dir)))))
++ 
++ 
++ ;;; @ Other Utilities
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-invisible.el devel/apel/patches/patch-invisible.el
+--- /usr/pkgsrc/devel/apel/patches/patch-invisible.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-invisible.el	2026-09-21 16:59:53.367148426 +0000
+@@ -0,0 +1,24 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- invisible.el.orig
+++++ invisible.el
++@@ -24,7 +24,13 @@
++ 
++ ;;; Code:
++ 
++-(require 'inv-23)
+++(cond
+++ ((featurep 'xemacs)
+++  (require 'inv-xemacs))
+++ ((>= emacs-major-version 23)
+++  (require 'inv-23))
+++ (t
+++  (require 'inv-19)))
++ 
++ 
++ ;;; @ end
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcharset.el devel/apel/patches/patch-mcharset.el
+--- /usr/pkgsrc/devel/apel/patches/patch-mcharset.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-mcharset.el	2026-09-21 16:59:53.384511565 +0000
+@@ -0,0 +1,49 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- mcharset.el.orig
+++++ mcharset.el
++@@ -1,4 +1,4 @@
++-;;; mcharset.el --- MIME charset API  -*- lexical-binding: t -*-
+++;;; mcharset.el --- MIME charset API
++ 
++ ;; Copyright (C) 1997,1998,1999,2000 Free Software Foundation, Inc.
++ 
++@@ -24,8 +24,17 @@
++ 
++ ;;; Code:
++ 
+++(require 'poe)
+++(require 'pcustom)
+++
+++(if (featurep 'mule)
+++    (require 'mcs-20)
+++  (require 'mcs-ltn1))
+++
++ (defcustom default-mime-charset-for-write
++-  'utf-8
+++  (if (mime-charset-p 'utf-8)
+++      'utf-8
+++    default-mime-charset)
++   "Default value of MIME-charset for encoding.
++ It may be used when suitable MIME-charset is not found.
++ It must be symbol."
++@@ -39,13 +48,10 @@ It must be nil or function.
++ If it is nil, variable `default-mime-charset-for-write' is used.
++ If it is a function, interface must be (TYPE CHARSETS &rest ARGS).
++ CHARSETS is list of charset.
++-If TYPE is \\='region, ARGS has START and END."
+++If TYPE is 'region, ARGS has START and END."
++   :group 'i18n
++   :type '(choice function (const nil)))
++ 
++-(provide 'mcharset)
++-(require 'mcs-20)
++-
++ (defun charsets-to-mime-charset (charsets)
++   "Return MIME charset from list of charset CHARSETS.
++ Return nil if suitable mime-charset is not found."
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/apel/patches/patch-mcs-20.el
+--- /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-mcs-20.el	2026-09-21 16:59:53.402224579 +0000
+@@ -0,0 +1,242 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- mcs-20.el.orig
+++++ mcs-20.el
++@@ -1,4 +1,4 @@
++-;;; mcs-20.el --- MIME charset implementation for Emacs 20 and XEmacs/mule  -*- lexical-binding: t -*-
+++;;; mcs-20.el --- MIME charset implementation for Emacs 20 and XEmacs/mule
++ 
++ ;; Copyright (C) 1997,1998,1999,2000 Free Software Foundation, Inc.
++ 
++@@ -28,8 +28,14 @@
++ ;;    or later.
++ 
++ ;;; Code:
++-(require 'subr-x)
++-(require 'wid-edit)
+++
+++(require 'custom)
+++(require 'pces)
+++(eval-when-compile (require 'wid-edit))
+++
+++(if (featurep 'xemacs)
+++    (require 'mcs-xm)
+++  (require 'mcs-e20))
++ 
++ 
++ ;;; @ MIME charset
++@@ -51,8 +57,10 @@
++ 	   ))
++ 	dest)
++     (while rest
++-      (unless (coding-system-p (caar rest))
++-	(setq dest (cons (car rest) dest)))
+++      (let ((pair (car rest)))
+++	(or (find-coding-system (car pair))
+++	    (setq dest (cons pair dest))
+++	    ))
++       (setq rest (cdr rest))
++       )
++     dest)
++@@ -78,7 +86,7 @@ is specified, it is used as line break code type of coding-system."
++       (setq charset (intern (downcase charset)))
++     )
++   (let ((cs (cdr (assq charset mime-charset-coding-system-alist))))
++-    (unless (or (null cs) (coding-system-p cs))
+++    (unless (or (null cs) (find-coding-system cs))
++       (message
++        "Invalid coding system: %s.  Confirm mime-charset-coding-system-alist."
++        cs)
++@@ -91,15 +99,11 @@ is specified, it is used as line break code type of coding-system."
++ 				       ((eq lbt 'CR) 'mac)
++ 				       (t lbt)))))
++       )
++-    (if (coding-system-p cs)
++-	cs
++-      (when mime-charset-to-coding-system-default-method
++-	(funcall mime-charset-to-coding-system-default-method
++-		 charset lbt cs)
++-	))))
++-
++-(provide 'mcs-20)
++-(require 'mcs-e20)
+++    (or (find-coding-system cs)
+++	(if mime-charset-to-coding-system-default-method
+++	    (funcall mime-charset-to-coding-system-default-method
+++		     charset lbt cs)
+++	  ))))
++ 
++ (defalias 'mime-charset-p 'mime-charset-to-coding-system)
++ 
++@@ -114,12 +118,13 @@ is specified, it is used as line break code type of coding-system."
++   :prompt-value 'widget-mime-charset-prompt-value
++   :action 'widget-mime-charset-action)
++ 
++-(defun widget-mime-charset-prompt-value (_widget prompt value _unbound)
+++(defun widget-mime-charset-prompt-value (widget prompt value unbound)
++   ;; Read mime-charset from minibuffer.
++   (intern
++    (completing-read (format "%s (default %s) " prompt value)
++-		    (mapcar (lambda (sym)
++-			      (list (symbol-name sym)))
+++		    (mapcar (function
+++			     (lambda (sym)
+++			       (list (symbol-name sym))))
++ 			    (mime-charset-list)))))
++ 
++ (defun widget-mime-charset-action (widget &optional event)
++@@ -141,17 +146,82 @@ It must be symbol."
++   :group 'i18n
++   :type 'mime-charset)
++ 
+++(cond ((featurep 'utf-2000)
+++;; for CHISE Architecture
+++(defun mcs-region-repertoire-p (start end charsets &optional buffer)
+++  (save-excursion
+++    (if buffer
+++	(set-buffer buffer))
+++    (save-restriction
+++      (narrow-to-region start end)
+++      (goto-char (point-min))
+++      (catch 'tag
+++	(let (ch)
+++	  (while (not (eobp))
+++	    (setq ch (char-after (point)))
+++	    (unless (some (lambda (ccs)
+++			    (encode-char ch ccs))
+++			  charsets)
+++	      (throw 'tag nil))
+++	    (forward-char)))
+++	t))))
+++
+++(defun mcs-string-repertoire-p (string charsets &optional start end)
+++  (let ((i (if start
+++	       (if (< start 0)
+++		   (error 'args-out-of-range string start end)
+++		 start)
+++	     0))
+++	ch)
+++    (if end
+++	(if (> end (length string))
+++	    (error 'args-out-of-range string start end))
+++      (setq end (length string)))
+++    (catch 'tag
+++      (while (< i end)
+++	(setq ch (aref string i))
+++	(unless (some (lambda (ccs)
+++			(encode-char ch ccs))
+++		      charsets)
+++	  (throw 'tag nil))
+++	(setq i (1+ i)))
+++      t)))
+++
+++(defun detect-mime-charset-region (start end)
+++  "Return MIME charset for region between START and END."
+++  (let ((rest charsets-mime-charset-alist)
+++	cell)
+++    (catch 'tag
+++      (while rest
+++	(setq cell (car rest))
+++	(if (mcs-region-repertoire-p start end (car cell))
+++	    (throw 'tag (cdr cell)))
+++	(setq rest (cdr rest)))
+++      default-mime-charset-for-write)))
+++
+++(defun detect-mime-charset-string (string)
+++  "Return MIME charset for STRING."
+++  (let ((rest charsets-mime-charset-alist)
+++	cell)
+++    (catch 'tag
+++      (while rest
+++	(setq cell (car rest))
+++	(if (mcs-string-repertoire-p string (car cell))
+++	    (throw 'tag (cdr cell)))
+++	(setq rest (cdr rest)))
+++      default-mime-charset-for-write)))
+++)
+++
+++((eval-when-compile (and (boundp 'mule-version)
+++			 (null (string< mule-version "6.0"))))
+++;; for Emacs 23 and later
++ (defcustom detect-mime-charset-from-coding-system nil
++-  "When non-nil, `detect-mime-charset-region' and `detect-mime-charset-string'
++-functions decide charset by encodability in destination coding system.
+++  "When non-nil, `detect-mime-charset-region' and `detect-mime-charset-string' functions decide charset by encodability in destination coding system.
++ 
++ In that case, each car of `charsets-mime-charset-alist' element is ignored."
++   :group 'i18n
++   :type 'boolean)
++ 
++-(provide 'mcs-20)
++-(require 'mcharset)
++-
++ (defun detect-mime-charset-list (chars)
++   "Return MIME charset for the list of characters CHARS."
++   (catch 'found
++@@ -165,11 +235,9 @@ In that case, each car of `charsets-mime-charset-alist' element is ignored."
++     default-mime-charset-for-write))
++ 
++ (defun detect-mime-charset-from-coding-system (start end &optional string)
++-  "Return MIME charset for the region between START and END,
++-deciding by encodability in destination coding system.
+++  "Return MIME charset for the region between START and END, deciding by encodability in destination coding system.
++ 
++-Optional 3rd argument STRING is non-nil, detect MIME charset from STRING.
++-In that case, START and END are indexes of the string."
+++Optional 3rd argument STRING is non-nil, detect MIME charset from STRING.  In that case, START and END are indexes of the string."
++   (let ((alist charsets-mime-charset-alist)
++ 	result)
++     (while alist
++@@ -183,29 +251,37 @@ In that case, START and END are indexes of the string."
++ (defun detect-mime-charset-string (string)
++   "Return MIME charset for STRING.
++ 
++-When `detect-mime-charset-from-coding-system' is non-nil,
++-each car of `charsets-mime-charset-alist' element is ignored."
+++When `detect-mime-charset-from-coding-system' is non-nil, each car of `charsets-mime-charset-alist' element is ignored."
++   (if detect-mime-charset-from-coding-system
++       (detect-mime-charset-from-coding-system 0 (length string) string)
++-    (let ((table (make-hash-table :test 'eq)))
++-      (mapc (lambda (ch) (puthash ch t table))
+++    (let (list)
+++      (mapc (lambda (ch) (unless (memq ch list)
+++			   (setq list (cons ch list))))
++ 	    string)
++-      (detect-mime-charset-list (hash-table-keys table)))))
+++      (detect-mime-charset-list list))))
++ 
++ (defun detect-mime-charset-region (start end)
++   "Return MIME charset for region between START and END.
++ 
++-When `detect-mime-charset-from-coding-system' is non-nil,
++-each car of `charsets-mime-charset-alist' element is ignored."
+++When `detect-mime-charset-from-coding-system' is non-nil, each car of `charsets-mime-charset-alist' element is ignored."
++   (if detect-mime-charset-from-coding-system
++       (detect-mime-charset-from-coding-system start end)
++     (let ((point (min start end))
++-	  (table (make-hash-table :test 'eq)))
+++	  list)
++       (setq end (max start end))
++       (while (< point end)
++-	(puthash (char-after point) t table)
+++	(unless (memq (char-after point) list)
+++	  (setq list (cons (char-after point) list)))
++ 	(setq point (1+ point)))
++-      (detect-mime-charset-list (hash-table-keys table)))))
+++      (detect-mime-charset-list list)))))
+++
+++(t
+++;; for legacy Mule
+++(defun detect-mime-charset-region (start end)
+++  "Return MIME charset for region between START and END."
+++  (find-mime-charset-by-charsets (find-charset-region start end)
+++				 'region start end))
+++))
++ 
++ (defun write-region-as-mime-charset (charset start end filename
++ 					     &optional append visit lockname)
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-e20.el devel/apel/patches/patch-mcs-e20.el
+--- /usr/pkgsrc/devel/apel/patches/patch-mcs-e20.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-mcs-e20.el	2026-09-21 16:59:53.415641664 +0000
+@@ -0,0 +1,193 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- mcs-e20.el.orig
+++++ mcs-e20.el
++@@ -1,4 +1,4 @@
++-;;; mcs-e20.el --- MIME charset implementation for Emacs 20.1 and 20.2  -*- lexical-binding: t -*-
+++;;; mcs-e20.el --- MIME charset implementation for Emacs 20.1 and 20.2
++ 
++ ;; Copyright (C) 1996,1997,1998,1999,2000 Free Software Foundation, Inc.
++ 
++@@ -28,8 +28,8 @@
++ 
++ ;;; Code:
++ 
++-(provide 'mcs-e20)
++-(require 'mcs-20)
+++(require 'pces)
+++(eval-when-compile (require 'static))
++ 
++ (defsubst encode-mime-charset-region (start end charset &optional lbt)
++   "Encode the text between START and END as MIME CHARSET."
++@@ -66,46 +66,59 @@
++ 
++ 
++ (defvar charsets-mime-charset-alist
++-  '(((ascii)						. us-ascii)
++-    ((ascii latin-iso8859-1)				. iso-8859-1)
++-    ((ascii latin-iso8859-2)				. iso-8859-2)
++-    ((ascii latin-iso8859-3)				. iso-8859-3)
++-    ((ascii latin-iso8859-4)				. iso-8859-4)
++-    ((ascii latin-iso8859-15)				. iso-8859-15)
++-    ;; ((ascii cyrillic-iso8859-5)			. iso-8859-5)
++-    ((ascii cyrillic-iso8859-5)			. koi8-r)
++-    ((ascii arabic-iso8859-6)				. iso-8859-6)
++-    ((ascii greek-iso8859-7)				. iso-8859-7)
++-    ((ascii hebrew-iso8859-8)				. iso-8859-8)
++-    ((ascii latin-iso8859-9)				. iso-8859-9)
++-    ((ascii latin-iso8859-14)				. iso-8859-14)
++-    ((ascii latin-jisx0201
++-	    japanese-jisx0208-1978 japanese-jisx0208)	. iso-2022-jp)
++-    ((ascii latin-jisx0201
++-	    katakana-jisx0201 japanese-jisx0208)	. shift_jis)
++-    ((ascii korean-ksc5601)				. euc-kr)
++-    ((ascii chinese-gb2312)				. gb2312)
++-    ((ascii chinese-big5-1 chinese-big5-2)		. big5)
++-    ((ascii thai-tis620)				. tis-620)
++-    ;; ((ascii latin-iso8859-1 greek-iso8859-7
++-    ;; 	     latin-jisx0201 japanese-jisx0208-1978
++-    ;; 	     chinese-gb2312 japanese-jisx0208
++-    ;; 	     korean-ksc5601 japanese-jisx0212)		. iso-2022-jp-2)
++-    ;;((ascii latin-iso8859-1 greek-iso8859-7
++-    ;;        latin-jisx0201 japanese-jisx0208-1978
++-    ;;        chinese-gb2312 japanese-jisx0208
++-    ;;        korean-ksc5601 japanese-jisx0212
++-    ;;        chinese-cns11643-1 chinese-cns11643-2)	. iso-2022-int-1)
++-    ;;((ascii latin-iso8859-1 latin-iso8859-2
++-    ;;        cyrillic-iso8859-5 greek-iso8859-7
++-    ;;        latin-jisx0201 japanese-jisx0208-1978
++-    ;;        chinese-gb2312 japanese-jisx0208
++-    ;;        korean-ksc5601 japanese-jisx0212
++-    ;;        chinese-cns11643-1 chinese-cns11643-2
++-    ;;        chinese-cns11643-3 chinese-cns11643-4
++-    ;;        chinese-cns11643-5 chinese-cns11643-6
++-    ;;        chinese-cns11643-7)			. iso-2022-int-1)
++-    ))
+++  (delq
+++   nil
+++   `(((ascii)						. us-ascii)
+++     ((ascii latin-iso8859-1)				. iso-8859-1)
+++     ((ascii latin-iso8859-2)				. iso-8859-2)
+++     ((ascii latin-iso8859-3)				. iso-8859-3)
+++     ((ascii latin-iso8859-4)				. iso-8859-4)
+++     ,(if (find-coding-system 'iso-8859-15)
+++	  '((ascii latin-iso8859-15)			. iso-8859-15))
+++     ;;((ascii cyrillic-iso8859-5)			. iso-8859-5)
+++     ((ascii cyrillic-iso8859-5)			. koi8-r)
+++     ((ascii arabic-iso8859-6)				. iso-8859-6)
+++     ((ascii greek-iso8859-7)				. iso-8859-7)
+++     ((ascii hebrew-iso8859-8)				. iso-8859-8)
+++     ((ascii latin-iso8859-9)				. iso-8859-9)
+++     ,(if (find-coding-system 'iso-8859-14)
+++	  '((ascii latin-iso8859-14)			. iso-8859-14))
+++     ((ascii latin-jisx0201
+++	     japanese-jisx0208-1978 japanese-jisx0208)	. iso-2022-jp)
+++     ((ascii latin-jisx0201
+++	     katakana-jisx0201 japanese-jisx0208)	. shift_jis)
+++     ((ascii korean-ksc5601)				. euc-kr)
+++     ((ascii chinese-gb2312)				. gb2312)
+++     ((ascii chinese-big5-1 chinese-big5-2)		. big5)
+++     ,(static-cond
+++       ((null (string< mule-version "6.0"))
+++	'((ascii thai-tis620)				. tis-620))
+++       (t
+++	'((ascii thai-tis620 composition)      		. tis-620)))
+++     ;; ((ascii latin-iso8859-1 greek-iso8859-7
+++     ;; 	     latin-jisx0201 japanese-jisx0208-1978
+++     ;; 	     chinese-gb2312 japanese-jisx0208
+++     ;; 	     korean-ksc5601 japanese-jisx0212)		. iso-2022-jp-2)
+++     ;;((ascii latin-iso8859-1 greek-iso8859-7
+++     ;;        latin-jisx0201 japanese-jisx0208-1978
+++     ;;        chinese-gb2312 japanese-jisx0208
+++     ;;        korean-ksc5601 japanese-jisx0212
+++     ;;        chinese-cns11643-1 chinese-cns11643-2)	. iso-2022-int-1)
+++     ;;((ascii latin-iso8859-1 latin-iso8859-2
+++     ;;        cyrillic-iso8859-5 greek-iso8859-7
+++     ;;        latin-jisx0201 japanese-jisx0208-1978
+++     ;;        chinese-gb2312 japanese-jisx0208
+++     ;;        korean-ksc5601 japanese-jisx0212
+++     ;;        chinese-cns11643-1 chinese-cns11643-2
+++     ;;        chinese-cns11643-3 chinese-cns11643-4
+++     ;;        chinese-cns11643-5 chinese-cns11643-6
+++     ;;        chinese-cns11643-7)			. iso-2022-int-1)
+++     )))
+++
+++(defun-maybe coding-system-get (coding-system prop)
+++  "Extract a value from CODING-SYSTEM's property list for property PROP."
+++  (plist-get (coding-system-plist coding-system) prop)
+++  )
++ 
++ (defvar coding-system-to-mime-charset-exclude-regexp
++   "^unknown$\\|^x-")
++@@ -127,18 +140,55 @@ Return nil if corresponding MIME-charset is not found."
++ 				   (symbol-name result)))
++ 	  result))))
++ 
++-(defun mime-charset-list ()
+++(defun-maybe-cond mime-charset-list ()
++   "Return a list of all existing MIME-charset."
++-  (let ((dest (mapcar (function car) mime-charset-coding-system-alist))
++-	(rest coding-system-list)
++-	cs)
++-    (while rest
++-      (setq cs (car rest))
++-      (when (and (setq cs (coding-system-get cs 'mime-charset))
++-		 (null (memq cs dest)))
++-	(setq dest (cons cs dest)))
++-      (setq rest (cdr rest)))
++-    dest))
+++  ((boundp 'coding-system-list)
+++   (let ((dest (mapcar (function car) mime-charset-coding-system-alist))
+++	 (rest coding-system-list)
+++	 cs)
+++     (while rest
+++       (setq cs (car rest))
+++       (when (and (setq cs (coding-system-get cs 'mime-charset))
+++		  (null (memq cs dest)))
+++	 (setq dest (cons cs dest)))
+++       (setq rest (cdr rest)))
+++     dest))
+++   (t
+++    (let ((dest (mapcar (function car) mime-charset-coding-system-alist))
+++	  (rest (coding-system-list))
+++	  cs)
+++      (while rest
+++	(setq cs (car rest))
+++	(unless (rassq cs mime-charset-coding-system-alist)
+++	  (when (setq cs (or (coding-system-get cs 'mime-charset)
+++			     (and
+++			      (setq cs (aref
+++					(coding-system-get cs 'coding-spec)
+++					2))
+++			      (string-match "(MIME:[ \t]*\\([^,)]+\\)" cs)
+++			      (match-string 1 cs))))
+++	    (setq cs (intern (downcase cs)))
+++	    (unless (memq cs dest)
+++	      (setq dest (cons cs dest))
+++	      )))
+++	(setq rest (cdr rest)))
+++      dest)
+++    ))
+++
+++(static-when (and (string= (decode-coding-string "\e.A\eN!" 'ctext) "\eN!")
+++		  (or (not (find-coding-system 'x-ctext))
+++		      (coding-system-get 'x-ctext 'apel)))
+++  (unless (find-coding-system 'x-ctext)
+++    (make-coding-system
+++     'x-ctext 2 ?x
+++     "Compound text based generic encoding for decoding unknown messages."
+++     '((ascii t) (latin-iso8859-1 t) t t
+++       nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
+++       init-bol nil nil)
+++     '((safe-charsets . t)
+++       (mime-charset . x-ctext)))
+++    (coding-system-put 'x-ctext 'apel t)
+++    ))
++ 
++ 
++ ;;; @ end
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pccl-20.el devel/apel/patches/patch-pccl-20.el
+--- /usr/pkgsrc/devel/apel/patches/patch-pccl-20.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-pccl-20.el	2026-09-21 17:01:17.034512862 +0000
+@@ -0,0 +1,96 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept; here make-coding-system, gone from
++Emacs 30, is used only where define-coding-system does not exist.
++
++--- pccl-20.el.orig
+++++ pccl-20.el
++@@ -1,4 +1,4 @@
++-;;; pccl-20.el --- Portable CCL utility for Emacs 20 and XEmacs-21-mule  -*- lexical-binding: t -*-
+++;;; pccl-20.el --- Portable CCL utility for Emacs 20 and XEmacs-21-mule
++ 
++ ;; Copyright (C) 1998 Free Software Foundation, Inc.
++ ;; Copyright (C) 1998 Tanaka Akira
++@@ -34,25 +34,69 @@
++     (define-ccl-program test-ccl-identity
++       '(1 ((read r0) (loop (write-read-repeat r0)))))
++     (condition-case nil
++-        (ccl-execute-on-string
++-	 'test-ccl-identity (make-vector 9 nil) "")
+++        (progn
+++          (funcall
+++	   (if (fboundp 'ccl-vector-execute-on-string)
+++	       'ccl-vector-execute-on-string
+++	     'ccl-execute-on-string)
+++           'test-ccl-identity
+++           (make-vector 9 nil)
+++           "")
+++          t)
++       (error nil)))
++   t)
++ 
++ (eval-and-compile
++ 
++-  (defun make-ccl-coding-system
+++  (static-if (featurep 'xemacs)
+++      (defadvice make-coding-system (before ccl-compat (name type &rest ad-subr-args) activate)
+++	(when (and (integerp type)
+++		   (eq type 4)
+++		   (characterp (ad-get-arg 2))
+++		   (stringp (ad-get-arg 3))
+++		   (consp (ad-get-arg 4))
+++		   (symbolp (car (ad-get-arg 4)))
+++		   (symbolp (cdr (ad-get-arg 4))))
+++	  (setq type 'ccl)
+++	  (setq ad-subr-args
+++		(list
+++		 (ad-get-arg 3)
+++		 (append
+++		  (list
+++		   'mnemonic (char-to-string (ad-get-arg 2))
+++		   'decode (symbol-value (car (ad-get-arg 4)))
+++		   'encode (symbol-value (cdr (ad-get-arg 4))))
+++		  (ad-get-arg 5)))))))
+++
+++  (if (featurep 'xemacs)
+++      (defun make-ccl-coding-system (name mnemonic docstring decoder encoder)
+++	"\
+++Define a new CODING-SYSTEM by CCL programs DECODER and ENCODER.
+++
+++CODING-SYSTEM, DECODER and ENCODER must be symbol."
+++	(make-coding-system
+++	 name 'ccl docstring
+++	 (list 'mnemonic (char-to-string mnemonic)
+++	       'decode (symbol-value decoder)
+++	       'encode (symbol-value encoder))))
+++    (defun make-ccl-coding-system
++       (coding-system mnemonic docstring decoder encoder)
++-    "\
+++      "\
++ Define a new CODING-SYSTEM by CCL programs DECODER and ENCODER.
++ 
++ CODING-SYSTEM, DECODER and ENCODER must be symbol."
++-    (when-broken ccl-accept-symbol-as-program
++-      (setq decoder (symbol-value decoder))
++-      (setq encoder (symbol-value encoder)))
++-    (define-coding-system coding-system docstring
++-      :mnemonic mnemonic :coding-type 'ccl
++-      :ccl-decoder decoder :ccl-encoder encoder))
+++      (when-broken ccl-accept-symbol-as-program
+++	(setq decoder (symbol-value decoder))
+++	(setq encoder (symbol-value encoder)))
+++      ;; make-coding-system is gone from Emacs 30; define-coding-system
+++      ;; exists since 23.
+++      (if (fboundp 'define-coding-system)
+++	  (define-coding-system coding-system docstring
+++	    :mnemonic mnemonic :coding-type 'ccl
+++	    :ccl-decoder decoder :ccl-encoder encoder)
+++	(make-coding-system coding-system 4 mnemonic docstring
+++			    (cons decoder encoder))))
+++    )
++ 
++   (when-broken ccl-accept-symbol-as-program
++ 
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pccl.el devel/apel/patches/patch-pccl.el
+--- /usr/pkgsrc/devel/apel/patches/patch-pccl.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-pccl.el	2026-09-21 16:59:53.442179706 +0000
+@@ -0,0 +1,153 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- pccl.el.orig
+++++ pccl.el
++@@ -1,4 +1,4 @@
++-;;; pccl.el --- Portable CCL utility for Mule 2.*  -*- lexical-binding: t -*-
+++;;; pccl.el --- Portable CCL utility for Mule 2.*
++ 
++ ;; Copyright (C) 1998 Free Software Foundation, Inc.
++ 
++@@ -28,9 +28,135 @@
++ 
++ (broken-facility ccl-usable
++   "Emacs has not CCL."
++-  t)
+++  (and (featurep 'mule)
+++       (if (featurep 'xemacs)
+++           (>= emacs-major-version 21)
+++	 t)))
+++
+++(unless-broken ccl-usable
+++  (require 'advice)
+++
+++  (if (featurep 'mule)
+++      (progn
+++	(require 'ccl)
+++	(if (featurep 'xemacs)
+++            (if (>= emacs-major-version 21)
+++                ;; for XEmacs 21 with mule
+++                (require 'pccl-20))
+++	  ;; for Emacs 20
+++	  (require 'pccl-20))))
+++
+++  (static-if (or (featurep 'xemacs) (< emacs-major-version 21))
+++    (defadvice define-ccl-program
+++      (before accept-long-ccl-program activate)
+++      "When CCL-PROGRAM is too long, internal buffer is extended automatically."
+++      (let ((try-ccl-compile t)
+++	    (prog (eval (ad-get-arg 1))))
+++	(ad-set-arg 1 `',prog)
+++	(while try-ccl-compile
+++	  (setq try-ccl-compile nil)
+++	  (condition-case sig
+++	      (ccl-compile prog)
+++	    (args-out-of-range
+++	     (if (and (eq (car (cdr sig)) ccl-program-vector)
+++		      (= (car (cdr (cdr sig))) (length ccl-program-vector)))
+++		 (setq ccl-program-vector
+++		       (make-vector (* 2 (length ccl-program-vector)) 0)
+++		       try-ccl-compile t)
+++	       (signal (car sig) (cdr sig)))))))))
+++
+++  (static-when (and (not (featurep 'xemacs)) (< emacs-major-version 21))
+++    (defun-maybe transform-make-coding-system-args (name type &optional doc-string props)
+++      "For internal use only.
+++Transform XEmacs style args for `make-coding-system' to Emacs style.
+++Value is a list of transformed arguments."
+++      (let ((mnemonic (string-to-char (or (plist-get props 'mnemonic) "?")))
+++	    (eol-type (plist-get props 'eol-type))
+++	    properties tmp)
+++	(cond
+++	 ((eq eol-type 'lf) (setq eol-type 'unix))
+++	 ((eq eol-type 'crlf) (setq eol-type 'dos))
+++	 ((eq eol-type 'cr) (setq eol-type 'mac)))
+++	(if (setq tmp (plist-get props 'post-read-conversion))
+++	    (setq properties (plist-put properties 'post-read-conversion tmp)))
+++	(if (setq tmp (plist-get props 'pre-write-conversion))
+++	    (setq properties (plist-put properties 'pre-write-conversion tmp)))
+++	(cond
+++	 ((eq type 'shift-jis)
+++	  `(,name 1 ,mnemonic ,doc-string
+++		  nil ,properties ,eol-type))
+++	 ((eq type 'iso2022) ; This is not perfect.
+++	  (if (plist-get props 'escape-quoted)
+++	      (error "escape-quoted is not supported: %S"
+++		     `(,name ,type ,doc-string ,props)))
+++	  (let ((g0 (plist-get props 'charset-g0))
+++		(g1 (plist-get props 'charset-g1))
+++		(g2 (plist-get props 'charset-g2))
+++		(g3 (plist-get props 'charset-g3))
+++		(use-roman
+++		 (and
+++		  (eq (cadr (assoc 'latin-jisx0201
+++				   (plist-get props 'input-charset-conversion)))
+++		      'ascii)
+++		  (eq (cadr (assoc 'ascii
+++				   (plist-get props 'output-charset-conversion)))
+++		      'latin-jisx0201)))
+++		(use-oldjis
+++		 (and
+++		  (eq (cadr (assoc 'japanese-jisx0208-1978
+++				   (plist-get props 'input-charset-conversion)))
+++		      'japanese-jisx0208)
+++		  (eq (cadr (assoc 'japanese-jisx0208
+++				   (plist-get props 'output-charset-conversion)))
+++		      'japanese-jisx0208-1978))))
+++	    (if (charsetp g0)
+++		(if (plist-get props 'force-g0-on-output)
+++		    (setq g0 `(nil ,g0))
+++		  (setq g0 `(,g0 t))))
+++	    (if (charsetp g1)
+++		(if (plist-get props 'force-g1-on-output)
+++		    (setq g1 `(nil ,g1))
+++		  (setq g1 `(,g1 t))))
+++	    (if (charsetp g2)
+++		(if (plist-get props 'force-g2-on-output)
+++		    (setq g2 `(nil ,g2))
+++		  (setq g2 `(,g2 t))))
+++	    (if (charsetp g3)
+++		(if (plist-get props 'force-g3-on-output)
+++		    (setq g3 `(nil ,g3))
+++		  (setq g3 `(,g3 t))))
+++	    `(,name 2 ,mnemonic ,doc-string
+++		    (,g0 ,g1 ,g2 ,g3
+++			 ,(plist-get props 'short)
+++			 ,(not (plist-get props 'no-ascii-eol))
+++			 ,(not (plist-get props 'no-ascii-cntl))
+++			 ,(plist-get props 'seven)
+++			 t
+++			 ,(not (plist-get props 'lock-shift))
+++			 ,use-roman
+++			 ,use-oldjis
+++			 ,(plist-get props 'no-iso6429)
+++			 nil nil nil nil)
+++		    ,properties ,eol-type)))
+++	  ((eq type 'big5)
+++	   `(,name 3 ,mnemonic ,doc-string
+++		   nil ,properties ,eol-type))
+++	 ((eq type 'ccl)
+++	  `(,name 4 ,mnemonic ,doc-string
+++		  (,(plist-get props 'decode) . ,(plist-get props 'encode))
+++		  ,properties ,eol-type))
+++	 (t
+++	  (error "unsupported XEmacs style make-coding-style arguments: %S"
+++		 `(,name ,type ,doc-string ,props))))))
+++    (defadvice make-coding-system
+++      (before ccl-compat (name type &rest ad-subr-args) activate)
+++      "Emulate XEmacs style make-coding-system."
+++      (when (and (symbolp type) (not (memq type '(t nil))))
+++        (let ((args (apply 'transform-make-coding-system-args
+++	                   name type ad-subr-args)))
+++	  (setq type (cadr args)
+++	        ad-subr-args (cddr args)))))))
++ 
++-(require 'pccl-20)
++ 
++ ;;; @ end
++ ;;;
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces-e20.el devel/apel/patches/patch-pces-e20.el
+--- /usr/pkgsrc/devel/apel/patches/patch-pces-e20.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-pces-e20.el	2026-09-21 16:59:53.455585582 +0000
+@@ -0,0 +1,20 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- pces-e20.el.orig
+++++ pces-e20.el
++@@ -25,8 +25,9 @@
++ ;;; Code:
++ 
++ (require 'pces-20)
+++(require 'pym)
++ 
++-(defsubst find-coding-system (obj)
+++(defsubst-maybe find-coding-system (obj)
++   "Return OBJ if it is a coding-system."
++   (if (coding-system-p obj)
++       obj))
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel/patches/patch-pces.el
+--- /usr/pkgsrc/devel/apel/patches/patch-pces.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-pces.el	2026-09-21 16:59:53.472041634 +0000
+@@ -0,0 +1,40 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- pces.el.orig
+++++ pces.el
++@@ -1,4 +1,4 @@
++-;;; pces.el --- Portable Character Encoding Scheme (coding-system) features  -*- lexical-binding: t -*-
+++;;; pces.el --- Portable Character Encoding Scheme (coding-system) features
++ 
++ ;; Copyright (C) 1998,1999 Free Software Foundation, Inc.
++ 
++@@ -24,7 +24,23 @@
++ 
++ ;;; Code:
++ 
++-(require 'pces-e20)
+++(require 'poe)
+++
+++(eval-and-compile
+++  (unless (fboundp 'open-network-stream)
+++    (require 'tcp)))
+++
+++(cond ((featurep 'xemacs)
+++       (if (featurep 'file-coding)
+++	   (require 'pces-xfc)
+++	 (require 'pces-raw)
+++	 ))
+++      ((featurep 'mule)
+++       (require 'pces-e20)
+++       )
+++      (t
+++       (require 'pces-raw)
+++       ))
++ 
++ 	 
++ ;;; @ end
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/patches/patch-poe.el
+--- /usr/pkgsrc/devel/apel/patches/patch-poe.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-poe.el	2026-09-21 16:59:53.491497030 +0000
+@@ -0,0 +1,1608 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- poe.el.orig
+++++ poe.el
++@@ -35,6 +35,248 @@
++ (require 'pym)
++ 
++ 
+++;;; @ Version information.
+++;;;
+++
+++;; Some ancient version of XEmacs did not provide 'xemacs.
+++(static-when (string-match "XEmacs" emacs-version)
+++  (provide 'xemacs))
+++
+++;; `file-coding' was appeared in the spring of 1998, just before XEmacs
+++;; 21.0. Therefore it is not provided in XEmacs with MULE versions 20.4
+++;; or earlier.
+++(static-when (featurep 'xemacs)
+++  ;; must be load-time check to share .elc between w/ MULE and w/o MULE.
+++  (when (featurep 'mule)
+++    (provide 'file-coding)))
+++
+++(static-when (featurep 'xemacs)
+++  (require 'poe-xemacs))
+++
+++;; must be load-time check to share .elc between different systems.
+++(or (fboundp 'open-network-stream)
+++    (require 'tcp))
+++
+++
+++;;; @ C primitives emulation.
+++;;;
+++
+++;; Emacs 20.3 and earlier: (require FEATURE &optional FILENAME)
+++;; Emacs 20.4 and later: (require FEATURE &optional FILENAME NOERROR)
+++(static-condition-case nil
+++    ;; compile-time check.
+++    (progn
+++      (require 'nofeature "nofile" 'noerror)
+++      (if (get 'require 'defun-maybe)
+++	  (error "`require' is already redefined")))
+++  (error
+++   ;; load-time check.
+++   (or (fboundp 'si:require)
+++       (progn
+++	 (fset 'si:require (symbol-function 'require))
+++	 (defun require (feature &optional filename noerror)
+++	   "\
+++If feature FEATURE is not loaded, load it from FILENAME.
+++If FEATURE is not a member of the list `features', then the feature
+++is not loaded; so load the file FILENAME.
+++If FILENAME is omitted, the printname of FEATURE is used as the file name,
+++but in this case `load' insists on adding the suffix `.el' or `.elc'.
+++If the optional third argument NOERROR is non-nil,
+++then return nil if the file is not found.
+++Normally the return value is FEATURE."
+++	   (if noerror
+++	       (condition-case nil
+++		   (si:require feature filename)
+++		 (file-error))
+++	     (si:require feature filename)))
+++	 ;; for `load-history'.
+++	 (setq current-load-list (cons 'require current-load-list))
+++	 (put 'require 'defun-maybe t)))))
+++
+++;; Emacs 19.29 and later: (plist-get PLIST PROP)
+++;; (defun-maybe plist-get (plist prop)
+++;;   (while (and plist
+++;;               (not (eq (car plist) prop)))
+++;;     (setq plist (cdr (cdr plist))))
+++;;   (car (cdr plist)))
+++(static-unless (and (fboundp 'plist-get)
+++		    (not (get 'plist-get 'defun-maybe)))
+++  (or (fboundp 'plist-get)
+++      (progn
+++	(defvar plist-get-internal-symbol)
+++	(defun plist-get (plist prop)
+++	  "\
+++Extract a value from a property list.
+++PLIST is a property list, which is a list of the form
+++(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+++corresponding to the given PROP, or nil if PROP is not
+++one of the properties on the list."
+++	  (setplist 'plist-get-internal-symbol plist)
+++	  (get 'plist-get-internal-symbol prop))
+++	;; for `load-history'.
+++	(setq current-load-list (cons 'plist-get current-load-list))
+++	(put 'plist-get 'defun-maybe t))))
+++
+++;; Emacs 19.29 and later: (plist-put PLIST PROP VAL)
+++;; (defun-maybe plist-put (plist prop val)
+++;;   (catch 'found
+++;;     (let ((tail plist)
+++;;           (prev nil))
+++;;       (while (and tail (cdr tail))
+++;;         (if (eq (car tail) prop)
+++;;             (progn
+++;;               (setcar (cdr tail) val)
+++;;               (throw 'found plist))
+++;;           (setq prev tail
+++;;                 tail (cdr (cdr tail)))))
+++;;       (if prev
+++;;           (progn
+++;;             (setcdr (cdr prev) (list prop val))
+++;;             plist)
+++;;         (list prop val)))))
+++(static-unless (and (fboundp 'plist-put)
+++		    (not (get 'plist-put 'defun-maybe)))
+++  (or (fboundp 'plist-put)
+++      (progn
+++	(defvar plist-put-internal-symbol)
+++	(defun plist-put (plist prop val)
+++	  "\
+++Change value in PLIST of PROP to VAL.
+++PLIST is a property list, which is a list of the form
+++(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+++If PROP is already a property on the list, its value is set to VAL,
+++otherwise the new PROP VAL pair is added.  The new plist is returned;
+++use `(setq x (plist-put x prop val))' to be sure to use the new value.
+++The PLIST is modified by side effects."
+++	  (setplist 'plist-put-internal-symbol plist)
+++	  (put 'plist-put-internal-symbol prop val)
+++	  (symbol-plist 'plist-put-internal-symbol))
+++	;; for `load-history'.
+++	(setq current-load-list (cons 'plist-put current-load-list))
+++	(put 'plist-put 'defun-maybe t))))
+++
+++;; Emacs 19.23 and later: (minibuffer-prompt-width)
+++(defun-maybe minibuffer-prompt-width ()
+++  "Return the display width of the minibuffer prompt."
+++  (save-excursion
+++    (set-buffer (window-buffer (minibuffer-window)))
+++    (current-column)))
+++
+++;; (completing-read prompt table &optional
+++;; FSF Emacs
+++;;      --19.7  : predicate require-match init
+++;; 19.7 --19.34 : predicate require-match init hist
+++;; 20.1 --      : predicate require-match init hist def inherit-input-method
+++;; XEmacs
+++;;      --19.(?): predicate require-match init
+++;;      --21.2  : predicate require-match init hist
+++;; 21.2 --      : predicate require-match init hist def
+++;; )
+++
+++;; We support following API.
+++;; (completing-read prompt table
+++;;                  &optional predicate require-match init hist def)
+++(static-when
+++    ;; add 'def' argument.
+++    (and (featurep 'xemacs)
+++	 (or (and (eq emacs-major-version 21)
+++		  (< emacs-minor-version 2))
+++	     (< emacs-major-version 21)))
+++  (or (fboundp 'si:completing-read)
+++      (progn
+++	(fset 'si:completing-read (symbol-function 'completing-read))
+++	(defun completing-read
+++	    (prompt table &optional predicate require-match init
+++		    hist def)
+++	  "Read a string in the minibuffer, with completion.
+++PROMPT is a string to prompt with; normally it ends in a colon and a space.
+++TABLE is an alist whose elements' cars are strings, or an obarray.
+++PREDICATE limits completion to a subset of TABLE.
+++See `try-completion' and `all-completions' for more details
+++ on completion, TABLE, and PREDICATE.
+++
+++If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
+++ the input is (or completes to) an element of TABLE or is null.
+++ If it is also not t, Return does not exit if it does non-null completion.
+++If the input is null, `completing-read' returns an empty string,
+++ regardless of the value of REQUIRE-MATCH.
+++
+++If INIT is non-nil, insert it in the minibuffer initially.
+++  If it is (STRING . POSITION), the initial input
+++  is STRING, but point is placed POSITION characters into the string.
+++HIST, if non-nil, specifies a history list
+++  and optionally the initial position in the list.
+++  It can be a symbol, which is the history list variable to use,
+++  or it can be a cons cell (HISTVAR . HISTPOS).
+++  In that case, HISTVAR is the history list variable to use,
+++  and HISTPOS is the initial position (the position in the list
+++  which INIT corresponds to).
+++  Positions are counted starting from 1 at the beginning of the list.
+++DEF, if non-nil, is the default value.
+++
+++Completion ignores case if the ambient value of
+++  `completion-ignore-case' is non-nil."
+++	  (let ((string (si:completing-read prompt table predicate
+++					    require-match init hist)))
+++	    (if (and (string= string "") def)
+++		def string))))))
+++
+++;; Emacs 20.1 and 20.2: (concat-chars &rest CHARS)
+++;; Emacs 20.3/XEmacs 21.0 and later: (string &rest CHARS)
+++(static-cond
+++ ((and (fboundp 'string)
+++       (subrp (symbol-function 'string)))
+++  ;; Emacs 20.3/XEmacs 21.0 and later.
+++  )
+++ ((and (fboundp 'concat-chars)
+++       (subrp (symbol-function 'concat-chars)))
+++  ;; Emacs 20.1 and 20.2.
+++  (defalias 'string 'concat-chars))
+++ (t
+++  ;; Use `defun-maybe' to update `load-history'.
+++  (defun-maybe string (&rest chars)
+++    "Concatenate all the argument characters and make the result a string."
+++    ;; We cannot use (apply 'concat chars) here because `concat' does not
+++    ;; work with multibyte chars on Mule 1.* and 2.*.
+++    (mapconcat (function char-to-string) chars ""))))
+++
+++;; Emacs 19.29 and later: (buffer-substring-no-properties START END)
+++(defun-maybe buffer-substring-no-properties (start end)
+++  "Return the characters of part of the buffer, without the text properties.
+++The two arguments START and END are character positions;
+++they can be in either order."
+++  (let ((string (buffer-substring start end)))
+++    (set-text-properties 0 (length string) nil string)
+++    string))
+++
+++;; Emacs 19.31 and later: (buffer-live-p OBJECT)
+++(defun-maybe buffer-live-p (object)
+++  "Return non-nil if OBJECT is a buffer which has not been killed.
+++Value is nil if OBJECT is not a buffer or if it has been killed."
+++  (and object
+++       (get-buffer object)
+++       (buffer-name (get-buffer object))
+++       t))
+++
+++;; Emacs 20: (line-beginning-position &optional N)
+++(defun-maybe line-beginning-position (&optional n)
+++  "Return the character position of the first character on the current line.
+++With argument N not nil or 1, move forward N - 1 lines first.
+++If scan reaches end of buffer, return that position.
+++This function does not move point."
+++  (save-excursion
+++    (forward-line (1- (or n 1)))
+++    (point)))
+++
+++;; Emacs 20: (line-end-position &optional N)
+++(defun-maybe line-end-position (&optional n)
+++  "Return the character position of the last character on the current line.
+++With argument N not nil or 1, move forward N - 1 lines first.
+++If scan reaches end of buffer, return that position.
+++This function does not move point."
+++  (save-excursion
+++    (end-of-line (or n 1))
+++    (point)))
++ 
++ 
++ ;;; @ Basic lisp subroutines emulation. (lisp/subr.el)
++@@ -42,13 +284,116 @@
++ 
++ ;;; @@ Lisp language features.
++ 
+++(defmacro-maybe push (newelt listname)
+++  "Add NEWELT to the list stored in the symbol LISTNAME.
+++This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
+++LISTNAME must be a symbol."
+++  (list 'setq listname
+++	(list 'cons newelt listname)))
+++
+++(defmacro-maybe pop (listname)
+++  "Return the first element of LISTNAME's value, and remove it from the list.
+++LISTNAME must be a symbol whose value is a list.
+++If the value is nil, `pop' returns nil but does not actually
+++change the list."
+++  (list 'prog1 (list 'car listname)
+++	(list 'setq listname (list 'cdr listname))))
+++
+++(defmacro-maybe when (cond &rest body)
+++  "If COND yields non-nil, do BODY, else return nil."
+++  (list 'if cond (cons 'progn body)))
+++;; (def-edebug-spec when (&rest form))
+++
+++(defmacro-maybe unless (cond &rest body)
+++  "If COND yields nil, do BODY, else return nil."
+++  (cons 'if (cons cond (cons nil body))))
+++;; (def-edebug-spec unless (&rest form))
+++
+++(defsubst-maybe caar (x)
+++  "Return the car of the car of X."
+++  (car (car x)))
+++
+++(defsubst-maybe cadr (x)
+++  "Return the car of the cdr of X."
+++  (car (cdr x)))
+++
+++(defsubst-maybe cdar (x)
+++  "Return the cdr of the car of X."
+++  (cdr (car x)))
+++
+++(defsubst-maybe cddr (x)
+++  "Return the cdr of the cdr of X."
+++  (cdr (cdr x)))
+++
+++(defun-maybe last (x &optional n)
+++  "Return the last link of the list X.  Its car is the last element.
+++If X is nil, return nil.
+++If N is non-nil, return the Nth-to-last link of X.
+++If N is bigger than the length of X, return X."
+++  (if n
+++      (let ((m 0) (p x))
+++	(while (consp p)
+++	  (setq m (1+ m) p (cdr p)))
+++	(if (<= n 0) p
+++	  (if (< n m) (nthcdr (- m n) x) x)))
+++    (while (cdr x)
+++      (setq x (cdr x)))
+++    x))
+++
+++;; Actually, `butlast' and `nbutlast' are defined in lisp/cl.el.
+++(defun-maybe butlast (x &optional n)
+++  "Returns a copy of LIST with the last N elements removed."
+++  (if (and n (<= n 0)) x
+++    (nbutlast (copy-sequence x) n)))
+++
+++(defun-maybe nbutlast (x &optional n)
+++  "Modifies LIST to remove the last N elements."
+++  (let ((m (length x)))
+++    (or n (setq n 1))
+++    (and (< n m)
+++	 (progn
+++	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
+++	   x))))
+++
+++;; Emacs 20.3 and later: (assoc-default KEY ALIST &optional TEST DEFAULT)
+++(defun-maybe assoc-default (key alist &optional test default)
+++  "Find object KEY in a pseudo-alist ALIST.
+++ALIST is a list of conses or objects.  Each element (or the element's car,
+++if it is a cons) is compared with KEY by evaluating (TEST (car elt) KEY).
+++If that is non-nil, the element matches;
+++then `assoc-default' returns the element's cdr, if it is a cons,
+++or DEFAULT if the element is not a cons.
+++
+++If no element matches, the value is nil.
+++If TEST is omitted or nil, `equal' is used."
+++  (let (found (tail alist) value)
+++    (while (and tail (not found))
+++      (let ((elt (car tail)))
+++	(when (funcall (or test 'equal) (if (consp elt) (car elt) elt) key)
+++	  (setq found t value (if (consp elt) (cdr elt) default))))
+++      (setq tail (cdr tail)))
+++    value))
+++
++ ;; The following two function use `compare-strings', which we don't
++ ;; support yet.
++ ;; (defun assoc-ignore-case (key alist))
++ ;; (defun assoc-ignore-representation (key alist))
++ 
+++;; Emacs 19.29/XEmacs 19.13 and later: (rassoc KEY LIST)
+++;; Actually, `rassoc' is defined in src/fns.c.
+++(defun-maybe rassoc (key list)
+++  "Return non-nil if KEY is `equal' to the cdr of an element of LIST.
+++The value is actually the element of LIST whose cdr equals KEY.
+++Elements of LIST that are not conses are ignored."
+++  (catch 'found
+++    (while list
+++      (cond ((not (consp (car list))))
+++	    ((equal (cdr (car list)) key)
+++	     (throw 'found (car list))))
+++      (setq list (cdr list)))))
+++
++ ;; XEmacs 19.13 and later: (remassoc KEY ALIST)
++-(defun remassoc (key alist)
+++(defun-maybe remassoc (key alist)
++   "Delete by side effect any elements of ALIST whose car is `equal' to KEY.
++ The modified ALIST is returned.  If the first member of ALIST has a car
++ that is `equal' to KEY, there is no way to remove it by side effect;
++@@ -71,7 +416,7 @@ the value of `foo'."
++   alist)
++ 
++ ;; XEmacs 19.13 and later: (remassq KEY ALIST)
++-(defun remassq (key alist)
+++(defun-maybe remassq (key alist)
++   "Delete by side effect any elements of ALIST whose car is `eq' to KEY.
++ The modified ALIST is returned.  If the first member of ALIST has a car
++ that is `eq' to KEY, there is no way to remove it by side effect;
++@@ -94,7 +439,7 @@ the value of `foo'."
++   alist)
++ 
++ ;; XEmacs 19.13 and later: (remrassoc VALUE ALIST)
++-(defun remrassoc (value alist)
+++(defun-maybe remrassoc (value alist)
++   "Delete by side effect any elements of ALIST whose cdr is `equal' to VALUE.
++ The modified ALIST is returned.  If the first member of ALIST has a car
++ that is `equal' to VALUE, there is no way to remove it by side effect;
++@@ -117,7 +462,7 @@ the value of `foo'."
++   alist)
++ 
++ ;; XEmacs 19.13 and later: (remrassq VALUE ALIST)
++-(defun remrassq (value alist)
+++(defun-maybe remrassq (value alist)
++   "Delete by side effect any elements of ALIST whose cdr is `eq' to VALUE.
++ The modified ALIST is returned.  If the first member of ALIST has a car
++ that is `eq' to VALUE, there is no way to remove it by side effect;
++@@ -139,6 +484,67 @@ the value of `foo'."
++                   tail (cdr tail))))))
++   alist)
++ 
+++;;; Define `functionp' here because "localhook" uses it.
+++
+++;; Emacs 20.1/XEmacs 20.3 (but first appeared in Epoch?): (functionp OBJECT)
+++;; Emacs 22 and later; apel-ver.el uses it in place of interactive-p.
+++(defun-maybe called-interactively-p (&optional kind)
+++  "Return t if the containing function was called by `call-interactively'."
+++  (interactive-p))
+++
+++(defun-maybe functionp (object)
+++  "Non-nil if OBJECT is a type of object that can be called as a function."
+++  (or (subrp object) (byte-code-function-p object)
+++      (eq (car-safe object) 'lambda)
+++      (and (symbolp object) (fboundp object))))
+++
+++;;; @@ Hook manipulation functions.
+++
+++;; Emacs 19.29/XEmacs 19.14(?) and later: (add-to-list LIST-VAR ELEMENT)
+++(defun-maybe add-to-list (list-var element)
+++  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+++The test for presence of ELEMENT is done with `equal'.
+++If you want to use `add-to-list' on a variable that is not defined
+++until a certain package is loaded, you should put the call to `add-to-list'
+++into a hook function that will be run only after loading the package.
+++`eval-after-load' provides one way to do this.  In some cases
+++other hooks, such as major mode hooks, can do the job."
+++  (or (member element (symbol-value list-var))
+++      (set list-var (cons element (symbol-value list-var)))))
+++
+++;; (eval-after-load FILE FORM)
+++;; Emacs 19.28 and earlier do not evaluate FORM if FILE is already loaded.
+++;; XEmacs 20.2 and earlier have `after-load-alist', but refuse to support
+++;; `eval-after-load'. (see comments in XEmacs/lisp/subr.el.)
+++(static-cond
+++ ((featurep 'xemacs)
+++  ;; for XEmacs 20.2 and earlier.
+++  (defun-maybe eval-after-load (file form)
+++    "Arrange that, if FILE is ever loaded, FORM will be run at that time.
+++This makes or adds to an entry on `after-load-alist'.
+++If FILE is already loaded, evaluate FORM right now.
+++It does nothing if FORM is already on the list for FILE.
+++FILE should be the name of a library, with no directory name."
+++    ;; Make sure there is an element for FILE.
+++    (or (assoc file after-load-alist)
+++	(setq after-load-alist (cons (list file) after-load-alist)))
+++    ;; Add FORM to the element if it isn't there.
+++    (let ((elt (assoc file after-load-alist)))
+++      (or (member form (cdr elt))
+++	  (progn
+++	    (nconc elt (list form))
+++	    ;; If the file has been loaded already, run FORM right away.
+++	    (and (assoc file load-history)
+++		 (eval form)))))
+++    form)))
+++
+++
+++(defun-maybe eval-next-after-load (file)
+++  "Read the following input sexp, and run it whenever FILE is loaded.
+++This makes or adds to an entry on `after-load-alist'.
+++FILE should be the name of a library, with no directory name."
+++  (eval-after-load file (read)))
+++
++ ;;; @@ Input and display facilities.
++ 
++ ;; XXX: (defun read-passwd (prompt &optional confirm default))
++@@ -147,12 +553,719 @@ the value of `foo'."
++ 
++ ;; Avoid compiler warnings about this variable,
++ ;; which has a special meaning on certain system types.
++-(defvar buffer-file-type nil
+++(defvar-maybe buffer-file-type nil
++   "Non-nil if the visited file is a binary file.
++ This variable is meaningful on MS-DOG and Windows NT.
++ On those systems, it is automatically local in every buffer.
++ On other systems, this variable is normally always nil.")
++ 
+++;; Emacs 20.3 or later.
+++(defvar-maybe minor-mode-overriding-map-alist nil
+++  "Alist of keymaps to use for minor modes, in current major mode.
+++APEL provides this as dummy for compatibility.")
+++
+++;; Emacs 20.1/XEmacs 20.3(?) and later: (save-current-buffer &rest BODY)
+++;;
+++;; v20 defines `save-current-buffer' as a C primitive (in src/editfns.c)
+++;; and introduces a new bytecode Bsave_current_buffer(_1), replacing an
+++;; obsolete bytecode Bread_char.  To make things worse, Emacs 20.1 and
+++;; 20.2 have a bug that it will restore the current buffer without
+++;; confirming that it is alive.
+++;;
+++;; This is a source of incompatibility of .elc between v18/v19 and v20.
+++;; (XEmacs compiler takes care of it if compatibility mode is enabled.)
+++(defmacro-maybe save-current-buffer (&rest body)
+++  "Save the current buffer; execute BODY; restore the current buffer.
+++Executes BODY just like `progn'."
+++  `(let ((orig-buffer (current-buffer)))
+++     (unwind-protect
+++         (progn ,@ body)
+++       (if (buffer-live-p orig-buffer)
+++           (set-buffer orig-buffer)))))
+++
+++;; Emacs 20.1/XEmacs 20.3(?) and later: (with-current-buffer BUFFER &rest BODY)
+++(defmacro-maybe with-current-buffer (buffer &rest body)
+++  "Execute the forms in BODY with BUFFER as the current buffer.
+++The value returned is the value of the last form in BODY.
+++See also `with-temp-buffer'."
+++  `(save-current-buffer
+++     (set-buffer ,buffer)
+++     ,@ body))
+++
+++;; Emacs 20.1/XEmacs 20.3(?) and later: (with-temp-file FILE &rest FORMS)
+++(defmacro-maybe with-temp-file (file &rest forms)
+++  "Create a new buffer, evaluate FORMS there, and write the buffer to FILE.
+++The value of the last form in FORMS is returned, like `progn'.
+++See also `with-temp-buffer'."
+++  (let ((temp-file (make-symbol "temp-file"))
+++	(temp-buffer (make-symbol "temp-buffer")))
+++    `(let ((,temp-file ,file)
+++           (,temp-buffer
+++            (get-buffer-create (generate-new-buffer-name " *temp file*"))))
+++       (unwind-protect
+++           (prog1
+++               (with-current-buffer ,temp-buffer
+++                 ,@forms)
+++             (with-current-buffer ,temp-buffer
+++               (widen)
+++               (write-region (point-min) (point-max) ,temp-file nil 0)))
+++         (and (buffer-name ,temp-buffer)
+++              (kill-buffer ,temp-buffer))))))
+++
+++;; Emacs 20.4 and later: (with-temp-message MESSAGE &rest BODY)
+++;; This macro uses `current-message', which appears in v20.
+++(static-when (and (fboundp 'current-message)
+++		  (subrp (symbol-function 'current-message)))
+++  (defmacro-maybe with-temp-message (message &rest body)
+++    "\
+++Display MESSAGE temporarily if non-nil while BODY is evaluated.
+++The original message is restored to the echo area after BODY has finished.
+++The value returned is the value of the last form in BODY.
+++MESSAGE is written to the message log buffer if `message-log-max' is non-nil.
+++If MESSAGE is nil, the echo area and message log buffer are unchanged.
+++Use a MESSAGE of \"\" to temporarily clear the echo area."
+++    (let ((current-message (make-symbol "current-message"))
+++	  (temp-message (make-symbol "with-temp-message")))
+++      `(let ((,temp-message ,message)
+++             (,current-message))
+++         (unwind-protect
+++             (progn
+++               (when ,temp-message
+++                 (setq ,current-message (current-message))
+++                 (message "%s" ,temp-message)
+++                 ,@ body)
+++               (and ,temp-message ,current-message
+++                    (message "%s" ,current-message))))))))
+++
+++;; Emacs 20.1/XEmacs 20.3(?) and later: (with-temp-buffer &rest FORMS)
+++(defmacro-maybe with-temp-buffer (&rest forms)
+++  "Create a temporary buffer, and evaluate FORMS there like `progn'.
+++See also `with-temp-file' and `with-output-to-string'."
+++  (let ((temp-buffer (make-symbol "temp-buffer")))
+++    `(let ((,temp-buffer
+++            (get-buffer-create (generate-new-buffer-name " *temp*"))))
+++       (unwind-protect
+++           (with-current-buffer ,temp-buffer
+++             ,@ forms)
+++         (and (buffer-name ,temp-buffer)
+++              (kill-buffer ,temp-buffer))))))
+++
+++;; Emacs 20.1/XEmacs 20.3(?) and later: (with-output-to-string &rest BODY)
+++(defmacro-maybe with-output-to-string (&rest body)
+++  "Execute BODY, return the text it sent to `standard-output', as a string."
+++  `(let ((standard-output
+++          (get-buffer-create (generate-new-buffer-name " *string-output*"))))
+++     (let ((standard-output standard-output))
+++       ,@ body)
+++     (with-current-buffer standard-output
+++       (prog1
+++           (buffer-string)
+++         (kill-buffer nil)))))
+++
+++;; Emacs 20.1 and later: (combine-after-change-calls &rest BODY)
+++(defmacro-maybe combine-after-change-calls (&rest body)
+++  "Execute BODY, but don't call the after-change functions till the end.
+++If BODY makes changes in the buffer, they are recorded
+++and the functions on `after-change-functions' are called several times
+++when BODY is finished.
+++The return value is the value of the last form in BODY.
+++
+++If `before-change-functions' is non-nil, then calls to the after-change
+++functions can't be deferred, so in that case this macro has no effect.
+++
+++Do not alter `after-change-functions' or `before-change-functions'
+++in BODY.
+++
+++This emulating macro does not support after-change functions at all,
+++just execute BODY."
+++  (cons 'progn body))
+++
+++;; Emacs 19.29/XEmacs 19.14(?) and later: (match-string NUM &optional STRING)
+++(defun-maybe match-string (num &optional string)
+++  "Return string of text matched by last search.
+++NUM specifies which parenthesized expression in the last regexp.
+++ Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
+++Zero means the entire text matched by the whole regexp or whole string.
+++STRING should be given if the last search was by `string-match' on STRING."
+++  (if (match-beginning num)
+++      (if string
+++	  (substring string (match-beginning num) (match-end num))
+++	(buffer-substring (match-beginning num) (match-end num)))))
+++
+++;; Emacs 20.3 and later: (match-string-no-properties NUM &optional STRING)
+++(defun-maybe match-string-no-properties (num &optional string)
+++  "Return string of text matched by last search, without text properties.
+++NUM specifies which parenthesized expression in the last regexp.
+++ Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
+++Zero means the entire text matched by the whole regexp or whole string.
+++STRING should be given if the last search was by `string-match' on STRING."
+++  (if (match-beginning num)
+++      (if string
+++	  (let ((result
+++		 (substring string (match-beginning num) (match-end num))))
+++	    (set-text-properties 0 (length result) nil result)
+++	    result)
+++	(buffer-substring-no-properties (match-beginning num)
+++					(match-end num)))))
+++
+++;; Emacs 19.28 and earlier
+++;;  (replace-match NEWTEXT &optional FIXEDCASE LITERAL)
+++;; Emacs 20.x (?) and later
+++;;  (replace-match NEWTEXT &optional FIXEDCASE LITERAL STRING SUBEXP)
+++;; XEmacs 21:
+++;;  (replace-match NEWTEXT &optional FIXEDCASE LITERAL STRING STRBUFFER)
+++;; We support following API.
+++;;  (replace-match NEWTEXT &optional FIXEDCASE LITERAL STRING)
+++(static-condition-case nil
+++    ;; compile-time check
+++    (progn
+++      (string-match "" "")
+++      (replace-match "" nil nil "")
+++      (if (get 'replace-match 'defun-maybe)
+++	  (error "`replace-match' is already defined")))
+++  (wrong-number-of-arguments ; Emacs 19.28 and earlier
+++   ;; load-time check.
+++   (or (fboundp 'si:replace-match)
+++       (progn
+++	 (fset 'si:replace-match (symbol-function 'replace-match))
+++	 (put 'replace-match 'defun-maybe t)
+++	 (defun replace-match (newtext &optional fixedcase literal string)
+++	   "Replace text matched by last search with NEWTEXT.
+++If second arg FIXEDCASE is non-nil, do not alter case of replacement text.
+++Otherwise maybe capitalize the whole text, or maybe just word initials,
+++based on the replaced text.
+++If the replaced text has only capital letters
+++and has at least one multiletter word, convert NEWTEXT to all caps.
+++If the replaced text has at least one word starting with a capital letter,
+++then capitalize each word in NEWTEXT.
+++
+++If third arg LITERAL is non-nil, insert NEWTEXT literally.
+++Otherwise treat `\\' as special:
+++  `\\&' in NEWTEXT means substitute original matched text.
+++  `\\N' means substitute what matched the Nth `\\(...\\)'.
+++       If Nth parens didn't match, substitute nothing.
+++  `\\\\' means insert one `\\'.
+++FIXEDCASE and LITERAL are optional arguments.
+++Leaves point at end of replacement text.
+++
+++The optional fourth argument STRING can be a string to modify.
+++In that case, this function creates and returns a new string
+++which is made by replacing the part of STRING that was matched."
+++	   (if string
+++	       (with-temp-buffer
+++		(save-match-data
+++		  (insert string)
+++		  (let* ((matched (match-data))
+++			 (beg (nth 0 matched))
+++			 (end (nth 1 matched)))
+++		    (store-match-data
+++		     (list
+++		      (if (markerp beg)
+++			  (move-marker beg (1+ (match-beginning 0)))
+++			(1+ (match-beginning 0)))
+++		      (if (markerp end)
+++			  (move-marker end (1+ (match-end 0)))
+++			(1+ (match-end 0))))))
+++		  (si:replace-match newtext fixedcase literal)
+++		  (buffer-string)))
+++	     (si:replace-match newtext fixedcase literal))))))
+++  (error ; found our definition at compile-time.
+++   ;; load-time check.
+++   (condition-case nil
+++    (progn
+++      (string-match "" "")
+++      (replace-match "" nil nil ""))
+++    (wrong-number-of-arguments ; Emacs 19.28 and earlier
+++     ;; load-time check.
+++     (or (fboundp 'si:replace-match)
+++	 (progn
+++	   (fset 'si:replace-match (symbol-function 'replace-match))
+++	   (put 'replace-match 'defun-maybe t)
+++	   (defun replace-match (newtext &optional fixedcase literal string)
+++	     "Replace text matched by last search with NEWTEXT.
+++If second arg FIXEDCASE is non-nil, do not alter case of replacement text.
+++Otherwise maybe capitalize the whole text, or maybe just word initials,
+++based on the replaced text.
+++If the replaced text has only capital letters
+++and has at least one multiletter word, convert NEWTEXT to all caps.
+++If the replaced text has at least one word starting with a capital letter,
+++then capitalize each word in NEWTEXT.
+++
+++If third arg LITERAL is non-nil, insert NEWTEXT literally.
+++Otherwise treat `\\' as special:
+++  `\\&' in NEWTEXT means substitute original matched text.
+++  `\\N' means substitute what matched the Nth `\\(...\\)'.
+++       If Nth parens didn't match, substitute nothing.
+++  `\\\\' means insert one `\\'.
+++FIXEDCASE and LITERAL are optional arguments.
+++Leaves point at end of replacement text.
+++
+++The optional fourth argument STRING can be a string to modify.
+++In that case, this function creates and returns a new string
+++which is made by replacing the part of STRING that was matched."
+++	     (if string
+++		 (with-temp-buffer
+++		  (save-match-data
+++		    (insert string)
+++		    (let* ((matched (match-data))
+++			   (beg (nth 0 matched))
+++			   (end (nth 1 matched)))
+++		      (store-match-data
+++		       (list
+++			(if (markerp beg)
+++			    (move-marker beg (1+ (match-beginning 0)))
+++			  (1+ (match-beginning 0)))
+++			(if (markerp end)
+++			    (move-marker end (1+ (match-end 0)))
+++			  (1+ (match-end 0))))))
+++		    (si:replace-match newtext fixedcase literal)
+++		    (buffer-string)))
+++	       (si:replace-match newtext fixedcase literal)))))))))
+++
+++;; Emacs 20: (format-time-string FORMAT &optional TIME UNIVERSAL)
+++;; Those format constructs are yet to be implemented.
+++;;   %c, %C, %j, %U, %W, %x, %X
+++;; Not fully compatible especially when invalid format is specified.
+++(static-unless (and (fboundp 'format-time-string)
+++		    (not (get 'format-time-string 'defun-maybe)))
+++  (or (fboundp 'format-time-string)
+++  (progn
+++  (defconst format-time-month-list
+++    '(( "Zero" . ("Zero" . 0))
+++      ("Jan" . ("January" . 1)) ("Feb" . ("February" . 2))
+++      ("Mar" . ("March" . 3)) ("Apr" . ("April" . 4)) ("May" . ("May" . 5))
+++      ("Jun" . ("June" . 6))("Jul" . ("July" . 7)) ("Aug" . ("August" . 8))
+++      ("Sep" . ("September" . 9)) ("Oct" . ("October" . 10))
+++      ("Nov" . ("November" . 11)) ("Dec" . ("December" . 12)))
+++    "Alist of months and their number.")
+++
+++  (defconst format-time-week-list
+++    '(("Sun" . ("Sunday" . 0)) ("Mon" . ("Monday" . 1))
+++      ("Tue" . ("Tuesday" . 2)) ("Wed" . ("Wednesday" . 3))
+++      ("Thu" . ("Thursday" . 4)) ("Fri" . ("Friday" . 5))
+++      ("Sat" . ("Saturday" . 6)))
+++    "Alist of weeks and their number.")
+++
+++  (defun format-time-string (format &optional time universal)
+++    "Use FORMAT-STRING to format the time TIME, or now if omitted.
+++TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as returned by
+++`current-time' or `file-attributes'.
+++The third, optional, argument UNIVERSAL, if non-nil, means describe TIME
+++as Universal Time; nil means describe TIME in the local time zone.
+++The value is a copy of FORMAT-STRING, but with certain constructs replaced
+++by text that describes the specified date and time in TIME:
+++
+++%Y is the year, %y within the century, %C the century.
+++%G is the year corresponding to the ISO week, %g within the century.
+++%m is the numeric month.
+++%b and %h are the locale's abbreviated month name, %B the full name.
+++%d is the day of the month, zero-padded, %e is blank-padded.
+++%u is the numeric day of week from 1 (Monday) to 7, %w from 0 (Sunday) to 6.
+++%a is the locale's abbreviated name of the day of week, %A the full name.
+++%U is the week number starting on Sunday, %W starting on Monday,
+++ %V according to ISO 8601.
+++%j is the day of the year.
+++
+++%H is the hour on a 24-hour clock, %I is on a 12-hour clock, %k is like %H
+++ only blank-padded, %l is like %I blank-padded.
+++%p is the locale's equivalent of either AM or PM.
+++%M is the minute.
+++%S is the second.
+++%Z is the time zone name, %z is the numeric form.
+++%s is the number of seconds since 1970-01-01 00:00:00 +0000.
+++
+++%c is the locale's date and time format.
+++%x is the locale's \"preferred\" date format.
+++%D is like \"%m/%d/%y\".
+++
+++%R is like \"%H:%M\", %T is like \"%H:%M:%S\", %r is like \"%I:%M:%S %p\".
+++%X is the locale's \"preferred\" time format.
+++
+++Finally, %n is a newline, %t is a tab, %% is a literal %.
+++
+++Certain flags and modifiers are available with some format controls.
+++The flags are `_' and `-'.  For certain characters X, %_X is like %X,
+++but padded with blanks; %-X is like %X, but without padding.
+++%NX (where N stands for an integer) is like %X,
+++but takes up at least N (a number) positions.
+++The modifiers are `E' and `O'.  For certain characters X,
+++%EX is a locale's alternative version of %X;
+++%OX is like %X, but uses the locale's number symbols.
+++
+++For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\".
+++
+++Compatibility Note.
+++
+++Those format constructs are yet to be implemented.
+++  %c, %C, %j, %U, %W, %x, %X
+++Not fully compatible especially when invalid format is specified."
+++    (let ((fmt-len (length format))
+++	  (ind 0)
+++	  prev-ind
+++	  cur-char
+++	  (prev-char nil)
+++	  strings-so-far
+++	  (result "")
+++	  field-width
+++	  field-result
+++	  pad-left change-case
+++	  (paren-level 0)
+++	  hour ms ls
+++	  (tz (car (current-time-zone)))
+++	  time-string)
+++      (if universal
+++	  (progn
+++	    (or time
+++		(setq time (current-time)))
+++	    (setq ms (car time)
+++		  ls (- (nth 1 time) tz))
+++	    (cond ((< ls 0)
+++		   (setq ms (1- ms)
+++			 ls (+ ls 65536)))
+++		  ((>= ls 65536)
+++		   (setq ms (1+ ms)
+++			 ls (- ls 65536))))
+++	    (setq time (append (list ms ls) (nth 2 time)))))
+++      (setq time-string (current-time-string time)
+++	    hour (string-to-int (substring time-string 11 13)))
+++      (while (< ind fmt-len)
+++	(setq cur-char (aref format ind))
+++	(setq
+++	 result
+++	 (concat result
+++	(cond
+++	 ((eq cur-char ?%)
+++	  ;; eat any additional args to allow for future expansion, not!!
+++	  (setq pad-left nil change-case nil field-width "" prev-ind ind
+++		strings-so-far "")
+++;	  (catch 'invalid
+++	  (while (progn
+++		   (setq ind (1+ ind))
+++		   (setq cur-char (if (< ind fmt-len)
+++				      (aref format ind)
+++				    ?\0))
+++		   (or (eq ?- cur-char) ; pad on left
+++		       (eq ?# cur-char) ; case change
+++		       (if (and (string-equal field-width "")
+++				(<= ?0 cur-char) (>= ?9 cur-char))
+++			   ;; get format width
+++			   (let ((field-index ind))
+++			     (while (progn
+++				      (setq ind (1+ ind))
+++				      (setq cur-char (if (< ind fmt-len)
+++							 (aref format ind)
+++						       ?\0))
+++				      (and (<= ?0 cur-char) (>= ?9 cur-char))))
+++			     (setq field-width
+++				   (substring format field-index ind))
+++			     (setq ind (1- ind)
+++				   cur-char nil)
+++			     t))))
+++	    (setq prev-char cur-char
+++		  strings-so-far (concat strings-so-far
+++					 (if cur-char
+++					     (char-to-string cur-char)
+++					   field-width)))
+++	    ;; characters we actually use
+++	    (cond ((eq cur-char ?-)
+++		   ;; padding to left must be specified before field-width
+++		   (setq pad-left (string-equal field-width "")))
+++		  ((eq cur-char ?#)
+++		   (setq change-case t))))
+++	  (setq field-result
+++		(cond
+++		 ((eq cur-char ?%)
+++		  "%")
+++		 ;; the abbreviated name of the day of week.
+++		 ((eq cur-char ?a)
+++		  (substring time-string 0 3))
+++		 ;; the full name of the day of week
+++		 ((eq cur-char ?A)
+++		  (cadr (assoc (substring time-string 0 3)
+++			       format-time-week-list)))
+++		 ;; the abbreviated name of the month
+++		 ((eq cur-char ?b)
+++		  (substring time-string 4 7))
+++		 ;; the full name of the month
+++		 ((eq cur-char ?B)
+++		  (cadr (assoc (substring time-string 4 7)
+++			       format-time-month-list)))
+++		 ;; a synonym for `%x %X' (yet to come)
+++		 ((eq cur-char ?c)
+++		  "")
+++		 ;; locale specific (yet to come)
+++		 ((eq cur-char ?C)
+++		  "")
+++		 ;; the day of month, zero-padded
+++		 ((eq cur-char ?d)
+++		  (format "%02d" (string-to-int (substring time-string 8 10))))
+++		 ;; a synonym for `%m/%d/%y'
+++		 ((eq cur-char ?D)
+++		  (format "%02d/%02d/%s"
+++			  (cddr (assoc (substring time-string 4 7)
+++				       format-time-month-list))
+++			  (string-to-int (substring time-string 8 10))
+++			  (substring time-string -2)))
+++		 ;; the day of month, blank-padded
+++		 ((eq cur-char ?e)
+++		  (format "%2d" (string-to-int (substring time-string 8 10))))
+++		 ;; a synonym for `%b'
+++		 ((eq cur-char ?h)
+++		  (substring time-string 4 7))
+++		 ;; the hour (00-23)
+++		 ((eq cur-char ?H)
+++		  (substring time-string 11 13))
+++		 ;; the hour (00-12)
+++		 ((eq cur-char ?I)
+++		  (format "%02d" (if (> hour 12) (- hour 12) hour)))
+++		 ;; the day of the year (001-366) (yet to come)
+++		 ((eq cur-char ?j)
+++		  "")
+++		 ;; the hour (0-23), blank padded
+++		 ((eq cur-char ?k)
+++		  (format "%2d" hour))
+++		 ;; the hour (1-12), blank padded
+++		 ((eq cur-char ?l)
+++		  (format "%2d" (if (> hour 12) (- hour 12) hour)))
+++		 ;; the month (01-12)
+++		 ((eq cur-char ?m)
+++		  (format "%02d" (cddr (assoc (substring time-string 4 7)
+++					      format-time-month-list))))
+++		 ;; the minute (00-59)
+++		 ((eq cur-char ?M)
+++		  (substring time-string 14 16))
+++		 ;; a newline
+++		 ((eq cur-char ?n)
+++		  "\n")
+++		 ;; `AM' or `PM', as appropriate
+++		 ((eq cur-char ?p)
+++		  (setq change-case (not change-case))
+++		  (if (> hour 12) "pm" "am"))
+++		 ;; a synonym for `%I:%M:%S %p'
+++		 ((eq cur-char ?r)
+++		  (format "%02d:%s:%s %s"
+++			  (if (> hour 12) (- hour 12) hour)
+++			  (substring time-string 14 16)
+++			  (substring time-string 17 19)
+++			  (if (> hour 12) "PM" "AM")))
+++		 ;; a synonym for `%H:%M'
+++		 ((eq cur-char ?R)
+++		  (format "%s:%s"
+++			  (substring time-string 11 13)
+++			  (substring time-string 14 16)))
+++		 ;; the seconds (00-60)
+++		 ((eq cur-char ?S)
+++		  (substring time-string 17 19))
+++		 ;; a tab character
+++		 ((eq cur-char ?t)
+++		  "\t")
+++		 ;; a synonym for `%H:%M:%S'
+++		 ((eq cur-char ?T)
+++		  (format "%s:%s:%s"
+++			  (substring time-string 11 13)
+++			  (substring time-string 14 16)
+++			  (substring time-string 17 19)))
+++		 ;; the week of the year (01-52), assuming that weeks
+++		 ;; start on Sunday (yet to come)
+++		 ((eq cur-char ?U)
+++		  "")
+++		 ;; the numeric day of week (0-6).  Sunday is day 0
+++		 ((eq cur-char ?w)
+++		  (format "%d" (cddr (assoc (substring time-string 0 3)
+++					    format-time-week-list))))
+++		 ;; the week of the year (01-52), assuming that weeks
+++		 ;; start on Monday (yet to come)
+++		 ((eq cur-char ?W)
+++		  "")
+++		 ;; locale specific (yet to come)
+++		 ((eq cur-char ?x)
+++		  "")
+++		 ;; locale specific (yet to come)
+++		 ((eq cur-char ?X)
+++		  "")
+++		 ;; the year without century (00-99)
+++		 ((eq cur-char ?y)
+++		  (substring time-string -2))
+++		 ;; the year with century
+++		 ((eq cur-char ?Y)
+++		  (substring time-string -4))
+++		 ;; the time zone abbreviation
+++		 ((eq cur-char ?Z)
+++		  (if universal
+++		      "UTC"
+++		    (setq change-case (not change-case))
+++		    (downcase (cadr (current-time-zone)))))
+++		 ((eq cur-char ?z)
+++		  (if universal
+++		      "+0000"
+++		    (if (< tz 0)
+++			(format "-%02d%02d"
+++				(/ (- tz) 3600) (/ (% (- tz) 3600) 60))
+++		      (format "+%02d%02d"
+++			      (/ tz 3600) (/ (% tz 3600) 60)))))
+++		 (t
+++		  (concat
+++		   "%"
+++		   strings-so-far
+++		   (char-to-string cur-char)))))
+++;		  (setq ind prev-ind)
+++;		  (throw 'invalid "%"))))
+++	  (if (string-equal field-width "")
+++	      (if change-case (upcase field-result) field-result)
+++	    (let ((padded-result
+++		   (format (format "%%%s%s%c"
+++				   ""	; pad on left is ignored
+++;				   (if pad-left "-" "")
+++				   field-width
+++				   ?s)
+++			   (or field-result ""))))
+++	      (let ((initial-length (length padded-result))
+++		    (desired-length (string-to-int field-width)))
+++		(when (and (string-match "^0" field-width)
+++			   (string-match "^ +" padded-result))
+++		  (setq padded-result
+++			(replace-match
+++			 (make-string
+++			  (length (match-string 0 padded-result)) ?0)
+++			 nil nil padded-result)))
+++		(if (> initial-length desired-length)
+++		    ;; truncate strings on right, years on left
+++		    (if (stringp field-result)
+++			(substring padded-result 0 desired-length)
+++		      (if (eq cur-char ?y)
+++			  (substring padded-result (- desired-length))
+++			padded-result))) ;non-year numbers don't truncate
+++		(if change-case (upcase padded-result) padded-result))))) ;)
+++	 (t
+++	  (char-to-string cur-char)))))
+++	(setq ind (1+ ind)))
+++      result))
+++  ;; for `load-history'.
+++  (setq current-load-list (cons 'format-time-string current-load-list))
+++  (put 'format-time-string 'defun-maybe t))))
+++
+++;; Emacs 19.29-19.34/XEmacs: `format-time-string' neither supports the
+++;; format string "%z" nor the third argument `universal'.
+++(unless (string-match "\\`[---+][0-9]+\\'"
+++		      (format-time-string "%z" (current-time)))
+++  (defadvice format-time-string
+++    (before support-timezone-in-numeric-form-and-3rd-arg
+++	    (format-string &optional time universal) activate compile)
+++    "Advice to support the construct `%z' and the third argument `universal'."
+++    (let ((tz (car (current-time-zone)))
+++	  case-fold-search ms ls)
+++      (while (string-match "\\(\\(\\`\\|[^%]\\)\\(%%\\)*\\)%z" format-string)
+++	(setq format-string
+++	      (concat (substring format-string 0 (match-end 1))
+++		      (if universal
+++			  "+0000"
+++			(if (< tz 0)
+++			    (format "-%02d%02d"
+++				    (/ (- tz) 3600) (/ (% (- tz) 3600) 60))
+++			  (format "+%02d%02d"
+++				  (/ tz 3600) (/ (% tz 3600) 60))))
+++		      (substring format-string (match-end 0)))))
+++      (if universal
+++	  (progn
+++	    (while (string-match "\\(\\(\\`\\|[^%]\\)\\(%%\\)*\\)%Z"
+++				 format-string)
+++	      (setq format-string
+++		    (concat (substring format-string 0 (match-end 1))
+++			    "UTC"
+++			    (substring format-string (match-end 0)))))
+++	    (or time
+++		(setq time (current-time)))
+++	    (setq ms (car time)
+++		  ls (- (nth 1 time) tz))
+++	    (cond ((< ls 0)
+++		   (setq ms (1- ms)
+++			 ls (+ ls 65536)))
+++		  ((>= ls 65536)
+++		   (setq ms (1+ ms)
+++			 ls (- ls 65536))))
+++	    (setq time (append (list ms ls) (nth 2 time))))))))
+++
+++(defconst-maybe split-string-default-separators "[ \f\t\n\r\v]+"
+++  "The default value of separators for `split-string'.
+++
+++A regexp matching strings of whitespace.  May be locale-dependent
+++(as yet unimplemented).  Should not match non-breaking spaces.
+++
+++Warning: binding this to a different value and using it as default is
+++likely to have undesired semantics.")
+++
+++;; Here is a Emacs 22 version. OMIT-NULLS
+++(defun-maybe split-string (string &optional separators omit-nulls)
+++  "Split STRING into substrings bounded by matches for SEPARATORS.
+++
+++The beginning and end of STRING, and each match for SEPARATORS, are
+++splitting points.  The substrings matching SEPARATORS are removed, and
+++the substrings between the splitting points are collected as a list,
+++which is returned.
+++
+++If SEPARATORS is non-nil, it should be a regular expression matching text
+++which separates, but is not part of, the substrings.  If nil it defaults to
+++`split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
+++OMIT-NULLS is forced to t.
+++
+++If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
+++that for the default value of SEPARATORS leading and trailing whitespace
+++are effectively trimmed).  If nil, all zero-length substrings are retained,
+++which correctly parses CSV format, for example.
+++
+++Note that the effect of `(split-string STRING)' is the same as
+++`(split-string STRING split-string-default-separators t)').  In the rare
+++case that you wish to retain zero-length substrings when splitting on
+++whitespace, use `(split-string STRING split-string-default-separators)'.
+++
+++Modifies the match data; use `save-match-data' if necessary."
+++  (let ((keep-nulls (not (if separators omit-nulls t)))
+++	(rexp (or separators split-string-default-separators))
+++	(start 0)
+++	notfirst
+++	(list nil))
+++    (while (and (string-match rexp string
+++			      (if (and notfirst
+++				       (= start (match-beginning 0))
+++				       (< start (length string)))
+++				  (1+ start) start))
+++		(< start (length string)))
+++      (setq notfirst t)
+++      (if (or keep-nulls (< start (match-beginning 0)))
+++	  (setq list
+++		(cons (substring string start (match-beginning 0))
+++		      list)))
+++      (setq start (match-end 0)))
+++    (if (or keep-nulls (< start (length string)))
+++	(setq list
+++	      (cons (substring string start)
+++		    list)))
+++    (nreverse list)))
+++
+++
+++;;; @ Window commands emulation. (lisp/window.el)
+++;;;
+++
+++(defmacro-maybe save-selected-window (&rest body)
+++  "Execute BODY, then select the window that was selected before BODY."
+++  (list 'let
+++	'((save-selected-window-window (selected-window)))
+++	(list 'unwind-protect
+++	      (cons 'progn body)
+++	      (list 'select-window 'save-selected-window-window))))
+++
+++;; Emacs 19.31 and later:
+++;;  (get-buffer-window-list &optional BUFFER MINIBUF FRAME)
+++(defun-maybe get-buffer-window-list (buffer &optional minibuf frame)
+++  "Return windows currently displaying BUFFER, or nil if none.
+++See `walk-windows' for the meaning of MINIBUF and FRAME."
+++  (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
+++    (walk-windows
+++     (function (lambda (window)
+++		 (if (eq (window-buffer window) buffer)
+++		     (setq windows (cons window windows)))))
+++     minibuf frame)
+++    windows))
++ 
++ 
++ ;;; @ Frame commands emulation. (lisp/frame.el)
++@@ -160,7 +1273,7 @@ On other systems, this variable is normally always nil.")
++ 
++ ;; XEmacs 21.0 and later:
++ ;;  (save-selected-frame &rest BODY)
++-(defmacro save-selected-frame (&rest body)
+++(defmacro-maybe save-selected-frame (&rest body)
++   "Execute forms in BODY, then restore the selected frame."
++   (list 'let
++ 	'((save-selected-frame-frame (selected-frame)))
++@@ -173,18 +1286,342 @@ On other systems, this variable is normally always nil.")
++ ;;;
++ 
++ 
+++;;; @ File input and output commands emulation. (lisp/files.el)
+++;;;
+++
+++(defvar-maybe temporary-file-directory
+++  (file-name-as-directory
+++   (cond ((memq system-type '(ms-dos windows-nt))
+++	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
+++	 ((memq system-type '(vax-vms axp-vms))
+++	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
+++	 (t
+++	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
+++  "The directory for writing temporary files.")
+++
+++;; Emacs 21 CVS and later ; nothing to do.
+++;;  (make-temp-file PREFIX &optional DIR-FLAG SUFFIX)
+++;;
+++;; Emacs 21.1-21.3        ; replace with CVS version of `make-temp-file'.
+++;;  (make-temp-file PREFIX &optional DIR-FLAG)
+++;;
+++;; Emacs 20 and earlier   ; install our version of `make-temp-file', for
+++;;  or XEmacs		  ; single-user system or for multi-user system.
+++(eval-when-compile
+++  (cond
+++   ((get 'make-temp-file 'defun-maybe)
+++    ;; this form is already evaluated during compilation.
+++    )
+++   ((not (fboundp 'make-temp-file))
+++    ;; Emacs 20 and earlier, or XEmacs.
+++    (put 'make-temp-file 'defun-maybe 'none))
+++   (t
+++    (let* ((object (symbol-function 'make-temp-file))
+++           (arglist (cond
+++                     ((byte-code-function-p object)
+++                      (if (fboundp 'compiled-function-arglist)
+++                          (compiled-function-arglist object)
+++                        (aref object 0)))
+++                     ((eq (car-safe object) 'lambda)
+++                      (nth 1 object))
+++                     ;; `make-temp-file' is a built-in.
+++                     )))
+++      ;; arglist: (prefix &optional dir-flag suffix)
+++      (cond
+++       ((or
+++	 ;; `make-temp-file' is a built-in.
+++	 (not arglist)
+++	 ;; Emacs trunk r113642 and later.
+++	 ;; `make-temp-file' is byte compiled with lexical-binding.
+++	 (integerp arglist)
+++	 ;; Emacs 21 CVS and later.
+++	 ;; `make-temp-file' is byte compiled.
+++	 (> (length arglist) 3))
+++        (put 'make-temp-file 'defun-maybe '3-args))
+++       (t
+++        ;; Emacs 21.1-21.3
+++        (put 'make-temp-file 'defun-maybe '2-args)))))))
+++
+++(static-cond
+++ ((eq (get 'make-temp-file 'defun-maybe) '3-args)
+++  (put 'make-temp-file 'defun-maybe '3-args))
+++ ((eq (get 'make-temp-file 'defun-maybe) '2-args)
+++  (put 'make-temp-file 'defun-maybe '2-args)
+++  (or (fboundp 'si:make-temp-file)
+++      (fset 'si:make-temp-file (symbol-function 'make-temp-file)))
+++  (setq current-load-list (cons 'make-temp-file current-load-list))
+++  (defun make-temp-file (prefix &optional dir-flag suffix)
+++    "\
+++Create a temporary file.
+++The returned file name (created by appending some random characters at the end
+++of PREFIX, and expanding against `temporary-file-directory' if necessary),
+++is guaranteed to point to a newly created empty file.
+++You can then use `write-region' to write new data into the file.
+++
+++If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+++
+++If SUFFIX is non-nil, add that at the end of the file name."
+++    (let ((umask (default-file-modes))
+++          file)
+++      (unwind-protect
+++          (progn
+++            ;; Create temp files with strict access rights.  
+++            ;; It's easy toloosen them later, whereas it's impossible
+++            ;;  to close the time-window of loose permissions otherwise.
+++            (set-default-file-modes 448)
+++            (while (condition-case ()
+++                       (progn
+++                         (setq file
+++                               (make-temp-name
+++                                (expand-file-name
+++                                 prefix temporary-file-directory)))
+++                         (if suffix
+++                             (setq file (concat file suffix)))
+++                         (if dir-flag
+++                             (make-directory file)
+++                           (write-region "" nil file nil
+++                                         'silent nil 'excl))
+++                         nil)
+++                     (file-already-exists t))
+++              ;; the file was somehow created by someone else between
+++              ;; `make-temp-name' and `write-region', let's try again.
+++              nil)
+++            file)
+++        ;; Reset the umask.
+++        (set-default-file-modes umask)))))
+++ ((eq (get 'make-temp-file 'defun-maybe) 'none)
+++  (put 'make-temp-file 'defun-maybe 'none)
+++  (setq current-load-list (cons 'make-temp-file current-load-list))
+++  ;; must be load-time check to share .elc between different systems.
+++  (cond
+++   ((memq system-type '(windows-nt ms-dos OS/2 emx))
+++    ;; for single-user systems.
+++    (defun make-temp-file (prefix &optional dir-flag suffix)
+++      "Create a temporary file.
+++The returned file name (created by appending some random characters at the end
+++of PREFIX, and expanding against `temporary-file-directory' if necessary),
+++is guaranteed to point to a newly created empty file.
+++You can then use `write-region' to write new data into the file.
+++
+++If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+++
+++If SUFFIX is non-nil, add that at the end of the file name."
+++      (let ((file (make-temp-name
+++                   (expand-file-name prefix temporary-file-directory))))
+++        (if suffix
+++            (setq file (concat file suffix)))
+++        (if dir-flag
+++            (make-directory file)
+++          (write-region "" nil file nil 'silent))
+++        file)))
+++   (t
+++    ;; for multi-user systems.
+++    (defun make-temp-file (prefix &optional dir-flag suffix)
+++      "Create a temporary file.
+++The returned file name (created by appending some random characters at the end
+++of PREFIX, and expanding against `temporary-file-directory' if necessary),
+++is guaranteed to point to a newly created empty file.
+++You can then use `write-region' to write new data into the file.
+++
+++If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+++
+++If SUFFIX is non-nil, add that at the end of the file name."
+++      (let ((prefix (expand-file-name prefix temporary-file-directory)))
+++        (if dir-flag
+++            ;; Create a new empty directory.
+++            (let (dir)
+++              (while (condition-case ()
+++                         (progn
+++                           (setq dir (make-temp-name prefix))
+++                           (if suffix
+++                               (setq dir (concat dir suffix)))
+++                           ;; `make-directory' returns nil for success,
+++                           ;; otherwise signals an error.
+++                           (make-directory dir))
+++                       ;; the dir was somehow created by someone else
+++                       ;; between `make-temp-name' and `make-directory',
+++                       ;; let's try again.
+++                       (file-already-exists t)))
+++              (set-file-modes dir 448)
+++              dir)
+++          ;; Create a new empty file.
+++          (let (tempdir tempfile)
+++            (unwind-protect
+++                (let (file)
+++                  ;; First, create a temporary directory.
+++                  (while (condition-case ()
+++                             (progn
+++                               (setq tempdir (make-temp-name
+++                                              (concat
+++                                               (file-name-directory prefix)
+++                                               "DIR")))
+++                               ;; return nil or signal an error.
+++                               (make-directory tempdir))
+++                           ;; let's try again.
+++                           (file-already-exists t)))
+++                  (set-file-modes tempdir 448)
+++                  ;; Second, create a temporary file in the tempdir.
+++                  ;; There *is* a race condition between `make-temp-name'
+++                  ;; and `write-region', but we don't care it since we are
+++                  ;; in a private directory now.
+++                  (setq tempfile (make-temp-name (concat tempdir "/EMU")))
+++                  (write-region "" nil tempfile nil 'silent)
+++                  (set-file-modes tempfile 384)
+++                  ;; Finally, make a hard-link from the tempfile.
+++                  (while (condition-case ()
+++                             (progn
+++                               (setq file (make-temp-name prefix))
+++                               (if suffix
+++                                   (setq file (concat file suffix)))
+++                               ;; return nil or signal an error.
+++                               (add-name-to-file tempfile file))
+++                           ;; let's try again.
+++                           (file-already-exists t)))
+++                  file)
+++              ;; Cleanup the tempfile.
+++              (and tempfile
+++                   (file-exists-p tempfile)
+++                   (delete-file tempfile))
+++              ;; Cleanup the tempdir.
+++              (and tempdir
+++                   (file-directory-p tempdir)
+++                   (delete-directory tempdir)))))))))))
+++
+++;; Actually, `path-separator' is defined in src/emacs.c and overrided
+++;; in dos-w32.el.
+++(defvar-maybe path-separator ":"
+++  "The directory separator in search paths, as a string.")
+++
+++;; `convert-standard-filename' is defined in lisp/files.el and overrided
+++;; in lisp/dos-fns.el and lisp/w32-fns.el for each environment.
+++(cond
+++ ;; must be load-time check to share .elc between different systems.
+++ ((fboundp 'convert-standard-filename))
+++ ((memq system-type '(windows-nt ms-dos))
+++  ;; should we do (require 'filename) at load-time ?
+++  ;; (require 'filename)
+++  ;; filename.el requires many modules, so we do not want to load it
+++  ;; at compile-time. Instead, suppress warnings by these autoloads.
+++  (eval-when-compile
+++    (autoload 'filename-maybe-truncate-by-size "filename")
+++    (autoload 'filename-special-filter "filename"))
+++  (defun convert-standard-filename (filename)
+++    "Convert a standard file's name to something suitable for the current OS.
+++This function's standard definition is trivial; it just returns the argument.
+++However, on some systems, the function is redefined
+++with a definition that really does change some file names.
+++Under `windows-nt' or `ms-dos', it refers `filename-replacement-alist' and
+++`filename-limit-length' for the basic filename and each parent directory name."
+++    (require 'filename)
+++    (let* ((names (split-string filename "/"))
+++	   (drive-name (car names))
+++	   (filter (function
+++		    (lambda (string)
+++		      (filename-maybe-truncate-by-size
+++		       (filename-special-filter string))))))
+++      (cond
+++       ((eq 1 (length names))
+++	(funcall filter drive-name))
+++       ((string-match "^[^/]:$" drive-name)
+++	(concat drive-name "/" (mapconcat filter (cdr names) "/")))
+++       (t
+++	(mapconcat filter names "/"))))))
+++ (t
+++  (defun convert-standard-filename (filename)
+++    "Convert a standard file's name to something suitable for the current OS.
+++This function's standard definition is trivial; it just returns the argument.
+++However, on some systems, the function is redefined
+++with a definition that really does change some file names.
+++Under `windows-nt' or `ms-dos', it refers `filename-replacement-alist' and
+++`filename-limit-length' for the basic filename and each parent directory name."
+++    filename)))
+++
+++(static-cond
+++ ((fboundp 'insert-file-contents-literally))
+++ ((boundp 'file-name-handler-alist)
+++  ;; Use `defun-maybe' to update `load-history'.
+++  (defun-maybe insert-file-contents-literally (filename &optional visit
+++							beg end replace)
+++    "Like `insert-file-contents', q.v., but only reads in the file.
+++A buffer may be modified in several ways after reading into the buffer due
+++to advanced Emacs features, such as file-name-handlers, format decoding,
+++find-file-hooks, etc.
+++  This function ensures that none of these modifications will take place."
+++    (let (file-name-handler-alist)
+++      (insert-file-contents filename visit beg end replace))))
+++ (t
+++  (defalias 'insert-file-contents-literally 'insert-file-contents)))
+++
+++(defun-maybe file-name-sans-extension (filename)
+++  "Return FILENAME sans final \"extension\".
+++The extension, in a file name, is the part that follows the last `.'."
+++  (save-match-data
+++    (let ((file (file-name-sans-versions (file-name-nondirectory filename)))
+++	  directory)
+++      (if (string-match "\\.[^.]*\\'" file)
+++	  (if (setq directory (file-name-directory filename))
+++	      (expand-file-name (substring file 0 (match-beginning 0))
+++				directory)
+++	    (substring file 0 (match-beginning 0)))
+++	filename))))
+++
+++
+++;;; @ Miscellanea.
+++
+++;; Emacs 19.29 and later: (current-fill-column)
+++(defun-maybe current-fill-column ()
+++  "Return the fill-column to use for this line."
+++  fill-column)
+++
+++;; Emacs 19.29 and later: (current-left-margin)
+++(defun-maybe current-left-margin ()
+++  "Return the left margin to use for this line."
+++  left-margin)
+++
+++
++ ;;; @ XEmacs emulation.
++ ;;;
++ 
++-(defun find-face (face-or-name)
+++(defun-maybe find-face (face-or-name)
++   "Retrieve the face of the given name.
++ If FACE-OR-NAME is a face object, it is simply returned.
++ Otherwise, FACE-OR-NAME should be a symbol.  If there is no such face,
++ nil is returned.  Otherwise the associated face object is returned."
++   (car (memq face-or-name (face-list))))
++ 
+++;; Emacs 21.1 defines this as an alias for `line-beginning-position'.
+++;; Therefore, optional 2nd arg BUFFER is not portable.
+++(defun-maybe point-at-bol (&optional n buffer)
+++  "Return the character position of the first character on the current line.
+++With argument N not nil or 1, move forward N - 1 lines first.
+++If scan reaches end of buffer, return that position.
+++This function does not move point."
+++  (save-excursion
+++    (if buffer (set-buffer buffer))
+++    (forward-line (1- (or n 1)))
+++    (point)))
+++
+++;; Emacs 21.1 defines this as an alias for `line-end-position'.
+++;; Therefore, optional 2nd arg BUFFER is not portable.
+++(defun-maybe point-at-eol (&optional n buffer)
+++  "Return the character position of the last character on the current line.
+++With argument N not nil or 1, move forward N - 1 lines first.
+++If scan reaches end of buffer, return that position.
+++This function does not move point."
+++  (save-excursion
+++    (if buffer (set-buffer buffer))
+++    (end-of-line (or n 1))
+++    (point)))
+++
+++(defsubst-maybe define-obsolete-function-alias (oldfun newfun)
+++  "Define OLDFUN as an obsolete alias for function NEWFUN.
+++This makes calling OLDFUN equivalent to calling NEWFUN and marks OLDFUN
+++as obsolete."
+++  (defalias oldfun newfun)
+++  (make-obsolete oldfun newfun))
+++
++ ;; XEmacs 21: (character-to-event CH &optional EVENT DEVICE)
++-(defun character-to-event (ch)
+++(defun-maybe character-to-event (ch)
++   "Convert keystroke CH into an event structure, replete with bucky bits.
++ Note that CH (the keystroke specifier) can be an integer, a character
++ or a symbol such as \\='clear."
++@@ -192,18 +1629,24 @@ or a symbol such as \\='clear."
++ 
++ ;; XEmacs 21: (event-to-character EVENT
++ ;;             &optional ALLOW-EXTRA-MODIFIERS ALLOW-META ALLOW-NON-ASCII)
++-(defun event-to-character (event)
+++(defun-maybe-cond event-to-character (event)
++   "Return the character approximation to the given event object.
++ If the event isn't a keypress, this returns nil."
++-  (cond
++-   ((symbolp event)
++-    ;; mask is (BASE-TYPE MODIFIER-BITS) or nil.
++-    (let ((mask (get event 'event-symbol-element-mask)))
++-      (if mask
++-	  (let ((base (get (car mask) 'ascii-character)))
++-	    (if base
++-		(logior base (car (cdr mask))))))))
++-   ((integerp event) event)))
+++  ((and (fboundp 'read-event)
+++	(subrp (symbol-function 'read-event)))
+++   ;; Emacs 19 and later.
+++   (cond
+++    ((symbolp event)
+++     ;; mask is (BASE-TYPE MODIFIER-BITS) or nil.
+++     (let ((mask (get event 'event-symbol-element-mask)))
+++       (if mask
+++	   (let ((base (get (car mask) 'ascii-character)))
+++	     (if base
+++		 (logior base (car (cdr mask))))))))
+++    ((integerp event) event)))
+++  (t
+++   ;; v18. Is this correct?
+++   event))
++ 
++ ;; v18: no event; (read-char)
++ ;; Emacs 19, 20.1 and 20.2: (read-event)
++@@ -211,7 +1654,7 @@ If the event isn't a keypress, this returns nil."
++ ;; Emacs 20.4: (read-event &optional PROMPT INHERIT-INPUT-METHOD)
++ ;; XEmacs: (next-event &optional EVENT PROMPT),
++ ;;         (next-command-event &optional EVENT PROMPT)
++-(defun next-command-event (&optional _event prompt)
+++(defun-maybe next-command-event (&optional _event prompt)
++   "Read an event object from the input stream.
++ If EVENT is non-nil, it should be an event object and will be filled
++ in and returned; otherwise a new event object will be created and
++@@ -225,11 +1668,13 @@ the echo area while this function is waiting for an event."
++ ;;; @ MULE 2 emulation.
++ ;;;
++ 
++-(defun cancel-undo-boundary ()
+++(defun-maybe-cond cancel-undo-boundary ()
++   "Cancel undo boundary."
++-  (if (and (consp buffer-undo-list)
++-	   (null (car buffer-undo-list)))
++-      (setq buffer-undo-list (cdr buffer-undo-list))))
+++  ((boundp 'buffer-undo-list)
+++   ;; for Emacs 19 and later.
+++   (if (and (consp buffer-undo-list)
+++	    (null (car buffer-undo-list)))
+++       (setq buffer-undo-list (cdr buffer-undo-list)))))
++ 
++ 
++ ;;; @ End.
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poem-e20_3.el devel/apel/patches/patch-poem-e20_3.el
+--- /usr/pkgsrc/devel/apel/patches/patch-poem-e20_3.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-poem-e20_3.el	2026-09-21 16:59:53.505793158 +0000
+@@ -0,0 +1,18 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- poem-e20_3.el.orig
+++++ poem-e20_3.el
++@@ -39,6 +39,8 @@
++   "Return index of character succeeding CHAR whose index is INDEX."
++   `(1+ ,index))
++ 
+++(defalias-maybe 'characterp 'char-valid-p)
+++
++ 
++ ;;; @ string
++ ;;;
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poem.el devel/apel/patches/patch-poem.el
+--- /usr/pkgsrc/devel/apel/patches/patch-poem.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-poem.el	2026-09-21 16:59:53.521797251 +0000
+@@ -0,0 +1,77 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- poem.el.orig
+++++ poem.el
++@@ -1,4 +1,4 @@
++-;;; poem.el --- Emulate latest MULE features  -*- lexical-binding: t -*-
+++;;; poem.el --- Emulate latest MULE features; -*-byte-compile-dynamic: t;-*-
++ 
++ ;; Copyright (C) 1998,1999 Free Software Foundation, Inc.
++ 
++@@ -24,19 +24,56 @@
++ 
++ ;;; Code:
++ 
++-(require 'poem-e20)
+++(require 'pces)
++ 
+++(if (featurep 'mule)
+++    (if (featurep 'xemacs)
+++	(require 'poem-xm)
+++      (require 'poem-e20))
+++  (require 'poem-ltn1))
+++
+++
+++;;; @ Emacs 20.3 emulation
+++;;;
+++
+++(defsubst-maybe string-as-unibyte (string)
+++  "Return a unibyte string with the same individual bytes as STRING.
+++If STRING is unibyte, the result is STRING itself.
+++\[Emacs 20.3 emulating macro]"
+++  string)
+++
+++(defsubst-maybe string-as-multibyte (string)
+++  "Return a multibyte string with the same individual bytes as STRING.
+++If STRING is multibyte, the result is STRING itself.
+++\[Emacs 20.3 emulating macro]"
+++  string)
+++
+++(defun-maybe charset-after (&optional pos)
+++  "Return charset of a character in current buffer at position POS.
+++If POS is nil, it defaults to the current point.
+++If POS is out of range, the value is nil.
+++\[Emacs 20.3 emulating function]"
+++  (char-charset (char-after pos))
+++  )
++ 
++ ;;; @ XEmacs-mule emulation
++ ;;;
++ 
++-(defalias 'char-int 'identity)
+++(defalias-maybe 'char-int 'identity)
+++
+++(defalias-maybe 'int-char 'identity)
++ 
++-(defalias 'int-char 'identity)
+++(defalias-maybe 'characterp
+++  (cond
+++   ((fboundp 'char-valid-p) 'char-valid-p)
+++   (t 'integerp)))
++ 
++-(defalias 'char-or-char-int-p 'characterp)
+++(defalias-maybe 'char-or-char-int-p
+++  (cond
+++   ((fboundp 'char-valid-p) 'char-valid-p)
+++   (t 'integerp)))
++ 
++-(defun char-octet (ch &optional n)
+++(defun-maybe char-octet (ch &optional n)
++   "Return the octet numbered N (should be 0 or 1) of char CH.
++ N defaults to 0 if omitted. [XEmacs-mule emulating function]"
++   (or (nth (if n
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-product.el devel/apel/patches/patch-product.el
+--- /usr/pkgsrc/devel/apel/patches/patch-product.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/apel/patches/patch-product.el	2026-09-21 16:59:53.536019962 +0000
+@@ -0,0 +1,122 @@
++$NetBSD$
++
++Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
++so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
++it there (misc/lookup, devel/flim, devel/semi).  The functional changes
++made upstream since are kept.
++
++--- product.el.orig
+++++ product.el
++@@ -1,4 +1,4 @@
++-;;; product.el --- Functions for product version information  -*- lexical-binding: t -*-
+++;;; product.el --- Functions for product version information.
++ 
++ ;; Copyright (C) 1999,2000 Free Software Foundation, Inc.
++ 
++@@ -293,12 +293,13 @@ The 1st argument is a product structure.  The rest arguments are ARGS."
++ PRODUCT is a product structure which returned by `product-define'."
++   (let (dest)
++     (product-for-each product nil
++-     (lambda (product)
++-       (let ((str (product-string-1 product nil)))
++-	 (if str
++-	     (setq dest (if dest
++-			    (concat dest " " str)
++-			  str))))))
+++     (function
+++      (lambda (product)
+++	(let ((str (product-string-1 product nil)))
+++	  (if str
+++	      (setq dest (if dest
+++			     (concat dest " " str)
+++			   str)))))))
++     dest))
++ 
++ (defun product-string-verbose (product)
++@@ -306,12 +307,13 @@ PRODUCT is a product structure which returned by `product-define'."
++ PRODUCT is a product structure which returned by `product-define'."
++   (let (dest)
++     (product-for-each product nil
++-     (lambda (product)
++-       (let ((str (product-string-1 product t)))
++-	 (if str
++-	     (setq dest (if dest
++-			    (concat dest " " str)
++-			  str))))))
+++     (function
+++      (lambda (product)
+++	(let ((str (product-string-1 product t)))
+++	  (if str
+++	      (setq dest (if dest
+++			     (concat dest " " str)
+++			   str)))))))
++     dest))
++ 
++ (defun product-version-compare (v1 v2)
++@@ -337,8 +339,9 @@ REQUIRE-VERSION is a list of integer."
++   "List all products information."
++   (let (dest)
++     (mapatoms
++-     (lambda (sym)
++-       (setq dest (cons (symbol-value sym) dest)))
+++     (function
+++      (lambda (sym)
+++	(setq dest (cons (symbol-value sym) dest))))
++      product-obarray)
++     dest))
++ 
++@@ -372,5 +375,54 @@ VERSTR is a string."
++ (provide 'product)			; beware of circular dependency.
++ (require 'apel-ver)			; these two files depend on each other.
++ (product-provide 'product 'apel-ver)
+++
+++
+++;;; @ Define emacs versions.
+++;;;
+++
+++(require 'pym)
+++
+++(defconst-maybe emacs-major-version
+++  (progn (string-match "^[0-9]+" emacs-version)
+++	 (string-to-int (substring emacs-version
+++				   (match-beginning 0)(match-end 0))))
+++  "Major version number of this version of Emacs.")
+++(defconst-maybe emacs-minor-version
+++  (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
+++	 (string-to-int (substring emacs-version
+++				   (match-beginning 1)(match-end 1))))
+++  "Minor version number of this version of Emacs.")
+++
+++;;(or (product-find "emacs")
+++;;    (progn
+++;;      (product-define "emacs")
+++;;      (cond
+++;;       ((featurep 'meadow)
+++;;	(let* ((info (product-parse-version-string (Meadow-version)))
+++;;	       (version (nth 0 info))
+++;;	       (code-name (nth 1 info))
+++;;	       (version-string (nth 2 info)))
+++;;	  (product-set-version-string
+++;;	   (product-define "Meadow" "emacs" version code-name)
+++;;	   version-string)
+++;;	  (product-provide 'Meadow "Meadow"))
+++;;	(and (featurep 'mule)
+++;;	     (let* ((info (product-parse-version-string mule-version))
+++;;		    (version (nth 0 info))
+++;;		    (code-name (nth 1 info))
+++;;		    (version-string (nth 2 info)))
+++;;	       (product-set-version-string
+++;;		(product-define "MULE" "Meadow" version code-name)
+++;;		version-string)
+++;;	       (product-provide 'mule "MULE")))
+++;;	(let* ((info (product-parse-version-string emacs-version))
+++;;	       (version (nth 0 info))
+++;;	       (code-name (nth 1 info))
+++;;	       (version-string (nth 2 info)))
+++;;	  (product-set-version-string
+++;;	   (product-define "Emacs" "Meadow" version code-name)
+++;;	   version-string)
+++;;	  (product-provide 'emacs "Emacs")))
+++;;       )))
++ 
++ ;;; product.el ends here
