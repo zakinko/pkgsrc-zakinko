@@ -247,7 +247,18 @@ asan_probe() { # $1=dirlabel $2=binary $3=setup関数 $4=path [$5=auth]
 	http_code "http://127.0.0.1:18092$4" "" "" "${5:-}" >/dev/null 2>&1 || true
 	sleep 0.6
 	kill "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null || true
-	grep -qi 'AddressSanitizer' "$D/out"
+	ASANOUT="$D/out"
+	# BSD の grep は BRE の \| を解さないので、語を一つだけ渡す。
+	grep -qi AddressSanitizer "$D/out"
+}
+
+# 判定の根拠を出す。出たときは報告の頭、出なかったときは何が起きたか。
+show_asan() { # $1=見出し
+	if [ -s "$ASANOUT" ]; then
+		sed -n '1,6p' "$ASANOUT" | sed "s/^/    $1: /"
+	else
+		echo "    $1: 出力が空 (起動しなかった可能性)"
+	fi
 }
 
 # 入口その一: 配信する木の中の長さ 0 の symlink -> expand_symlinks() の lnk[-1]
@@ -277,19 +288,33 @@ if asan_works; then
 			if ! asan_probe "n-$probe" "$T/na/thttpd" "$setup" "$path" "$auth"; then
 				st=$?
 				if [ "$st" = 2 ]; then echo "  $probe: この箱では仕込めない。skip"
-				else echo "  $probe: stock で ASan が出ない"; fi
+				else
+					echo "  $probe: stock で ASan が出ない"
+					show_asan stock
+				fi
 				continue
 			fi
 			hit=1
 			echo "  $probe: stock で ASan が報告 (再現)"
+			show_asan stock
 			if asan_probe "p-$probe" "$T/sa/thttpd" "$setup" "$path" "$auth"; then
 				echo "  !! $probe: patched でも ASan が出る"; rc=1
+				show_asan patched
 			else
 				echo "  $probe: patched は無警告"
 			fi
 		done
 		[ "$hit" = 1 ] || { echo "  !! どちらの入口でも stock が再現しない"; rc=1; }
-	else echo "  ASan 付きで建てられない。live テストは skip"; fi
+	else
+		echo "  ASan 付きで建てられない。live テストは skip"
+		for d in sa na; do
+			[ -f "$T/$d/bl.log" ] && { echo "    $d の build log 末尾:"; \
+			    tail -8 "$T/$d/bl.log" | sed 's/^/      /'; }
+			[ -f "$T/$d/config.log" ] && [ ! -f "$T/$d/bl.log" ] && { \
+			    echo "    $d の configure 末尾:"; \
+			    tail -8 "$T/$d/config.log" | sed 's/^/      /'; }
+		done
+	fi
 else
 	echo "  ASan が使えない箱。live テストは skip"
 fi
