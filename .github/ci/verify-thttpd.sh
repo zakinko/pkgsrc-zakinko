@@ -137,9 +137,12 @@ fi
 PRE=""
 if [ "$NULLCRYPT" = 0 ]; then
 	printf 'char* crypt(const char*k,const char*s){(void)k;(void)s;return 0;}\n' > "$T/shim.c"
-	if ${CC:-cc} -shared -fPIC -o "$T/shim.so" "$T/shim.c" 2>/dev/null; then
+	if ${CC:-cc} $OSCFLAGS -shared -fPIC -o "$T/shim.so" "$T/shim.c" > "$T/shim.err" 2>&1; then
 		PRE="LD_PRELOAD=$T/shim.so"; echo "  crypt() は NULL を返さない箱。shim で代役"
-	else echo "  crypt() は NULL を返さず shim も作れない。skip"; fi
+	else
+		echo "  crypt() は NULL を返さず shim も作れない。skip"
+		sed 's/^/    /' "$T/shim.err"
+	fi
 else echo "  crypt() は未知 salt に NULL を返す箱"; fi
 if [ "$NULLCRYPT" = 1 ] || [ -n "$PRE" ]; then
 	serve p2 "$BIN" "$PRE"
