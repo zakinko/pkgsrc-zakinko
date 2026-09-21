@@ -306,8 +306,10 @@ if asan_works; then
 			nulauth) setup=setup_nulauth; path=/priv/;    auth="bob:x" ;;
 			esac
 			# "if ! f" のあとの $? は否定した後の値なので、先に取る。
-			asan_probe "n-$probe" "$T/na/thttpd" "$setup" "$path" "$auth"
-			st=$?
+			# ただし裸で呼ぶと set -e が非零でそこで script を終わらせる
+			# ので、|| で受けて status を拾う。
+			st=0
+			asan_probe "n-$probe" "$T/na/thttpd" "$setup" "$path" "$auth" || st=$?
 			if [ "$st" != 0 ]; then
 				if [ "$st" = 2 ]; then echo "  $probe: この箱では仕込めない。skip"
 				else
