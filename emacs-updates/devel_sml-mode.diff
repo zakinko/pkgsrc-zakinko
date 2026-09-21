@@ -1,0 +1,104 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/Makefile devel/sml-mode/Makefile
+--- /usr/pkgsrc/devel/sml-mode/Makefile	2022-05-14 22:25:35.000000000 +0000
++++ devel/sml-mode/Makefile	2026-09-21 14:57:49.832214886 +0000
+@@ -1,23 +1,29 @@
+ # $NetBSD: Makefile,v 1.22 2022/05/14 22:25:35 dholland Exp $
+ 
+-DISTNAME=	sml-mode-3.9.5
++DISTNAME=	sml-mode-6.12
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	4
+ CATEGORIES=	devel editors
+-MASTER_SITES=	# ftp://flint.cs.yale.edu/pub/monnier/sml-mode/
++MASTER_SITES=	https://elpa.gnu.org/packages/
++EXTRACT_SUFX=	.tar
+ 
+ MAINTAINER=	pkgsrc-users@NetBSD.org
++HOMEPAGE=	https://elpa.gnu.org/packages/sml-mode.html
+ COMMENT=	Emacs mode for editing Standard ML source code
++LICENSE=	gnu-gpl-v3
+ 
+-BUILD_TARGET=	default
+-
++USE_TOOLS+=	makeinfo
+ INFO_FILES=	yes
+ 
+ INSTALLATION_DIRS=	${EMACS_INFOPREFIX} ${EMACS_LISPPREFIX}/sml-mode
+ 
++do-build:
++	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-f batch-byte-compile sml-mode.el
++	cd ${WRKSRC} && makeinfo --no-split sml-mode.texi
++
+ do-install:
+-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc README NEWS TODO \
+-		ChangeLog ${DESTDIR}${EMACS_LISPPREFIX}/sml-mode
++	cd ${WRKSRC} && ${INSTALL_DATA} sml-mode.el sml-mode.elc README TODO \
++		${DESTDIR}${EMACS_LISPPREFIX}/sml-mode
+ 	${INSTALL_DATA} ${WRKSRC}/sml-mode.info ${DESTDIR}${EMACS_INFOPREFIX}
+ 
+ .include "../../editors/emacs/modules.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/PLIST devel/sml-mode/PLIST
+--- /usr/pkgsrc/devel/sml-mode/PLIST	2009-06-14 17:49:14.000000000 +0000
++++ devel/sml-mode/PLIST	2026-09-21 14:57:06.158834889 +0000
+@@ -1,19 +1,6 @@
+ @comment $NetBSD: PLIST,v 1.7 2009/06/14 17:49:14 joerg Exp $
+ ${EMACS_INFOPREFIX}/sml-mode.info
+-${EMACS_LISPPREFIX}/sml-mode/sml-compat.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-defs.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-mode-startup.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-mode.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-move.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-proc.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-util.el
+-${EMACS_LISPPREFIX}/sml-mode/sml-compat.elc
+-${EMACS_LISPPREFIX}/sml-mode/sml-defs.elc
+-${EMACS_LISPPREFIX}/sml-mode/sml-mode.elc
+-${EMACS_LISPPREFIX}/sml-mode/sml-move.elc
+-${EMACS_LISPPREFIX}/sml-mode/sml-proc.elc
+-${EMACS_LISPPREFIX}/sml-mode/sml-util.elc
+ ${EMACS_LISPPREFIX}/sml-mode/README
+-${EMACS_LISPPREFIX}/sml-mode/NEWS
+ ${EMACS_LISPPREFIX}/sml-mode/TODO
+-${EMACS_LISPPREFIX}/sml-mode/ChangeLog
++${EMACS_LISPPREFIX}/sml-mode/sml-mode.el
++${EMACS_LISPPREFIX}/sml-mode/sml-mode.elc
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/distinfo devel/sml-mode/distinfo
+--- /usr/pkgsrc/devel/sml-mode/distinfo	2021-10-26 10:19:56.000000000 +0000
++++ devel/sml-mode/distinfo	2026-09-21 14:56:42.859857505 +0000
+@@ -1,6 +1,6 @@
+ $NetBSD: distinfo,v 1.6 2021/10/26 10:19:56 nia Exp $
+ 
+-BLAKE2s (sml-mode-3.9.5.tar.gz) = 8ff58963ed5328f20b75cbafa600ae7d85a6fa56457ff552bc47b27aad3344d4
+-SHA512 (sml-mode-3.9.5.tar.gz) = b243cddc20262194a899e0cc2a7191b7b9f8322a96c3085946f0470628583bdc7c682d973646df1ce0a937252ea2f463f9b190f8605f950b8ce81d4cc4c153f1
+-Size (sml-mode-3.9.5.tar.gz) = 61639 bytes
++BLAKE2s (sml-mode-6.12.tar) = fe0ca04fd8601a4f1b4353811ffb3661472bbccd0c3dd284a34b1c45a07c715d
++SHA512 (sml-mode-6.12.tar) = a1accd5f6ed04d94a03edb7cf91db10cc5efa75b6d5760ba4b31c5e820baa61d684ea978abd1482fa1a978e66886e3a1cae3e4499418145b7d553590743f93b0
++Size (sml-mode-6.12.tar) = 143360 bytes
+ SHA1 (patch-aa) = 233a16a580167aae82c023c48cdb802572afa935
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-aa devel/sml-mode/patches/patch-aa
+--- /usr/pkgsrc/devel/sml-mode/patches/patch-aa	2001-04-14 23:08:58.000000000 +0000
++++ devel/sml-mode/patches/patch-aa	1970-01-01 00:00:00.000000000 +0000
+@@ -1,22 +0,0 @@
+-$NetBSD: patch-aa,v 1.1.1.1 2001/04/14 23:08:58 jtb Exp $
+-
+---- Makefile.orig	Sun Dec 24 20:06:28 2000
+-+++ Makefile
+-@@ -22,7 +22,7 @@
+- include makefile.pkg
+- 
+- # set up the usual installation paths
+--prefix  = /usr/local
+-+prefix  = ${PREFIX}
+- datadir = $(prefix)/share
+- 
+- # the directory where you install third-party emacs packges
+-@@ -34,7 +34,7 @@
+- eldir   = $(elcdir)
+- 
+- # the file where the initialization goes.
+--#startupfile = $(HOME/.emacs
+-+#startupfile = $(HOME)/.emacs
+- startupfile = $(lispdir)/site-start.el
+- 
+- # the directory where you installed the elib .elc files.

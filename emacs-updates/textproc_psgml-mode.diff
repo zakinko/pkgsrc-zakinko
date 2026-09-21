@@ -1,0 +1,569 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/psgml-mode/Makefile textproc/psgml-mode/Makefile
+--- /usr/pkgsrc/textproc/psgml-mode/Makefile	2022-05-14 22:25:41.000000000 +0000
++++ textproc/psgml-mode/Makefile	2026-09-21 14:56:10.446566989 +0000
+@@ -1,15 +1,16 @@
+ # $NetBSD: Makefile,v 1.25 2022/05/14 22:25:41 dholland Exp $
+ 
+-DISTNAME=		psgml-1.3.2
+-PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME:S/-/-mode-/}
+-PKGREVISION=		7
++DISTNAME=		psgml_1.4.0.orig
++PKGNAME=		${EMACS_PKGNAME_PREFIX}psgml-mode-1.4.0
+ CATEGORIES=		textproc editors
+-MASTER_SITES=		${MASTER_SITE_SOURCEFORGE:=psgml/}
++MASTER_SITES=		${MASTER_SITE_DEBIAN:=pool/main/p/psgml/}
+ 
+ MAINTAINER=		pkgsrc-users@NetBSD.org
+-#HOMEPAGE=		http://www.lysator.liu.se/~lenst/about_psgml/
++HOMEPAGE=		https://sourceforge.net/projects/psgml/
+ COMMENT=		SGML/XML mode for Emacs
++LICENSE=		gnu-gpl-v2
+ 
++WRKSRC=			${WRKDIR}/psgml-1.4.0
+ EMACS_MODULES+=		base
+ 
+ .include "../../editors/emacs/modules.mk"
+@@ -19,6 +20,7 @@
+ .endif
+ 
+ INFO_FILES=		yes
++
+ INSTALLATION_DIRS+=	${EMACS_INFOPREFIX} ${EMACS_LISPPREFIX}/psgml-mode
+ 
+ do-install:
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/psgml-mode/distinfo textproc/psgml-mode/distinfo
+--- /usr/pkgsrc/textproc/psgml-mode/distinfo	2021-10-26 11:22:58.000000000 +0000
++++ textproc/psgml-mode/distinfo	2026-09-21 14:55:47.566927538 +0000
+@@ -1,8 +1,8 @@
+ $NetBSD: distinfo,v 1.7 2021/10/26 11:22:58 nia Exp $
+ 
+-BLAKE2s (psgml-1.3.2.tar.gz) = b29d9de0ca298a01cdd69f954a903666ae9f54e65f3bcd4319d7b503905aff6f
+-SHA512 (psgml-1.3.2.tar.gz) = 42faec5bf3518d5413624c2259cc533d738dae629fc365e12ca8578d8437503f4a95731f270050b8921ed36cdb4e38853a347ebb5930af122637eadda65a521b
+-Size (psgml-1.3.2.tar.gz) = 252394 bytes
++BLAKE2s (psgml_1.4.0.orig.tar.gz) = b706b97330355539e2b722b505a6548ef6ed0debdd9073790f95a84df8c92d7c
++SHA512 (psgml_1.4.0.orig.tar.gz) = 99bab6440a0f437009edff6371412c16f47d48c6b1eaa5b894523130e3a8d604ea79dc81f1895ceecd4283d0c7fd908d4e5bdeace63e54b9ac048a80fc0f6f44
++Size (psgml_1.4.0.orig.tar.gz) = 262246 bytes
+ SHA1 (patch-psgml-dtd.el) = abf51a6ef8a2f4272070b8fa53c1395608f90d48
+ SHA1 (patch-psgml-edit.el) = e91e624c39e6471c04c028a34637a918f2ed02ea
+ SHA1 (patch-psgml-parse.el) = a68e0857cbc259c137567f426c52cd07b466a92d
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-dtd.el textproc/psgml-mode/patches/patch-psgml-dtd.el
+--- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-dtd.el	2012-08-16 11:54:56.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml-dtd.el	1970-01-01 00:00:00.000000000 +0000
+@@ -1,65 +0,0 @@
+-$NetBSD: patch-psgml-dtd.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
+-
+-Fix build with emacs24. From FreeBSD ports.
+-
+---- psgml-dtd.el.orig	2005-03-05 16:23:40.000000000 +0000
+-+++ psgml-dtd.el
+-@@ -93,12 +93,12 @@
+- (defmacro sgml-for-all-final-states (s dfa &rest forms)
+-   "For all final states S in DFA do FORMS.
+- Syntax: var dfa-expr &body forms"
+--  (` (let ((L-states (sgml-some-states-of (, dfa)))
+--	   (, s))
+-+  `(let ((L-states (sgml-some-states-of ,dfa))
+-+	   ,s)
+-        (while L-states
+--	 (when (sgml-state-final-p (setq (, s) (car L-states)))
+--	   (,@ forms))
+--	 (setq L-states (cdr L-states))))))
+-+	 (when (sgml-state-final-p (setq ,s (car L-states)))
+-+	   ,@forms)
+-+	 (setq L-states (cdr L-states)))))
+- 
+- (put 'sgml-for-all-final-states 'lisp-indent-hook 2)
+- (put 'sgml-for-all-final-states 'edebug-form-hook '(symbolp &rest form))
+-@@ -217,7 +217,7 @@ Syntax: var dfa-expr &body forms"
+- (defun sgml-make-pcdata ()
+-   (sgml-make-* (sgml-make-primitive-content-token sgml-pcdata-token)))
+- 
+--(defun sgml-reduce-, (l)
+-+(defun sgml-reduce-\, (l)
+-   (while (cdr l)
+-     (setcar (cdr l)
+- 	    (sgml-make-conc (car l) (cadr l)))
+-@@ -279,7 +279,7 @@ Syntax: var dfa-expr &body forms"
+- 	  (sgml-parse-delim "CRO" (digit nmstart))
+- 	(sgml-parse-delim "CRO" (digit)))
+-       (prog1 (if (sgml-is-delim "NULL" digit)
+--		 (string-to-int (sgml-check-nametoken))
+-+		 (string-to-number (sgml-check-nametoken))
+- 	       (let ((spec (sgml-check-name)))
+- 		 (or (cdr (assoc spec '(("RE" . 10)
+- 					("RS" . 1)
+-@@ -336,7 +336,7 @@ Syntax: var dfa-expr &body forms"
+- (defsubst sgml-parse-connector ()
+-   (sgml-skip-ps)
+-   (cond ((sgml-parse-delim "SEQ")
+--	 (function sgml-reduce-,))
+-+	 (function sgml-reduce-\,))
+- 	((sgml-parse-delim "OR")
+- 	 (function sgml-reduce-|))
+- 	((sgml-parse-delim "AND")
+-@@ -884,10 +884,10 @@ Syntax: (var seq) &body forms
+- FORMS should produce the binary coding of element in VAR."
+-   (let ((var (car loop-c))
+- 	(seq (cadr loop-c)))
+--    (` (let ((seq (, seq)))
+-+    `(let ((seq ,seq))
+- 	 (sgml-code-number (length seq))
+--	 (loop for (, var) in seq
+--	       do (,@ body))))))
+-+	 (loop for ,var in seq
+-+	       do ,@body))))
+- 
+- (put 'sgml-code-sequence 'lisp-indent-hook 1)
+- (put 'sgml-code-sequence 'edbug-forms-hook '(sexp &rest form))
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-edit.el textproc/psgml-mode/patches/patch-psgml-edit.el
+--- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-edit.el	2012-08-16 11:54:56.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml-edit.el	1970-01-01 00:00:00.000000000 +0000
+@@ -1,42 +0,0 @@
+-$NetBSD: patch-psgml-edit.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
+-
+-Fix build with emacs24. From FreeBSD ports.
+-
+---- psgml-edit.el.orig	2005-03-05 16:23:40.000000000 +0000
+-+++ psgml-edit.el
+-@@ -1870,24 +1870,28 @@ characters in the current coding system.
+-    (invert
+-     (or (looking-at "&#\\([0-9]+\\)[;\n]?")
+- 	(error "No character reference after point"))
+--    (let ((c (string-to-int (buffer-substring (match-beginning 1)
+-+    (let ((c (string-to-number (buffer-substring (match-beginning 1)
+- 					      (match-end 1)))))
+-       (delete-region (match-beginning 0)
+- 		     (match-end 0))
+-       (if (fboundp 'decode-char)	; Emacs 21, Mule-UCS
+- 	  (setq c (decode-char 'ucs c))
+-+	(if (fboundp 'ucs-to-char)
+-+	    (setq c (ucs-to-char c))
+- 	;; Else have to assume 8-bit character.
+--	(if (fboundp 'unibyte-char-to-multibyte) ; Emacs 20
+--	    (setq c (unibyte-char-to-multibyte c))))
+-+	  (if (fboundp 'unibyte-char-to-multibyte) ; Emacs 20
+-+	      (setq c (unibyte-char-to-multibyte c)))))
+-       (insert c)))
+-    ;; Convert character to &#nn;
+-    (t
+-     (let ((c (following-char)))
+-       (delete-char 1)
+--      (if (fboundp 'encode-char)
+--	  (setq c (encode-char c 'ucs))
+--	(if (fboundp 'multibyte-char-to-unibyte)
+--	    (setq c (multibyte-char-to-unibyte c))))
+-+      (if (fboundp 'char-to-ucs)
+-+	  (setq c (char-to-ucs c))
+-+	(if (fboundp 'encode-char)
+-+	    (setq c (encode-char c 'ucs))
+-+	  (if (fboundp 'multibyte-char-to-unibyte)
+-+	      (setq c (multibyte-char-to-unibyte c)))))
+-       (insert (format "&#%d;" c))))))
+- 
+- (defun sgml-expand-entity-reference ()
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-parse.el textproc/psgml-mode/patches/patch-psgml-parse.el
+--- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-parse.el	2012-08-16 11:54:56.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml-parse.el	1970-01-01 00:00:00.000000000 +0000
+@@ -1,347 +0,0 @@
+-$NetBSD: patch-psgml-parse.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
+-
+-Fix build with emacs24. From FreeBSD ports.
+-
+---- psgml-parse.el.orig	2005-03-05 16:23:40.000000000 +0000
+-+++ psgml-parse.el
+-@@ -330,28 +330,28 @@ Applicable to XML.")
+- ;;(progn (set-syntax-table xml-parser-syntax) (describe-syntax))
+- 
+- (defmacro sgml-with-parser-syntax (&rest body)
+--  (` (let ((normal-syntax-table (syntax-table))
+-+  `(let ((normal-syntax-table (syntax-table))
+-            (cb (current-buffer)))
+-        (set-syntax-table (if sgml-xml-p xml-parser-syntax sgml-parser-syntax))
+-        (unwind-protect
+--	   (progn (,@ body))
+-+	   (progn ,@body)
+-          (setq sgml-last-buffer (current-buffer))
+-          (set-buffer cb)
+--	 (set-syntax-table normal-syntax-table)))))
+-+	 (set-syntax-table normal-syntax-table))))
+- 
+- (defmacro sgml-with-parser-syntax-ro (&rest body)
+-   ;; Should only be used for parsing ....
+--  (` (let ((normal-syntax-table (syntax-table))
+-+  `(let ((normal-syntax-table (syntax-table))
+-            (cb (current-buffer))
+-            (buffer-modified (buffer-modified-p)))
+-        (set-syntax-table (if sgml-xml-p xml-parser-syntax sgml-parser-syntax))
+-        (unwind-protect
+--	   (progn (,@ body))
+-+	   (progn ,@body)
+-          (setq sgml-last-buffer (current-buffer))
+-          (set-buffer cb)
+- 	 (set-syntax-table normal-syntax-table)
+-          (sgml-restore-buffer-modified-p buffer-modified)
+--         (sgml-debug "Restoring buffer mod: %s" buffer-modified)))))
+-+         (sgml-debug "Restoring buffer mod: %s" buffer-modified))))
+- 
+- (defun sgml-set-buffer-multibyte (flag)
+-   (cond ((featurep 'xemacs)
+-@@ -362,7 +362,7 @@ Applicable to XML.")
+-               default-enable-multibyte-characters
+-             flag)))
+- 	((boundp 'MULE)
+--         (set 'mc-flag flag))
+-+         (if (boundp 'mc-flag) (set 'mc-flag flag)))
+-         (t
+-          flag)))
+- ;; Probably better.  -- fx
+-@@ -429,21 +429,21 @@ Applicable to XML.")
+- ;;move: (token . node)
+- 
+- (defmacro sgml-make-move (token node)
+--  (` (cons (, token) (, node))))
+-+  `(cons ,token ,node))
+- 
+- (defmacro sgml-move-token (x)
+--  (` (car (, x))))
+-+  `(car ,x))
+- 
+- (defmacro sgml-move-dest (x)
+--  (` (cdr (, x))))
+-+  `(cdr ,x))
+- 
+- ;; set of moves: list of moves
+- 
+- (defmacro sgml-add-move-to-set (token node set)
+--  (`(cons (cons (, token) (, node)) (, set))))
+-+  `(cons (cons ,token ,node) ,set))
+- 
+- (defmacro sgml-moves-lookup (token set)
+--  (` (assq (, token) (, set))))
+-+  `(assq ,token ,set))
+- 
+- ;; normal-state: ('normal-state opts . reqs)
+- 
+-@@ -451,16 +451,16 @@ Applicable to XML.")
+-   (cons 'normal-state (cons nil nil)))
+- 
+- (defmacro sgml-normal-state-p (s)
+--  (` (eq (car (, s)) 'normal-state)))
+-+  `(eq (car ,s) 'normal-state))
+- 
+- (defmacro sgml-state-opts (s)
+--  (` (cadr (, s))))
+-+  `(cadr ,s))
+- 
+- (defmacro sgml-state-reqs (s)
+--  (` (cddr (, s))))
+-+  `(cddr ,s))
+- 
+- (defmacro sgml-state-final-p (s)
+--  (`(null (sgml-state-reqs (, s)))))
+-+  `(null (sgml-state-reqs ,s)))
+- 
+- ;; adding moves
+- ;; *** Should these functions check for ambiguity?
+-@@ -508,10 +508,10 @@ Applicable to XML.")
+-   (cons next dfas))
+- 
+- (defmacro sgml-and-node-next (n)
+--  (` (car (, n))))
+-+  `(car ,n))
+- 
+- (defmacro sgml-and-node-dfas (n)
+--  (` (cdr (, n))))
+-+  `(cdr ,n))
+- 
+- 
+- ;;; Using states
+-@@ -904,8 +904,8 @@ If ATTSPEC is nil, nil is returned."
+-   (cons
+-    'progn
+-    (loop for n in names collect
+--	 (`(defmacro (, (intern (format "sgml-eltype-%s" n))) (et)
+--	     (list 'get et ''(, n)))))))
+-+	 `(defmacro ,(intern (format "sgml-eltype-%s" n)) (et)
+-+	     (list 'get et '',n)))))
+- 
+- (sgml-prop-fields
+-  ;;flags			; optional tags and mixed
+-@@ -920,7 +920,7 @@ If ATTSPEC is nil, nil is returned."
+-  )
+- 
+- (defmacro sgml-eltype-flags (et)
+--  (` (symbol-value (, et))))
+-+  `(symbol-value ,et))
+- 
+- (defun sgml-eltype-model (et)
+-   (if (fboundp et)
+-@@ -967,7 +967,7 @@ If ATTSPEC is nil, nil is returned."
+-   "Get application data from element type ET with name PROP.
+- PROP should be a symbol, reserved names are: flags, model, attlist,
+- includes, excludes, conref-regexp, mixed, stag-optional, etag-optional."
+--  (` (get (, et) (, prop))))
+-+  ` (get ,et ,prop))
+- 
+- (defun sgml-eltype-all-miscdata (et)
+-   (loop for p on (symbol-plist et) by (function cddr)
+-@@ -1060,7 +1060,7 @@ a default for the element type name."
+- ;;; Wing addition
+- (defmacro sgml-char-int (ch)
+-   (if (fboundp 'char-int)
+--      (` (char-int (, ch)))
+-+      `(char-int ,ch)
+-     ch))
+- 
+- (defsubst sgml-read-octet ()
+-@@ -1435,51 +1435,51 @@ list -- any of the contextual constraint
+- 	   (setq context '(t)))
+- 	  ((not (listp context))
+- 	   (setq context (list context))))
+--    (`(if (and				; This and checks that characters
+-+    `(if (and				; This and checks that characters
+- 					; of the delimiter
+--	   (,@(loop for i from 0 below (length ds) collect
+--		    (` (eq (, (aref ds i))
+--			   (sgml-following-char (, (+ i offset)))))))
+-+	   ,@(loop for i from 0 below (length ds) collect
+-+		    `(eq ,(aref ds i)
+-+			   (sgml-following-char ,(+ i offset))))
+- 	   (or
+--	    (,@(loop
+-+	    ,@(loop
+- 		for c in context collect ; context check
+- 		(cond
+- 		 ((eq c 'nmstart)	; name start character
+--		  (`(sgml-startnm-char
+--		     (or (sgml-following-char (, (length ds))) 0))))
+-+		  `(sgml-startnm-char
+-+		     (or (sgml-following-char ,(length ds)) 0)))
+- 		 ((eq c 'stagc)
+--		  (`(and sgml-current-shorttag
+--			 (sgml-is-delim "TAGC" nil nil (, (length ds))))))
+-+		  `(and sgml-current-shorttag
+-+			 (sgml-is-delim "TAGC" nil nil ,(length ds))))
+- 		 ((eq c 'digit)
+--		  (`(memq (sgml-following-char (, (length ds)))
+--			  '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))))
+-+		  `(memq (sgml-following-char ,(length ds))
+-+			  '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)))
+- 		 ((stringp c)
+--		  (`(sgml-is-delim (, c) nil nil (, (length ds)))))
+-+		  `(sgml-is-delim ,c nil nil ,(length ds)))
+- 		 ((eq c t))
+- 		 (t (error "Context type: %s" c))))
+--	       )))
+-+	       ))
+- 	  
+- 	  (progn			; Do operations if delimiter found
+--	    (,@ (if move (`((forward-char (, (length ds)))))))
+--	    (,@ (if (not (eq move 'check))
+--		    '(t))))
+--	(,@ (if (eq move 'check)
+--		(`((sgml-delimiter-parse-error (, delim))))))))))
+-+	    ,@(if move `((forward-char ,(length ds))))
+-+	    ,@(if (not (eq move 'check))
+-+		    '(t)))
+-+	,@(if (eq move 'check)
+-+		`((sgml-delimiter-parse-error ,delim))))))
+- 
+- (defmacro sgml-following-char (n)
+-   (cond ((zerop n)  '(following-char))
+- 	((= n 1)    '(char-after (1+ (point))))
+--	(t          (` (char-after (+ (, n) (point)))))))
+-+	(t          `(char-after (+ ,n (point))))))
+- 
+- (defun sgml-delimiter-parse-error (delim)
+-   (sgml-parse-error "Delimiter %s (%s) expected"
+- 		    delim (sgml-get-delim-string delim)))
+- 
+- (defmacro sgml-parse-delim (delim &optional context)
+--  (`(sgml-is-delim (, delim) (, context) move)))
+-+  `(sgml-is-delim ,delim ,context move))
+- 
+- (defmacro sgml-check-delim (delim &optional context)
+--  (`(sgml-is-delim (, delim) (, context) check)))
+-+  `(sgml-is-delim ,delim ,context check))
+- 
+- (defmacro sgml-skip-upto (delim)
+-   "Skip until the delimiter or first char of one of the delimiters.
+-@@ -1503,8 +1503,8 @@ in any of them."
+-     (let ((ds (sgml-get-delim-string (upcase (format "%s" delim)))))
+-       (if (= 1 (length ds))
+- 	  (list 'skip-chars-forward (concat "^" ds))
+--	(`(and (search-forward (, ds) nil t)
+--	       (backward-char (, (length ds))))))))))
+-+	`(and (search-forward ,ds nil t)
+-+	       (backward-char ,(length ds))))))))
+- 
+- 
+- ;;(macroexpand '(sgml-is-delim mdo))
+-@@ -1521,22 +1521,22 @@ in any of them."
+- ;;;                aproporiate value.
+- 
+- (defmacro sgml-parse-char (char)
+--  (` (cond ((eq (, char) (following-char))
+-+  `(cond ((eq ,char (following-char))
+- 	    (forward-char 1)
+--	    t))))
+-+	    t)))
+- 
+- (defmacro sgml-parse-chars (char1 char2 &optional char3)
+-   "Parse two or three chars; return nil if can't."
+-   (if (null char3)
+--      (` (cond ((and (eq (, char1) (following-char))
+--		 (eq (, char2) (char-after (1+ (point)))))
+-+      `(cond ((and (eq ,char1 (following-char))
+-+		 (eq ,char2 (char-after (1+ (point)))))
+- 	    (forward-char 2)
+--	    t)))
+--    (` (cond ((and (eq (, char1) (following-char))
+--		 (eq (, char2) (char-after (1+ (point))))
+--		 (eq (, char3) (char-after (1+ (1+ (point))))))
+-+	    t))
+-+    `(cond ((and (eq ,char1 (following-char))
+-+		 (eq ,char2 (char-after (1+ (point))))
+-+		 (eq ,char3 (char-after (1+ (1+ (point))))))
+- 	    (forward-char 3)
+--	    t)))))
+-+	    t))))
+- 
+- (defun sgml-check-char (char)
+-   (cond ((not (sgml-parse-char char))
+-@@ -1547,7 +1547,7 @@ in any of them."
+-       (sgml-parse-char ?\r)))
+- 
+- (defmacro sgml-startnm-char (c)
+--  (` (eq ?w (char-syntax (, c)))))
+-+  `(eq ?w (char-syntax ,c)))
+- 
+- (defsubst sgml-startnm-char-next ()
+-   (and (not (eobp))
+-@@ -1694,11 +1694,11 @@ in any of them."
+- (define-compiler-macro sgml-parse-name (&whole form &optional entity-name)
+-   (cond
+-    ((memq entity-name '(nil t))
+--    (` (if (sgml-startnm-char-next)
+--	   ((, (if entity-name 'sgml-entity-case 'sgml-general-case))
+-+    `(if (sgml-startnm-char-next)
+-+	   (,(if entity-name 'sgml-entity-case 'sgml-general-case)
+- 	    (buffer-substring-no-properties (point)
+- 					    (progn (skip-syntax-forward "w_")
+--						   (point)))))))
+-+						   (point))))))
+-    (t
+-     form)))
+- 
+-@@ -1828,8 +1828,8 @@ Return true if not at the end of the buf
+- With optional NAME, RNI must be followed by NAME."
+-   (cond
+-    (name
+--    (` (if (sgml-parse-delim "RNI")
+--	   (sgml-check-token (, name)))))
+-+    `(if (sgml-parse-delim "RNI")
+-+	   (sgml-check-token ,name)))
+-    (t '(sgml-parse-delim "RNI"))))
+- 
+- (defun sgml-check-token (name)
+-@@ -2734,11 +2734,11 @@ overrides the entity type in entity look
+-   (let ((macs nil))
+-     (while fields
+-       (push
+--       (` (defmacro (, (intern (format "%s-%s" dest (car fields)))) (element)
+--	    (, (format "Return %s field of ELEMENT." (car fields)))
+-+       `(defmacro ,(intern (format "%s-%s" dest (car fields))) (element)
+-+	    ,(format "Return %s field of ELEMENT." (car fields))
+- 	    (list
+--	     '(, (intern (format "%s-%s" orig (car fields))))
+--	     element)))
+-+	     ',(intern (format "%s-%s" orig (car fields)))
+-+	     element))
+-        macs)
+-       (setq fields (cdr fields)))
+-     (cons 'progn macs)))
+-@@ -2776,7 +2776,7 @@ overrides the entity type in entity look
+- 
+- (defmacro sgml-element-stag-optional (element)
+-   "True if start-tag of ELEMENT is omissible."
+--  (`(sgml-eltype-stag-optional (sgml-tree-eltype (, element)))))
+-+  `(sgml-eltype-stag-optional (sgml-tree-eltype ,element)))
+- 
+- (defsubst sgml-element-etag-optional (element)
+-   "True if end-tag of ELEMENT is omissible."
+-@@ -2930,8 +2930,10 @@ overrides the entity type in entity look
+- 
+- (defun sgml-set-initial-state (dtd)
+-   "Set initial state of parsing."
+--  (make-local-hook 'before-change-functions)
+--  (make-local-hook 'after-change-functions)
+-+  (if (fboundp 'make-local-hook)
+-+    (progn
+-+      (make-local-hook 'before-change-functions)
+-+      (make-local-hook 'after-change-functions)))
+-   (add-hook 'before-change-functions 'sgml-note-change-at nil 'local)
+-   (add-hook 'after-change-functions 'sgml-set-face-after-change nil 'local)
+-   (sgml-set-active-dtd-indicator (sgml-dtd-doctype dtd))
+-@@ -3505,7 +3507,7 @@ Where PAIRS is a list of (delim . ename)
+- Also move point.  Return nil, either if no shortref or undefined."
+- 
+-   (macrolet
+--      ((delim (x) (` (aref map (, (sgml-shortref-index x))))))
+-+      ((delim (x) `(aref map ,(sgml-shortref-index x))))
+-     (let ((i (if nobol 1 0)))
+-       (while (numberp i)
+- 	(setq i
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml.el textproc/psgml-mode/patches/patch-psgml.el
+--- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml.el	2012-08-16 11:54:56.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml.el	1970-01-01 00:00:00.000000000 +0000
+@@ -1,51 +0,0 @@
+-$NetBSD: patch-psgml.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
+-
+-Fix build with emacs24. From FreeBSD ports.
+-
+---- psgml.el.orig	2005-03-05 16:23:40.000000000 +0000
+-+++ psgml.el
+-@@ -722,9 +722,9 @@ as that may change."
+- 
+- (defun sgml-markup (entry text)
+-   (cons entry
+--	(` (lambda ()
+-+	`(lambda ()
+- 	     (interactive)
+--	     (sgml-insert-markup (, text))))))
+-+	     (sgml-insert-markup ,text))))
+- 
+- (defun sgml-insert-markup (text)
+-   (let ((end (sgml-mouse-region))
+-@@ -1040,13 +1040,13 @@ as that may change."
+- (defun sgml-compute-insert-dtd-items ()
+-   (loop for e in sgml-custom-dtd collect
+-         (vector (first e)
+--                (` (sgml-doctype-insert (, (cadr e)) '(, (cddr e))))
+-+                `(sgml-doctype-insert ,(cadr e) ',(cddr e))
+-                 t)))
+- 
+- (defun sgml-compute-custom-markup-items ()
+-   (loop for e in sgml-custom-markup collect
+-         (vector (first e)
+--                (` (sgml-insert-markup  (, (cadr e))))
+-+                `(sgml-insert-markup  ,(cadr e))
+-                 t)))
+- 
+- (defun sgml-build-custom-menus ()
+-@@ -1229,12 +1229,14 @@ All bindings:
+-     (make-local-variable 'text-property-default-nonsticky)
+-     ;; see `sgml-set-face-for':
+-     (add-to-list 'text-property-default-nonsticky '(face . t)))
+--  (make-local-hook 'post-command-hook)
+-+  (if (fboundp 'make-local-hook)
+-+    (eval '(make-local-hook 'post-command-hook)))
+-   (add-hook 'post-command-hook 'sgml-command-post 'append 'local)
+-   (unless sgml-running-lucid
+-     ;; XEmacs 20.4 doesn't handle local activate-menubar-hook
+-     ;; it tries to call the function `t' when using the menubar
+--    (make-local-hook 'activate-menubar-hook))
+-+    (if (fboundp 'make-local-hook)
+-+      (eval '(make-local-hook 'activate-menubar-hook))))
+-   (add-hook 'activate-menubar-hook 'sgml-update-all-options-menus
+- 	    nil 'local)
+-   (run-hooks 'text-mode-hook 'sgml-mode-hook)

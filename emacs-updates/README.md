@@ -24,6 +24,7 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | devel/rainbow-delimiters-el | 1.3.5 | 2.1.5 | |
 | devel/reformatter-el | – | 0.7 | **new**, needed by zig-mode |
 | devel/ruby-rd-mode | 0.6.38 | 0.6.39 | the one not built through the package: it needs ruby34, whose build here kept pulling rust. The gem was fetched (distinfo is real) and its rd-mode.el byte-compiled and loaded by hand under 30.2 |
+| devel/sml-mode | 3.9.5 (2000) | 6.12 | from GNU ELPA, one file now; needs Emacs 24.3 |
 | devel/zig-mode | 2022-01-05 snapshot | 2025-11-21 snapshot | depends on reformatter-el |
 | editors/matlab-mode | 2.3.1 | 8.2.1 | upstream moved to mathworks/Emacs-MATLAB-Mode; many more files |
 | graphics/graphviz-dot-mode | 0.3.7 | 0.5.0 | from GitHub |
@@ -36,6 +37,7 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | textproc/emacs-dict-client | 1.8.2 | 1.11 | from GitHub (myrkr/dictionary-el). Emacs 28+ bundles a newer dictionary.el; this package shadows it |
 | textproc/flycheck-mode | 33.0 | 39.0 | needs Emacs 28.1; flycheck-ert.el is no longer shipped; dash no longer used |
 | textproc/markdown-mode | 2.4 | 2.8 | |
+| textproc/psgml-mode | 1.3.2 (2005 alpha) | 1.4.0 | the last upstream tarball, which SourceForge never listed; fetched from Debian's pool, where it is the .orig. Builds without the four Emacs 24 patches, which are upstream now |
 | textproc/po-mode | 2.2 (gettext 0.18.1.1) | 2.32 (gettext 1.0) | gettext moved the elisp to gettext-tools/emacs |
 | www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
 | www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
