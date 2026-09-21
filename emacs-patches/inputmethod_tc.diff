@@ -1,0 +1,80 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tc/Makefile inputmethod/tc/Makefile
+--- /usr/pkgsrc/inputmethod/tc/Makefile	2026-09-18 05:47:03.850138965 +0000
++++ inputmethod/tc/Makefile	2026-09-21 20:26:09.448574227 +0000
+@@ -21,9 +21,9 @@
+ 	lisp/tc-pre-base	\
+ 	lisp/tc-pre-base.in	\
+ 	lisp/tc-pre.el
+-SUBST_SED.string-to-int=	-e 's/string-to-int/string-to-number/'
++SUBST_SED.string-to-int=	-e 's/string-to-int/string-to-number/g'
+ 
+-EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
+ 
+ .include "../../editors/emacs/modules.mk"
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tc/distinfo inputmethod/tc/distinfo
+--- /usr/pkgsrc/inputmethod/tc/distinfo	2025-12-23 10:25:07.000000000 +0000
++++ inputmethod/tc/distinfo	2026-09-21 20:26:09.663086965 +0000
+@@ -6,3 +6,5 @@
+ SHA1 (patch-aa) = cc227ae107772c8ab4e380ac85f09f79fed7a15d
+ SHA1 (patch-ab) = d893a89e196528f1e5dac465dcd56d34c87b7480
+ SHA1 (patch-ac) = 388e127cb055b01a4ddedc0dd9181f53b5a1b345
++SHA1 (patch-lisp_tc-mkmzdic.el) = 1f46b869eb1af9aceae0ff0f608f1bf17ac1be2c
++SHA1 (patch-lisp_tc-sysdep.el) = 4cffc021365beda7b72e0c9ab81f879aae0883f8
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tc/patches/patch-lisp_tc-mkmzdic.el inputmethod/tc/patches/patch-lisp_tc-mkmzdic.el
+--- /usr/pkgsrc/inputmethod/tc/patches/patch-lisp_tc-mkmzdic.el	1970-01-01 00:00:00.000000000 +0000
++++ inputmethod/tc/patches/patch-lisp_tc-mkmzdic.el	2026-09-21 20:26:09.436348371 +0000
+@@ -0,0 +1,17 @@
++$NetBSD$
++
++An obarray is a vector of zeros, not of nils; Emacs 30 checks and refuses
++the latter, so the mazegaki dictionary could not be generated.  From
++Debian.
++
++--- lisp/tc-mkmzdic.el.orig	2003-03-25 15:00:00.000000000 +0000
+++++ lisp/tc-mkmzdic.el
++@@ -107,7 +107,7 @@
++ (defvar tc-mkmzdic-obarray nil)
++ 
++ (defun tc-mkmzdic-init-obarray (size)
++-  (setq tc-mkmzdic-obarray (make-vector size nil)))
+++  (setq tc-mkmzdic-obarray (make-vector size 0)))
++ 
++ (defun tc-mkmzdic-final-obarray ()
++   (setq tc-mkmzdic-obarray nil))
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tc/patches/patch-lisp_tc-sysdep.el inputmethod/tc/patches/patch-lisp_tc-sysdep.el
+--- /usr/pkgsrc/inputmethod/tc/patches/patch-lisp_tc-sysdep.el	1970-01-01 00:00:00.000000000 +0000
++++ inputmethod/tc/patches/patch-lisp_tc-sysdep.el	2026-09-21 20:26:09.437102098 +0000
+@@ -0,0 +1,31 @@
++$NetBSD$
++
++The Emacs 19-and-later branch was chosen by matching the version string
++against "19", "20" and "21", so Emacs 22 and later fell through to the
++NEmacs code, where tcode-redo-command sets unread-command-char, a
++variable modern Emacs does not have.  Test for NEmacs directly, as the
++rest of the file does.  The isearch shim read last-command-char, gone
++since Emacs 24; use last-command-event when it exists.
++
++--- lisp/tc-sysdep.el.orig	2003-03-25 15:00:00.000000000 +0000
+++++ lisp/tc-sysdep.el
++@@ -228,7 +228,7 @@
++ ;;;
++ ;;; Fix incompatibilities between 18 and 19.
++ ;;;
++-(if (string-match "^\\(19\\|2[01]\\)" emacs-version)
+++(if (not (tcode-nemacs-p))
++     (progn
++       (defun tcode-redo-command (ch)
++ 	"キー CH を現在のキーマップで再実行する"
++@@ -240,7 +240,9 @@
++       ;; XEmacs
++       (or (fboundp 'isearch-last-command-char)
++ 	  (defun isearch-last-command-char ()
++-	    last-command-char))
+++	    (if (boundp 'last-command-event)
+++		last-command-event
+++	      last-command-char)))
++       (or (boundp 'search-upper-case)
++ 	  (setq search-upper-case 'not-yanks)))
++   ;; NEmacs
