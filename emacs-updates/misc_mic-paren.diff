@@ -1,0 +1,73 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/mic-paren/Makefile misc/mic-paren/Makefile
+--- /usr/pkgsrc/misc/mic-paren/Makefile	2022-05-14 22:25:40.000000000 +0000
++++ misc/mic-paren/Makefile	2026-09-21 21:43:06.688403032 +0000
+@@ -1,21 +1,29 @@
+ # $NetBSD: Makefile,v 1.2 2022/05/14 22:25:40 dholland Exp $
+ 
+-DISTNAME=	mic-paren-3.13
+-PKGREVISION=	1
++DISTNAME=	mic-paren-3.15
+ CATEGORIES=	misc
+-MASTER_SITES=	${MASTER_SITE_GITHUB:=emacsattic/}
+-GITHUB_TAG=	d0410c7d805c9aaf51a1bcefaaef092bed5824c4
++# 3.15 is the last release from gnuvola.org, which now sits behind a
++# cookie check that fetch cannot pass; Gentoo keeps a copy.
++MASTER_SITES=	https://dev.gentoo.org/~ulm/distfiles/
++EXTRACT_SUFX=	.el.xz
+ 
+ MAINTAINER=	pho@cielonegro.org
+-HOMEPAGE=	https://melpa.org/\#/mic-paren
++HOMEPAGE=	https://www.gnuvola.org/software/j/mic-paren/
+ COMMENT=	Advanced highlighting of parenthesis
+ LICENSE=	gnu-gpl-v3
+ 
++WRKSRC=			${WRKDIR}
++USE_TOOLS+=		xz
++
++# a single xz-compressed file; pkgsrc's extract only knows tar.xz
++do-extract:
++	xz -dc ${DISTDIR}/${DISTFILES} > ${WRKSRC}/mic-paren.el
++
+ EMACS_MODULES=		base
+ EMACS_BUILDLINK=	yes
+ 
+ do-build:
+-	cd ${WRKSRC} && ${EMACS_BIN} -batch -f batch-byte-compile *.el
++	cd ${WRKSRC} && ${EMACS_BIN} -batch -f batch-byte-compile mic-paren.el
+ 
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX}
+ do-install:
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/mic-paren/distinfo misc/mic-paren/distinfo
+--- /usr/pkgsrc/misc/mic-paren/distinfo	2021-10-26 10:59:15.000000000 +0000
++++ misc/mic-paren/distinfo	2026-09-21 21:43:45.225005310 +0000
+@@ -1,5 +1,6 @@
+ $NetBSD: distinfo,v 1.3 2021/10/26 10:59:15 nia Exp $
+ 
+-BLAKE2s (mic-paren-3.13-d0410c7d805c9aaf51a1bcefaaef092bed5824c4.tar.gz) = 1c0a3bcc3d4cf23cf657675f0b74b63fdfeb12d72838e6bc8c1c6f3a68fb06f4
+-SHA512 (mic-paren-3.13-d0410c7d805c9aaf51a1bcefaaef092bed5824c4.tar.gz) = 3c4bfc6f34fff247b5e928b0c351c924b4491c1fc5ca6a680e33790fe629b63685cf4d95d76a27e258a7e2c3c5318e0bc62935e034e0ddf8756040e4d092d394
+-Size (mic-paren-3.13-d0410c7d805c9aaf51a1bcefaaef092bed5824c4.tar.gz) = 15154 bytes
++BLAKE2s (mic-paren-3.15.el.xz) = 510e9625eba9148143aaa5a1c2e4e9f8d4c7c8041a68208aac1c3523398b2eca
++SHA512 (mic-paren-3.15.el.xz) = 2c1b71a9ccda8c799788942953962003c5aa142200bc2bee31c6d190fe5b22a9267ebf49b1ad57e2112092d90a62366b0d430e8eb29c27604e3310b2a597e085
++Size (mic-paren-3.15.el.xz) = 14044 bytes
++SHA1 (patch-mic-paren.el) = 00767d84a84fb363e1c080bd10c7b55e0156ec9b
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/mic-paren/patches/patch-mic-paren.el misc/mic-paren/patches/patch-mic-paren.el
+--- /usr/pkgsrc/misc/mic-paren/patches/patch-mic-paren.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/mic-paren/patches/patch-mic-paren.el	2026-09-21 21:43:44.027825780 +0000
+@@ -0,0 +1,17 @@
++$NetBSD$
++
++3.15 dropped (require 'cl) but still calls cl-minusp and cl-oddp,
++which are only defined once cl-lib is loaded; paren-activate then fails
++with a void cl-oddp in an Emacs where nothing else loaded it.  From Gentoo.
++
++--- mic-paren.el.orig
+++++ mic-paren.el
++@@ -332,6 +332,8 @@
++ (defvar mic-paren-version "3.15"
++   "Version of mic-paren.")
++ 
+++(require 'cl-lib)
+++
++ ;;; ======================================================================
++ ;; Compatibility stuff
++ ;; BLOB to make custom stuff work even without customize
