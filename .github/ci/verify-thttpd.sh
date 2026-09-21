@@ -142,13 +142,13 @@ else
 	grep -n 'OBJECT_FMT' "$TREE/mk/bsd.prefs.mk" | sed 's/^/    /' | head -12
 	# bsd.prefs.mk を通らない小さな makefile で訊く。再帰はそこで起きる
 	# ので、通さなければ bmake は普通に答えられる。
+	# 目標を書くと "no target to make" になるので -V だけで訊く。
 	echo "  診断: <bsd.own.mk> はどこから来て、OBJECT_FMT を定義するか"
-	{ echo '.include <bsd.own.mk>'
-	  echo 'all:'
-	  printf '\t@echo "OBJECT_FMT=[${OBJECT_FMT}]"\n'
-	  printf '\t@echo "read: ${.MAKE.MAKEFILES}"\n'
-	} > "$T/own.mk"
-	( cd "$T" && $PKGMAKE -f own.mk ) 2>&1 | sed 's/^/    /' | head -4
+	echo '.include <bsd.own.mk>' > "$T/own.mk"
+	printf '    OBJECT_FMT=['; ( cd "$T" && $PKGMAKE -f own.mk -V OBJECT_FMT ) 2>&1 | head -1 | tr -d '\n'; echo ']'
+	( cd "$T" && $PKGMAKE -f own.mk -V .MAKE.MAKEFILES ) 2>&1 | tr ' ' '\n' \
+	    | grep 'own\.mk' | sed 's/^/    read: /' | head -3
+	echo "    MAKESYSPATH=[${MAKESYSPATH:-未設定}]"
 	sbuild patchedbin yes "" || { echo "!! tarball build も失敗"; exit 1; }
 	BIN=$T/patchedbin/thttpd
 	echo "MODE: tarball + pkgsrc patch の $BIN を検査する"
