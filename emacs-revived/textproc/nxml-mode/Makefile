@@ -13,8 +13,9 @@ NO_CONFIGURE=		yes
 USE_TOOLS+=		makeinfo perl
 
 # nxml-mode was written for Emacs 21 and is bundled since Emacs 23; the
-# package is for emacs20, with files/nxml-e20.el supplying what Emacs 20
-# lacks (see the patches).  Emacs 20 needs Mule-UCS for decode-char.
+# package is for emacs20, with devel/emacs20-compat supplying what Emacs 20
+# lacks and files/nxml-e20.el the mode's own fontification (see the
+# patches).  Emacs 20 needs Mule-UCS for decode-char.
 EMACS_VERSIONS_ACCEPTED=	emacs20
 DEPENDS+=		${EMACS_PKGNAME_PREFIX}Mule-UCS-[0-9]*:../../editors/mule-ucs
 
@@ -28,7 +29,8 @@ post-patch:
 # the distfile's .elc were compiled by Emacs 21 and do not load in 20
 do-build:
 	cd ${WRKSRC} && ${RM} -f *.elc && ${EMACS_BIN} -batch -q --no-site-file \
-		-L . -L ${EMACS_LISPPREFIX}/mule-ucs -l un-define -l nxml-e20 \
+		-L . -L ${EMACS_LISPPREFIX} -L ${EMACS_LISPPREFIX}/mule-ucs \
+		-l un-define -l nxml-e20 \
 		-f batch-byte-compile *.el && ${RM} -f rng-auto.elc
 
 MESSAGE_SUBST+=		LISPDIR=${EMACS_LISPPREFIX:Q}
@@ -42,5 +44,6 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/char-name/unicode/*.el ${DESTDIR}${EMACS_LISPPREFIX:Q}/nxml-mode/char-name/unicode
 	${INSTALL_DATA} ${WRKSRC}/nxml-mode.info ${DESTDIR}${EMACS_INFOPREFIX:Q}
 
+.include "../../devel/emacs20-compat/buildlink3.mk"
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"
