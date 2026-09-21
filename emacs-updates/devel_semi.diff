@@ -1,0 +1,12 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/semi/Makefile devel/semi/Makefile
+--- /usr/pkgsrc/devel/semi/Makefile	2023-12-24 14:24:52.000000000 +0000
++++ devel/semi/Makefile	2026-09-21 17:36:10.490011337 +0000
+@@ -68,4 +68,8 @@
+ 
+ .include "../../devel/apel/buildlink3.mk"
+ .include "../../devel/flim/buildlink3.mk"
++# cl-lib is bundled since Emacs 24.3
++.if ${EMACS_VERSION_MAJOR} < 24
++.include "../../devel/cl-lib-el/buildlink3.mk"
++.endif
+ .include "../../mk/bsd.pkg.mk"

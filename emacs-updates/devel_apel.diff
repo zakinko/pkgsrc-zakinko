@@ -44,7 +44,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
  PLIST_VARS+=	emacs23 emacs19
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 --- /usr/pkgsrc/devel/apel/distinfo	2022-01-31 00:17:58.000000000 +0000
-+++ devel/apel/distinfo	2026-09-21 17:01:34.344170176 +0000
++++ devel/apel/distinfo	2026-09-21 17:11:25.717791684 +0000
 @@ -1,5 +1,22 @@
  $NetBSD: distinfo,v 1.13 2022/01/31 00:17:58 mef Exp $
  
@@ -67,7 +67,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 +SHA1 (patch-pccl.el) = c347b8d6d786b9b8b1b06b0b9a9c307907013ad1
 +SHA1 (patch-pces-e20.el) = 021dfe2ebcdac5b6291765de22c2d0e53accf5b0
 +SHA1 (patch-pces.el) = 09b351de96dfc6af5c1a6ae5b53f33a0051cc9ff
-+SHA1 (patch-poe.el) = cb73509162443923ee6b304639c5fd35b5ad8401
++SHA1 (patch-poe.el) = 1e1a9cd399748bd16da3e6d27899ed34557cf26e
 +SHA1 (patch-poem-e20_3.el) = 06ef84c86fb290657402b10ae695575206052bf3
 +SHA1 (patch-poem.el) = 93f4b95175ffe71a5a88a660e6f95011c01cfa2a
 +SHA1 (patch-product.el) = 03e692126e9682b5158bc1250abe8b3fa9aa5a38
@@ -2842,14 +2842,17 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel
 + ;;; @ end
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/patches/patch-poe.el
 --- /usr/pkgsrc/devel/apel/patches/patch-poe.el	1970-01-01 00:00:00.000000000 +0000
-+++ devel/apel/patches/patch-poe.el	2026-09-21 16:59:53.491497030 +0000
-@@ -0,0 +1,1608 @@
++++ devel/apel/patches/patch-poe.el	2026-09-21 17:11:23.051894592 +0000
+@@ -0,0 +1,1655 @@
 +$NetBSD$
 +
 +Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
 +so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
 +it there (misc/lookup, devel/flim, devel/semi).  The functional changes
-+made upstream since are kept.
++made upstream since are kept.  Also, for Emacs 20: called-interactively-p
++(apel-ver.el), dolist, dotimes and mapc (FLIM and SEMI use them without
++cl), and make-obsolete / make-obsolete-variable accepting the WHEN
++argument that Emacs 23 added, and declare-function.
 +
 +--- poe.el.orig
 ++++ poe.el
@@ -3247,13 +3250,57 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Delete by side effect any elements of ALIST whose cdr is `eq' to VALUE.
 + The modified ALIST is returned.  If the first member of ALIST has a car
 + that is `eq' to VALUE, there is no way to remove it by side effect;
-+@@ -139,6 +484,67 @@ the value of `foo'."
++@@ -139,6 +484,111 @@ the value of `foo'."
 +                   tail (cdr tail))))))
 +   alist)
 + 
 ++;;; Define `functionp' here because "localhook" uses it.
 ++
 ++;; Emacs 20.1/XEmacs 20.3 (but first appeared in Epoch?): (functionp OBJECT)
+++;; Emacs 21 and later (Emacs 20 has them only in cl); FLIM and SEMI
+++;; use them without loading cl.
+++(defmacro-maybe dolist (spec &rest body)
+++  "Loop over a list: (dolist (VAR LIST [RESULT]) BODY...)."
+++  (let ((temp (make-symbol "--dolist-temp--")))
+++    (list 'let (list (list temp (nth 1 spec)) (car spec))
+++	  (list 'while temp
+++		(list 'setq (car spec) (list 'car temp))
+++		(cons 'progn (append body (list (list 'setq temp (list 'cdr temp))))))
+++	  (if (cdr (cdr spec))
+++	      (cons 'progn (cons (list 'setq (car spec) nil) (cdr (cdr spec))))))))
+++(defmacro-maybe dotimes (spec &rest body)
+++  "Loop a number of times: (dotimes (VAR COUNT [RESULT]) BODY...)."
+++  (let ((temp (make-symbol "--dotimes-temp--")))
+++    (list 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
+++	  (list 'while (list '< (car spec) temp)
+++		(cons 'progn (append body (list (list 'setq (car spec) (list '1+ (car spec)))))))
+++	  (if (cdr (cdr spec)) (cons 'progn (cdr (cdr spec)))))))
+++(defun-maybe mapc (function sequence &rest rest)
+++  "Apply FUNCTION to each element of SEQUENCE for side effects only."
+++  (apply 'mapcar function sequence rest)
+++  sequence)
+++
+++;; Emacs 23; a no-op for the byte-compiler, so a no-op here.
+++(defmacro-maybe declare-function (&rest args)
+++  "Tell the byte-compiler that function FN is defined, in FILE."
+++  nil)
+++
+++;; Emacs 23 added the WHEN argument; the old two-argument forms error
+++;; on it.  FLIM and SEMI pass it.
+++(static-if (< emacs-major-version 23)
+++    (progn
+++      (or (fboundp 'poe-original-make-obsolete)
+++	  (fset 'poe-original-make-obsolete (symbol-function 'make-obsolete)))
+++      (defun make-obsolete (fn new &optional when)
+++	"Make the byte-compiler warn that FUNCTION is obsolete; WHEN is ignored."
+++	(poe-original-make-obsolete fn new))
+++      (or (fboundp 'poe-original-make-obsolete-variable)
+++	  (fset 'poe-original-make-obsolete-variable
+++		(symbol-function 'make-obsolete-variable)))
+++      (defun make-obsolete-variable (var new &optional when access-type)
+++	"Make the byte-compiler warn that VARIABLE is obsolete; WHEN is ignored."
+++	(poe-original-make-obsolete-variable var new))))
+++
 ++;; Emacs 22 and later; apel-ver.el uses it in place of interactive-p.
 ++(defun-maybe called-interactively-p (&optional kind)
 ++  "Return t if the containing function was called by `call-interactively'."
@@ -3315,7 +3362,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + ;;; @@ Input and display facilities.
 + 
 + ;; XXX: (defun read-passwd (prompt &optional confirm default))
-+@@ -147,12 +553,719 @@ the value of `foo'."
++@@ -147,12 +597,719 @@ the value of `foo'."
 + 
 + ;; Avoid compiler warnings about this variable,
 + ;; which has a special meaning on certain system types.
@@ -4036,7 +4083,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + 
 + ;;; @ Frame commands emulation. (lisp/frame.el)
-+@@ -160,7 +1273,7 @@ On other systems, this variable is normally always nil.")
++@@ -160,7 +1317,7 @@ On other systems, this variable is normally always nil.")
 + 
 + ;; XEmacs 21.0 and later:
 + ;;  (save-selected-frame &rest BODY)
@@ -4045,7 +4092,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Execute forms in BODY, then restore the selected frame."
 +   (list 'let
 + 	'((save-selected-frame-frame (selected-frame)))
-+@@ -173,18 +1286,342 @@ On other systems, this variable is normally always nil.")
++@@ -173,18 +1330,342 @@ On other systems, this variable is normally always nil.")
 + ;;;
 + 
 + 
@@ -4390,7 +4437,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Convert keystroke CH into an event structure, replete with bucky bits.
 + Note that CH (the keystroke specifier) can be an integer, a character
 + or a symbol such as \\='clear."
-+@@ -192,18 +1629,24 @@ or a symbol such as \\='clear."
++@@ -192,18 +1673,24 @@ or a symbol such as \\='clear."
 + 
 + ;; XEmacs 21: (event-to-character EVENT
 + ;;             &optional ALLOW-EXTRA-MODIFIERS ALLOW-META ALLOW-NON-ASCII)
@@ -4425,7 +4472,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + ;; v18: no event; (read-char)
 + ;; Emacs 19, 20.1 and 20.2: (read-event)
-+@@ -211,7 +1654,7 @@ If the event isn't a keypress, this returns nil."
++@@ -211,7 +1698,7 @@ If the event isn't a keypress, this returns nil."
 + ;; Emacs 20.4: (read-event &optional PROMPT INHERIT-INPUT-METHOD)
 + ;; XEmacs: (next-event &optional EVENT PROMPT),
 + ;;         (next-command-event &optional EVENT PROMPT)
@@ -4434,7 +4481,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Read an event object from the input stream.
 + If EVENT is non-nil, it should be an event object and will be filled
 + in and returned; otherwise a new event object will be created and
-+@@ -225,11 +1668,13 @@ the echo area while this function is waiting for an event."
++@@ -225,11 +1712,13 @@ the echo area while this function is waiting for an event."
 + ;;; @ MULE 2 emulation.
 + ;;;
 + 
