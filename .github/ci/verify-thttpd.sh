@@ -119,6 +119,13 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 			    || { echo "  !! ${pp##*/} が $1 に当たらない" >&2; return 1; }
 		done ;;
 	esac
+	# 2002 年の config.guess は DragonFly を知らず、configure が
+	# "checking host system type" で止まる。pkgsrc は GNU_CONFIGURE の
+	# ときに自前の物へ差し替えるので、tarball から建てる側も同じにする。
+	# これが無いと DragonFly で素の対照が取れない。
+	for g in config.guess config.sub; do
+		[ -f "$TREE/mk/gnu-config/$g" ] && cp "$TREE/mk/gnu-config/$g" "$T/$1/$g"
+	done
 	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="$CC $OSCFLAGS $3" thttpd >bl.log 2>&1 )
 	test -x "$T/$1/thttpd"
 }
