@@ -18,6 +18,9 @@
 # pkgsrc の build 自体が箱の都合で落ちることもある。その場合も検査は
 # 落とさず、同じ当て物を上流 tarball に当てて建て直して続ける。
 set -e
+# DragonFly の tar が locale を立てられずに落ちる。ESC を grep で探す
+# 場所もあるので、byte で扱う C に寄せる。
+LC_ALL=C; export LC_ALL
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
@@ -222,14 +225,12 @@ echo "########## CVE-2007-0158 (underflow) on $OS ##########"
 # ASan が動くか。NetBSD は ASLR と shadow の置き場が衝突して起動すらしない
 # ので、binary ごとに外せるなら外して測る。測れない理由が箱の設定なら、
 # その設定の方を外す。
-PAXFIX=0
 asan_works() {
 	echo 'int main(){return 0;}' | $CC -fsanitize=address -x c - -o "$T/at" 2>/dev/null \
 	    || { echo "  この箱の $CC は -fsanitize=address を持たない"; return 1; }
 	"$T/at" 2>/dev/null && return 0
 	if command -v paxctl >/dev/null 2>&1 && paxctl -A "$T/at" >/dev/null 2>&1 \
 	   && "$T/at" 2>/dev/null; then
-		PAXFIX=1
 		echo "  ASLR が ASan を止めていた。paxctl -A で外して測る"
 		return 0
 	fi
@@ -237,17 +238,35 @@ asan_works() {
 	return 1
 }
 
+_asan_run() { # $1=dir $2=binary $3=path $4=auth
+	ASAN_OPTIONS=abort_on_error=0:exitcode=99:detect_leaks=0 "$2" \
+	    -p 18092 -d "$1" -l "$1/log" -i "$1/pid" -D -nos > "$1/out" 2>&1 &
+	sleep 1
+	http_code "http://127.0.0.1:18092$3" "" "" "$4" >/dev/null 2>&1 || true
+	sleep 0.6
+	kill "$(cat "$1/pid" 2>/dev/null)" 2>/dev/null || true
+}
+
 # 一つの入口を撃って、ASan が報告するかどうかを返す。
 asan_probe() { # $1=dirlabel $2=binary $3=setup関数 $4=path [$5=auth]
 	D="$T/u-$1"; rm -rf "$D"; mkdir -p "$D"
 	"$3" "$D" || return 2
-	[ "$PAXFIX" = 1 ] && paxctl -A "$2" >/dev/null 2>&1
-	ASAN_OPTIONS=abort_on_error=0:exitcode=99:detect_leaks=0 "$2" \
-	    -p 18092 -d "$D" -l "$D/log" -i "$D/pid" -D -nos > "$D/out" 2>&1 &
-	sleep 1
-	http_code "http://127.0.0.1:18092$4" "" "" "${5:-}" >/dev/null 2>&1 || true
-	sleep 0.6
-	kill "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null || true
+	_asan_run "$D" "$2" "$4" "${5:-}"
+	# ASan の shadow は ASLR と場所を取り合うので、NetBSD では起動すら
+	# しない。binary ごとに外せるなら外して撃ち直す。素の試験 program は
+	# 動いてしまうので、ここまで来ないと分からない。
+	if grep -q 'not compatible with enabled ASLR' "$D/out" 2>/dev/null; then
+		if command -v paxctl >/dev/null 2>&1; then
+			if paxctl -A "$2" >"$D/pax" 2>&1; then
+				echo "    ASLR が ASan を止めていた。paxctl -A で外して撃ち直す"
+				_asan_run "$D" "$2" "$4" "${5:-}"
+			else
+				echo "    paxctl -A が通らない:"; sed 's/^/      /' "$D/pax"
+			fi
+		else
+			echo "    ASLR が ASan を止めているが paxctl が無い"
+		fi
+	fi
 	ASANOUT="$D/out"
 	# BSD の grep は BRE の \| を解さないので、語を一つだけ渡す。
 	grep -qi AddressSanitizer "$D/out"
@@ -286,8 +305,10 @@ if asan_works; then
 			symlink) setup=setup_symlink; path=/empty;    auth="" ;;
 			nulauth) setup=setup_nulauth; path=/priv/;    auth="bob:x" ;;
 			esac
-			if ! asan_probe "n-$probe" "$T/na/thttpd" "$setup" "$path" "$auth"; then
-				st=$?
+			# "if ! f" のあとの $? は否定した後の値なので、先に取る。
+			asan_probe "n-$probe" "$T/na/thttpd" "$setup" "$path" "$auth"
+			st=$?
+			if [ "$st" != 0 ]; then
 				if [ "$st" = 2 ]; then echo "  $probe: この箱では仕込めない。skip"
 				else
 					echo "  $probe: stock で ASan が出ない"

@@ -8,8 +8,8 @@ set-group-id is the administrator's decision, not the package's.
 
 If you want to use it:
 
-	chgrp <group> ${PREFIX}/sbin/makeweb
-	chmod 2755 ${PREFIX}/sbin/makeweb
+	chgrp <group> @PREFIX@/sbin/makeweb
+	chmod 2755 @PREFIX@/sbin/makeweb
 
 The group thttpd's own Makefile suggests is "www".
 
