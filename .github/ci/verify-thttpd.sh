@@ -51,6 +51,13 @@ http_code() { # $1=url  [$2.. = extra headers "Name: value"]
 		} | nc -w 5 "$_ip" "$_port" 2>/dev/null | sed -n '1s#^HTTP/[0-9.]* \([0-9][0-9][0-9]\).*#\1#p' | head -1
 	fi
 }
+# pkgsrc の Makefile が OPSYS ごとに足している定義。tarball から建てる側と
+# 探り program にも同じ物が要る (Linux の sigset、illumos の crypt)。
+case $OS in
+Linux)	OSCFLAGS=-D_GNU_SOURCE ;;
+SunOS)	OSCFLAGS=-D__EXTENSIONS__ ;;
+*)	OSCFLAGS= ;;
+esac
 sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 	rm -rf "$T/$1"
 	[ -f "$T/thttpd-2.29.tar.gz" ] || fetch_to https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz "$T/thttpd-2.29.tar.gz"
@@ -60,7 +67,7 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 			( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/$pp" >/dev/null 2>&1 )
 		done
 	fi
-	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="${CC:-cc} $3" thttpd >bl.log 2>&1 )
+	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="${CC:-cc} $OSCFLAGS $3" thttpd >bl.log 2>&1 )
 	test -x "$T/$1/thttpd"
 }
 
@@ -118,9 +125,14 @@ cat > "$T/cr.c" <<'C'
 #endif
 int main(void){char*r=crypt("pw","$9$notasalt");printf("%s\n",r?r:"NULL");return r?1:0;}
 C
+# cr は crypt() が値を返したら 1、NULL なら 0 で終わる。NULL を返す箱を
+# 探しているので、真を取るのは exit 0 の側。ここを || にしていたため
+# NetBSD と FreeBSD ("*0" を返す箱) に「NULL を返す」印が立ち、
+# 落ちない stock を失敗として数えていた。
 NULLCRYPT=0
-if ${CC:-cc} -o "$T/cr" "$T/cr.c" -lcrypt 2>/dev/null || ${CC:-cc} -o "$T/cr" "$T/cr.c" 2>/dev/null; then
-	"$T/cr" >/dev/null 2>&1 || NULLCRYPT=1
+if ${CC:-cc} $OSCFLAGS -o "$T/cr" "$T/cr.c" -lcrypt 2>/dev/null \
+   || ${CC:-cc} $OSCFLAGS -o "$T/cr" "$T/cr.c" 2>/dev/null; then
+	"$T/cr" >/dev/null 2>&1 && NULLCRYPT=1
 fi
 PRE=""
 if [ "$NULLCRYPT" = 0 ]; then

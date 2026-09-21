@@ -45,6 +45,12 @@ MAKE_JOBS_SAFE=	no
 # made implicit declarations fatal.
 CFLAGS.Linux+=	-D_GNU_SOURCE
 
+# illumos declares crypt(3c) in <unistd.h> only under __EXTENSIONS__, and
+# thttpd includes no <crypt.h>.  Same failure mode as the Linux case above:
+# configure links against libc and sets HAVE_CRYPT, then gcc 14 refuses the
+# implicit declaration.
+CFLAGS.SunOS+=	-D__EXTENSIONS__
+
 CFLAGS.SCO_SV+=	-DMAXPATHLEN=255 -DS_IFSOCK=0
 
 post-extract:
