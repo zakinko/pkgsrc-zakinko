@@ -58,8 +58,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # aarch64 は TCG で、pkgsrc の bootstrap だけで二時間を超える。
+          # 六時間の上限に収まらないので回さない。
           - { arch: x86_64,  vmarch: '' }
-          - { arch: aarch64, vmarch: aarch64 }
     steps:
       - uses: actions/checkout@v4
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
@@ -127,7 +128,7 @@ jobs:
         with:
           release: 'r151058'
           envs: 'PKGS'
-          prepare: pkg install developer/gcc14 developer/build/gnu-make web/curl || true
+          prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
             sh .github/ci/build-on-bsd.sh

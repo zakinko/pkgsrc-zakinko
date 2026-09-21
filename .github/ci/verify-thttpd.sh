@@ -25,10 +25,35 @@ DIR=$TREE/zakinko/thttpd
 if [ "$OS" = NetBSD ]; then PKGMAKE=make; else PKGMAKE=bmake; fi
 command -v $PKGMAKE >/dev/null 2>&1 || PKGMAKE="$PREFIX/bin/bmake"
 
-DL="curl -sSLO"; command -v curl >/dev/null 2>&1 || DL="wget -q"
+# 取得の道具は箱によって違う。NetBSD と OpenBSD には curl も wget も無く、
+# base の ftp(1) が URL を取れる。
+fetch_to() { # $1=url $2=outfile
+	if command -v curl >/dev/null 2>&1; then curl -sSL -o "$2" "$1"
+	elif command -v wget >/dev/null 2>&1; then wget -q -O "$2" "$1"
+	elif command -v fetch >/dev/null 2>&1; then fetch -q -o "$2" "$1"
+	elif command -v ftp >/dev/null 2>&1; then ftp -o "$2" "$1"
+	else echo "!! 取得の道具が無い" >&2; return 1; fi
+}
+# HTTP 要求も同じ事情。応答の status だけ欲しいので、無ければ自前で喋る。
+http_code() { # $1=url  [$2.. = extra headers "Name: value"]
+	if command -v curl >/dev/null 2>&1; then
+		_h=""
+		for _x in "$2" "$3"; do [ -n "$_x" ] && _h="$_h -H \"$_x\""; done
+		eval curl -s -o /dev/null -w \'%{http_code}\' $_h ${4:+-u "$4"} --max-time 5 "$1" 2>/dev/null || echo none
+	else
+		_hp=${1#http://}; _host=${_hp%%/*}; _path=/${_hp#*/}
+		_ip=${_host%%:*}; _port=${_host##*:}
+		{ printf 'GET %s HTTP/1.0\r\n' "$_path"
+		  [ -n "$2" ] && printf '%s\r\n' "$2"
+		  [ -n "$3" ] && printf '%s\r\n' "$3"
+		  [ -n "$4" ] && printf 'Authorization: Basic %s\r\n' "$(printf '%s' "$4" | openssl base64 2>/dev/null | tr -d '\n')"
+		  printf '\r\n'
+		} | nc -w 5 "$_ip" "$_port" 2>/dev/null | sed -n '1s#^HTTP/[0-9.]* \([0-9][0-9][0-9]\).*#\1#p' | head -1
+	fi
+}
 sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 	rm -rf "$T/$1"
-	( cd "$T" && [ -f thttpd-2.29.tar.gz ] || $DL https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz )
+	[ -f "$T/thttpd-2.29.tar.gz" ] || fetch_to https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz "$T/thttpd-2.29.tar.gz"
 	( cd "$T" && gzip -dc thttpd-2.29.tar.gz | tar xf - && mv thttpd-2.29 "$1" )
 	if [ "$2" != no ]; then
 		for pp in patch-CVE-2007-0158 patch-CVE-2009-4491 patch-CVE-2012-5640 patch-configure patch-libhttpd.c patch-thttpd.c; do
@@ -60,9 +85,10 @@ serve() { # $1=label $2=binary $3=preload -> code_ alive_ log_
 	printf 'bob:$9$notasalt\n' > "$D/priv/.htpasswd"
 	env $3 "$2" -p 18091 -d "$D" -l "$D/log" -i "$D/pid" -D -nos > "$D/out" 2>&1 &
 	sleep 1
-	curl -s -o /dev/null "http://127.0.0.1:18091/x" \
-	    -H "Referer: $(printf 'R\033]0;X\007')" -A "$(printf 'U\033[2J')" 2>/dev/null || true
-	code=$(curl -s -o /dev/null -w '%{http_code}' -u bob:pw http://127.0.0.1:18091/priv/ 2>/dev/null || echo none)
+	http_code "http://127.0.0.1:18091/x" \
+	    "Referer: $(printf 'R\033]0;X\007')" "User-Agent: $(printf 'U\033[2J')" >/dev/null 2>&1 || true
+	code=$(http_code "http://127.0.0.1:18091/priv/" "" "" "bob:pw" 2>/dev/null)
+	[ -n "$code" ] || code=none
 	sleep 0.4
 	if kill -0 "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null; then alive=1; else alive=0; fi
 	kill "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null || true
@@ -126,7 +152,7 @@ else
 			ASAN_OPTIONS=abort_on_error=0:exitcode=99:detect_leaks=0 "$T/$lbl/thttpd" \
 			    -p 18092 -d "$D" -l "$D/log" -i "$D/pid" -D -nos > "$D/out" 2>&1 &
 			sleep 1
-			curl -s -o /dev/null "http://127.0.0.1:18092/empty" 2>/dev/null || true
+			http_code "http://127.0.0.1:18092/empty" >/dev/null 2>&1 || true
 			sleep 0.6
 			if grep -qi 'AddressSanitizer\|stack-buffer-underflow' "$D/out"; then f=1; else f=0; fi
 			kill "$(cat "$D/pid" 2>/dev/null)" 2>/dev/null || true
