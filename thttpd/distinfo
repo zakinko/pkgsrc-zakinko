@@ -12,4 +12,4 @@ SHA1 (patch-ac) = f7fe1fed88b4cb33c9456d6fdc13e2bbc175ced6
 SHA1 (patch-ad) = 234127aaf4a3b5e6536bd08cc80f823800240fac
 SHA1 (patch-af) = 5160b635cdf9b3c997e93e039ef2764f77857018
 SHA1 (patch-ag) = 01410f8d293e2d4033f2a1119b21c05e21dfefbe
-SHA1 (patch-libhttpd.c) = 3e05b23a1fe4f187f2a77d49276e06ca931b1009
+SHA1 (patch-libhttpd.c) = f8ddae9fd1b12d8148c9867c2f7caed11a829157

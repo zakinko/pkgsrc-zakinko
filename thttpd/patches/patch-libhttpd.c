@@ -1,5 +1,10 @@
 $NetBSD$
 
+CVE-2007-0158: expand_symlinks() trims a trailing slash with
+lnk[linklen-1] without checking linklen.  An empty symlink target in the
+served tree makes readlink() return 0, so lnk[-1] is read (and, if it is a
+slash, written), underflowing the stack buffer.  Guard on linklen > 0.
+
 CVE-2012-5640: auth_check2() passed the result of crypt() straight to
 strcmp().  crypt() returns NULL for a salt it does not understand, and the
 salt comes from a user-written .htpasswd, so a bad line crashed the server
@@ -10,7 +15,7 @@ User-Agent to the log file and to syslog as the client sent them, so a
 request could put terminal escape sequences into the log.  Control
 characters are now written as \xHH.
 
---- libhttpd.c.orig	2018-10-06 04:14:05.000000000 +0000
+--- libhttpd.c.orig
 +++ libhttpd.c
 @@ -172,6 +172,7 @@
  static int cgi( httpd_conn* hc );
@@ -55,7 +60,18 @@ characters are now written as \xHH.
  		{
  		/* Ok! */
  		httpd_realloc_str(
-@@ -3904,12 +3911,45 @@
+@@ -1623,7 +1630,9 @@
+ 	    return (char*) 0;
+ 	    }
+ 	lnk[linklen] = '\0';
+-	if ( lnk[linklen - 1] == '/' )
++	/* CVE-2007-0158: an empty symlink target makes readlink() return 0,
++	** and lnk[linklen-1] then reads lnk[-1], underflowing the buffer. */
++	if ( linklen > 0 && lnk[linklen - 1] == '/' )
+ 	    lnk[--linklen] = '\0';     /* trim trailing slash */
+ 
+ 	/* Insert the link contents in front of the rest of the filename. */
+@@ -3904,12 +3913,45 @@
      }
  
  
@@ -101,7 +117,7 @@ characters are now written as \xHH.
  
      if ( hc->hs->no_log )
  	return;
-@@ -3922,7 +3962,7 @@
+@@ -3922,7 +3964,7 @@
  
      /* Format remote user. */
      if ( hc->remoteuser[0] != '\0' )
@@ -110,7 +126,7 @@ characters are now written as \xHH.
      else
  	ru = "-";
      /* If we're vhosting, prepend the hostname to the url.  This is
-@@ -3937,6 +3977,9 @@
+@@ -3937,6 +3979,9 @@
      else
  	(void) my_snprintf( url, sizeof(url),
  	    "%.200s", hc->encodedurl );
@@ -120,7 +136,7 @@ characters are now written as \xHH.
      /* Format the bytes. */
      if ( hc->bytes_sent >= 0 )
  	(void) my_snprintf(
-@@ -3985,8 +4028,8 @@
+@@ -3985,8 +4030,8 @@
  	(void) fprintf( hc->hs->logfp,
  	    "%.80s - %.80s [%s] \"%.80s %.300s %.80s\" %d %s \"%.200s\" \"%.200s\"\n",
  	    httpd_ntoa( &hc->client_addr ), ru, date,
@@ -131,7 +147,7 @@ characters are now written as \xHH.
  #ifdef FLUSH_LOG_EVERY_TIME
  	(void) fflush( hc->hs->logfp );
  #endif
-@@ -3995,8 +4038,8 @@
+@@ -3995,8 +4040,8 @@
  	syslog( LOG_INFO,
  	    "%.80s - %.80s \"%.80s %.200s %.80s\" %d %s \"%.200s\" \"%.200s\"",
  	    httpd_ntoa( &hc->client_addr ), ru,
