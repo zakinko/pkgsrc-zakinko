@@ -38,6 +38,7 @@ SUBDIR+=	iiimecf
 SUBDIR+=	jde
 SUBDIR+=	leim20
 SUBDIR+=	leim21
+SUBDIR+=	libhimmelblau
 SUBDIR+=	libndp
 SUBDIR+=	libuuid
 SUBDIR+=	meibo
