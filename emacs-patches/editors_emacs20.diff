@@ -31,13 +31,14 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Ma
  
 diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/distinfo editors/emacs20/distinfo
 --- /usr/pkgsrc/editors/emacs20/distinfo	2021-12-29 03:40:23.000000000 +0000
-+++ editors/emacs20/distinfo	2026-09-21 14:43:55.337700080 +0000
-@@ -54,4 +54,6 @@
++++ editors/emacs20/distinfo	2026-09-21 19:19:16.683397647 +0000
+@@ -54,4 +54,7 @@
  SHA1 (patch-ce) = df4d2a5639a72d2c719662496f17db35686f4ac2
  SHA1 (patch-cf) = 1b5b83eb02872414fd7ca29c344c0560feaf1b7e
  SHA1 (patch-cg) = b2bd4cbff399922e44ad54459255ffb1d61e1bd4
 +SHA1 (patch-lib-src_etags.c) = b660a50193b2ce8d5f3ac718fd97c01f05211f9f
 +SHA1 (patch-lisp_files.el) = e4d8fa857dd92d382243c573ba43478f1bceab74
++SHA1 (patch-src_keyboard.c) = 97dc675ffcc9cfe26fbabcce454f25027735da31
  SHA1 (patch-src_m_aarch64.h) = 861757ce6568303ea55cb9c9f290abc6100d3dc2
 diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c editors/emacs20/patches/patch-lib-src_etags.c
 --- /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c	1970-01-01 00:00:00.000000000 +0000
@@ -176,3 +177,32 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el
 + 		  (setq buffer-backed-up t)
 + 		  ;; Now delete the old versions, if desired.
 + 		  (if delete-old-versions
+diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-src_keyboard.c editors/emacs20/patches/patch-src_keyboard.c
+--- /usr/pkgsrc/editors/emacs20/patches/patch-src_keyboard.c	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs20/patches/patch-src_keyboard.c	2026-09-21 19:19:16.248160767 +0000
+@@ -0,0 +1,25 @@
++$NetBSD$
++
++When FIONREAD on the input fd fails, Emacs 20 sends itself SIGHUP, on
++the theory that the terminal is gone.  In batch mode there is no
++terminal: with stdin redirected from /dev/null, which NetBSD answers
++with ENOTSUP, the first sleep-for or accept-process-output after a
++subprocess is started kills Emacs (exit 129).  Treat the failure as
++"no input" when noninteractive, as later Emacsen do.
++
++--- src/keyboard.c.orig	2000-06-08 05:01:19.000000000 +0000
+++++ src/keyboard.c
++@@ -5383,7 +5383,12 @@
++ 	/* ??? Is it really right to send the signal just to this process
++ 	   rather than to the whole process group?
++ 	   Perhaps on systems with FIONREAD Emacs is alone in its group.  */
++-	kill (getpid (), SIGHUP);
+++	{
+++	  if (noninteractive)
+++	    n_to_read = 0;
+++	  else
+++	    kill (getpid (), SIGHUP);
+++	}
++       if (n_to_read == 0)
++ 	return 0;
++       if (n_to_read > sizeof cbuf)
