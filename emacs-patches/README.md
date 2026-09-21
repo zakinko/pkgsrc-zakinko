@@ -79,6 +79,12 @@ patch file carries a description and the origin; PKGREVISION is bumped.
   zenirc (notify rewrite and font-lock: features), howm auto-mode
   `\'` (lint-level), pcl-cvs 2.0b2 (pkgsrc has 2.9.9), migemo UTF-8
   and File.foreach (pkgsrc sets Encoding.default_external instead).
+- Debian egg (tamago-tsunagi 5.0.7.1 descends from it and has these;
+  FreeBSD's its.el obarray-make hunks are pkgsrc's patch-its.el), w3-el
+  (a maintenance fork: HTML 4 entities, utf-8 — features on a package
+  that only emacs20/21 build), ilisp (a 562-hunk single-patch fork).
+- Gentoo mic-paren cl-lib: taken, but as part of the 3.15 update on the
+  emacs-updates branch, where it belongs.
 - Gentoo mailcrypt backquotes: the old-style backquote sits in a
   with-current-buffer fallback that never runs on any Emacs pkgsrc has;
   mc-gpg loads unpatched on emacs30 and emacs20, the patch only silences
