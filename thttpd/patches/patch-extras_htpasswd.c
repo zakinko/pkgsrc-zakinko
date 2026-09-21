@@ -3,11 +3,13 @@ $NetBSD$
 Not a CVE: the same length-1 indexing shape as patch-CVE-2007-0158, in
 the htpasswd utility.  fgets() is not checked, so pass is left
 uninitialised when it fails, and a leading NUL byte leaves strlen() at
-0; either way pass[strlen(pass)-1] reads before the buffer.  This is a
-local tool reading its own stdin, not the server.
+0; either way pass[strlen(pass)-1] reads before the buffer.  Both paths
+fire under AddressSanitizer on the routine extracted unchanged from
+2.29 (empty stdin, and a line starting with a NUL byte).
 
-Neither FreeBSD ports nor Debian patches this; their htpasswd changes
-are elsewhere in the file.
+This is a local tool reading its own stdin, not the server, so it is
+kept apart from the CVE patches.  Neither FreeBSD ports nor Debian
+patches this; their htpasswd changes are elsewhere in the file.
 
 --- extras/htpasswd.c.orig
 +++ extras/htpasswd.c
