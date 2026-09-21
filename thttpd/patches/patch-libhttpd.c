@@ -1,19 +1,34 @@
 $NetBSD$
 
-CVE-2007-0158: expand_symlinks() trims a trailing slash with
-lnk[linklen-1] without checking linklen.  An empty symlink target in the
-served tree makes readlink() return 0, so lnk[-1] is read (and, if it is a
-slash, written), underflowing the stack buffer.  Guard on linklen > 0.
+Fix three CVEs that audit-packages reports against thttpd 2.29, the last
+release ACME shipped (2018).  A 2.30 is listed in the upstream changelog
+but has never been released as a tarball.
 
-CVE-2012-5640: auth_check2() passed the result of crypt() straight to
-strcmp().  crypt() returns NULL for a salt it does not understand, and the
-salt comes from a user-written .htpasswd, so a bad line crashed the server
-on the next request for that directory.
+CVE-2007-0158 (buffer underflow in expand_symlinks()).  Three places
+index with length-1 without checking the length:
 
-CVE-2009-4491: make_log_entry() wrote the request URL, Referer and
-User-Agent to the log file and to syslog as the client sent them, so a
-request could put terminal escape sequences into the log.  Control
-characters are now written as \xHH.
+  - with no_symlink_check (chroot mode) and a path of only slashes, the
+    trailing-slash trim drives checkedlen to 0 and then reads
+    checked[-1]; stat("/") always succeeds, so "/" reaches it;
+  - with an empty path, rest[restlen-1] reads before the buffer;
+  - with a zero-length symlink target in the served tree, readlink()
+    returns 0 and lnk[linklen-1] reads before the stack buffer.
+
+All three fire under AddressSanitizer on the routine extracted unchanged
+from 2.29, and are clean once guarded.  FreeBSD ports carries the
+checkedlen/restlen and origfilename guards; the readlink() case is the
+fix ACME lists for the unreleased 2.30 ("off-by-one illegal memory
+access in expand_symlinks()").
+
+CVE-2012-5640 (crypt() NULL dereference).  auth_check2() compares the
+result of crypt() without a NULL check; the salt comes from a
+user-written .htpasswd.  crypt() returns NULL on glibc and illumos.
+Also listed for 2.30.
+
+CVE-2009-4491 (log injection).  make_log_entry() writes the request URL,
+Referer and User-Agent to the log and to syslog as the client sent them.
+Control characters are written as \xHH.  Not in the 2.30 changelog and
+not carried by any other packaging I found.
 
 --- libhttpd.c.orig
 +++ libhttpd.c
@@ -60,6 +75,24 @@ characters are now written as \xHH.
  		{
  		/* Ok! */
  		httpd_realloc_str(
+@@ -1486,7 +1493,7 @@
+ 	    httpd_realloc_str( &checked, &maxchecked, checkedlen );
+ 	    (void) strcpy( checked, path );
+ 	    /* Trim trailing slashes. */
+-	    while ( checked[checkedlen - 1] == '/' )
++	    while ( checkedlen > 0 && checked[checkedlen - 1] == '/' )
+ 		{
+ 		checked[checkedlen - 1] = '\0';
+ 		--checkedlen;
+@@ -1505,7 +1512,7 @@
+     restlen = strlen( path );
+     httpd_realloc_str( &rest, &maxrest, restlen );
+     (void) strcpy( rest, path );
+-    if ( rest[restlen - 1] == '/' )
++    if ( restlen > 0 && rest[restlen - 1] == '/' )
+ 	rest[--restlen] = '\0';         /* trim trailing slash */
+     if ( ! tildemapped )
+ 	/* Remove any leading slashes. */
 @@ -1623,7 +1630,9 @@
  	    return (char*) 0;
  	    }
@@ -71,10 +104,29 @@ characters are now written as \xHH.
  	    lnk[--linklen] = '\0';     /* trim trailing slash */
  
  	/* Insert the link contents in front of the rest of the filename. */
-@@ -3904,12 +3913,45 @@
-     }
+@@ -2351,8 +2360,13 @@
+ 	{
+ 	int i;
+ 	i = strlen( hc->origfilename ) - strlen( hc->pathinfo );
+-	if ( i > 0 && strcmp( &hc->origfilename[i], hc->pathinfo ) == 0 )
+-	    hc->origfilename[i - 1] = '\0';
++	if ( i >= 0 && strcmp( &hc->origfilename[i], hc->pathinfo ) == 0 )
++	    {
++	    if ( i == 0 )
++		hc->origfilename[0] = '\0';
++	    else
++		hc->origfilename[i - 1] = '\0';
++	    }
+ 	}
  
+     /* If the expanded filename is an absolute path, check that it's still
+@@ -3901,6 +3915,35 @@
  
+     /* And return the status. */
+     return r;
++    }
++
++
 +/* Copy src into dst, replacing control characters with \xHH so that a
 +** request cannot write terminal escape sequences into the log.  The
 +** request line, Referer and User-Agent all come from the client as is.
@@ -101,12 +153,10 @@ characters are now written as \xHH.
 +	}
 +    dst[i] = '\0';
 +    return dst;
-+    }
-+
-+
- static void
- make_log_entry( httpd_conn* hc, struct timeval* nowP )
-     {
+     }
+ 
+ 
+@@ -3910,6 +3953,10 @@
      char* ru;
      char url[305];
      char bytes[40];
@@ -117,7 +167,7 @@ characters are now written as \xHH.
  
      if ( hc->hs->no_log )
  	return;
-@@ -3922,7 +3964,7 @@
+@@ -3922,7 +3969,7 @@
  
      /* Format remote user. */
      if ( hc->remoteuser[0] != '\0' )
@@ -126,7 +176,7 @@ characters are now written as \xHH.
      else
  	ru = "-";
      /* If we're vhosting, prepend the hostname to the url.  This is
-@@ -3937,6 +3979,9 @@
+@@ -3937,6 +3984,9 @@
      else
  	(void) my_snprintf( url, sizeof(url),
  	    "%.200s", hc->encodedurl );
@@ -136,7 +186,7 @@ characters are now written as \xHH.
      /* Format the bytes. */
      if ( hc->bytes_sent >= 0 )
  	(void) my_snprintf(
-@@ -3985,8 +4030,8 @@
+@@ -3985,8 +4035,8 @@
  	(void) fprintf( hc->hs->logfp,
  	    "%.80s - %.80s [%s] \"%.80s %.300s %.80s\" %d %s \"%.200s\" \"%.200s\"\n",
  	    httpd_ntoa( &hc->client_addr ), ru, date,
@@ -147,7 +197,7 @@ characters are now written as \xHH.
  #ifdef FLUSH_LOG_EVERY_TIME
  	(void) fflush( hc->hs->logfp );
  #endif
-@@ -3995,8 +4040,8 @@
+@@ -3995,8 +4045,8 @@
  	syslog( LOG_INFO,
  	    "%.80s - %.80s \"%.80s %.200s %.80s\" %d %s \"%.200s\" \"%.200s\"",
  	    httpd_ntoa( &hc->client_addr ), ru,

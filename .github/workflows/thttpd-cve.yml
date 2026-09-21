@@ -1,45 +1,151 @@
 name: thttpd CVE patch
 
-# zakinko/thttpd の patch-libhttpd.c (CVE-2012-5640, CVE-2009-4491) を
-# 上流の tarball に当てて、素と当て物入りを同じ入力に掛ける。中身は
-# .github/ci/verify-thttpd-cve.sh。
+# zakinko/thttpd を pkgsrc を bootstrap して建て、三つの CVE を回せる箱すべてで
+# 撃つ。各箱で build-on-bsd.sh が pkgsrc を bootstrap → zakinko/thttpd を建てて
+# verify-thttpd.sh を呼ぶ。verify-thttpd.sh の中身:
+#   pkgsrc で建って入る
+#   CVE-2009-4491 (log injection)  どの箱でも。上流に修正が無いので手厚く
+#   CVE-2012-5640 (crypt NULL)     NULL を返す箱は native、返さない箱は shim
+#   CVE-2007-0158 (underflow)      空 symlink + ASan が動く箱で full process を撃つ
 #
-# 5640 は crypt() が NULL を返す libc でしか落ちない。NetBSD (bambi で
-# 測った) も今の Linux (libxcrypt) も "*0" を返す。illumos は NULL を
-# 返すので、本物の落ち方はそこで見る。Linux は shim で代役。
-#
-# pkgsrc の bootstrap は要らないので数分で終わる。
+# 公開 repo なので標準 runner は無制限。vmactions は重いので push は
+# この branch に限る。
 
 on:
   push:
     branches: [thttpd]
-    paths: [thttpd/**, .github/workflows/thttpd-cve.yml, .github/ci/verify-thttpd-cve.sh]
+    paths: [thttpd/**, .github/workflows/thttpd-cve.yml, .github/ci/verify-thttpd.sh, .github/ci/build-on-bsd.sh]
   workflow_dispatch:
 
 concurrency:
   group: thttpd-cve-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PKGS: thttpd
+
 jobs:
   linux:
-    name: Linux (crypt は shim で NULL)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    name: Linux ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'glibc x86_64',  runner: ubuntu-latest,    image: 'debian:13' }
+          - { name: 'glibc aarch64', runner: ubuntu-24.04-arm, image: 'debian:13' }
+          - { name: 'musl x86_64',   runner: ubuntu-latest,    image: 'alpine:latest', optional: 'yes' }
+    container: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
-      - run: sh .github/ci/verify-thttpd-cve.sh thttpd/patches
+      - name: 道具
+        run: |
+          if command -v apk >/dev/null; then
+            apk add --no-cache build-base curl git tar gzip perl bash coreutils procps patch
+          else
+            apt-get update -qq && apt-get install -y -qq build-essential curl git tar gzip perl bash patch
+          fi
+      - name: build+verify
+        continue-on-error: ${{ matrix.optional == 'yes' }}
+        run: PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  freebsd:
+    name: FreeBSD ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86_64,  vmarch: '' }
+          - { arch: aarch64, vmarch: aarch64 }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: thttpd-freebsd-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: thttpd-freebsd-${{ matrix.arch }}-
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          arch: ${{ matrix.vmarch }}
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  openbsd:
+    name: OpenBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: thttpd-openbsd-${{ github.run_id }}
+          restore-keys: thttpd-openbsd-
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+
+  netbsd:
+    name: NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: thttpd-netbsd-${{ github.run_id }}
+          restore-keys: thttpd-netbsd-
+      - uses: vmactions/netbsd-vm@v1
+        with:
+          release: '10.1'
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
 
   illumos:
-    name: illumos (crypt が NULL を返す libc)
+    name: illumos (OmniOS)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: thttpd-illumos-${{ github.run_id }}
+          restore-keys: thttpd-illumos-
       - uses: vmactions/omnios-vm@v1
         with:
           release: 'r151058'
-          prepare: |
-            pkg install developer/gcc14 developer/build/gnu-make web/curl || true
+          envs: 'PKGS'
+          prepare: pkg install developer/gcc14 developer/build/gnu-make web/curl || true
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
-            sh .github/ci/verify-thttpd-cve.sh thttpd/patches
+            sh .github/ci/build-on-bsd.sh
+
+  dragonfly:
+    name: DragonFly
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: thttpd-dfly-${{ github.run_id }}
+          restore-keys: thttpd-dfly-
+      - uses: vmactions/dragonflybsd-vm@v1
+        with:
+          envs: 'PKGS'
+          prepare: pkg install -y curl
+          run: sh .github/ci/build-on-bsd.sh
