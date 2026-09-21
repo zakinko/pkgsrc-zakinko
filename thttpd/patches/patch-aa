@@ -1,5 +1,16 @@
 $NetBSD: patch-aa,v 1.6 2002/06/16 19:10:26 wiz Exp $
 
+Install into the pkgsrc layout instead of the upstream defaults: the
+CGI programs go to libexec/cgi-bin and the sample web root to
+share/thttpd, rather than under $prefix/www.
+
+Use the BSD_INSTALL_* tools rather than "mkdir -p" and an install(1)
+run with a hardcoded owner of bin:bin, so that DESTDIR and the
+unprivileged build both work.
+
+CFLAGS is appended to rather than assigned, so that the flags pkgsrc
+passes in survive.
+
 --- Makefile.in.orig	Wed Apr  3 04:49:35 2002
 +++ Makefile.in
 @@ -34,7 +34,7 @@

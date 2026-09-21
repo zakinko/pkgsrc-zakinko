@@ -1,5 +1,9 @@
 $NetBSD: patch-ad,v 1.4 2005/08/19 07:30:51 cube Exp $
 
+Add the NetBSD logo to the sample index page.  The image it points at
+is sitedrivenby.gif, which the package fetches as a second distfile and
+installs beside this page in share/thttpd.
+
 --- index.html.orig	2005-06-29 19:50:33.000000000 +0200
 +++ index.html
 @@ -9,6 +9,9 @@ Looks like you got it working.  Congrats

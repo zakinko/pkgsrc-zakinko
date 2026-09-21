@@ -11,6 +11,7 @@ DIST_SUBDIR=	${PKGNAME_NOREV}
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://www.acme.com/software/thttpd/
 COMMENT=	Tiny/turbo/throttling HTTP server
+LICENSE=	2-clause-bsd
 
 EXTRACT_ONLY=	${DISTNAME}${EXTRACT_SUFX}
 
@@ -30,10 +31,11 @@ EGDIR=		${PREFIX}/share/examples
 CONF_FILES=	${EGDIR}/thttpd.conf ${PKG_SYSCONFDIR}/thttpd.conf
 RCD_SCRIPTS=	thttpd
 
-INSTALLATION_DIRS=	${PKGMANDIR}/man1 share/thttpd ${EGDIR}
+INSTALLATION_DIRS=	${PKGMANDIR}/man1 share/thttpd ${EGDIR} \
+			share/doc/thttpd
 
 SUBST_CLASSES+=		paths
-SUBST_FILES.paths=	thttpd.conf
+SUBST_FILES.paths=	thttpd.conf README.pkgsrc
 SUBST_VARS.paths=	PREFIX
 SUBST_STAGE.paths=	pre-configure
 
@@ -55,6 +57,7 @@ CFLAGS.SCO_SV+=	-DMAXPATHLEN=255 -DS_IFSOCK=0
 
 post-extract:
 	${CP} ${FILESDIR}/thttpd.conf ${WRKSRC}
+	${CP} ${FILESDIR}/README.pkgsrc ${WRKSRC}
 
 pre-configure:
 	${MV} ${WRKSRC}/extras/htpasswd.1 ${WRKSRC}/extras/thtpasswd.1
@@ -69,6 +72,7 @@ pre-configure:
 			> ${WRKSRC}/config.h
 
 post-install:
+	${INSTALL_DATA} ${WRKSRC}/README.pkgsrc ${DESTDIR}${PREFIX}/share/doc/thttpd
 	${INSTALL_DATA} ${WRKSRC}/thttpd.conf ${DESTDIR}${PREFIX}/share/examples
 	${INSTALL_DATA} ${WRKSRC}/index.html ${DESTDIR}${PREFIX}/share/thttpd
 	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/sitedrivenby.gif ${DESTDIR}${PREFIX}/share/thttpd

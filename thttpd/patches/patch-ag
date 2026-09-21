@@ -1,5 +1,20 @@
 $NetBSD: patch-ag,v 1.3 2005/11/26 10:02:37 adrianp Exp $
 
+The script wrote to /tmp/stc1.$$, a name that can be worked out in
+advance, so anyone with write access to /tmp could put a symlink there
+and have the script write through it.  Use mktemp(1) and remove the
+file on the way out.
+
+The line also had a stray second backtick, so the script did not parse
+at all -- "sh -n" reports an unmatched backtick, and running it gives
+
+  syslogtocern: 34: Syntax error: "||" unexpected
+
+That has been the case since this patch was added in 2005, so the
+installed syslogtocern has never run.  With the backtick removed it
+converts a syslog file into CERN-format access_log and error_log as the
+manual page says.
+
 --- extras/syslogtocern.orig	2005-11-26 09:54:31.000000000 +0000
 +++ extras/syslogtocern
 @@ -31,8 +31,8 @@ if [ $# -lt 1 ] ; then
@@ -8,7 +23,7 @@ $NetBSD: patch-ag,v 1.3 2005/11/26 10:02:37 adrianp Exp $
  
 -tmp1=/tmp/stc1.$$
 -rm -f $tmp1
-+tmp1=``mktemp -t stc1.XXXXXX` || { echo "$0: Cannot create temporary file" >&2; exit 1;  }
++tmp1=`mktemp -t stc1.XXXXXX` || { echo "$0: Cannot create temporary file" >&2; exit 1;  }
 +trap " [ -f \"$tmp1\" ] && /bin/rm -f -- \"$tmp1\"" 0 1 2 3 13 15
  
  # Gather up all the thttpd entries.

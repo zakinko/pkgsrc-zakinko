@@ -1,5 +1,12 @@
 $NetBSD: patch-af,v 1.4 2005/12/06 14:09:29 rillig Exp $
 
+Turn off mmap on NetBSD up to 1.5T (__NetBSD_Version__ 105120000) and
+include <sys/param.h> to get that version.  The reason is not recorded
+in the patch or in the commit that added it in 2005.
+
+Nothing pkgsrc still builds on is affected: 1.5T predates NetBSD 2.0.
+Please drop this patch if you would rather not carry it.
+
 --- mmc.c.orig	Wed Jun 29 19:50:47 2005
 +++ mmc.c	Tue Dec  6 15:06:34 2005
 @@ -38,6 +38,14 @@
