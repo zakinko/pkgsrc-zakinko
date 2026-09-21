@@ -1,0 +1,47 @@
+# Updates for the Emacs packages in pkgsrc
+
+Diffs against pkgsrc trunk (2026-09-21) bringing the packages that read
+`editors/emacs/modules.mk` up to their current upstream releases.  One
+diff per package, `patch -p0` from the top of a pkgsrc tree; they are
+independent of each other except where noted.
+
+Each (but ruby-rd-mode, see the table) was built on NetBSD 11.0/amd64 against emacs30-nox11 30.2 with the
+`modules.mk` that is on trunk, with `bmake package-install`, and the
+package's main library loaded into that Emacs afterwards.  Where the
+PLIST changed it was regenerated from the installed files, keeping the
+original `$NetBSD$` line and any `${PLIST.*}` conditionals.
+
+| package | from | to | notes |
+|---|---|---|---|
+| cad/verilog-mode | 3.60 (2005, MASTER_SITE_LOCAL) | 2026.08.31 | veripool ships `verilog-mode.el` without a version in its name; fetched under DIST_SUBDIR |
+| devel/apel | 2020-11-07 snapshot | 2025-05-31 snapshot | |
+| devel/cflow-mode | 1.7 | 1.8 | |
+| devel/dash-el | 2.19.1 | 2.20.0 | |
+| devel/ecb | 2.50 | 2.52 | now builds and loads with the CEDET bundled in Emacs; accepts emacs29–31 instead of XEmacs only |
+| devel/haskell-mode | 1.44 | 17.5 | from GitHub; one patch for a defcustom Emacs 30 rejects; needs pkgsrc texinfo (TEXINFO_REQD) |
+| devel/js2-mode | 20080406 | 20231224 | from GitHub (googlecode is gone) |
+| devel/php-mode | 1.13.1 | 1.28.0 | from GitHub (sourceforge is stale); installs all of lisp/ |
+| devel/rainbow-delimiters-el | 1.3.5 | 2.1.5 | |
+| devel/reformatter-el | – | 0.7 | **new**, needed by zig-mode |
+| devel/ruby-rd-mode | 0.6.38 | 0.6.39 | the one not built through the package: it needs ruby34, whose build here kept pulling rust. The gem was fetched (distinfo is real) and its rd-mode.el byte-compiled and loaded by hand under 30.2 |
+| devel/zig-mode | 2022-01-05 snapshot | 2025-11-21 snapshot | depends on reformatter-el |
+| editors/matlab-mode | 2.3.1 | 8.2.1 | upstream moved to mathworks/Emacs-MATLAB-Mode; many more files |
+| graphics/graphviz-dot-mode | 0.3.7 | 0.5.0 | from GitHub |
+| inputmethod/skk | 17.1 | 17.2 | patch-ccc.el is upstream now; tar-util.el is gone |
+| mail/wl-snapshot | 2023-08-18 snapshot | 2025-10-29 snapshot | needs www/emacs-w3m-snapshot to accept emacs30 |
+| math/ess | 13.09.1 | 25.01.0 | from GitHub; julia-mode.el and julia-mode-latexsubs.el fetched as distfiles (lisp/Makefile would download them at build time); etc/ under the lisp directory where ESS looks for it |
+| misc/elscreen | 1.4.6 | 20180321 (knu/elscreen) | the maintained fork; no longer needs APEL, so it builds again (1.4.6 needed emacs20 and an apel that no longer accepts it) |
+| misc/emacs-neotree | 0.5.2 snapshot | 0.6.0 | |
+| print/auctex | 13.3 | 14.2.0 | from GNU ELPA, which is the only place 14.x is released; installed whole under `${EMACS_LISPPREFIX}/auctex` as the ELPA package expects. Built with `DEPENDS=` here, since the texlive chain does not fit this box; the dependency line is unchanged |
+| textproc/emacs-dict-client | 1.8.2 | 1.11 | from GitHub (myrkr/dictionary-el). Emacs 28+ bundles a newer dictionary.el; this package shadows it |
+| textproc/flycheck-mode | 33.0 | 39.0 | needs Emacs 28.1; flycheck-ert.el is no longer shipped; dash no longer used |
+| textproc/markdown-mode | 2.4 | 2.8 | |
+| textproc/po-mode | 2.2 (gettext 0.18.1.1) | 2.32 (gettext 1.0) | gettext moved the elisp to gettext-tools/emacs |
+| www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
+| www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
+
+Not updated, with the reason:
+
+- devel/apel is a snapshot bump only.  Upstream removed the Emacs 19/20
+  and XEmacs compatibility layer in 2020 (3,392 lines in one commit),
+  so an apel that serves emacs20 is a separate piece of work.

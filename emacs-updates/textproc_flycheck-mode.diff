@@ -1,0 +1,60 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/flycheck-mode/Makefile textproc/flycheck-mode/Makefile
+--- /usr/pkgsrc/textproc/flycheck-mode/Makefile	2024-04-07 19:02:45.000000000 +0000
++++ textproc/flycheck-mode/Makefile	2026-09-21 11:49:04.117158085 +0000
+@@ -1,27 +1,29 @@
+-# $NetBSD: Makefile,v 1.1 2024/04/07 19:02:45 ryoon Exp $
++# $NetBSD: Makefile,v 1.6 2024/04/07 19:15:31 ryoon Exp $
+ 
+-DISTNAME=	flycheck-33.0
++DISTNAME=	flycheck-39.0
+ PKGNAME=	${DISTNAME:S/flycheck-/flycheck-mode-/}
+ CATEGORIES=	textproc
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=flycheck/}
+ GITHUB_PROJECT=	flycheck
+-GITHUB_TAG=	${PKGVERSION_NOREV}
++GITHUB_TAG=	v${PKGVERSION_NOREV}
+ 
+ MAINTAINER=	ryoon@NetBSD.org
+ HOMEPAGE=	https://www.flycheck.org/
+ COMMENT=	On the fly syntax checking for GNU Emacs
+ LICENSE=	gnu-gpl-v3
+ 
+-DEPENDS+=	dash-el-[0-9]*:../../devel/dash-el
+-
+ USE_LANGUAGES=	# none
+ NO_CONFIGURE=	yes
+ 
++# flycheck 39 wants Emacs 28.1 and seq 2.24 (bundled since Emacs 29); dash is no longer used.
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
++
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX}
+ 
+ .include "../../editors/emacs/modules.mk"
+ 
+-EL_FILES+=	flycheck-ert flycheck
++# flycheck-ert.el left the tarball in 35.0; it is test support.
++EL_FILES+=	flycheck
+ 
+ do-build:
+ .for f in ${EL_FILES}
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/flycheck-mode/PLIST textproc/flycheck-mode/PLIST
+--- /usr/pkgsrc/textproc/flycheck-mode/PLIST	2024-04-07 19:02:45.000000000 +0000
++++ textproc/flycheck-mode/PLIST	2026-09-21 11:49:11.833894430 +0000
+@@ -1,5 +1,3 @@
+ @comment $NetBSD: PLIST,v 1.1 2024/04/07 19:02:45 ryoon Exp $
+-${EMACS_LISPPREFIX}/flycheck-ert.el
+-${EMACS_LISPPREFIX}/flycheck-ert.elc
+ ${EMACS_LISPPREFIX}/flycheck.el
+ ${EMACS_LISPPREFIX}/flycheck.elc
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/flycheck-mode/distinfo textproc/flycheck-mode/distinfo
+--- /usr/pkgsrc/textproc/flycheck-mode/distinfo	2024-04-07 19:02:45.000000000 +0000
++++ textproc/flycheck-mode/distinfo	2026-09-21 11:49:04.612244471 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.1 2024/04/07 19:02:45 ryoon Exp $
+ 
+-BLAKE2s (flycheck-33.0.tar.gz) = b8b5f8425a7c8ac5535c8d4f47feb588eef8b54f20acc24efb84ad1ae6ee741c
+-SHA512 (flycheck-33.0.tar.gz) = 6c0b2387417f0d6cd00ca33b15fa8b38c74cc76c445e1528d76e824c6cfef08a318182bdc565608dde85446efe1c63e65531adf7235970ea03b0e8dc1acb3162
+-Size (flycheck-33.0.tar.gz) = 1043605 bytes
++BLAKE2s (flycheck-39.0.tar.gz) = 4d0c98bdc2a849bef4ce380e64f39f61cd2256f39c67925fef1036b54b78086f
++SHA512 (flycheck-39.0.tar.gz) = 4bf1832c2c455b3a9643250bcc3d55b5f276ab413762ddfdff388633e33b736ba4f3ab2c45a80a29bd402e61edb2bbe58d376a0e221a16fe44b4fe9154b3f9bf
++Size (flycheck-39.0.tar.gz) = 2266908 bytes

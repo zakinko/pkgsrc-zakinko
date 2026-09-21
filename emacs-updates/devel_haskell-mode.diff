@@ -1,0 +1,202 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/haskell-mode/Makefile devel/haskell-mode/Makefile
+--- /usr/pkgsrc/devel/haskell-mode/Makefile	2022-05-14 22:25:34.000000000 +0000
++++ devel/haskell-mode/Makefile	2026-09-21 11:59:47.090177560 +0000
+@@ -1,34 +1,37 @@
+-# $NetBSD: Makefile,v 1.24 2022/05/14 22:25:34 dholland Exp $
++# $NetBSD: Makefile,v 1.35 2026/09/12 14:31:49 wiz Exp $
+ 
+-DISTNAME=		haskell-mode-1.44
+-PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=		5
+-CATEGORIES=		devel editors
+-MASTER_SITES=		http://www.haskell.org/haskell-mode/
+-
+-MAINTAINER=		pkgsrc-users@NetBSD.org
+-HOMEPAGE=		https://www.haskell.org/haskellwiki/Haskell_mode_for_Emacs
+-COMMENT=		Haskell mode for Emacs
+-
+-INSTALLATION_DIRS=	${EMACS_LISPPREFIX:C|^${PREFIX}/||}/haskell-mode \
+-			share/doc/haskell-mode
+-
+-HTML=	.emacs fontlock.hs indent.hs index.html installation-guide.html
+-SRCS=	haskell-decl-scan.el haskell-doc.el haskell-font-lock.el	\
+-	haskell-ghci.el haskell-hugs.el haskell-indent.el		\
+-	haskell-mode.el haskell-simple-indent.el
+-
+-do-build:
+-	for f in ${SRCS}; do						\
+-		${EMACS_BIN} --no-init-file --no-site-file -batch	\
+-		-f batch-byte-compile ${WRKSRC}/$$f;			\
+-	done
++DISTNAME=	haskell-mode-17.5
++PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
++CATEGORIES=	devel editors
++MASTER_SITES=	${MASTER_SITE_GITHUB:=haskell/}
++GITHUB_TAG=	v${PKGVERSION_NOREV}
++
++MAINTAINER=	pkgsrc-users@NetBSD.org
++HOMEPAGE=	https://github.com/haskell/haskell-mode
++COMMENT=	Haskell mode for Emacs
++LICENSE=	gnu-gpl-v3
++
++USE_TOOLS+=	gmake makeinfo
++TEXINFO_REQD=	6.0
++INFO_FILES=	yes
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
++
++INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/haskell-mode ${EMACS_INFOPREFIX}
++
++MAKE_FLAGS+=	EMACS=${EMACS_BIN:Q}
++# The upstream "compile" target turns byte-compiler warnings into errors,
++# and Emacs 30 warns about docstring quoting all over; compile here and
++# let make do the autoloads and the info.
++BUILD_TARGET=	haskell-mode-autoloads.el haskell-mode.info
++
++post-build:
++	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-L . -f batch-byte-compile *.el
+ 
+ do-install:
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} 	\
+-			${DESTDIR}${EMACS_LISPPREFIX}/haskell-mode
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${HTML}				\
+-			${DESTDIR}${PREFIX}/share/doc/haskell-mode
++	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
++		${DESTDIR}${EMACS_LISPPREFIX}/haskell-mode
++	${INSTALL_DATA} ${WRKSRC}/haskell-mode.info ${DESTDIR}${EMACS_INFOPREFIX}
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/haskell-mode/PLIST devel/haskell-mode/PLIST
+--- /usr/pkgsrc/devel/haskell-mode/PLIST	2018-01-07 21:17:50.000000000 +0000
++++ devel/haskell-mode/PLIST	2026-09-21 11:59:52.196926044 +0000
+@@ -1,22 +1,85 @@
+ @comment $NetBSD: PLIST,v 1.6 2018/01/07 21:17:50 rillig Exp $
+-share/doc/haskell-mode/.emacs
+-share/doc/haskell-mode/fontlock.hs
+-share/doc/haskell-mode/indent.hs
+-share/doc/haskell-mode/index.html
+-share/doc/haskell-mode/installation-guide.html
++info/haskell-mode.info
++${EMACS_LISPPREFIX}/haskell-mode/ghc-core.el
++${EMACS_LISPPREFIX}/haskell-mode/ghc-core.elc
++${EMACS_LISPPREFIX}/haskell-mode/ghci-script-mode.el
++${EMACS_LISPPREFIX}/haskell-mode/ghci-script-mode.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-align-imports.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-align-imports.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-c2hs.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-c2hs.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-cabal.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-cabal.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-collapse.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-collapse.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-commands.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-commands.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-compile.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-compile.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-complete-module.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-complete-module.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-completions.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-completions.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-customize.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-customize.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-debug.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-debug.elc
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-decl-scan.el
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-decl-scan.elc
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-doc.el
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-doc.elc
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-font-lock.el
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-font-lock.elc
+-${EMACS_LISPPREFIX}/haskell-mode/haskell-ghci.el
+-${EMACS_LISPPREFIX}/haskell-mode/haskell-ghci.elc
+-${EMACS_LISPPREFIX}/haskell-mode/haskell-hugs.el
+-${EMACS_LISPPREFIX}/haskell-mode/haskell-hugs.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-ghc-support.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-ghc-support.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-hoogle.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-hoogle.elc
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-indent.el
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-indent.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-indentation.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-indentation.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-interactive-mode.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-interactive-mode.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-lexeme.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-lexeme.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-load.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-load.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-menu.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-menu.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-mode-autoloads.el
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-mode.el
+ ${EMACS_LISPPREFIX}/haskell-mode/haskell-mode.elc
+-${EMACS_LISPPREFIX}/haskell-mode/haskell-simple-indent.el
+-${EMACS_LISPPREFIX}/haskell-mode/haskell-simple-indent.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-modules.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-modules.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-move-nested.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-move-nested.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-navigate-imports.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-navigate-imports.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-presentation-mode.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-presentation-mode.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-process.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-process.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-repl.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-repl.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-sandbox.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-sandbox.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-session.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-session.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-sort-imports.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-sort-imports.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-string.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-string.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-svg.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-svg.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-unicode-input-method.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-unicode-input-method.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell-utils.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell-utils.elc
++${EMACS_LISPPREFIX}/haskell-mode/haskell.el
++${EMACS_LISPPREFIX}/haskell-mode/haskell.elc
++${EMACS_LISPPREFIX}/haskell-mode/highlight-uses-mode.el
++${EMACS_LISPPREFIX}/haskell-mode/highlight-uses-mode.elc
++${EMACS_LISPPREFIX}/haskell-mode/inf-haskell.el
++${EMACS_LISPPREFIX}/haskell-mode/inf-haskell.elc
++${EMACS_LISPPREFIX}/haskell-mode/w3m-haddock.el
++${EMACS_LISPPREFIX}/haskell-mode/w3m-haddock.elc
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/haskell-mode/distinfo devel/haskell-mode/distinfo
+--- /usr/pkgsrc/devel/haskell-mode/distinfo	2021-10-26 10:14:50.000000000 +0000
++++ devel/haskell-mode/distinfo	2026-09-21 11:59:47.551235321 +0000
+@@ -1,5 +1,6 @@
+ $NetBSD: distinfo,v 1.9 2021/10/26 10:14:50 nia Exp $
+ 
+-BLAKE2s (haskell-mode-1.44.tar.gz) = 3d6211cb109872bc7a68cedeea5c65dba0dadaf818189d518ba6bdadae2e2126
+-SHA512 (haskell-mode-1.44.tar.gz) = 22a10b5596678b2e5d52aab8e1841aefc304b095188878d24e2dbd8ea93f74741f433899cea428efd4ee0dafac92d840b59792e95683ce84892c2c4d6224f1de
+-Size (haskell-mode-1.44.tar.gz) = 58601 bytes
++BLAKE2s (haskell-mode-17.5.tar.gz) = b728770689edc9f15d8455661dfd3777cab92c96e7f0d6d10add3735655185e2
++SHA512 (haskell-mode-17.5.tar.gz) = e31e22c017957e86149d2a17d3e5519d3cee23ce0f57c4e83e251192cb589f725402f6b3956d048798ced83bedeca3ac39d52f0e0617de874145a25d5b9ab651
++Size (haskell-mode-17.5.tar.gz) = 1149634 bytes
++SHA1 (patch-haskell-commands.el) = 07185337ffd5b4dec831851244b72af4bb65a95e
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/haskell-mode/patches/patch-haskell-commands.el devel/haskell-mode/patches/patch-haskell-commands.el
+--- /usr/pkgsrc/devel/haskell-mode/patches/patch-haskell-commands.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/haskell-mode/patches/patch-haskell-commands.el	2026-09-21 11:59:47.092051542 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++Emacs 30 refuses a defcustom whose :type is a bare `list' ("`list' without
++arguments" at byte-compile).  Upstream spells it (list string) now.
++
++--- haskell-commands.el.orig	2026-09-04 00:00:00.000000000 +0000
+++++ haskell-commands.el
++@@ -46,7 +46,7 @@
++ (defcustom haskell-mode-stylish-haskell-args nil
++   "Arguments to pass to program specified by haskell-mode-stylish-haskell-path."
++   :group 'haskell
++-  :type 'list)
+++  :type '(list string))
++ 
++ (defcustom haskell-interactive-set-+c
++   t

@@ -1,0 +1,63 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile www/emacs-w3m-snapshot/Makefile
+--- /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile	2026-09-18 05:50:22.956697480 +0000
++++ www/emacs-w3m-snapshot/Makefile	2026-09-21 11:52:39.394679110 +0000
+@@ -1,11 +1,10 @@
+ # $NetBSD: Makefile,v 1.22 2026/09/12 14:31:51 wiz Exp $
+ 
+ VERSION=	1.4.632
+-DATE_TIME=	20210106.2144
+-HASH=		f29aada
++DATE_TIME=	20221206.2328
++HASH=		4f27810
+ DISTNAME=	w3m-el-snapshot_${VERSION}+0.${DATE_TIME}.${HASH}
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}emacs-${DISTNAME:S/-el-snapshot_/-/:S/+0//:S/.${HASH}//}
+-PKGREVISION=	1
+ CATEGORIES=	www
+ MASTER_SITES=	${MASTER_SITE_DEBIAN:=pool/main/w/w3m-el-snapshot/}
+ EXTRACT_SUFX=	.orig.tar.gz
+@@ -36,7 +35,7 @@
+ BUILD_DEFS+=		VARBASE
+ BUILD_DEFS+=		GAMEDATAMODE
+ 
+-EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
+ 
+ .include "options.mk"
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST www/emacs-w3m-snapshot/PLIST
+--- /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST	2026-09-18 05:50:22.961885011 +0000
++++ www/emacs-w3m-snapshot/PLIST	2026-09-21 11:55:18.765027297 +0000
+@@ -309,8 +309,7 @@
+ ${EMACS_LISPPREFIX}/w3m/w3m-image.elc
+ ${EMACS_LISPPREFIX}/w3m/w3m-lnum.el.gz
+ ${EMACS_LISPPREFIX}/w3m/w3m-lnum.elc
+-${EMACS_LISPPREFIX}/w3m/w3m-load.el.gz
+-${EMACS_LISPPREFIX}/w3m/w3m-load.elc
++${EMACS_LISPPREFIX}/w3m/w3m-load.el
+ ${EMACS_LISPPREFIX}/w3m/w3m-mail.el.gz
+ ${EMACS_LISPPREFIX}/w3m/w3m-mail.elc
+ ${EMACS_LISPPREFIX}/w3m/w3m-namazu.el.gz
+@@ -323,6 +322,8 @@
+ ${EMACS_LISPPREFIX}/w3m/w3m-rss.elc
+ ${EMACS_LISPPREFIX}/w3m/w3m-search.el.gz
+ ${EMACS_LISPPREFIX}/w3m/w3m-search.elc
++${EMACS_LISPPREFIX}/w3m/w3m-save.el.gz
++${EMACS_LISPPREFIX}/w3m/w3m-save.elc
+ ${EMACS_LISPPREFIX}/w3m/w3m-session.el.gz
+ ${EMACS_LISPPREFIX}/w3m/w3m-session.elc
+ ${EMACS_LISPPREFIX}/w3m/w3m-symbol.el.gz
+diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/distinfo www/emacs-w3m-snapshot/distinfo
+--- /usr/pkgsrc/www/emacs-w3m-snapshot/distinfo	2021-10-26 11:29:25.000000000 +0000
++++ www/emacs-w3m-snapshot/distinfo	2026-09-21 11:52:45.699615632 +0000
+@@ -1,8 +1,8 @@
+ $NetBSD: distinfo,v 1.16 2021/10/26 11:29:25 nia Exp $
+ 
+-BLAKE2s (w3m-el-snapshot_1.4.632+0.20210106.2144.f29aada.orig.tar.gz) = 8d668a7277dc712572bfa52ba6571c164063d987cc690cf0efa003d10a35c2fb
+-SHA512 (w3m-el-snapshot_1.4.632+0.20210106.2144.f29aada.orig.tar.gz) = 01c1932a1df084f8f43c47866c499b747f244dd136afba743991b763d4d1c8e631967eb5d131e41eafbd6bcc618af238510b434a74f100ba47b5575c9958b0b8
+-Size (w3m-el-snapshot_1.4.632+0.20210106.2144.f29aada.orig.tar.gz) = 1069670 bytes
++BLAKE2s (w3m-el-snapshot_1.4.632+0.20221206.2328.4f27810.orig.tar.gz) = 218fe27d89d8301eeeff7a737208458471d0366bbc92eec4c9c8591c9a9f14f6
++SHA512 (w3m-el-snapshot_1.4.632+0.20221206.2328.4f27810.orig.tar.gz) = 59f2c55fee6743a197aab177a9feae8fd08113d7a7c28dc79817c0f4ff83dee1080b330445e584899411732117b464bd697c02e3179f1d7cd9111385a0be559a
++Size (w3m-el-snapshot_1.4.632+0.20221206.2328.4f27810.orig.tar.gz) = 1080491 bytes
+ SHA1 (patch-Makefile.in) = 5e3c1d6335c72c2644f3b6136dace3358a6ba347
+ SHA1 (patch-w3m.el) = a4c14deed274e984f854255513ce49dbd320eb83
+ SHA1 (patch-w3mhack.el) = 1716431b4201ab9f672b900946dc874b928bd713

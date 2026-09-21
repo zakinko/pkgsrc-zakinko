@@ -1,0 +1,568 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/print/auctex/Makefile print/auctex/Makefile
+--- /usr/pkgsrc/print/auctex/Makefile	2026-09-18 05:48:41.763469011 +0000
++++ print/auctex/Makefile	2026-09-21 11:44:13.903271124 +0000
+@@ -1,56 +1,42 @@
+-# $NetBSD: Makefile,v 1.91 2026/09/02 19:04:06 wiz Exp $
++# $NetBSD: Makefile,v 1.73 2026/09/12 14:31:50 wiz Exp $
+ 
+-DISTNAME=		auctex-13.3
++DISTNAME=		auctex-14.2.0
+ PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=		14
+ CATEGORIES=		print
+-MASTER_SITES=		${MASTER_SITE_GNU:=auctex/}
++MASTER_SITES=		https://elpa.gnu.org/packages/
++EXTRACT_SUFX=		.tar
+ 
+ MAINTAINER=		pkgsrc-users@NetBSD.org
+ HOMEPAGE=		https://www.gnu.org/software/auctex/
+ COMMENT=		Enhanced LaTeX mode for Emacs
+ LICENSE=		gnu-gpl-v3
+ 
+-TOOL_DEPENDS+=		tex-texlive-scripts-extra-[0-9]*:../../print/tex-texlive-scripts-extra
++# AUCTeX 14 is released through GNU ELPA only; the tarball is the ELPA
++# package, which expects to run from its own directory (tex-site.el
++# finds the styles and data beside itself), so it is installed whole
++# under ${EMACS_LISPPREFIX}/auctex.
+ DEPENDS+=		texlive-collection-latex>=2014:../../meta-pkgs/texlive-collection-latex
+ 
+ EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox emacs30 emacs30nox emacs29 emacs29nox
+ 
+-.include "../../mk/bsd.prefs.mk"
+-
+-USE_TOOLS+=		gmake makeinfo perl
+-GNU_CONFIGURE=		YES
+-
+-CONFIGURE_ENV=		GS=${PREFIX}/bin/gs
+-CONFIGURE_ARGS+=	${CONFIGURE_ARGS.${EMACS_FLAVOR}}
+-CONFIGURE_ARGS+=	--enable-preview
+-CONFIGURE_ARGS+=	--localstatedir=${VARBASE}
+-
+-CONFIGURE_ARGS.emacs=	--with-lispdir=${EMACS_LISPPREFIX}
+-
+-# We are not building an XEmacs package!
+-CONFIGURE_ARGS.xemacs=	--without-packagedir
+-CONFIGURE_ARGS.xemacs+=	--with-lispdir=${EMACS_LISPPREFIX}
+-
+-MAKEFLAGS+=		EMACS=${EMACS_BIN:Q}
+-
+-BUILD_DEFS+=		VARBASE
+-
+-EMACS_MODULES=		base
+-
+-MESSAGE_SUBST+=		LISPDIR=${EMACS_LISPPREFIX:Q}
++USE_TOOLS+=		pax
+ INFO_FILES=		YES
+-
+ TEXMFDIR=		share/texmf-local
+-
+-INSTALLATION_DIRS=	share/doc/auctex
+-INSTALLATION_DIRS+=	${EMACS_INFOPREFIX}
+-INSTALLATION_DIRS+=	${EMACS_LISPPREFIX}
+-INSTALLATION_DIRS+=	${EMACS_LISPPREFIX}/auctex
++INSTALLATION_DIRS=	${EMACS_INFOPREFIX} ${EMACS_LISPPREFIX}/auctex
+ INSTALLATION_DIRS+=	${TEXMFDIR}/tex/latex/preview
+ 
+-MAKE_DIRS_PERMS+=	${VARBASE}/auctex ${REAL_ROOT_USER} ${REAL_ROOT_GROUP} 1777
++do-build:
++	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-L . -f batch-byte-compile *.el style/*.el
++
++do-install:
++	cd ${WRKSRC} && ${PAX} -rw -pp -s ',^\./doc.*,,' -s ',^\./latex.*,,' \
++		-s ',^\./[^/]*\.info$$,,' -s ',^\./dir$$,,' \
++		-s ',^\./GNUmakefile,,' . ${DESTDIR}${EMACS_LISPPREFIX}/auctex
++	cd ${WRKSRC} && ${INSTALL_DATA} auctex.info preview-latex.info \
++		${DESTDIR}${EMACS_INFOPREFIX}
++	cd ${WRKSRC}/latex && ${INSTALL_DATA} preview.sty *.def prauctex.cfg \
++		${DESTDIR}${PREFIX}/${TEXMFDIR}/tex/latex/preview
+ 
+-.include "../../print/ghostscript/buildlink3.mk"
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/print/auctex/PLIST print/auctex/PLIST
+--- /usr/pkgsrc/print/auctex/PLIST	2024-05-01 20:36:20.000000000 +0000
++++ print/auctex/PLIST	2026-09-21 11:44:26.406488991 +0000
+@@ -1,16 +1,23 @@
+ @comment $NetBSD: PLIST,v 1.21 2024/05/01 20:36:20 wiz Exp $
+ info/auctex.info
+ info/preview-latex.info
+-share/doc/auctex/tex-ref.pdf
+-${EMACS_LISPPREFIX}/auctex.el
++${EMACS_LISPPREFIX}/auctex/COPYING
++${EMACS_LISPPREFIX}/auctex/ChangeLog
++${EMACS_LISPPREFIX}/auctex/NEWS.org
++${EMACS_LISPPREFIX}/auctex/README
++${EMACS_LISPPREFIX}/auctex/auctex-pkg.el
++${EMACS_LISPPREFIX}/auctex/auctex.el
++${EMACS_LISPPREFIX}/auctex/auctex.elc
+ ${EMACS_LISPPREFIX}/auctex/bib-cite.el
+ ${EMACS_LISPPREFIX}/auctex/bib-cite.elc
++${EMACS_LISPPREFIX}/auctex/circ.tex
+ ${EMACS_LISPPREFIX}/auctex/context-en.el
+ ${EMACS_LISPPREFIX}/auctex/context-en.elc
+ ${EMACS_LISPPREFIX}/auctex/context-nl.el
+ ${EMACS_LISPPREFIX}/auctex/context-nl.elc
+ ${EMACS_LISPPREFIX}/auctex/context.el
+ ${EMACS_LISPPREFIX}/auctex/context.elc
++${EMACS_LISPPREFIX}/auctex/etc/auctex-logo.tex
+ ${EMACS_LISPPREFIX}/auctex/font-latex.el
+ ${EMACS_LISPPREFIX}/auctex/font-latex.elc
+ ${EMACS_LISPPREFIX}/auctex/images/amstex.xpm
+@@ -35,16 +42,21 @@
+ ${EMACS_LISPPREFIX}/auctex/images/pdftex.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prverr16.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prverr20.xpm
++${EMACS_LISPPREFIX}/auctex/images/prverr24.xbm
+ ${EMACS_LISPPREFIX}/auctex/images/prverr24.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prvtex-cap-up.xpm
++${EMACS_LISPPREFIX}/auctex/images/prvtex12.xbm
+ ${EMACS_LISPPREFIX}/auctex/images/prvtex12.xpm
++${EMACS_LISPPREFIX}/auctex/images/prvtex16.xbm
+ ${EMACS_LISPPREFIX}/auctex/images/prvtex16.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prvtex20.xpm
++${EMACS_LISPPREFIX}/auctex/images/prvtex24.xbm
+ ${EMACS_LISPPREFIX}/auctex/images/prvtex24.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prvwrk12.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prvwrk14.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prvwrk16.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/prvwrk20.xpm
++${EMACS_LISPPREFIX}/auctex/images/prvwrk24.xbm
+ ${EMACS_LISPPREFIX}/auctex/images/prvwrk24.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/pspdf.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/sep.xpm
+@@ -54,12 +66,9 @@
+ ${EMACS_LISPPREFIX}/auctex/images/viewdvi.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/viewpdf.xpm
+ ${EMACS_LISPPREFIX}/auctex/images/viewps.xpm
+-${EMACS_LISPPREFIX}/auctex/latex-flymake.el
+-${EMACS_LISPPREFIX}/auctex/latex-flymake.elc
+-${EMACS_LISPPREFIX}/auctex/latex.el
+-${EMACS_LISPPREFIX}/auctex/latex.elc
+ ${EMACS_LISPPREFIX}/auctex/multi-prompt.el
+ ${EMACS_LISPPREFIX}/auctex/multi-prompt.elc
++${EMACS_LISPPREFIX}/auctex/news
+ ${EMACS_LISPPREFIX}/auctex/plain-tex.el
+ ${EMACS_LISPPREFIX}/auctex/plain-tex.elc
+ ${EMACS_LISPPREFIX}/auctex/preview.el
+@@ -115,6 +124,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/amsmath.elc
+ ${EMACS_LISPPREFIX}/auctex/style/amsopn.el
+ ${EMACS_LISPPREFIX}/auctex/style/amsopn.elc
++${EMACS_LISPPREFIX}/auctex/style/amsrefs.el
++${EMACS_LISPPREFIX}/auctex/style/amsrefs.elc
+ ${EMACS_LISPPREFIX}/auctex/style/amssymb.el
+ ${EMACS_LISPPREFIX}/auctex/style/amssymb.elc
+ ${EMACS_LISPPREFIX}/auctex/style/amstex.el
+@@ -137,6 +148,10 @@
+ ${EMACS_LISPPREFIX}/auctex/style/australian.elc
+ ${EMACS_LISPPREFIX}/auctex/style/austrian.el
+ ${EMACS_LISPPREFIX}/auctex/style/austrian.elc
++${EMACS_LISPPREFIX}/auctex/style/authblk.el
++${EMACS_LISPPREFIX}/auctex/style/authblk.elc
++${EMACS_LISPPREFIX}/auctex/style/babel-german.el
++${EMACS_LISPPREFIX}/auctex/style/babel-german.elc
+ ${EMACS_LISPPREFIX}/auctex/style/babel.el
+ ${EMACS_LISPPREFIX}/auctex/style/babel.elc
+ ${EMACS_LISPPREFIX}/auctex/style/backref.el
+@@ -159,6 +174,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/bidibeamer.elc
+ ${EMACS_LISPPREFIX}/auctex/style/bigdelim.el
+ ${EMACS_LISPPREFIX}/auctex/style/bigdelim.elc
++${EMACS_LISPPREFIX}/auctex/style/bigfoot.el
++${EMACS_LISPPREFIX}/auctex/style/bigfoot.elc
+ ${EMACS_LISPPREFIX}/auctex/style/bigstrut.el
+ ${EMACS_LISPPREFIX}/auctex/style/bigstrut.elc
+ ${EMACS_LISPPREFIX}/auctex/style/bm.el
+@@ -201,8 +218,12 @@
+ ${EMACS_LISPPREFIX}/auctex/style/commath.elc
+ ${EMACS_LISPPREFIX}/auctex/style/comment.el
+ ${EMACS_LISPPREFIX}/auctex/style/comment.elc
++${EMACS_LISPPREFIX}/auctex/style/contract.el
++${EMACS_LISPPREFIX}/auctex/style/contract.elc
+ ${EMACS_LISPPREFIX}/auctex/style/csquotes.el
+ ${EMACS_LISPPREFIX}/auctex/style/csquotes.elc
++${EMACS_LISPPREFIX}/auctex/style/csthm.el
++${EMACS_LISPPREFIX}/auctex/style/csthm.elc
+ ${EMACS_LISPPREFIX}/auctex/style/currvita.el
+ ${EMACS_LISPPREFIX}/auctex/style/currvita.elc
+ ${EMACS_LISPPREFIX}/auctex/style/cuted.el
+@@ -215,6 +236,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/dashundergaps.elc
+ ${EMACS_LISPPREFIX}/auctex/style/dcolumn.el
+ ${EMACS_LISPPREFIX}/auctex/style/dcolumn.elc
++${EMACS_LISPPREFIX}/auctex/style/diagbox.el
++${EMACS_LISPPREFIX}/auctex/style/diagbox.elc
+ ${EMACS_LISPPREFIX}/auctex/style/dinbrief.el
+ ${EMACS_LISPPREFIX}/auctex/style/dinbrief.elc
+ ${EMACS_LISPPREFIX}/auctex/style/dk-bib.el
+@@ -225,12 +248,20 @@
+ ${EMACS_LISPPREFIX}/auctex/style/doc.elc
+ ${EMACS_LISPPREFIX}/auctex/style/dutch.el
+ ${EMACS_LISPPREFIX}/auctex/style/dutch.elc
++${EMACS_LISPPREFIX}/auctex/style/elsarticle.el
++${EMACS_LISPPREFIX}/auctex/style/elsarticle.elc
++${EMACS_LISPPREFIX}/auctex/style/embedfile.el
++${EMACS_LISPPREFIX}/auctex/style/embedfile.elc
+ ${EMACS_LISPPREFIX}/auctex/style/emp.el
+ ${EMACS_LISPPREFIX}/auctex/style/emp.elc
+ ${EMACS_LISPPREFIX}/auctex/style/empheq.el
+ ${EMACS_LISPPREFIX}/auctex/style/empheq.elc
+ ${EMACS_LISPPREFIX}/auctex/style/english.el
+ ${EMACS_LISPPREFIX}/auctex/style/english.elc
++${EMACS_LISPPREFIX}/auctex/style/enotez.el
++${EMACS_LISPPREFIX}/auctex/style/enotez.elc
++${EMACS_LISPPREFIX}/auctex/style/enumerate.el
++${EMACS_LISPPREFIX}/auctex/style/enumerate.elc
+ ${EMACS_LISPPREFIX}/auctex/style/enumitem.el
+ ${EMACS_LISPPREFIX}/auctex/style/enumitem.elc
+ ${EMACS_LISPPREFIX}/auctex/style/environ.el
+@@ -267,10 +298,14 @@
+ ${EMACS_LISPPREFIX}/auctex/style/fbb.elc
+ ${EMACS_LISPPREFIX}/auctex/style/fbox.el
+ ${EMACS_LISPPREFIX}/auctex/style/fbox.elc
++${EMACS_LISPPREFIX}/auctex/style/figureversions.el
++${EMACS_LISPPREFIX}/auctex/style/figureversions.elc
+ ${EMACS_LISPPREFIX}/auctex/style/filecontents.el
+ ${EMACS_LISPPREFIX}/auctex/style/filecontents.elc
+ ${EMACS_LISPPREFIX}/auctex/style/flashcards.el
+ ${EMACS_LISPPREFIX}/auctex/style/flashcards.elc
++${EMACS_LISPPREFIX}/auctex/style/floatflt.el
++${EMACS_LISPPREFIX}/auctex/style/floatflt.elc
+ ${EMACS_LISPPREFIX}/auctex/style/floatpag.el
+ ${EMACS_LISPPREFIX}/auctex/style/floatpag.elc
+ ${EMACS_LISPPREFIX}/auctex/style/floatrow.el
+@@ -279,6 +314,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/flushend.elc
+ ${EMACS_LISPPREFIX}/auctex/style/foils.el
+ ${EMACS_LISPPREFIX}/auctex/style/foils.elc
++${EMACS_LISPPREFIX}/auctex/style/fontawesome7.el
++${EMACS_LISPPREFIX}/auctex/style/fontawesome7.elc
+ ${EMACS_LISPPREFIX}/auctex/style/fontaxes.el
+ ${EMACS_LISPPREFIX}/auctex/style/fontaxes.elc
+ ${EMACS_LISPPREFIX}/auctex/style/fontenc.el
+@@ -301,14 +338,44 @@
+ ${EMACS_LISPPREFIX}/auctex/style/fvextra.elc
+ ${EMACS_LISPPREFIX}/auctex/style/geometry.el
+ ${EMACS_LISPPREFIX}/auctex/style/geometry.elc
++${EMACS_LISPPREFIX}/auctex/style/german-at-1901.el
++${EMACS_LISPPREFIX}/auctex/style/german-at-1901.elc
++${EMACS_LISPPREFIX}/auctex/style/german-at.el
++${EMACS_LISPPREFIX}/auctex/style/german-at.elc
++${EMACS_LISPPREFIX}/auctex/style/german-austria-1901.el
++${EMACS_LISPPREFIX}/auctex/style/german-austria-1901.elc
++${EMACS_LISPPREFIX}/auctex/style/german-austria.el
++${EMACS_LISPPREFIX}/auctex/style/german-austria.elc
++${EMACS_LISPPREFIX}/auctex/style/german-ch-1901.el
++${EMACS_LISPPREFIX}/auctex/style/german-ch-1901.elc
++${EMACS_LISPPREFIX}/auctex/style/german-ch.el
++${EMACS_LISPPREFIX}/auctex/style/german-ch.elc
++${EMACS_LISPPREFIX}/auctex/style/german-de-1901.el
++${EMACS_LISPPREFIX}/auctex/style/german-de-1901.elc
++${EMACS_LISPPREFIX}/auctex/style/german-de.el
++${EMACS_LISPPREFIX}/auctex/style/german-de.elc
++${EMACS_LISPPREFIX}/auctex/style/german-germany-1901.el
++${EMACS_LISPPREFIX}/auctex/style/german-germany-1901.elc
++${EMACS_LISPPREFIX}/auctex/style/german-germany.el
++${EMACS_LISPPREFIX}/auctex/style/german-germany.elc
++${EMACS_LISPPREFIX}/auctex/style/german-switzerland-1901.el
++${EMACS_LISPPREFIX}/auctex/style/german-switzerland-1901.elc
++${EMACS_LISPPREFIX}/auctex/style/german-switzerland.el
++${EMACS_LISPPREFIX}/auctex/style/german-switzerland.elc
+ ${EMACS_LISPPREFIX}/auctex/style/german.el
+ ${EMACS_LISPPREFIX}/auctex/style/german.elc
+ ${EMACS_LISPPREFIX}/auctex/style/gloss-italian.el
+ ${EMACS_LISPPREFIX}/auctex/style/gloss-italian.elc
++${EMACS_LISPPREFIX}/auctex/style/glossaries-extra.el
++${EMACS_LISPPREFIX}/auctex/style/glossaries-extra.elc
++${EMACS_LISPPREFIX}/auctex/style/glossaries.el
++${EMACS_LISPPREFIX}/auctex/style/glossaries.elc
+ ${EMACS_LISPPREFIX}/auctex/style/graphics.el
+ ${EMACS_LISPPREFIX}/auctex/style/graphics.elc
+ ${EMACS_LISPPREFIX}/auctex/style/graphicx.el
+ ${EMACS_LISPPREFIX}/auctex/style/graphicx.elc
++${EMACS_LISPPREFIX}/auctex/style/handstroke.el
++${EMACS_LISPPREFIX}/auctex/style/handstroke.elc
+ ${EMACS_LISPPREFIX}/auctex/style/harvard.el
+ ${EMACS_LISPPREFIX}/auctex/style/harvard.elc
+ ${EMACS_LISPPREFIX}/auctex/style/hologo.el
+@@ -335,6 +402,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/imakeidx.elc
+ ${EMACS_LISPPREFIX}/auctex/style/index.el
+ ${EMACS_LISPPREFIX}/auctex/style/index.elc
++${EMACS_LISPPREFIX}/auctex/style/inlinegraphicx.el
++${EMACS_LISPPREFIX}/auctex/style/inlinegraphicx.elc
+ ${EMACS_LISPPREFIX}/auctex/style/inputenc.el
+ ${EMACS_LISPPREFIX}/auctex/style/inputenc.elc
+ ${EMACS_LISPPREFIX}/auctex/style/italian.el
+@@ -363,6 +432,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/jurabib.elc
+ ${EMACS_LISPPREFIX}/auctex/style/kantlipsum.el
+ ${EMACS_LISPPREFIX}/auctex/style/kantlipsum.elc
++${EMACS_LISPPREFIX}/auctex/style/keytheorems.el
++${EMACS_LISPPREFIX}/auctex/style/keytheorems.elc
+ ${EMACS_LISPPREFIX}/auctex/style/keyval.el
+ ${EMACS_LISPPREFIX}/auctex/style/keyval.elc
+ ${EMACS_LISPPREFIX}/auctex/style/kpfonts.el
+@@ -373,10 +444,14 @@
+ ${EMACS_LISPPREFIX}/auctex/style/kvsetkeys.elc
+ ${EMACS_LISPPREFIX}/auctex/style/l3doc.el
+ ${EMACS_LISPPREFIX}/auctex/style/l3doc.elc
++${EMACS_LISPPREFIX}/auctex/style/langscibook.el
++${EMACS_LISPPREFIX}/auctex/style/langscibook.elc
+ ${EMACS_LISPPREFIX}/auctex/style/letter.el
+ ${EMACS_LISPPREFIX}/auctex/style/letter.elc
+ ${EMACS_LISPPREFIX}/auctex/style/lettrine.el
+ ${EMACS_LISPPREFIX}/auctex/style/lettrine.elc
++${EMACS_LISPPREFIX}/auctex/style/lineno.el
++${EMACS_LISPPREFIX}/auctex/style/lineno.elc
+ ${EMACS_LISPPREFIX}/auctex/style/lipsum.el
+ ${EMACS_LISPPREFIX}/auctex/style/lipsum.elc
+ ${EMACS_LISPPREFIX}/auctex/style/listings.el
+@@ -385,6 +460,10 @@
+ ${EMACS_LISPPREFIX}/auctex/style/longtable.elc
+ ${EMACS_LISPPREFIX}/auctex/style/lscape.el
+ ${EMACS_LISPPREFIX}/auctex/style/lscape.elc
++${EMACS_LISPPREFIX}/auctex/style/lstautogobble.el
++${EMACS_LISPPREFIX}/auctex/style/lstautogobble.elc
++${EMACS_LISPPREFIX}/auctex/style/lstlinebgrd.el
++${EMACS_LISPPREFIX}/auctex/style/lstlinebgrd.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ltablex.el
+ ${EMACS_LISPPREFIX}/auctex/style/ltablex.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ltcaption.el
+@@ -393,18 +472,26 @@
+ ${EMACS_LISPPREFIX}/auctex/style/ltugboat.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ltx-base.el
+ ${EMACS_LISPPREFIX}/auctex/style/ltx-base.elc
++${EMACS_LISPPREFIX}/auctex/style/ltx-talk.el
++${EMACS_LISPPREFIX}/auctex/style/ltx-talk.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ltxdoc.el
+ ${EMACS_LISPPREFIX}/auctex/style/ltxdoc.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ltxguide.el
+ ${EMACS_LISPPREFIX}/auctex/style/ltxguide.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ltxtable.el
+ ${EMACS_LISPPREFIX}/auctex/style/ltxtable.elc
++${EMACS_LISPPREFIX}/auctex/style/lua-unicode-math.el
++${EMACS_LISPPREFIX}/auctex/style/lua-unicode-math.elc
+ ${EMACS_LISPPREFIX}/auctex/style/luacode.el
+ ${EMACS_LISPPREFIX}/auctex/style/luacode.elc
+ ${EMACS_LISPPREFIX}/auctex/style/luatextra.el
+ ${EMACS_LISPPREFIX}/auctex/style/luatextra.elc
+ ${EMACS_LISPPREFIX}/auctex/style/makeidx.el
+ ${EMACS_LISPPREFIX}/auctex/style/makeidx.elc
++${EMACS_LISPPREFIX}/auctex/style/manyfoot.el
++${EMACS_LISPPREFIX}/auctex/style/manyfoot.elc
++${EMACS_LISPPREFIX}/auctex/style/marginalia.el
++${EMACS_LISPPREFIX}/auctex/style/marginalia.elc
+ ${EMACS_LISPPREFIX}/auctex/style/marginnote.el
+ ${EMACS_LISPPREFIX}/auctex/style/marginnote.elc
+ ${EMACS_LISPPREFIX}/auctex/style/mathtools.el
+@@ -429,6 +516,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/midfloat.elc
+ ${EMACS_LISPPREFIX}/auctex/style/minted.el
+ ${EMACS_LISPPREFIX}/auctex/style/minted.elc
++${EMACS_LISPPREFIX}/auctex/style/minted2.el
++${EMACS_LISPPREFIX}/auctex/style/minted2.elc
+ ${EMACS_LISPPREFIX}/auctex/style/mn2e.el
+ ${EMACS_LISPPREFIX}/auctex/style/mn2e.elc
+ ${EMACS_LISPPREFIX}/auctex/style/mnras.el
+@@ -453,6 +542,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/natbib.elc
+ ${EMACS_LISPPREFIX}/auctex/style/naustrian.el
+ ${EMACS_LISPPREFIX}/auctex/style/naustrian.elc
++${EMACS_LISPPREFIX}/auctex/style/needspace.el
++${EMACS_LISPPREFIX}/auctex/style/needspace.elc
+ ${EMACS_LISPPREFIX}/auctex/style/newfloat.el
+ ${EMACS_LISPPREFIX}/auctex/style/newfloat.elc
+ ${EMACS_LISPPREFIX}/auctex/style/newpxmath.el
+@@ -473,6 +564,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/ngerman.elc
+ ${EMACS_LISPPREFIX}/auctex/style/nicefrac.el
+ ${EMACS_LISPPREFIX}/auctex/style/nicefrac.elc
++${EMACS_LISPPREFIX}/auctex/style/ninecolors.el
++${EMACS_LISPPREFIX}/auctex/style/ninecolors.elc
+ ${EMACS_LISPPREFIX}/auctex/style/nomencl.el
+ ${EMACS_LISPPREFIX}/auctex/style/nomencl.elc
+ ${EMACS_LISPPREFIX}/auctex/style/ntheorem.el
+@@ -495,6 +588,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/pdfpages.elc
+ ${EMACS_LISPPREFIX}/auctex/style/pdfsync.el
+ ${EMACS_LISPPREFIX}/auctex/style/pdfsync.elc
++${EMACS_LISPPREFIX}/auctex/style/perpage.el
++${EMACS_LISPPREFIX}/auctex/style/perpage.elc
+ ${EMACS_LISPPREFIX}/auctex/style/physics.el
+ ${EMACS_LISPPREFIX}/auctex/style/physics.elc
+ ${EMACS_LISPPREFIX}/auctex/style/placeins.el
+@@ -581,20 +676,34 @@
+ ${EMACS_LISPPREFIX}/auctex/style/soul.elc
+ ${EMACS_LISPPREFIX}/auctex/style/sourcecodepro.el
+ ${EMACS_LISPPREFIX}/auctex/style/sourcecodepro.elc
++${EMACS_LISPPREFIX}/auctex/style/sourcesans.el
++${EMACS_LISPPREFIX}/auctex/style/sourcesans.elc
++${EMACS_LISPPREFIX}/auctex/style/sourceserif.el
++${EMACS_LISPPREFIX}/auctex/style/sourceserif.elc
+ ${EMACS_LISPPREFIX}/auctex/style/splitidx.el
+ ${EMACS_LISPPREFIX}/auctex/style/splitidx.elc
+ ${EMACS_LISPPREFIX}/auctex/style/stabular.el
+ ${EMACS_LISPPREFIX}/auctex/style/stabular.elc
++${EMACS_LISPPREFIX}/auctex/style/standalone.el
++${EMACS_LISPPREFIX}/auctex/style/standalone.elc
+ ${EMACS_LISPPREFIX}/auctex/style/stfloats.el
+ ${EMACS_LISPPREFIX}/auctex/style/stfloats.elc
++${EMACS_LISPPREFIX}/auctex/style/stocksize.el
++${EMACS_LISPPREFIX}/auctex/style/stocksize.elc
+ ${EMACS_LISPPREFIX}/auctex/style/subcaption.el
+ ${EMACS_LISPPREFIX}/auctex/style/subcaption.elc
+ ${EMACS_LISPPREFIX}/auctex/style/subfigure.el
+ ${EMACS_LISPPREFIX}/auctex/style/subfigure.elc
+ ${EMACS_LISPPREFIX}/auctex/style/subfiles.el
+ ${EMACS_LISPPREFIX}/auctex/style/subfiles.elc
++${EMACS_LISPPREFIX}/auctex/style/supertabular.el
++${EMACS_LISPPREFIX}/auctex/style/supertabular.elc
+ ${EMACS_LISPPREFIX}/auctex/style/swedish.el
+ ${EMACS_LISPPREFIX}/auctex/style/swedish.elc
++${EMACS_LISPPREFIX}/auctex/style/tablericons.el
++${EMACS_LISPPREFIX}/auctex/style/tablericons.elc
++${EMACS_LISPPREFIX}/auctex/style/tabularray.el
++${EMACS_LISPPREFIX}/auctex/style/tabularray.elc
+ ${EMACS_LISPPREFIX}/auctex/style/tabularx.el
+ ${EMACS_LISPPREFIX}/auctex/style/tabularx.elc
+ ${EMACS_LISPPREFIX}/auctex/style/tabulary.el
+@@ -657,6 +766,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/wasysym.elc
+ ${EMACS_LISPPREFIX}/auctex/style/wrapfig.el
+ ${EMACS_LISPPREFIX}/auctex/style/wrapfig.elc
++${EMACS_LISPPREFIX}/auctex/style/wrapstuff.el
++${EMACS_LISPPREFIX}/auctex/style/wrapstuff.elc
+ ${EMACS_LISPPREFIX}/auctex/style/xcolor.el
+ ${EMACS_LISPPREFIX}/auctex/style/xcolor.elc
+ ${EMACS_LISPPREFIX}/auctex/style/xkcdcolors.el
+@@ -671,6 +782,8 @@
+ ${EMACS_LISPPREFIX}/auctex/style/xr.elc
+ ${EMACS_LISPPREFIX}/auctex/style/xspace.el
+ ${EMACS_LISPPREFIX}/auctex/style/xspace.elc
++${EMACS_LISPPREFIX}/auctex/style/xtab.el
++${EMACS_LISPPREFIX}/auctex/style/xtab.elc
+ ${EMACS_LISPPREFIX}/auctex/style/zlmtt.el
+ ${EMACS_LISPPREFIX}/auctex/style/zlmtt.elc
+ ${EMACS_LISPPREFIX}/auctex/tex-bar.el
+@@ -687,17 +800,18 @@
+ ${EMACS_LISPPREFIX}/auctex/tex-jp.elc
+ ${EMACS_LISPPREFIX}/auctex/tex-mik.el
+ ${EMACS_LISPPREFIX}/auctex/tex-mik.elc
++${EMACS_LISPPREFIX}/auctex/tex-site.el
++${EMACS_LISPPREFIX}/auctex/tex-site.elc
+ ${EMACS_LISPPREFIX}/auctex/tex-style.el
+ ${EMACS_LISPPREFIX}/auctex/tex-style.elc
++${EMACS_LISPPREFIX}/auctex/tex-wizard.el
++${EMACS_LISPPREFIX}/auctex/tex-wizard.elc
+ ${EMACS_LISPPREFIX}/auctex/tex.el
+ ${EMACS_LISPPREFIX}/auctex/tex.elc
+ ${EMACS_LISPPREFIX}/auctex/texmathp.el
+ ${EMACS_LISPPREFIX}/auctex/texmathp.elc
+ ${EMACS_LISPPREFIX}/auctex/toolbar-x.el
+ ${EMACS_LISPPREFIX}/auctex/toolbar-x.elc
+-${EMACS_LISPPREFIX}/preview-latex.el
+-${EMACS_LISPPREFIX}/tex-site.el
+-share/texmf-local/doc/latex/styles/preview.pdf
+ share/texmf-local/tex/latex/preview/prauctex.cfg
+ share/texmf-local/tex/latex/preview/prauctex.def
+ share/texmf-local/tex/latex/preview/prcounters.def
+diff -ruN -x CVS -x work /usr/pkgsrc/print/auctex/distinfo print/auctex/distinfo
+--- /usr/pkgsrc/print/auctex/distinfo	2024-05-01 20:36:20.000000000 +0000
++++ print/auctex/distinfo	2026-09-21 11:44:14.196379047 +0000
+@@ -1,6 +1,6 @@
+ $NetBSD: distinfo,v 1.25 2024/05/01 20:36:20 wiz Exp $
+ 
+-BLAKE2s (auctex-13.3.tar.gz) = f46f4e57d5ab2e8f2352ea597605c28bb874de8092e729da17d11b892c24110b
+-SHA512 (auctex-13.3.tar.gz) = 32d6f3c968a27dd5e7862993419bfa0f5e5228abca7478341a06fce153f333410cd230f8266e6b0e4fb5e4247864710e3f572b6a837c99c2879d38899590f678
+-Size (auctex-13.3.tar.gz) = 1695608 bytes
++BLAKE2s (auctex-14.2.0.tar) = e5a5c09c4a02f16a67e8c603f6b7950a5ffbe0cf93cf5475ba14fabb83f69efd
++SHA512 (auctex-14.2.0.tar) = ae725c087fa589fc37606dc7ad67630ecb8768960f6ab4aba81990ab68f8cb34a49c1cba431b96ee001859f3636d5726e4117eb77e8f1f6fccf0252d2e3aa753
++Size (auctex-14.2.0.tar) = 6789120 bytes
+ SHA1 (patch-configure) = 9638660731d838c6fb0244f694bf11a4b0f818d7
+diff -ruN -x CVS -x work /usr/pkgsrc/print/auctex/patches/patch-configure print/auctex/patches/patch-configure
+--- /usr/pkgsrc/print/auctex/patches/patch-configure	2022-08-22 08:49:44.000000000 +0000
++++ print/auctex/patches/patch-configure	1970-01-01 00:00:00.000000000 +0000
+@@ -1,81 +0,0 @@
+-$NetBSD: patch-configure,v 1.2 2022/08/22 08:49:44 markd Exp $
+-
+-configure takes offense at details of an installed auctex package, but
+-it really is the pkgsrc framework's business to check for installation
+-conflicts.
+-
+---- configure.orig	2022-02-20 19:30:41.000000000 +0000
+-+++ configure
+-@@ -3796,72 +3796,6 @@ test -n "$TEXHASH" || TEXHASH=":"
+-      fi
+-    fi
+- 
+--   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for glaring installation conflicts" >&5
+--printf %s "checking for glaring installation conflicts... " >&6; }
+--   exppackagelispdir="$packagelispdir"
+--    __ac_tmp_oldprefix__="${prefix}"
+--  __ac_tmp_oldexec_prefix__="$exec_prefix"
+-- test "x${prefix}" = xNONE && prefix="${ac_default_prefix}"
+-- test "x${exec_prefix}" = xNONE && exec_prefix='${prefix}'
+-- while :;do case "$exppackagelispdir" in *\$*) __ac_tmp__='s/[\`"-"]/\\&/g'
+--eval "exppackagelispdir=`sed ${__ac_tmp__} <<EOF
+--$exppackagelispdir
+--EOF
+--`";; *) break ;; esac; done
+--  prefix="${__ac_tmp_oldprefix__}"
+--  exec_prefix="${__ac_tmp_oldexec_prefix__}"
+--   exppreviewstartfile="$previewstartfile"
+--    __ac_tmp_oldprefix__="${prefix}"
+--  __ac_tmp_oldexec_prefix__="$exec_prefix"
+-- test "x${prefix}" = xNONE && prefix="${ac_default_prefix}"
+-- test "x${exec_prefix}" = xNONE && exec_prefix='${prefix}'
+-- while :;do case "$exppreviewstartfile" in *\$*) __ac_tmp__='s/[\`"-"]/\\&/g'
+--eval "exppreviewstartfile=`sed ${__ac_tmp__} <<EOF
+--$exppreviewstartfile
+--EOF
+--`";; *) break ;; esac; done
+--  prefix="${__ac_tmp_oldprefix__}"
+--  exec_prefix="${__ac_tmp_oldexec_prefix__}"
+--
+--
+--  elisp="
+--     (concat
+--       (and (setq tmp (locate-library \"preview.elc\"))
+--            (not (string= (file-truename tmp)
+--                       (file-truename (expand-file-name \"preview.elc\"
+--                                         packagelispdir))))
+--            (format \"Conflicting previous installation in \`%s' found!\n\"
+--                    (file-name-directory tmp)))
+--       (and (setq tmp (locate-library \"preview-latex.el\"))
+--            (not (string= (file-truename tmp)
+--                          (file-truename previewstartfile)))
+--            (format \"Conflicting previous startup file \`%s' found!\n\" tmp)))"
+--  OUTPUT=./conftest-$$
+--  echo "${EMACS}" -batch  -eval "(let* ((packagelispdir(pop command-line-args-left)) (previewstartfile(pop command-line-args-left))(x ${elisp})) (write-region (if (stringp x) x (prin1-to-string x)) nil \"${OUTPUT}\"))" "${exppackagelispdir}" "${exppreviewstartfile}" >& 5 2>&1
+--  "${EMACS}" -batch  -eval "(let* ((packagelispdir(pop command-line-args-left)) (previewstartfile(pop command-line-args-left))(x ${elisp})) (write-region (if (stringp x) x (prin1-to-string x)) nil \"${OUTPUT}\"))" "${exppackagelispdir}" "${exppreviewstartfile}" >& 5 2>&1
+--  shadows="`cat ${OUTPUT}`"
+--  echo "=> ${shadows}" >& 5 2>&1
+--  rm -f ${OUTPUT}
+--
+--   if test "NONE${shadows}" != NONE
+--   then
+--     conflictsmsg="Conflicts with previous installations have been detected.
+--   Please fix them before continuing.
+--   "
+--     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ouch!
+--   " >&5
+--printf "%s\n" "ouch!
+--   " >&6; }
+--   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: ${shadows}
+--   " >&5
+--printf "%s\n" "$as_me: WARNING: ${shadows}
+--   " >&2;}
+--   else
+--     conflictsmsg=
+--     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: probably none" >&5
+--printf "%s\n" "probably none" >&6; }
+--   fi
+--
+-    texmfdir="`sed 's/[^-0-9a-zA-Z_./:$]/\\\\&/g;s/[$]\\\\[{(]\\([^)}]*\\)\\\\[})]/${\\1}/g' <<EOF
+- $texmfdir
+- EOF

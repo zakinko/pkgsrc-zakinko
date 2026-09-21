@@ -1,0 +1,94 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/php-mode/Makefile devel/php-mode/Makefile
+--- /usr/pkgsrc/devel/php-mode/Makefile	2022-05-14 22:25:35.000000000 +0000
++++ devel/php-mode/Makefile	2026-09-21 12:04:47.031633248 +0000
+@@ -1,26 +1,26 @@
+-# $NetBSD: Makefile,v 1.9 2022/05/14 22:25:35 dholland Exp $
+-#
++# $NetBSD: Makefile,v 1.11 2026/09/12 14:31:49 wiz Exp $
+ 
+-DISTNAME=	php-mode-1.13.1
++DISTNAME=	php-mode-1.28.0
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	1
+ CATEGORIES=	devel
+-MASTER_SITES=	${MASTER_SITE_SOURCEFORGE:=php-mode/}
+-EXTRACT_SUFX=	.zip
++MASTER_SITES=	${MASTER_SITE_GITHUB:=emacs-php/}
++GITHUB_TAG=	v${PKGVERSION_NOREV}
+ 
+ MAINTAINER=	pkgsrc-users@NetBSD.org
+-HOMEPAGE=	https://sourceforge.net/projects/php-mode/
++HOMEPAGE=	https://github.com/emacs-php/php-mode
+ COMMENT=	PHP editing mode for Emacs
+ LICENSE=	gnu-gpl-v3
+ 
+-NO_CONFIGURE=		yes
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
++
++INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/php-mode
+ 
+ do-build:
+-	cd ${WRKSRC} && ${EMACS_BIN} -batch -f batch-byte-compile php-mode.el
++	cd ${WRKSRC}/lisp && ${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-L . -f batch-byte-compile *.el
+ 
+ do-install:
+-	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/php-mode
+-	${INSTALL_DATA} ${WRKSRC}/php-mode.e* \
++	cd ${WRKSRC}/lisp && ${INSTALL_DATA} *.el *.elc \
+ 		${DESTDIR}${EMACS_LISPPREFIX}/php-mode
+ 
+ .include "../../editors/emacs/modules.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/php-mode/PLIST devel/php-mode/PLIST
+--- /usr/pkgsrc/devel/php-mode/PLIST	2009-06-14 17:49:02.000000000 +0000
++++ devel/php-mode/PLIST	2026-09-21 12:04:55.130989731 +0000
+@@ -1,3 +1,37 @@
+ @comment $NetBSD: PLIST,v 1.2 2009/06/14 17:49:02 joerg Exp $
++${EMACS_LISPPREFIX}/php-mode/php-align.el
++${EMACS_LISPPREFIX}/php-mode/php-align.elc
++${EMACS_LISPPREFIX}/php-mode/php-cc-mode.el
++${EMACS_LISPPREFIX}/php-mode/php-cc-mode.elc
++${EMACS_LISPPREFIX}/php-mode/php-complete.el
++${EMACS_LISPPREFIX}/php-mode/php-complete.elc
++${EMACS_LISPPREFIX}/php-mode/php-core.el
++${EMACS_LISPPREFIX}/php-mode/php-core.elc
++${EMACS_LISPPREFIX}/php-mode/php-defs.el
++${EMACS_LISPPREFIX}/php-mode/php-defs.elc
++${EMACS_LISPPREFIX}/php-mode/php-face.el
++${EMACS_LISPPREFIX}/php-mode/php-face.elc
++${EMACS_LISPPREFIX}/php-mode/php-flymake.el
++${EMACS_LISPPREFIX}/php-mode/php-flymake.elc
++${EMACS_LISPPREFIX}/php-mode/php-format.el
++${EMACS_LISPPREFIX}/php-mode/php-format.elc
++${EMACS_LISPPREFIX}/php-mode/php-ide-phpactor.el
++${EMACS_LISPPREFIX}/php-mode/php-ide-phpactor.elc
++${EMACS_LISPPREFIX}/php-mode/php-ide.el
++${EMACS_LISPPREFIX}/php-mode/php-ide.elc
++${EMACS_LISPPREFIX}/php-mode/php-indent.el
++${EMACS_LISPPREFIX}/php-mode/php-indent.elc
++${EMACS_LISPPREFIX}/php-mode/php-keywords.el
++${EMACS_LISPPREFIX}/php-mode/php-keywords.elc
++${EMACS_LISPPREFIX}/php-mode/php-local-manual.el
++${EMACS_LISPPREFIX}/php-mode/php-local-manual.elc
++${EMACS_LISPPREFIX}/php-mode/php-mode-debug.el
++${EMACS_LISPPREFIX}/php-mode/php-mode-debug.elc
+ ${EMACS_LISPPREFIX}/php-mode/php-mode.el
+ ${EMACS_LISPPREFIX}/php-mode/php-mode.elc
++${EMACS_LISPPREFIX}/php-mode/php-project.el
++${EMACS_LISPPREFIX}/php-mode/php-project.elc
++${EMACS_LISPPREFIX}/php-mode/php-style.el
++${EMACS_LISPPREFIX}/php-mode/php-style.elc
++${EMACS_LISPPREFIX}/php-mode/php.el
++${EMACS_LISPPREFIX}/php-mode/php.elc
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/php-mode/distinfo devel/php-mode/distinfo
+--- /usr/pkgsrc/devel/php-mode/distinfo	2021-10-26 10:18:02.000000000 +0000
++++ devel/php-mode/distinfo	2026-09-21 12:04:47.495646691 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.6 2021/10/26 10:18:02 nia Exp $
+ 
+-BLAKE2s (php-mode-1.13.1.zip) = b39ebfcff4b1d4ed9ba88bd62f62d9cf5627509fc4a51015fd5adb00b895338a
+-SHA512 (php-mode-1.13.1.zip) = 1c11d28d23c7e0a913ef7a139811dd7d9a7d5123bf168d17809015fbe163f9a1489478cbee6cb26107b5cf1d782beed8c41271b2feec62a3167229880bce4089
+-Size (php-mode-1.13.1.zip) = 56425 bytes
++BLAKE2s (php-mode-1.28.0.tar.gz) = c920984ef0cfade1f2847fabd32a626fb77003e0ea3e0f550bae9e291ca35cfe
++SHA512 (php-mode-1.28.0.tar.gz) = 21893aec36f22b701f9aaf659faa98db7a00ac1819a5a46edcd16bc7ca82285affa19652d832dd3cae2584b0093fd66ecd21dae87dae1b53e75d8a15a8388ade
++Size (php-mode-1.28.0.tar.gz) = 170187 bytes

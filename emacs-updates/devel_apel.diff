@@ -1,0 +1,30 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
+--- /usr/pkgsrc/devel/apel/Makefile	2026-09-18 05:45:02.008721410 +0000
++++ devel/apel/Makefile	2026-09-21 10:58:47.604221943 +0000
+@@ -1,12 +1,11 @@
+ # $NetBSD: Makefile,v 1.46 2026/09/12 14:31:49 wiz Exp $
+ 
+-DISTNAME=	apel-10.8.0.20201107
++DISTNAME=	apel-10.8.0.20250531
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	2
+ CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=wanderlust/}
+ GITHUB_PROJECT=	apel
+-GITHUB_TAG=	4e3269b6e702db2dba48cf560563ac883e81e3bf
++GITHUB_TAG=	2383abfd3a27c094ae9095b05103167cf810379b
+ 
+ MAINTAINER=	uebayasi@NetBSD.org
+ HOMEPAGE=	http://git.chise.org/elisp/apel/
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
+--- /usr/pkgsrc/devel/apel/distinfo	2022-01-31 00:17:58.000000000 +0000
++++ devel/apel/distinfo	2026-09-21 10:58:48.668575932 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.13 2022/01/31 00:17:58 mef Exp $
+ 
+-BLAKE2s (apel-10.8.0.20201107-4e3269b6e702db2dba48cf560563ac883e81e3bf.tar.gz) = aec884724a0e3a8c7c4fd0d90282b7ea783f19b838a18a8a86e4ad138d512ea2
+-SHA512 (apel-10.8.0.20201107-4e3269b6e702db2dba48cf560563ac883e81e3bf.tar.gz) = fb14570d6d4f2346d386ae0012cfb9149ddf9ade8b4dc75507e6cef848d12ef65f80bd7d1dc26815031aee00461d67d4a86fe29e30d5d542756e725425634c77
+-Size (apel-10.8.0.20201107-4e3269b6e702db2dba48cf560563ac883e81e3bf.tar.gz) = 69188 bytes
++BLAKE2s (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = c6261eba992d1a9e96185964552ccb48661d8c79c31c52cf61fe7e3214460501
++SHA512 (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 76b01d6e41ad345a96c93d1526a499080546e8f839b7a697895b61a754cf9aa49b995d55909d47c8a957cefe9d3e5f49802390d5c81d168d9d458e86bf003e21
++Size (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 69826 bytes

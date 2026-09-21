@@ -1,0 +1,76 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/cad/verilog-mode/Makefile cad/verilog-mode/Makefile
+--- /usr/pkgsrc/cad/verilog-mode/Makefile	2025-09-21 21:22:39.000000000 +0000
++++ cad/verilog-mode/Makefile	2026-09-21 11:33:31.930697235 +0000
+@@ -1,39 +1,32 @@
+-# $NetBSD: Makefile,v 1.15 2025/09/21 21:22:39 wiz Exp $
+-#
++# $NetBSD: Makefile,v 1.17 2026/09/12 14:31:49 wiz Exp $
+ 
+-DISTNAME=		verilog-mode-3.60
+-PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=		4
+-CATEGORIES=		cad editors
+-MASTER_SITES=		${MASTER_SITE_LOCAL}
+-# The latest can be fetched interactively from
+-# MASTER_SITES=		http://www.verilog.com/register.html
+-
+-MAINTAINER=		pkgsrc-users@NetBSD.org
+-HOMEPAGE=		https://www.verilog.com/verilog-mode.html
+-COMMENT=		Verilog mode for Emacs
++DISTNAME=	verilog-mode-2026.08.31
++PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
++CATEGORIES=	cad editors
++MASTER_SITES=	https://www.veripool.org/ftp/
++DISTFILES=	verilog-mode.el
++DIST_SUBDIR=	${DISTNAME}
++
++MAINTAINER=	pkgsrc-users@NetBSD.org
++HOMEPAGE=	https://www.veripool.org/verilog-mode/
++COMMENT=	Verilog mode for Emacs
++LICENSE=	gnu-gpl-v3
+ 
+-WRKSRC=			${WRKDIR}
++WRKSRC=		${WRKDIR}
++EXTRACT_ONLY=	# none
+ 
+-.include "../../editors/emacs/modules.mk"
+-
+-.if ${EMACS_FLAVOR} == "emacs"
+-EMACS=	emacs
+-.else
+-EMACS=	xemacs
+-.endif
++INSTALLATION_DIRS=	${EMACS_LISPPREFIX}
+ 
+-SRCS=	verilog-mode.el
++post-extract:
++	${CP} ${DISTDIR}/${DIST_SUBDIR}/verilog-mode.el ${WRKSRC}/
+ 
+ do-build:
+-	for f in ${SRCS}; do						\
+-		${EMACS} --no-init-file --no-site-file -batch		\
+-		-f batch-byte-compile ${WRKSRC}/$$f;			\
+-	done
++	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-f batch-byte-compile verilog-mode.el
+ 
+ do-install:
+-	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc}	\
++	cd ${WRKSRC} && ${INSTALL_DATA} verilog-mode.el verilog-mode.elc \
+ 		${DESTDIR}${EMACS_LISPPREFIX}
+ 
++.include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/cad/verilog-mode/distinfo cad/verilog-mode/distinfo
+--- /usr/pkgsrc/cad/verilog-mode/distinfo	2021-10-26 10:04:17.000000000 +0000
++++ cad/verilog-mode/distinfo	2026-09-21 11:33:34.957945112 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.5 2021/10/26 10:04:17 nia Exp $
+ 
+-BLAKE2s (verilog-mode-3.60.tar.gz) = 060f245306ec97fdb7be03d87309e78fe634d0cd8b0f40027aa07c5ace8c7ddf
+-SHA512 (verilog-mode-3.60.tar.gz) = b631631d364de9a22791b9afb9b5d73d456fe3660e920d776a74744e489a8a979193540930db45486a7c5a5187d2bfd8416553867b69d9bb112a543f8890f135
+-Size (verilog-mode-3.60.tar.gz) = 65202 bytes
++BLAKE2s (verilog-mode-2026.08.31/verilog-mode.el) = 180e8217f297470743b01d1815f69d279295fbdcf3fd91b726066c727d183186
++SHA512 (verilog-mode-2026.08.31/verilog-mode.el) = 0ffc654f37c6e452f17c034a541bd03d8d771abd029972700aa29e065a3010376ffd293e86fea2e2f63bc3bcb34d246fa5b57313d8927fa4a7fbd7fe7e7e4ca8
++Size (verilog-mode-2026.08.31/verilog-mode.el) = 635766 bytes

@@ -1,0 +1,100 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/skk/Makefile inputmethod/skk/Makefile
+--- /usr/pkgsrc/inputmethod/skk/Makefile	2026-08-27 07:49:18.379476157 +0000
++++ inputmethod/skk/Makefile	2026-09-21 11:51:30.254000337 +0000
+@@ -1,12 +1,11 @@
+ # $NetBSD: Makefile,v 1.46 2026/08/26 14:37:05 wiz Exp $
+ 
+-DISTNAME=	ddskk-ddskk-17.1_Neppu
+-PKGNAME=	${EMACS_PKGNAME_PREFIX}skk-17.1
+-PKGREVISION=	2
++DISTNAME=	ddskk-ddskk-17.2_Mena
++PKGNAME=	${EMACS_PKGNAME_PREFIX}skk-17.2
+ CATEGORIES=	japanese inputmethod
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=skk-dev/}
+ GITHUB_PROJECT=	ddskk
+-GITHUB_TAG=	ddskk-17.1_Neppu
++GITHUB_TAG=	ddskk-17.2_Mena
+ 
+ MAINTAINER=	uebayasi@NetBSD.org
+ HOMEPAGE=	http://openlab.ring.gr.jp/skk/index.html
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/skk/PLIST inputmethod/skk/PLIST
+--- /usr/pkgsrc/inputmethod/skk/PLIST	2020-08-24 20:40:00.000000000 +0000
++++ inputmethod/skk/PLIST	2026-09-21 11:51:34.736673135 +0000
+@@ -86,8 +86,6 @@
+ ${EMACS_LISPPREFIX}/skk/skk-viper.elc
+ ${EMACS_LISPPREFIX}/skk/skk.el
+ ${EMACS_LISPPREFIX}/skk/skk.elc
+-${EMACS_LISPPREFIX}/skk/tar-util.el
+-${EMACS_LISPPREFIX}/skk/tar-util.elc
+ share/skk/NICOLA-SKK.tut
+ share/skk/SKK.tut
+ share/skk/SKK.tut.E
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/skk/distinfo inputmethod/skk/distinfo
+--- /usr/pkgsrc/inputmethod/skk/distinfo	2022-07-04 14:40:40.000000000 +0000
++++ inputmethod/skk/distinfo	2026-09-21 11:51:34.729825896 +0000
+@@ -1,7 +1,6 @@
+ $NetBSD: distinfo,v 1.17 2022/07/04 14:40:40 ryoon Exp $
+ 
+-BLAKE2s (ddskk-ddskk-17.1_Neppu.tar.gz) = e7f2031406f7b9131d7d5b4a4a419a43b03745ee67ed66bf1f47dcc40d66ef0e
+-SHA512 (ddskk-ddskk-17.1_Neppu.tar.gz) = e0b924111a6289acd29ee5a5d94ea70730fe8f4e1dd5ed279520263efab0c69a6940e5b1b6182e45ed30c0b1ddca9e44ff75b7b3fdab5c8a3e1b2b9f82cc20fa
+-Size (ddskk-ddskk-17.1_Neppu.tar.gz) = 952635 bytes
++BLAKE2s (ddskk-ddskk-17.2_Mena.tar.gz) = 1d3801a63d60766e81c3f28e7b523ec2d6e5f057fc7d7f566de92e10687578c7
++SHA512 (ddskk-ddskk-17.2_Mena.tar.gz) = 34af18050eaefa92f03b27d228db5bac4019b2e44dbbb4526a32174db055c6bde03acc48669ed9f729c353a654aa97a6f90ef9885778a648f7db2684d2b72086
++Size (ddskk-ddskk-17.2_Mena.tar.gz) = 962372 bytes
+ SHA1 (patch-Makefile) = a04d6c460fae99d247a9b237192619477c1aed02
+-SHA1 (patch-ccc.el) = 42677c3dd2d4d48536da569ee3b57ef7f53d66b8
+diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/skk/patches/patch-ccc.el inputmethod/skk/patches/patch-ccc.el
+--- /usr/pkgsrc/inputmethod/skk/patches/patch-ccc.el	2022-07-04 14:40:40.000000000 +0000
++++ inputmethod/skk/patches/patch-ccc.el	1970-01-01 00:00:00.000000000 +0000
+@@ -1,51 +0,0 @@
+-$NetBSD: patch-ccc.el,v 1.1 2022/07/04 14:40:40 ryoon Exp $
+-
+-Support editors/emacs28 from upstream.
+-
+---- ccc.el.orig	2022-06-29 16:13:31.750892894 +0000
+-+++ ccc.el
+-@@ -3,10 +3,11 @@
+- ;; Copyright (C) 2000 Masatake YAMATO <masata-y@is.aist-nara.ac.jp>
+- ;; Copyright (C) 2001, 2002, 2004, 2005,
+- ;;   2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+--;;   2015, SKK Development Team <skk@ring.gr.jp>
+-+;;   2015, SKK Development Team
+- 
+- ;; Author: Masatake YAMATO <masata-y@is.aist-nara.ac.jp>
+--;; Maintainer: SKK Development Team <skk@ring.gr.jp>
+-+;; Maintainer: SKK Development Team
+-+;; URL: https://github.com/skk-dev/ddskk
+- ;; URL: https://github.com/skk-dev/ddskk/blob/master/READMEs/README.ccc.org
+- ;; Keywords: cursor
+- 
+-@@ -34,6 +35,8 @@
+- 
+- ;;; Code:
+- 
+-+(require 'faces)                        ; read-color, color-values
+-+
+- (eval-when-compile
+-   (require 'advice))
+- 
+-@@ -111,10 +114,19 @@
+- 
+- ;; Functions.
+- (defsubst ccc-read-color (prompt)
+--  (list (facemenu-read-color prompt)))
+-+  (list (read-color prompt)))
+- 
+- (defsubst ccc-color-equal (a b)
+--  (facemenu-color-equal a b))
+-+  "Return t if colors A and B are the same color.
+-+A and B should be strings naming colors.
+-+This function queries the display system to find out what the color
+-+names mean.  It returns nil if the colors differ or if it can't
+-+determine the correct answer.
+-+
+-+This function is the same as `facemenu-color-equal'"
+-+  (cond
+-+   ((equal a b) t)
+-+   ((equal (color-values a) (color-values b)))))
+- 
+- (defun ccc-setup-new-frame (frame)
+-   (ccc-set-frame-cursor-color frame (or (ccc-default-cursor-color)

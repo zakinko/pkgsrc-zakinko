@@ -1,0 +1,64 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/Makefile graphics/graphviz-dot-mode/Makefile
+--- /usr/pkgsrc/graphics/graphviz-dot-mode/Makefile	2023-12-22 19:15:06.000000000 +0000
++++ graphics/graphviz-dot-mode/Makefile	2026-09-21 11:32:59.725902492 +0000
+@@ -1,33 +1,27 @@
+-# $NetBSD: Makefile,v 1.5 2023/12/22 19:15:06 zafer Exp $
++# $NetBSD: Makefile,v 1.10 2026/09/12 14:31:49 wiz Exp $
+ 
+-DISTNAME=	graphviz-dot-mode
+-PKGNAME=	${DISTNAME}-0.3.7
+-PKGREVISION=	2
+-CATEGORIES=	graphics
+-MASTER_SITES=	#
+-EXTRACT_SUFX=	.el
+-
+-MAINTAINER=	minskim@NetBSD.org
+-HOMEPAGE=	https://github.com/ppareit/graphviz-dot-mode/
+-COMMENT=	Graphviz dot mode for Emacs
++DISTNAME=	graphviz-dot-mode-0.5.0
++PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
++CATEGORIES=	graphics editors
++MASTER_SITES=	${MASTER_SITE_GITHUB:=ppareit/}
++GITHUB_TAG=	v${PKGVERSION_NOREV}
++
++MAINTAINER=	pkgsrc-users@NetBSD.org
++HOMEPAGE=	https://github.com/ppareit/graphviz-dot-mode
++COMMENT=	Emacs mode for the DOT language, used by graphviz
+ LICENSE=	gnu-gpl-v2
+ 
+-NO_CONFIGURE=	yes
+-USE_LANGUAGES=	# none
+-WRKSRC=		${WRKDIR}
+-
+-EMACS_MODULES=	base
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
+ 
+ INSTALLATION_DIRS=	${EMACS_LISPPREFIX}
+ 
+-.include "../../editors/emacs/modules.mk"
+-
+ do-build:
+-	${EMACS_BIN} --no-init-file --no-site-file -batch \
+-		-f batch-byte-compile ${WRKSRC}/graphviz-dot-mode.el
++	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-f batch-byte-compile graphviz-dot-mode.el
+ 
+ do-install:
+ 	${INSTALL_DATA} ${WRKSRC}/graphviz-dot-mode.el ${WRKSRC}/graphviz-dot-mode.elc \
+-		${DESTDIR}${EMACS_LISPPREFIX}/
++		${DESTDIR}${EMACS_LISPPREFIX}
+ 
++.include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/graphics/graphviz-dot-mode/distinfo graphics/graphviz-dot-mode/distinfo
+--- /usr/pkgsrc/graphics/graphviz-dot-mode/distinfo	2021-10-26 10:46:17.000000000 +0000
++++ graphics/graphviz-dot-mode/distinfo	2026-09-21 11:33:01.039041732 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.4 2021/10/26 10:46:17 nia Exp $
+ 
+-BLAKE2s (graphviz-dot-mode.el) = c3a57bd49d6a6fc542647e8ec1da2cf78ca6014fa000323a073786562804b57f
+-SHA512 (graphviz-dot-mode.el) = 5b768473b39e92e9453ce33d642443dac0c704c56ad5c9c47b862fb9098b7bdd36f5cf4a13006fecadce24cf7fe2fc2802dff208eab2dee357c29444905592bf
+-Size (graphviz-dot-mode.el) = 40848 bytes
++BLAKE2s (graphviz-dot-mode-0.5.0.tar.gz) = 0afd45dc98e585dc21b007f9135c2f8e0a4fc5a5f0180887c0f64d63f522b769
++SHA512 (graphviz-dot-mode-0.5.0.tar.gz) = c7290220401fa3b81e0ce4526ce1f93970f32d4425456e2c1ad3069db17e7179cff2ff1da907057ddc61b5a20c3292b0d1f8041ff02a810f9c6b69e9b6c96bc8
++Size (graphviz-dot-mode-0.5.0.tar.gz) = 317708 bytes

@@ -1,0 +1,25 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/markdown-mode/Makefile textproc/markdown-mode/Makefile
+--- /usr/pkgsrc/textproc/markdown-mode/Makefile	2022-05-14 22:25:41.000000000 +0000
++++ textproc/markdown-mode/Makefile	2026-09-21 10:56:54.066672897 +0000
+@@ -1,8 +1,7 @@
+ # $NetBSD: Makefile,v 1.11 2022/05/14 22:25:41 dholland Exp $
+ 
+-DISTNAME=	markdown-mode-2.4
++DISTNAME=	markdown-mode-2.8
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	1
+ CATEGORIES=	textproc
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=jrblevin/}
+ GITHUB_TAG=	v${PKGVERSION_NOREV}
+diff -ruN -x CVS -x work /usr/pkgsrc/textproc/markdown-mode/distinfo textproc/markdown-mode/distinfo
+--- /usr/pkgsrc/textproc/markdown-mode/distinfo	2021-10-26 11:22:21.000000000 +0000
++++ textproc/markdown-mode/distinfo	2026-09-21 10:56:55.871908200 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.9 2021/10/26 11:22:21 nia Exp $
+ 
+-BLAKE2s (markdown-mode-2.4.tar.gz) = 9fc762c13bf1b0aac1f7b51a73b7d062dd7df57793a455c66e4631f94a5f54a5
+-SHA512 (markdown-mode-2.4.tar.gz) = 8bf2acd7f402c036c57521340d26cea150935964f04f1343c2e17147d63226c815150be62c0b79a2ba48e55b3155d94f38caf1ec43c21d4f32dee6e73cc261a0
+-Size (markdown-mode-2.4.tar.gz) = 211229 bytes
++BLAKE2s (markdown-mode-2.8.tar.gz) = e1e88318063252566ddcffbb40478e2cd9fbaf6f160a946c07990cb7eb4060eb
++SHA512 (markdown-mode-2.8.tar.gz) = e0d99ddf8549c2119d9854825a0b28f11ff2efe720dfa17c5cae466fa3fda1ac82d653e358a1961f93cc9017c7122c906bc1e32be28960ab2d66d890d053766b
++Size (markdown-mode-2.8.tar.gz) = 233970 bytes

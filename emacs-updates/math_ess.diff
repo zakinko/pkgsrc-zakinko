@@ -1,0 +1,381 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/Makefile math/ess/Makefile
+--- /usr/pkgsrc/math/ess/Makefile	2022-06-28 11:34:36.000000000 +0000
++++ math/ess/Makefile	2026-09-21 12:01:20.803282438 +0000
+@@ -1,53 +1,59 @@
+-# $NetBSD: Makefile,v 1.38 2022/06/28 11:34:36 wiz Exp $
++# $NetBSD: Makefile,v 1.41 2026/09/12 14:31:50 wiz Exp $
+ 
+-DISTNAME=	ess-13.09-1
+-PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/-1$/.1/}
+-PKGREVISION=	10
++DISTNAME=	ess-25.01.0
++PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+ CATEGORIES=	math
+-MASTER_SITES=	http://ess.r-project.org/downloads/ess/
+-EXTRACT_SUFX=	.tgz
++MASTER_SITES=	${MASTER_SITE_GITHUB:=emacs-ess/}
++GITHUB_PROJECT=	ESS
++GITHUB_TAG=	v${PKGVERSION_NOREV}
++
++# lisp/Makefile downloads julia-mode.el at build time; fetch it as a
++# distfile instead, pinned to a commit.
++JULIA_MODE_HASH=	af4efef00b3d7126cb241073a7b14903b310e1fd
++JULIA_MODE_FILES=	julia-mode.el julia-mode-latexsubs.el
++DISTFILES=	${DEFAULT_DISTFILES}
++.for f in ${JULIA_MODE_FILES}
++DISTFILES+=	${f}-${JULIA_MODE_HASH}
++SITES.${f}-${JULIA_MODE_HASH}=	\
++	-https://raw.githubusercontent.com/JuliaEditorSupport/julia-emacs/${JULIA_MODE_HASH}/${f}
++.endfor
++EXTRACT_ONLY=	${DEFAULT_DISTFILES}
+ 
+ MAINTAINER=	markd@NetBSD.org
+ HOMEPAGE=	https://ess.r-project.org/
+ COMMENT=	Emacs Speaks Statistics
++LICENSE=	gnu-gpl-v3
+ 
+-USE_TOOLS+=	makeinfo perl gmake
++USE_TOOLS+=	makeinfo gmake pax
++TEXINFO_REQD=	6.0
+ EMACS_MODULES=	base
+ INFO_FILES=	yes
+-
+ MAKE_JOBS_SAFE=	no
+-MAKE_ENV+=	LISPDIR=${EMACS_LISPPREFIX}/ess
+-MAKEFLAGS+=	EMACS=${EMACS_BIN:Q}
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
++
++MAKE_FLAGS+=	EMACS=${EMACS_BIN:Q}
++BUILD_TARGET=	lisp etc autoloads
++
++post-build:
++	cd ${WRKSRC}/doc && ${GMAKE} info
+ 
+-SUBST_CLASSES+=		etcdir
+-SUBST_STAGE.etcdir=	pre-patch
+-SUBST_FILES.etcdir=	lisp/ess-site.el
+-SUBST_SED.etcdir=	-e 's,"./etc/"),"./etc/" "../../../ess/"),'
+-
+-INSTALLATION_DIRS=	${EMACS_INFOPREFIX} ${EMACS_LISPPREFIX}/ess
+-INSTALLATION_DIRS+=	${EMACS_ETCPREFIX}/ess ${EMACS_ETCPREFIX}/ess/icons
+-INSTALLATION_DIRS+=	${EMACS_ETCPREFIX}/ess/ESSR/R
++# ess-etc-directory is found relative to the lisp (./etc/ is one of the
++# places it looks), so etc/ goes under the lisp directory.
++INSTALLATION_DIRS=	${EMACS_INFOPREFIX} ${EMACS_LISPPREFIX}/ess/etc
+ 
+ post-extract:
+-	cd ${WRKSRC} && chmod u+w doc/*/
++.for f in ${JULIA_MODE_FILES}
++	${CP} ${DISTDIR}/${f}-${JULIA_MODE_HASH} ${WRKSRC}/lisp/${f}
++.endfor
+ 
+ do-install:
+-	cd ${WRKSRC}/lisp && ${INSTALL_DATA} *.el*			\
++	cd ${WRKSRC}/lisp && ${INSTALL_DATA} *.el *.elc \
+ 		${DESTDIR}${EMACS_LISPPREFIX}/ess
+-	cd ${WRKSRC}/doc/info; for f in ess.info ess.info-[0-9]*; do	\
+-		${TEST} ! -f "$$f" ||					\
+-		${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_INFOPREFIX};	\
+-        done
+-	cd ${WRKSRC}/etc && ${INSTALL_DATA} icons/*.xpm			\
+-		${DESTDIR}${EMACS_ETCPREFIX}/ess/icons
+-	cd ${WRKSRC}/etc && ${INSTALL_DATA} *.S				\
+-		${DESTDIR}${EMACS_ETCPREFIX}/ess
+-	cd ${WRKSRC}/etc && ${INSTALL_SCRIPT} ess-sas-sh-command	\
+-		${DESTDIR}${EMACS_ETCPREFIX}/ess
+-	cd ${WRKSRC}/etc/ESSR && ${INSTALL_DATA} LOADREMOTE VERSION	\
+-		${DESTDIR}${EMACS_ETCPREFIX}/ess/ESSR
+-	cd ${WRKSRC}/etc/ESSR/R && ${INSTALL_DATA} *.R .*.R		\
+-		${DESTDIR}${EMACS_ETCPREFIX}/ess/ESSR/R
++	cd ${WRKSRC}/doc/info && for f in ess.info ess.info-[0-9]*; do \
++		${TEST} ! -f "$$f" || \
++		${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_INFOPREFIX}; \
++	done
++	cd ${WRKSRC}/etc && ${PAX} -rw -pp . ${DESTDIR}${EMACS_LISPPREFIX}/ess/etc
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/PLIST math/ess/PLIST
+--- /usr/pkgsrc/math/ess/PLIST	2014-02-19 09:19:01.000000000 +0000
++++ math/ess/PLIST	2026-09-21 12:01:35.693293320 +0000
+@@ -1,101 +1,54 @@
+ @comment $NetBSD: PLIST,v 1.9 2014/02/19 09:19:01 markd Exp $
+-${EMACS_INFOPREFIX}/ess.info
+-${EMACS_LISPPREFIX}/ess/ess-arc-d.el
+-${EMACS_LISPPREFIX}/ess/ess-arc-d.elc
++info/ess.info
++${EMACS_LISPPREFIX}/ess/ess-autoloads.el
+ ${EMACS_LISPPREFIX}/ess/ess-bugs-d.el
+ ${EMACS_LISPPREFIX}/ess/ess-bugs-d.elc
+ ${EMACS_LISPPREFIX}/ess/ess-bugs-l.el
+ ${EMACS_LISPPREFIX}/ess/ess-bugs-l.elc
+-${EMACS_LISPPREFIX}/ess/ess-comp.el
+-${EMACS_LISPPREFIX}/ess/ess-comp.elc
+-${EMACS_LISPPREFIX}/ess/ess-compat.el
+-${EMACS_LISPPREFIX}/ess/ess-compat.elc
+ ${EMACS_LISPPREFIX}/ess/ess-custom.el
+ ${EMACS_LISPPREFIX}/ess/ess-custom.elc
+-${EMACS_LISPPREFIX}/ess/ess-dde.el
+-${EMACS_LISPPREFIX}/ess/ess-dde.elc
+-${EMACS_LISPPREFIX}/ess/ess-debug.el
+-${EMACS_LISPPREFIX}/ess/ess-developer.el
+-${EMACS_LISPPREFIX}/ess/ess-developer.elc
+-${EMACS_LISPPREFIX}/ess/ess-eldoc.el
+-${EMACS_LISPPREFIX}/ess/ess-eldoc.elc
+-${EMACS_LISPPREFIX}/ess/ess-font-lock.el
+-${EMACS_LISPPREFIX}/ess/ess-font-lock.elc
+ ${EMACS_LISPPREFIX}/ess/ess-gretl.el
+ ${EMACS_LISPPREFIX}/ess/ess-gretl.elc
+ ${EMACS_LISPPREFIX}/ess/ess-help.el
+ ${EMACS_LISPPREFIX}/ess/ess-help.elc
+ ${EMACS_LISPPREFIX}/ess/ess-inf.el
+ ${EMACS_LISPPREFIX}/ess/ess-inf.elc
+-${EMACS_LISPPREFIX}/ess/ess-install.el
+ ${EMACS_LISPPREFIX}/ess/ess-jags-d.el
+ ${EMACS_LISPPREFIX}/ess/ess-jags-d.elc
+ ${EMACS_LISPPREFIX}/ess/ess-julia.el
+ ${EMACS_LISPPREFIX}/ess/ess-julia.elc
+-${EMACS_LISPPREFIX}/ess/ess-lsp-l.el
+-${EMACS_LISPPREFIX}/ess/ess-lsp-l.elc
+-${EMACS_LISPPREFIX}/ess/ess-menu.el
+-${EMACS_LISPPREFIX}/ess/ess-menu.elc
+ ${EMACS_LISPPREFIX}/ess/ess-mode.el
+ ${EMACS_LISPPREFIX}/ess/ess-mode.elc
+-${EMACS_LISPPREFIX}/ess/ess-mouse.el
+-${EMACS_LISPPREFIX}/ess/ess-mouse.elc
+-${EMACS_LISPPREFIX}/ess/ess-noweb-font-lock-mode.el
+-${EMACS_LISPPREFIX}/ess/ess-noweb-font-lock-mode.elc
+-${EMACS_LISPPREFIX}/ess/ess-noweb-mode.el
+-${EMACS_LISPPREFIX}/ess/ess-noweb-mode.elc
+-${EMACS_LISPPREFIX}/ess/ess-noweb.el
+-${EMACS_LISPPREFIX}/ess/ess-noweb.elc
+-${EMACS_LISPPREFIX}/ess/ess-omg-d.el
+-${EMACS_LISPPREFIX}/ess/ess-omg-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-omg-l.el
+-${EMACS_LISPPREFIX}/ess/ess-omg-l.elc
+-${EMACS_LISPPREFIX}/ess/ess-r-a.el
+-${EMACS_LISPPREFIX}/ess/ess-r-args.el
+-${EMACS_LISPPREFIX}/ess/ess-r-args.elc
+-${EMACS_LISPPREFIX}/ess/ess-r-d.el
+-${EMACS_LISPPREFIX}/ess/ess-r-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-r-gui.el
++${EMACS_LISPPREFIX}/ess/ess-r-completion.el
++${EMACS_LISPPREFIX}/ess/ess-r-completion.elc
++${EMACS_LISPPREFIX}/ess/ess-r-flymake.el
++${EMACS_LISPPREFIX}/ess/ess-r-flymake.elc
++${EMACS_LISPPREFIX}/ess/ess-r-mode.el
++${EMACS_LISPPREFIX}/ess/ess-r-mode.elc
++${EMACS_LISPPREFIX}/ess/ess-r-package.el
++${EMACS_LISPPREFIX}/ess/ess-r-package.elc
++${EMACS_LISPPREFIX}/ess/ess-r-syntax.el
++${EMACS_LISPPREFIX}/ess/ess-r-syntax.elc
++${EMACS_LISPPREFIX}/ess/ess-r-xref.el
++${EMACS_LISPPREFIX}/ess/ess-r-xref.elc
+ ${EMACS_LISPPREFIX}/ess/ess-rd.el
+ ${EMACS_LISPPREFIX}/ess/ess-rd.elc
+ ${EMACS_LISPPREFIX}/ess/ess-rdired.el
+ ${EMACS_LISPPREFIX}/ess/ess-rdired.elc
+ ${EMACS_LISPPREFIX}/ess/ess-roxy.el
+ ${EMACS_LISPPREFIX}/ess/ess-roxy.elc
+-${EMACS_LISPPREFIX}/ess/ess-rutils.el
+-${EMACS_LISPPREFIX}/ess/ess-rutils.elc
+-${EMACS_LISPPREFIX}/ess/ess-s-l.el
+-${EMACS_LISPPREFIX}/ess/ess-s-l.elc
+-${EMACS_LISPPREFIX}/ess/ess-s3-d.el
+-${EMACS_LISPPREFIX}/ess/ess-s3-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-s4-d.el
+-${EMACS_LISPPREFIX}/ess/ess-s4-d.elc
++${EMACS_LISPPREFIX}/ess/ess-s-lang.el
++${EMACS_LISPPREFIX}/ess/ess-s-lang.elc
+ ${EMACS_LISPPREFIX}/ess/ess-sas-a.el
+ ${EMACS_LISPPREFIX}/ess/ess-sas-a.elc
+ ${EMACS_LISPPREFIX}/ess/ess-sas-d.el
+ ${EMACS_LISPPREFIX}/ess/ess-sas-d.elc
+ ${EMACS_LISPPREFIX}/ess/ess-sas-l.el
+ ${EMACS_LISPPREFIX}/ess/ess-sas-l.elc
+-${EMACS_LISPPREFIX}/ess/ess-send.el
+-${EMACS_LISPPREFIX}/ess/ess-send2.el
+ ${EMACS_LISPPREFIX}/ess/ess-site.el
+ ${EMACS_LISPPREFIX}/ess/ess-site.elc
+-${EMACS_LISPPREFIX}/ess/ess-sp3-d.el
+-${EMACS_LISPPREFIX}/ess/ess-sp3-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-sp4-d.el
+-${EMACS_LISPPREFIX}/ess/ess-sp4-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-sp5-d.el
+-${EMACS_LISPPREFIX}/ess/ess-sp5-d.elc
+ ${EMACS_LISPPREFIX}/ess/ess-sp6-d.el
+ ${EMACS_LISPPREFIX}/ess/ess-sp6-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-sp6w-d.el
+-${EMACS_LISPPREFIX}/ess/ess-sp6w-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-sta-d.el
+-${EMACS_LISPPREFIX}/ess/ess-sta-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-sta-l.el
+-${EMACS_LISPPREFIX}/ess/ess-sta-l.elc
+-${EMACS_LISPPREFIX}/ess/ess-swv.el
+-${EMACS_LISPPREFIX}/ess/ess-swv.elc
+ ${EMACS_LISPPREFIX}/ess/ess-toolbar.el
+ ${EMACS_LISPPREFIX}/ess/ess-toolbar.elc
+ ${EMACS_LISPPREFIX}/ess/ess-tracebug.el
+@@ -104,40 +57,43 @@
+ ${EMACS_LISPPREFIX}/ess/ess-trns.elc
+ ${EMACS_LISPPREFIX}/ess/ess-utils.el
+ ${EMACS_LISPPREFIX}/ess/ess-utils.elc
+-${EMACS_LISPPREFIX}/ess/ess-vst-d.el
+-${EMACS_LISPPREFIX}/ess/ess-vst-d.elc
+-${EMACS_LISPPREFIX}/ess/ess-xls-d.el
+-${EMACS_LISPPREFIX}/ess/ess-xls-d.elc
+ ${EMACS_LISPPREFIX}/ess/ess.el
+ ${EMACS_LISPPREFIX}/ess/ess.elc
+ ${EMACS_LISPPREFIX}/ess/essd-els.el
+ ${EMACS_LISPPREFIX}/ess/essd-els.elc
+-${EMACS_LISPPREFIX}/ess/make-regexp.el
+-${EMACS_LISPPREFIX}/ess/make-regexp.elc
+-${EMACS_LISPPREFIX}/ess/mouseme.el
+-${EMACS_LISPPREFIX}/ess/mouseme.elc
+-${EMACS_LISPPREFIX}/ess/msdos.el
+-${EMACS_LISPPREFIX}/ess/msdos.elc
+-${EMACS_ETCPREFIX}/ess/ESSR/LOADREMOTE
+-${EMACS_ETCPREFIX}/ess/ESSR/R/.basic.R
+-${EMACS_ETCPREFIX}/ess/ESSR/R/.load.R
+-${EMACS_ETCPREFIX}/ess/ESSR/R/completion.R
+-${EMACS_ETCPREFIX}/ess/ESSR/R/debug.R
+-${EMACS_ETCPREFIX}/ess/ESSR/R/developer.R
+-${EMACS_ETCPREFIX}/ess/ESSR/R/misc.R
+-${EMACS_ETCPREFIX}/ess/ESSR/VERSION
+-${EMACS_ETCPREFIX}/ess/ess-s4.S
+-${EMACS_ETCPREFIX}/ess/ess-sas-sh-command
+-${EMACS_ETCPREFIX}/ess/ess-sp3.S
+-${EMACS_ETCPREFIX}/ess/function-outline.S
+-${EMACS_ETCPREFIX}/ess/icons/rbuffer.xpm
+-${EMACS_ETCPREFIX}/ess/icons/rfunction.xpm
+-${EMACS_ETCPREFIX}/ess/icons/rline.xpm
+-${EMACS_ETCPREFIX}/ess/icons/rregion.xpm
+-${EMACS_ETCPREFIX}/ess/icons/splus_letter_small.xpm
+-${EMACS_ETCPREFIX}/ess/icons/splus_letters_large.xpm
+-${EMACS_ETCPREFIX}/ess/icons/spluslogo.xpm
+-${EMACS_ETCPREFIX}/ess/icons/startr.xpm
+-${EMACS_ETCPREFIX}/ess/icons/switch_ess.xpm
+-${EMACS_ETCPREFIX}/ess/icons/switchr.xpm
+-${EMACS_ETCPREFIX}/ess/icons/switchs.xpm
++${EMACS_LISPPREFIX}/ess/etc/ESSR.rds
++${EMACS_LISPPREFIX}/ess/etc/ESSR/BUILDESSR
++${EMACS_LISPPREFIX}/ess/etc/ESSR/LOADREMOTE
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/.basic.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/.load.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/completion.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/debug.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/misc.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/mpi.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/ns-eval.R
++${EMACS_LISPPREFIX}/ess/etc/ESSR/R/pkg.R
++${EMACS_LISPPREFIX}/ess/etc/Makefile
++${EMACS_LISPPREFIX}/ess/etc/all.txt
++${EMACS_LISPPREFIX}/ess/etc/ess-julia.jl
++${EMACS_LISPPREFIX}/ess/etc/ess-sas-sh-command
++${EMACS_LISPPREFIX}/ess/etc/func.sas
++${EMACS_LISPPREFIX}/ess/etc/icons/README
++${EMACS_LISPPREFIX}/ess/etc/icons/rbuffer.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/rfunction.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/rline.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/rregion.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/splus_letter_small.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/splus_letters_large.png
++${EMACS_LISPPREFIX}/ess/etc/icons/splus_letters_large.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/spluslogo.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/spluslogo.xpm.safe
++${EMACS_LISPPREFIX}/ess/etc/icons/startr.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/switch_ess.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/switchr.xpm
++${EMACS_LISPPREFIX}/ess/etc/icons/switchs.xpm
++${EMACS_LISPPREFIX}/ess/etc/proc.sas
++${EMACS_LISPPREFIX}/ess/etc/proc.txt
++${EMACS_LISPPREFIX}/ess/julia-mode-latexsubs.el
++${EMACS_LISPPREFIX}/ess/julia-mode-latexsubs.elc
++${EMACS_LISPPREFIX}/ess/julia-mode.el
++${EMACS_LISPPREFIX}/ess/julia-mode.elc
+diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/distinfo math/ess/distinfo
+--- /usr/pkgsrc/math/ess/distinfo	2021-10-26 10:55:39.000000000 +0000
++++ math/ess/distinfo	2026-09-21 12:01:21.179678880 +0000
+@@ -1,7 +1,13 @@
+ $NetBSD: distinfo,v 1.8 2021/10/26 10:55:39 nia Exp $
+ 
+-BLAKE2s (ess-13.09-1.tgz) = dff3171643c868ac0973f97f3d63d4af049ff3a2175da5f26f0b62b7db360e2e
+-SHA512 (ess-13.09-1.tgz) = 846dccb032cb0780fece51c6647dc3e19d737c8b89a36f3bd0509eea7ea3f75a8d50f05f6d00744dc3253b16e40d1ee38190d9e452f3bcb6545379c059e1f7c5
+-Size (ess-13.09-1.tgz) = 3331643 bytes
++BLAKE2s (ess-25.01.0.tar.gz) = 9f0836b36c06b1bd99bad2f51e9bb536c048abba4a6463520b586c63edb1356f
++SHA512 (ess-25.01.0.tar.gz) = 93339ac72220c8aa4cadb4c0e03fa4eb8fc095d84dd5cc27dbc9bc7d3682d9676c9ba05e8568cd3ffdbcdf7c789706413b7f487993e63b2e160c7ea3b4673eb9
++Size (ess-25.01.0.tar.gz) = 691573 bytes
++BLAKE2s (julia-mode-latexsubs.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = 5c9fa1861ac5947a90052dda468249349aed421c9201aa62d9dace3c1ba23a7f
++SHA512 (julia-mode-latexsubs.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = 6414c08a8589f5b105f4bd1733f1f722cd12d8f118ba71167958e75fcc2bb13690abce6c2ebd0063ad44dbba95fa26191b8317ae32d7523e394ec1dd719f9b25
++Size (julia-mode-latexsubs.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = 453405 bytes
++BLAKE2s (julia-mode.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = 29a7e781954274e111c04f406836f18c2378073ff50af57e6b501af999a91bb1
++SHA512 (julia-mode.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = cd1eab18fab0e2c850227f1c4d9e1398ffa3464c74007ec13d6130706268d9741c3badd2d4d7e036041ace169ee6013f1acbd346faa1473a17e7ea0289088ea8
++Size (julia-mode.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = 45682 bytes
+ SHA1 (patch-aa) = 2e2c39c4c98e37cbbb968d605afd3d98a4199e68
+ SHA1 (patch-ab) = 22673b8f70ac9ba952d9e23eb9ca3fcbb18e371b
+diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/patches/patch-aa math/ess/patches/patch-aa
+--- /usr/pkgsrc/math/ess/patches/patch-aa	2014-02-06 09:49:15.000000000 +0000
++++ math/ess/patches/patch-aa	1970-01-01 00:00:00.000000000 +0000
+@@ -1,45 +0,0 @@
+-$NetBSD: patch-aa,v 1.4 2014/02/06 09:49:15 markd Exp $
+-
+---- Makeconf.orig	2013-11-23 00:40:17.000000000 +0000
+-+++ Makeconf
+-@@ -15,15 +15,15 @@
+- ## ETCDIR          Destination of script and icon files
+- ## PREFIX(DESTDIR) Directory prepended to LISPDIR, INFODIR, DOCDIR & ETCDIR
+- ##                 Specify either PREFIX or DESTDIR to over-ride /usr/local
+--DESTDIR=/usr
+--PREFIX=$(DESTDIR)
+-+#DESTDIR=/usr
+-+#PREFIX=$(DESTDIR)
+- #
+- ##__ GNU Emacs __
+--EMACS=emacs
+--SITELISP=$(PREFIX)/share/emacs/site-lisp
+--LISPDIR=$(SITELISP)/ess
+--INFODIR=$(PREFIX)/share/info
+--ETCDIR =$(PREFIX)/share/emacs/etc/ess
+-+#EMACS=emacs
+-+#SITELISP=$(PREFIX)/share/emacs/site-lisp
+-+#LISPDIR=$(SITELISP)/ess
+-+#INFODIR=$(PREFIX)/share/info
+-+#ETCDIR =$(PREFIX)/share/emacs/etc/ess
+- 
+- ##__ XEmacs __
+- #EMACS=$(PREFIX)/bin/xemacs
+-@@ -67,7 +67,7 @@ EMACSBATCH = $(EMACS) -batch -no-site-fi
+- #
+- SHELL = /bin/sh
+- #
+--MAKEINFO = LC_ALL=C LANG=en makeinfo
+-+#MAKEINFO = LC_ALL=C LANG=en makeinfo
+- # new:  MAKEHTML <output>.html  <input>.texi  {necessary to build 'Index'}
+- MAKEHTML = $(MAKEINFO) --html --no-split --css-include=atouchofstyle.css -o
+- ##                            ^^^^^^^^^^ today's bandwidth is fast
+-@@ -77,7 +77,7 @@ MAKETXT  = $(MAKEINFO) --no-validate --p
+- INSTALLDIR = install -d
+- #INSTALLDIR = mkdir -p
+- #
+--INSTALL = cp -p
+-+#INSTALL = cp -p
+- #INSTALL = install
+- #
+- UNINSTALL = rm -f
+diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/patches/patch-ab math/ess/patches/patch-ab
+--- /usr/pkgsrc/math/ess/patches/patch-ab	2014-02-06 09:49:15.000000000 +0000
++++ math/ess/patches/patch-ab	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-ab,v 1.4 2014/02/06 09:49:15 markd Exp $
+-
+---- doc/Makefile.orig	2013-11-28 14:31:07.000000000 +0000
+-+++ doc/Makefile
+-@@ -35,7 +35,7 @@ PDFs = ess.pdf readme.pdf refcard/refcar
+- DVIs = ess.dvi readme.dvi
+- TXTs = ../README ../ANNOUNCE ../NEWS ../ONEWS
+- 
+--all  : info text html dvi pdf
+-+all  : info text
+- docs : info text html
+- info : info/ess.info
+- text : $(TXTs)

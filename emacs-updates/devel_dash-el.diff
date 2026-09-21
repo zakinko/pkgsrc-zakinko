@@ -1,0 +1,23 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/dash-el/Makefile devel/dash-el/Makefile
+--- /usr/pkgsrc/devel/dash-el/Makefile	2024-04-07 18:56:40.000000000 +0000
++++ devel/dash-el/Makefile	2026-09-21 10:56:45.706046337 +0000
+@@ -1,6 +1,6 @@
+ # $NetBSD: Makefile,v 1.1 2024/04/07 18:56:40 ryoon Exp $
+ 
+-DISTNAME=	dash.el-2.19.1
++DISTNAME=	dash.el-2.20.0
+ PKGNAME=	${DISTNAME:C/\.el/-el/}
+ CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=magnars/}
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/dash-el/distinfo devel/dash-el/distinfo
+--- /usr/pkgsrc/devel/dash-el/distinfo	2024-04-07 18:56:40.000000000 +0000
++++ devel/dash-el/distinfo	2026-09-21 10:56:46.824560003 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.1 2024/04/07 18:56:40 ryoon Exp $
+ 
+-BLAKE2s (dash.el-2.19.1.tar.gz) = 1fb2e79763ce8a45149dbcdb28c5104832f7b232ba67bc3187fa231f62075521
+-SHA512 (dash.el-2.19.1.tar.gz) = 6822e0068bf2f2082faa4de47521982eba0117037c333178517eca9e6db1c33a2767b250a6ecbd329d2e2ca9e107d2baf0b025e34ba50f1b60da5bb7da06c195
+-Size (dash.el-2.19.1.tar.gz) = 155540 bytes
++BLAKE2s (dash.el-2.20.0.tar.gz) = 8748899075ff66dffe924219c3441d31c731b989cb0a4c4e39b4e1dafecaa995
++SHA512 (dash.el-2.20.0.tar.gz) = e9a34127907afa477f886e73cc3fe8eaeefbd2248faf7a7bf5e2220d8ffc864d3bccb5621f594df717e94538cd42773cd61e5c793e0a87089b5096f4ba6dd938
++Size (dash.el-2.20.0.tar.gz) = 170532 bytes

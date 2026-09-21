@@ -1,0 +1,31 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/zig-mode/Makefile devel/zig-mode/Makefile
+--- /usr/pkgsrc/devel/zig-mode/Makefile	2022-05-14 22:25:36.000000000 +0000
++++ devel/zig-mode/Makefile	2026-09-21 11:19:28.483327249 +0000
+@@ -1,11 +1,12 @@
+ # $NetBSD: Makefile,v 1.2 2022/05/14 22:25:36 dholland Exp $
+ 
+-DISTNAME=	zig-mode-0.0.20220105
++DISTNAME=	zig-mode-0.0.20251121
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	1
+ CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=ziglang/}
+-GITHUB_TAG=	aa20d630b8c413dab8d6bd120ec3ed5db5c9da70
++GITHUB_TAG=	66490933a468b5d55a90645c4c87067c508ccd04
++
++DEPENDS+=	${EMACS_PKGNAME_PREFIX}reformatter-el>=0.6:../../devel/reformatter-el
+ 
+ MAINTAINER=	pkgsrc-users@NetBSD.org
+ HOMEPAGE=	https://github.com/ziglang/zig-mode/
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/zig-mode/distinfo devel/zig-mode/distinfo
+--- /usr/pkgsrc/devel/zig-mode/distinfo	2022-04-14 13:51:45.000000000 +0000
++++ devel/zig-mode/distinfo	2026-09-21 11:19:28.885595693 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.1 2022/04/14 13:51:45 nikita Exp $
+ 
+-BLAKE2s (zig-mode-0.0.20220105-aa20d630b8c413dab8d6bd120ec3ed5db5c9da70.tar.gz) = 6640acd80f6ad1e141884f6ff84191f0d12f3197f50a1774d7d3a8feb69c46a1
+-SHA512 (zig-mode-0.0.20220105-aa20d630b8c413dab8d6bd120ec3ed5db5c9da70.tar.gz) = f32b67cce74eea1c7ecd22c507f1d49cd501b5c8e506cb05648a023197847401d9b4935827c3c7eba5b2b5cb9aefc590341615b0a90a0abdaa73a17f401140ee
+-Size (zig-mode-0.0.20220105-aa20d630b8c413dab8d6bd120ec3ed5db5c9da70.tar.gz) = 21558 bytes
++BLAKE2s (zig-mode-0.0.20251121-66490933a468b5d55a90645c4c87067c508ccd04.tar.gz) = 76849e975bac8f59467dbfda087c16176a663aaa44bc0da236e7ce984932da83
++SHA512 (zig-mode-0.0.20251121-66490933a468b5d55a90645c4c87067c508ccd04.tar.gz) = d6b8c8f4c9d49abded1d2c5c0fb318241a85181fe00b15e40763d7891f4e1a96dab9203f246ba6b793deebbbade0dcf84fa29aec0cc3ecf0846d710c67721ecd
++Size (zig-mode-0.0.20251121-66490933a468b5d55a90645c4c87067c508ccd04.tar.gz) = 22342 bytes
