@@ -51,6 +51,12 @@ http_code() { # $1=url  [$2.. = extra headers "Name: value"]
 		} | nc -w 5 "$_ip" "$_port" 2>/dev/null | sed -n '1s#^HTTP/[0-9.]* \([0-9][0-9][0-9]\).*#\1#p' | head -1
 	fi
 }
+# OmniOS には cc(1) が無く、gcc だけが入っている。cc を決め打ちすると
+# 探り program も shim も黙って建たず、踏めるはずの CVE が skip になる。
+CC=${CC:-cc}
+command -v "$CC" >/dev/null 2>&1 || CC=gcc
+export CC
+
 # pkgsrc の Makefile が OPSYS ごとに足している定義。tarball から建てる側と
 # 探り program にも同じ物が要る (Linux の sigset、illumos の crypt)。
 case $OS in
@@ -67,7 +73,7 @@ sbuild() { # $1=label $2=applyPatch(yes/no) $3=CCflags -> $T/$1/thttpd
 			( cd "$T/$1" && patch -s -p0 -f < "$DIR/patches/$pp" >/dev/null 2>&1 )
 		done
 	fi
-	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="${CC:-cc} $OSCFLAGS $3" thttpd >bl.log 2>&1 )
+	( cd "$T/$1" && ./configure >/dev/null 2>&1 && make CC="$CC $OSCFLAGS $3" thttpd >bl.log 2>&1 )
 	test -x "$T/$1/thttpd"
 }
 
@@ -130,14 +136,14 @@ C
 # NetBSD と FreeBSD ("*0" を返す箱) に「NULL を返す」印が立ち、
 # 落ちない stock を失敗として数えていた。
 NULLCRYPT=0
-if ${CC:-cc} $OSCFLAGS -o "$T/cr" "$T/cr.c" -lcrypt 2>/dev/null \
-   || ${CC:-cc} $OSCFLAGS -o "$T/cr" "$T/cr.c" 2>/dev/null; then
+if $CC $OSCFLAGS -o "$T/cr" "$T/cr.c" -lcrypt 2>/dev/null \
+   || $CC $OSCFLAGS -o "$T/cr" "$T/cr.c" 2>/dev/null; then
 	"$T/cr" >/dev/null 2>&1 && NULLCRYPT=1
 fi
 PRE=""
 if [ "$NULLCRYPT" = 0 ]; then
 	printf 'char* crypt(const char*k,const char*s){(void)k;(void)s;return 0;}\n' > "$T/shim.c"
-	if ${CC:-cc} $OSCFLAGS -shared -fPIC -o "$T/shim.so" "$T/shim.c" > "$T/shim.err" 2>&1; then
+	if $CC $OSCFLAGS -shared -fPIC -o "$T/shim.so" "$T/shim.c" > "$T/shim.err" 2>&1; then
 		PRE="LD_PRELOAD=$T/shim.so"; echo "  crypt() は NULL を返さない箱。shim で代役"
 	else
 		echo "  crypt() は NULL を返さず shim も作れない。skip"
@@ -166,7 +172,7 @@ fi
 echo "########## CVE-2007-0158 (underflow) on $OS ##########"
 if ! ln -s "" "$T/et" 2>/dev/null; then
 	rm -f "$T/et"; echo "  空 symlink を作れない箱。live テストは skip"
-elif ! echo 'int main(){return 0;}' | ${CC:-cc} -fsanitize=address -x c - -o "$T/at" 2>/dev/null || ! "$T/at" 2>/dev/null; then
+elif ! echo 'int main(){return 0;}' | $CC -fsanitize=address -x c - -o "$T/at" 2>/dev/null || ! "$T/at" 2>/dev/null; then
 	rm -f "$T/et" "$T/at"; echo "  ASan が使えない箱 (未対応か ASLR)。live テストは skip"
 else
 	rm -f "$T/et" "$T/at"
