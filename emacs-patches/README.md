@@ -28,7 +28,7 @@ patch file carries a description and the origin; PKGREVISION is bumped.
 | editors/emacs20 | in batch mode with stdin from /dev/null, the first sleep-for or accept-process-output after a subprocess is started killed Emacs with SIGHUP (exit 129): keyboard.c sends itself SIGHUP when FIONREAD on the input fd fails, and NetBSD answers ENOTSUP for /dev/null. Found with ktrace while testing tamago-tsunagi; treat the failure as no input when noninteractive, as later Emacsen do. A 3-second wait now takes 3 s of wall clock and 0.02 s of CPU | own | — |
 | editors/emacs20 | on a 64-bit host, setting file-name-coding-system (which `set-language-environment "Japanese"` does) made every `insert-file-contents` and `load` fail with "Wrong type argument: stringp, <number>": code_convert_string_norecord returns a Lisp_Object but had no prototype, so fileio.c and five other files called it as an int-returning function and truncated the pointer. Same for Fcurrent_time in frame.c and window.c. Found because inputmethod/tc's build does `(set-language-environment "Japanese")` first. Two prototypes added; the Japanese environment loads files again | own | — |
 | inputmethod/tc | tc-sysdep.el picked the NEmacs code path on Emacs 22 and later (version regexp matched only 19–21), so tcode-redo-command set a variable modern Emacs lacks; its isearch shim read last-command-char, gone since 24; the Makefile's SUBST turning string-to-int into string-to-number lacked the g flag and left one call in eelll.el; tc-mkmzdic built its obarray from nils, which Emacs 30 rejects (Debian). Accepts emacs30/31 now too; built and probed on emacs30 and emacs20 | own; one from Debian | — |
-| editors/xemacs (21.4.25) | the same etags fix; movemail drops the privileged gid around the file operations | Debian xemacs21 | CVE-2022-45939, CVE-2010-0825 |
+| editors/xemacs (21.4.25) | the same etags fix; movemail drops the privileged gid around the file operations; cvtmail's name[14] overruns on a fourteen-digit ~/Messages/Directory entry (fscanf %14[…] stores fifteen bytes) — the stock binary aborts under the stack protector, the patched one converts | Debian xemacs21; OpenBSD (cvtmail) | CVE-2022-45939, CVE-2010-0825 |
 | editors/xemacs-current (21.5.36) | the movemail fix, rebased by hand (the gid assignments sit after the declarations, so -Wdeclaration-after-statement stays quiet); 21.5.36's etags already filters in C, so CVE-2022-45939 does not apply | Debian xemacs21, rebased | CVE-2010-0825 |
 | chat/emacs-jabber | make-obsolete WHEN argument (Emacs 28); autoloads through loaddefs-generate (Emacs 30).  With these it builds on emacs29-31, so they are accepted now | Gentoo, own | |
 | misc/lookup | typo, coding tags, new-style backquotes, set-process-query-on-exit-flag.  Builds on emacs29-31 now, so they are accepted | Debian lookup-el | |
@@ -57,6 +57,28 @@ patch file carries a description and the origin; PKGREVISION is bumped.
   locale.
 - Debian gnuserv 1-fix-bufferovs (already in 3.12.8) and 4-xauth (does
   not apply to 3.12.8).
+- OpenBSD xemacs21: the CVE-2009-2688 image-size checks and the png-1.5
+  calls are in 21.4.25 already; movemail's mktemp→mkstemp changes a
+  lock file that is opened with O_EXCL anyway; the rest is OpenBSD's
+  layout (dump file name, find-paths, ctags.1, no inet gnuserv).  The
+  lisp.h max_align_t clash only shows with a C11 clang and was not
+  built here.
+- Gentoo xemacs 21.5.36: berkdb/postgresql/xaw3d configure choices and
+  test-only changes; the cus-dep lock-file change has no visible effect
+  in a pkgsrc build.
+- MacPorts xemacs: the two png changesets are in 21.4.25; texinfo5 is
+  for 21.4.22's manuals, which build with texinfo 7.2 as they are.
+- Fedora vm marker-pointer: written for a later snapshot whose
+  vm-vs-header already has with-current-buffer; 8.2.0b's does not, the
+  hunk does not apply, and the failure was not reproduced here.
+- FreeBSD howm (--exclude-dir → --exclude, for FreeBSD's grep; howm
+  probes the option itself), dictionary.el (1.11 already guards
+  make-local-hook with featurep xemacs), ess (ess-jags-d moved in 2026
+  git, still present in 25.01.0).
+- Debian xslide (quotes face variables the file defvars to themselves),
+  zenirc (notify rewrite and font-lock: features), howm auto-mode
+  `\'` (lint-level), pcl-cvs 2.0b2 (pkgsrc has 2.9.9), migemo UTF-8
+  and File.foreach (pkgsrc sets Encoding.default_external instead).
 - Gentoo mailcrypt backquotes: the old-style backquote sits in a
   with-current-buffer fallback that never runs on any Emacs pkgsrc has;
   mc-gpg loads unpatched on emacs30 and emacs20, the patch only silences
