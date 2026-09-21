@@ -229,9 +229,11 @@ asan_works() {
 	echo 'int main(){return 0;}' | $CC -fsanitize=address -x c - -o "$T/at" 2>/dev/null \
 	    || { echo "  この箱の $CC は -fsanitize=address を持たない"; return 1; }
 	"$T/at" 2>/dev/null && return 0
-	if command -v paxctl >/dev/null 2>&1 && paxctl -A "$T/at" >/dev/null 2>&1 \
+	# paxctl(8) は小文字が「明示的に無効化」で、大文字は有効化。ASLR を
+	# 切るのは +a であって -A ではない (-A は有効化の印を外すだけ)。
+	if command -v paxctl >/dev/null 2>&1 && paxctl +a "$T/at" >/dev/null 2>&1 \
 	   && "$T/at" 2>/dev/null; then
-		echo "  ASLR が ASan を止めていた。paxctl -A で外して測る"
+		echo "  ASLR が ASan を止めていた。paxctl +a で切って測る"
 		return 0
 	fi
 	echo "  ASan を建てられても走らせられない"
@@ -257,15 +259,23 @@ asan_probe() { # $1=dirlabel $2=binary $3=setup関数 $4=path [$5=auth]
 	# 動いてしまうので、ここまで来ないと分からない。
 	if grep -q 'not compatible with enabled ASLR' "$D/out" 2>/dev/null; then
 		if command -v paxctl >/dev/null 2>&1; then
-			if paxctl -A "$2" >"$D/pax" 2>&1; then
-				echo "    ASLR が ASan を止めていた。paxctl -A で外して撃ち直す"
+			if paxctl +a "$2" >"$D/pax" 2>&1; then
+				echo "    ASLR が ASan を止めていた。paxctl +a で切って撃ち直す"
 				_asan_run "$D" "$2" "$4" "${5:-}"
 			else
-				echo "    paxctl -A が通らない:"; sed 's/^/      /' "$D/pax"
+				echo "    paxctl +a が通らない:"; sed 's/^/      /' "$D/pax"
 			fi
 		else
 			echo "    ASLR が ASan を止めているが paxctl が無い"
 		fi
+	fi
+	# それでも駄目なら、この箱の PaX の効かせ方を出す。global が 1 の
+	# ままだと binary ごとの印が届かないことがある。
+	if grep -q 'not compatible with enabled ASLR' "$D/out" 2>/dev/null; then
+		echo "    まだ ASLR で止まる。この箱の設定:"
+		sysctl security.pax.aslr 2>&1 | sed 's/^/      /' | head -3
+		command -v paxctl >/dev/null 2>&1 && \
+		    { echo "      binary の PaX flag:"; paxctl "$2" 2>&1 | sed 's/^/        /'; }
 	fi
 	ASANOUT="$D/out"
 	# BSD の grep は BRE の \| を解さないので、語を一つだけ渡す。
