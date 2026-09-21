@@ -401,6 +401,19 @@ and remember the rules, so font-lock can be told about them too."
 	    (concat "\\<" (e20-regexp-opt strings t) "\\>")
 	  (e20-regexp-opt strings paren)))))
 
+;;; set-process-query-on-exit-flag (22)
+(or (fboundp 'set-process-query-on-exit-flag)
+    (defun set-process-query-on-exit-flag (process flag)
+      (process-kill-without-query process (not flag))))
+(or (fboundp 'process-query-on-exit-flag)
+    (defun process-query-on-exit-flag (process) t))
+
+;;; obarray-make (25)
+(or (fboundp 'obarray-make)
+    (defun obarray-make (&optional size) (make-vector (or size 59) 0)))
+(or (fboundp 'obarrayp)
+    (defun obarrayp (o) (and (vectorp o) (> (length o) 0))))
+
 ;;; looking-back (22)
 (or (fboundp 'looking-back)
     (defun looking-back (regexp &optional limit greedy)
