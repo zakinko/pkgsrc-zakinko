@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/password-store/password-store.el
+${EMACS_LISPPREFIX}/password-store/password-store.elc

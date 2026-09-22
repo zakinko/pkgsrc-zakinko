@@ -1,0 +1,2 @@
+password-store.el is the Emacs interface to pass, the standard UNIX
+password manager.

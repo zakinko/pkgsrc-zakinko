@@ -442,16 +442,15 @@ What every package has in common:
 | editors/zenburn-el | 20110907 | GitHub | needs color-theme |
 | devel/zenburn-theme-el | 2.11.0 | NonGNU ELPA | NonGNU ELPA; the theme file is no-byte-compile |
 
-## Not built (4)
-
-These are left out of the branch.
+## Built only in CI (3), not built (1)
 
 - editors/password-store-el, editors/password-store-otp-el, editors/pass-el:
   they depend on security/password-store, whose devel/git-base dependency
   did not build on the machine used here (its objects were moved into a
-  trash directory by something in that build environment, and libgit.a
-  never appeared); the elisp itself was not reached
-- editors/rg-el: needs textproc/ripgrep, which needs lang/rust; not built here
+  trash directory by something in that build environment). They are on
+  the branch with hand-written PLISTs, and the CI job (emacs-new.yml),
+  which takes dependencies as binary packages, is what builds them.
+- editors/rg-el: needs textproc/ripgrep, which needs lang/rust; not built
 
 ## Skipped before building (33)
 
