@@ -41,6 +41,9 @@
 
 PKG=${1:-inputmethod/uim}
 
+# ゲストの中の一時置き場
+GUESTTMP=${GUESTTMP:-/tmp}
+
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
@@ -142,6 +145,51 @@ fi
 # pkgsrc の優先順位が 環境変数 < mk.conf < コマンドライン だからで、
 # build-on-bsd.sh が書く mk.conf は mule と共有しているため触りたくない。
 MKARGS="$MKARGS LIBRSVG_TYPE=c"
+
+# その LIBRSVG_TYPE=c が、入っている harfbuzz と食い違う。
+#
+# fonts/harfbuzz/Makefile.common は
+#
+#	.if ${LIBRSVG_TYPE} == "rust"
+#	MESON_ARGS+=	-Dgraphite=enabled
+#	.else
+#	MESON_ARGS+=	-Dgraphite=disabled
+#	.endif
+#	...
+#	.if ${LIBRSVG_TYPE} == "rust"
+#	# graphite2 support breaks graphics/librsvg-c
+#	.include "../../graphics/graphite2/buildlink3.mk"
+#	.endif
+#
+# と一貫している。c なら graphite2 無しで建ち、buildlink も引かない。
+# ところが依存はバイナリ集合から降ろしていて、そこの harfbuzz-14.2.1 には
+# hb-graphite2.h が入っている。つまり graphite2 有効で建っている。その
+# harfbuzz.pc は Requires.private に graphite2 を並べるので、buildlink に
+# graphite2.pc が無いと pkg-config が連鎖を解けず
+#
+#	checking for gtk+-2.0 >= 2.2.0 gdk-x11-2.0... no
+#
+# になって gtk が落ち、gtk2 の 9 個が建たず PLIST と食い違う。graphite2 は
+# 入っていて prefix の .pc も在るのに、buildlink の 185 個の中にだけ居ない、
+# という形で出ていた。当て物のせいではない。素の pkgsrc でも同じ 9 個が欠ける。
+#
+# 現物のほうを設定に合わせる。harfbuzz をここで source から建て直すと
+# -Dgraphite=disabled になり、その .pc は graphite2 を要求しなくなる。
+if [ "${SKIP_HARFBUZZ_REBUILD:-}" != yes ] && [ -d "$TREE/fonts/harfbuzz" ]; then
+	echo "--- harfbuzz を LIBRSVG_TYPE=c で建て直す (集合のものは graphite2 付き) ---"
+	hblog=$GUESTTMP/uim-harfbuzz.log
+	if ( cd "$TREE/fonts/harfbuzz" && $PKGMAKE LIBRSVG_TYPE=c replace ) > "$hblog" 2>&1; then
+		echo "  建て直した"
+	else
+		echo "  建て直せなかった。log の末尾を出す"
+		tail -20 "$hblog"
+	fi
+	if [ -f "$PREFIX/include/harfbuzz/hb-graphite2.h" ]; then
+		echo "  まだ hb-graphite2.h が在る。建て直しが効いていない"
+	else
+		echo "  hb-graphite2.h は無くなった。graphite2 無しの harfbuzz になった"
+	fi
+fi
 MKARGS="$MKARGS DEPENDS_TARGET=bin-install BINPKG_SITES=$BINPKG_SITES"
 
 # X11_TYPE は既定 (native) のまま。netbsd-ci-images のイメージは xbase も
