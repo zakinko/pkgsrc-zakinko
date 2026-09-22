@@ -20,6 +20,10 @@ concurrency:
 
 env:
   PKGS: go-bin
+  # OpenBSD の箱でだけ効く。devel/ncurses の configure が ld.so.hints を
+  # 潰すのを止める当て物が要る。pkgsrc-prs-platforms.yml が既に使っている
+  # ものをそのまま指す。
+  TREE_PATCH: .github/ci/tree-patch-openbsd-all.sh
 
 jobs:
   linux:
@@ -83,12 +87,17 @@ jobs:
           arch: ${{ matrix.arch }}
           envs: 'PKGS'
           run: sh .github/ci/build-on-bsd.sh
+      # devel/ncurses の configure が `ldconfig -v` を走らせ、OpenBSD では
+      # それが /var/run/ld.so.hints を /usr/lib だけで書き直す。/usr/local の
+      # binary が全部 library を見失い、建ちが通ったのに copyback の rsync が
+      # 落ちて job が赤くなっていた。送る diff そのものをここで当てるので、
+      # 報告に貼るものと CI が測るものが同じ一つになる。
       - uses: vmactions/openbsd-vm@v1
         if: matrix.action == 'openbsd-vm'
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS'
+          envs: 'PKGS TREE_PATCH'
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/dragonflybsd-vm@v1
         if: matrix.action == 'dragonflybsd-vm'

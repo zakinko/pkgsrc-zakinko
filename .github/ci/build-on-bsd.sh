@@ -77,8 +77,17 @@ report() {
 	# `ld.so: rsync: can't load library 'liblz4.so.3.3'` で Killed になり、
 	# 緑の建ちが赤い job として出ていた。rc と同じ一覧で貼り直す。
 	if [ "$(uname -s)" = OpenBSD ]; then
-		ldconfig /usr/local/lib /usr/X11R6/lib 2>&1 |
-			sed 's/^/  ldconfig: /' || true
+		_sd=$(ldconfig -r 2>/dev/null |
+			sed -n 's/^[[:space:]]*search directories:[[:space:]]*//p')
+		echo "  ld.so.hints の search directories: ${_sd:-(読めない)}"
+		case $_sd in
+		*/usr/local/lib*)
+			echo "  hints は無事 (ncurses の当て物が効いている)" ;;
+		*)
+			echo "  !! hints が /usr/lib だけになっている。貼り直す"
+			ldconfig /usr/local/lib /usr/X11R6/lib 2>&1 |
+				sed 's/^/  ldconfig: /' || true ;;
+		esac
 	fi
 	[ $rc -eq 0 ] || {
 		echo "=== ここで止まった: $STAGE (exit=$rc) ==="
@@ -199,14 +208,14 @@ echo "ツリー: $(ls -ld "$TREE/mk/bsd.pkg.mk" | awk '{ print $6, $7, $8 }')"
 
 # 本家の木そのものに手を入れたいときの口。上流の bug を直して、その直しが
 # 効くかをここで測るのに使う。TREE_PATCH を設定しなければ何もしない。
+# 空白で区切って複数書ける。書いた順に当たる。
 if [ -n "${TREE_PATCH:-}" ]; then
-	if [ -f "$WS/$TREE_PATCH" ]; then
-		stage "ツリーに当て物をする ($TREE_PATCH)"
-		sh "$WS/$TREE_PATCH" "$TREE" || exit 1
-	else
-		echo "!! TREE_PATCH=$TREE_PATCH が repo に無い" >&2
-		exit 1
-	fi
+	stage "ツリーに当て物をする ($TREE_PATCH)"
+	for _p in $TREE_PATCH; do
+		[ -f "$WS/$_p" ] || {
+			echo "!! TREE_PATCH=$_p が repo に無い" >&2; exit 1; }
+		sh "$WS/$_p" "$TREE" || exit 1
+	done
 fi
 
 # ------------------------------------------------------------------
