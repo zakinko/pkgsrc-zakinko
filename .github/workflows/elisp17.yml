@@ -100,8 +100,13 @@ jobs:
           sudo udevadm trigger --name-match=kvm || true
           # trigger は非同期なので、直後に -w を見ると間に合わないことがある。
           # run 35069883047 では同じ run の中で emacs20 が「KVM 無し」、
-          # emacs21 が「KVM あり」になった。取りこぼすと TCG へ落ちて時間が
-          # 桁で変わるので、待ってから、それでも駄目なら直接開ける。
+          # emacs21 が「KVM あり」になった。
+          #
+          # 遅くなるからではない。netbsd-ci-images の runvm.sh が起動の直前に
+          # もう一度 -w /dev/kvm を見て -enable-kvm を付けるので、ここで
+          # 取りこぼしてもゲストは KVM で動く。実際「KVM 無し」と警告した回も
+          # 起動行は KVM 付きで、所要時間も 23 分と 24 分で変わらなかった。
+          # 直す理由は、警告が嘘をつかないようにするため。
           sudo udevadm settle || true
           if [ -e /dev/kvm ] && [ ! -w /dev/kvm ]; then
             sudo chmod 666 /dev/kvm || true
@@ -168,8 +173,13 @@ jobs:
           sudo udevadm trigger --name-match=kvm || true
           # trigger は非同期なので、直後に -w を見ると間に合わないことがある。
           # run 35069883047 では同じ run の中で emacs20 が「KVM 無し」、
-          # emacs21 が「KVM あり」になった。取りこぼすと TCG へ落ちて時間が
-          # 桁で変わるので、待ってから、それでも駄目なら直接開ける。
+          # emacs21 が「KVM あり」になった。
+          #
+          # 遅くなるからではない。netbsd-ci-images の runvm.sh が起動の直前に
+          # もう一度 -w /dev/kvm を見て -enable-kvm を付けるので、ここで
+          # 取りこぼしてもゲストは KVM で動く。実際「KVM 無し」と警告した回も
+          # 起動行は KVM 付きで、所要時間も 23 分と 24 分で変わらなかった。
+          # 直す理由は、警告が嘘をつかないようにするため。
           sudo udevadm settle || true
           if [ -e /dev/kvm ] && [ ! -w /dev/kvm ]; then
             sudo chmod 666 /dev/kvm || true
