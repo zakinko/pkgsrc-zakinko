@@ -127,9 +127,9 @@ jobs:
         with:
           release: 'r151058'
           envs: 'PKGS'
-          # gcc14 は libsanitizer を無効にして建てられているので、
-          # ASan を持つ物が他に在るかも見る (CVE-2007-0158 の観測に要る)。
-          prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true; pkg install developer/gcc13 || true
+          # gcc14 も gcc13 も libsanitizer を無効にして建てられていて、
+          # どちらも -fsanitize=address を断る。入れても無駄なので戻した。
+          prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
             sh .github/ci/build-on-bsd.sh
@@ -149,7 +149,7 @@ jobs:
       - uses: vmactions/dragonflybsd-vm@v1
         with:
           envs: 'PKGS'
-          # base の gcc は -fsanitize=address を受け付けるが libasan が
-          # 無い。dports の gcc なら runtime ごと入る。
-          prepare: pkg install -y curl; pkg install -y gcc14 || pkg install -y gcc13 || true
+          # base の gcc も dports の gcc14 も libasan を持たない
+          # (cannot find -lasan)。入れても無駄なので戻した。
+          prepare: pkg install -y curl
           run: sh .github/ci/build-on-bsd.sh
