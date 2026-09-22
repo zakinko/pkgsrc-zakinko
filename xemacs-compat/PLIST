@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/xemacs-compat.el
+${EMACS_LISPPREFIX}/xemacs-compat.elc
