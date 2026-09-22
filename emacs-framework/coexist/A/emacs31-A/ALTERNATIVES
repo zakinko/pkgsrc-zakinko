@@ -1,0 +1,5 @@
+bin/emacs @PREFIX@/bin/emacs-31.1
+bin/emacsclient @PREFIX@/bin/emacsclient-31.1
+bin/etags @PREFIX@/bin/etags-31.1
+bin/ctags @PREFIX@/bin/ctags-31.1
+bin/ebrowse @PREFIX@/bin/ebrowse-31.1
