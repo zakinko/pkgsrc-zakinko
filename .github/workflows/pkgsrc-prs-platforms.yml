@@ -40,8 +40,11 @@ on:
         options: [all, xwpe, fail2ban, zls, lua-socket, gdb7, croc, go, openssl, zlib]
         default: all
 
+# target ごとに群を分ける。同じ workflow の別の target を回したら、走って
+# いた方が切られた (openssl の run 35795370136 を zlib の dispatch が
+# 落とした)。同じ target を二度押したときだけ前を切る。
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.target }}
   cancel-in-progress: true
 
 jobs:
