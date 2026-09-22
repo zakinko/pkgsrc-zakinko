@@ -94,6 +94,37 @@ for t in pkg-config pkgconf; do
 done
 printf '  %-12s %s\n' "pkg_info" "$(pkg_info -e pkgconf 2>/dev/null || echo '(pkgconf は入っていない)')"
 
+# OpenBSD 7.9 で落ちたのは --version ではなく、configure が撃つ別の呼び方で
+# ある可能性がある。PKG_PROG_PKG_CONFIG の m4 は
+#
+#	$PKG_CONFIG --atleast-pkgconfig-version 0.9.0
+#
+# を撃ち、そこで Segmentation fault (core dumped) が出て
+#	configure: error: pkg-config not found
+# になった。--version は通っているので、binary そのものではなく呼び方か
+# 環境の側を疑う。configure と同じ形で撃ってみる。
+w=$(command -v pkg-config 2>/dev/null) || w=""
+if [ -n "$w" ]; then
+	echo "  configure と同じ呼び方:"
+	for a in "--atleast-pkgconfig-version 0.9.0" "--exists glib-2.0" "--list-all"; do
+		printf '    %-34s ' "$a"
+		if out=$("$w" $a 2>&1 | head -1); then
+			echo "通る ${out:+($out)}"
+		else
+			st=$?
+			if [ "$st" -gt 128 ]; then
+				echo "signal $((st - 128)) で死んだ"
+			else
+				echo "exit=$st ${out:+: $out}"
+			fi
+		fi
+	done
+	echo "  環境:"
+	printf '    PKG_CONFIG_LIBDIR=%s\n' "${PKG_CONFIG_LIBDIR:-(空)}"
+	printf '    PKG_CONFIG_PATH=%s\n' "${PKG_CONFIG_PATH:-(空)}"
+	printf '    ulimit -s=%s  -d=%s\n' "$(ulimit -s 2>/dev/null)" "$(ulimit -d 2>/dev/null)"
+fi
+
 # ------------------------------------------------------------------
 step "0.5 pkglint"
 # 手元では掛けられない。pkglint は完全な木を要り、mk だけ symlink した偽の木は
