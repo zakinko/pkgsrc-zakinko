@@ -19,3 +19,51 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/semi/Makefile devel/semi/Makefile
 +.include "../../devel/cl-lib-el/buildlink3.mk"
 +.endif
  .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/semi/distinfo devel/semi/distinfo
+--- /usr/pkgsrc/devel/semi/distinfo	2021-10-26 10:19:54.000000000 +0000
++++ devel/semi/distinfo	2026-09-22 19:36:40.051602262 +0000
+@@ -6,5 +6,6 @@
+ BLAKE2s (semi-1.14.6-pgg-gpg.patch) = e6eb0840f3a331eba54fe7039426d14ed2b5b3a5f2cc4b22a8d5727eb76b45ab
+ SHA512 (semi-1.14.6-pgg-gpg.patch) = c9dce41b2c8c408410e7d4f09ded9c37fdf9713dec2e1b812d73b26410e84d2557d6a9f57627e1a6ca425f796e0036949b91e7b22cf6084e8a293e67bc760fda
+ Size (semi-1.14.6-pgg-gpg.patch) = 2357 bytes
++SHA1 (patch-SEMI-MK) = 62083109f6f2c87b0c3774bf0c6436e330e54541
+ SHA1 (patch-ab) = 3d22b94d7609ff9bdbae20f583185a4b330b34b9
+ SHA1 (patch-ac) = c5e7595bafbdc8c85b34d953626d9c4917aad1d6
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/semi/patches/patch-SEMI-MK devel/semi/patches/patch-SEMI-MK
+--- /usr/pkgsrc/devel/semi/patches/patch-SEMI-MK	1970-01-01 00:00:00.000000000 +0000
++++ devel/semi/patches/patch-SEMI-MK	2026-09-22 19:36:39.861070225 +0000
+@@ -0,0 +1,34 @@
++$NetBSD$
++
++Build with XEmacs 21.5.
++
++XEmacs renamed batch-update-directory to batch-update-directory-autoloads
++and changed what it reads: the feature name and the directory both come
++from command-line-args-left, feature name first, rather than the name
++coming from autoload-package-name.  Called the old way it takes the
++directory for the feature name and then has no directory left, so the
++build stops with "Wrong type argument: stringp, nil" before it compiles
++anything.  FLIM-MK in devel/flim already branches this way; this is the
++same branch, with semi in place of flim.
++
++--- SEMI-MK.orig
+++++ SEMI-MK
++@@ -70,9 +70,15 @@
++ (defun compile-semi-package ()
++   (config-semi-package)
++ 
++-  (setq autoload-package-name "semi")
++-  (add-to-list 'command-line-args-left ".")
++-  (batch-update-directory)
+++  (if (fboundp 'batch-update-directory-autoloads)
+++      ;; XEmacs 21.5.19 and newer.
+++      (progn
+++	(add-to-list 'command-line-args-left ".")
+++	(add-to-list 'command-line-args-left "semi")
+++	(batch-update-directory-autoloads))
+++    (setq autoload-package-name "semi")
+++    (add-to-list 'command-line-args-left ".")
+++    (batch-update-directory))
++ 
++   (add-to-list 'command-line-args-left ".")
++   (Custom-make-dependencies)
