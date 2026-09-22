@@ -55,6 +55,14 @@ has no lexical binding to select."
     "Return non-nil if STRING is the empty string."
     (string= string "")))
 
+;; A package that generates its own autoloads calls GNU Emacs's
+;; batch-update-directory.  XEmacs does the same job under a longer name,
+;; so the build dies with a void function before it compiles anything.
+(unless (fboundp 'batch-update-directory)
+  (require 'autoload)
+  (when (fboundp 'batch-update-directory-autoloads)
+    (defalias 'batch-update-directory 'batch-update-directory-autoloads)))
+
 (provide 'xemacs-compat)
 
 ;;; xemacs-compat.el ends here
