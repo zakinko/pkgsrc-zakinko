@@ -20,6 +20,11 @@ concurrency:
 
 env:
   PKGS: go-bin
+  # bash -> bison -> gettext-tools(nls) -> python313 と繋がる。TCG の箱では
+  # この連鎖だけで二時間以上かかり、FreeBSD aarch64 と OpenBSD aarch64/riscv64
+  # が 180 分の timeout に当たっていた (run 35687631661)。測っているのは
+  # go の binary が入って動くかで、nls はそこに関わらないので外す。
+  MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
   # OpenBSD の箱でだけ効く。devel/ncurses の configure が ld.so.hints を
   # 潰すのを止める当て物が要る。pkgsrc-prs-platforms.yml が既に使っている
   # ものをそのまま指す。
@@ -52,7 +57,9 @@ jobs:
   bsd:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # 非 x86 の guest は TCG なので、同じ仕事が三倍以上かかる。x86 は 180 分
+    # で足りている (NetBSD amd64 が 24 分、FreeBSD amd64 が 51 分)。
+    timeout-minutes: ${{ matrix.arch == '' && 180 || 350 }}
     strategy:
       fail-fast: false
       matrix:
@@ -78,14 +85,14 @@ jobs:
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS'
+          envs: 'PKGS MKCONF_EXTRA'
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/freebsd-vm@v1
         if: matrix.action == 'freebsd-vm'
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS'
+          envs: 'PKGS MKCONF_EXTRA'
           run: sh .github/ci/build-on-bsd.sh
       # devel/ncurses の configure が `ldconfig -v` を走らせ、OpenBSD では
       # それが /var/run/ld.so.hints を /usr/lib だけで書き直す。/usr/local の
@@ -97,12 +104,12 @@ jobs:
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS TREE_PATCH'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/dragonflybsd-vm@v1
         if: matrix.action == 'dragonflybsd-vm'
         with:
-          envs: 'PKGS'
+          envs: 'PKGS MKCONF_EXTRA'
           prepare: pkg install -y curl
           run: sh .github/ci/build-on-bsd.sh
 
@@ -129,7 +136,7 @@ jobs:
         if: matrix.action == 'omnios-vm'
         with:
           release: ${{ matrix.release }}
-          envs: 'PKGS'
+          envs: 'PKGS MKCONF_EXTRA'
           prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
@@ -141,13 +148,13 @@ jobs:
       - uses: vmactions/openindiana-vm@v1
         if: matrix.action == 'openindiana-vm'
         with:
-          envs: 'PKGS'
+          envs: 'PKGS MKCONF_EXTRA'
           prepare: pkg install developer/gcc-14 developer/build/gnu-make web/curl || true
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/solaris-vm@v1
         if: matrix.action == 'solaris-vm'
         with:
           release: ${{ matrix.release }}
-          envs: 'PKGS'
+          envs: 'PKGS MKCONF_EXTRA'
           prepare: pkg install --accept developer/gcc developer/build/gnu-make || true
           run: sh .github/ci/build-on-bsd.sh
