@@ -1,6 +1,4 @@
-Binary files /usr/pkgsrc/devel/apel/._files and devel/apel/._files differ
-Binary files /usr/pkgsrc/devel/apel/._patches and devel/apel/._patches differ
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
 --- /usr/pkgsrc/devel/apel/Makefile	2026-09-18 05:45:02.008721410 +0000
 +++ devel/apel/Makefile	2026-09-21 21:07:01.592067883 +0000
 @@ -1,12 +1,11 @@
@@ -84,7 +82,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/Makefile devel/apel/Makefile
 +		    "${DESTDIR}${EMACS_LISPPREFIX}/apel" nil))' NONE
 +.endif
  .include "../../mk/bsd.pkg.mk"
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/PLIST.xemacs devel/apel/PLIST.xemacs
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/PLIST.xemacs devel/apel/PLIST.xemacs
 --- /usr/pkgsrc/devel/apel/PLIST.xemacs	2009-06-14 17:48:33.000000000 +0000
 +++ devel/apel/PLIST.xemacs	2026-09-21 21:07:02.063940984 +0000
 @@ -63,5 +63,3 @@
@@ -93,7 +91,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/PLIST.xemacs devel/apel/PLIST.xe
  ${EMACS_LISPPREFIX}/apel/static.elc
 -${EMACS_LISPPREFIX}/apel/timezone.el
 -${EMACS_LISPPREFIX}/apel/timezone.elc
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 --- /usr/pkgsrc/devel/apel/distinfo	2022-01-31 00:17:58.000000000 +0000
 +++ devel/apel/distinfo	2026-09-22 01:23:20.296924505 +0000
 @@ -1,5 +1,22 @@
@@ -122,18 +120,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 +SHA1 (patch-poem-e20_3.el) = 06ef84c86fb290657402b10ae695575206052bf3
 +SHA1 (patch-poem.el) = 93f4b95175ffe71a5a88a660e6f95011c01cfa2a
 +SHA1 (patch-product.el) = 03e692126e9682b5158bc1250abe8b3fa9aa5a38
-Binary files /usr/pkgsrc/devel/apel/files/._inv-19.el and devel/apel/files/._inv-19.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._inv-xemacs.el and devel/apel/files/._inv-xemacs.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._mcs-ltn1.el and devel/apel/files/._mcs-ltn1.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._mcs-xm.el and devel/apel/files/._mcs-xm.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._mcs-xmu.el and devel/apel/files/._mcs-xmu.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._pces-raw.el and devel/apel/files/._pces-raw.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._pces-xfc.el and devel/apel/files/._pces-xfc.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._pces-xm.el and devel/apel/files/._pces-xm.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._poe-xemacs.el and devel/apel/files/._poe-xemacs.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._poem-ltn1.el and devel/apel/files/._poem-ltn1.el differ
-Binary files /usr/pkgsrc/devel/apel/files/._poem-xm.el and devel/apel/files/._poem-xm.el differ
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/inv-19.el devel/apel/files/inv-19.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/inv-19.el devel/apel/files/inv-19.el
 --- /usr/pkgsrc/devel/apel/files/inv-19.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/inv-19.el	2026-09-21 16:59:53.557613406 +0000
 @@ -0,0 +1,61 @@
@@ -198,7 +185,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/inv-19.el devel/apel/files
 +(product-provide (provide 'inv-19) (require 'apel-ver))
 +
 +;;; inv-19.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/inv-xemacs.el devel/apel/files/inv-xemacs.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/inv-xemacs.el devel/apel/files/inv-xemacs.el
 --- /usr/pkgsrc/devel/apel/files/inv-xemacs.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/inv-xemacs.el	2026-09-21 16:59:53.567079311 +0000
 @@ -0,0 +1,68 @@
@@ -270,7 +257,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/inv-xemacs.el devel/apel/f
 +(product-provide (provide 'inv-xemacs) (require 'apel-ver))
 +
 +;;; inv-xemacs.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-ltn1.el devel/apel/files/mcs-ltn1.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/mcs-ltn1.el devel/apel/files/mcs-ltn1.el
 --- /usr/pkgsrc/devel/apel/files/mcs-ltn1.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/mcs-ltn1.el	2026-09-21 16:59:53.577721845 +0000
 @@ -0,0 +1,110 @@
@@ -384,7 +371,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-ltn1.el devel/apel/fil
 +(product-provide (provide 'mcs-ltn1) (require 'apel-ver))
 +
 +;;; mcs-ltn1.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-xm.el devel/apel/files/mcs-xm.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/mcs-xm.el devel/apel/files/mcs-xm.el
 --- /usr/pkgsrc/devel/apel/files/mcs-xm.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/mcs-xm.el	2026-09-21 16:59:53.586081622 +0000
 @@ -0,0 +1,202 @@
@@ -590,7 +577,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-xm.el devel/apel/files
 +(product-provide (provide 'mcs-xm) (require 'apel-ver))
 +
 +;;; mcs-xm.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-xmu.el devel/apel/files/mcs-xmu.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/mcs-xmu.el devel/apel/files/mcs-xmu.el
 --- /usr/pkgsrc/devel/apel/files/mcs-xmu.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/mcs-xmu.el	2026-09-21 16:59:53.594054189 +0000
 @@ -0,0 +1,101 @@
@@ -695,7 +682,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/mcs-xmu.el devel/apel/file
 +(product-provide (provide 'mcs-xmu) (require 'apel-ver))
 +
 +;;; mcs-xmu.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-raw.el devel/apel/files/pces-raw.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/pces-raw.el devel/apel/files/pces-raw.el
 --- /usr/pkgsrc/devel/apel/files/pces-raw.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/pces-raw.el	2026-09-21 16:59:53.601839588 +0000
 @@ -0,0 +1,172 @@
@@ -871,7 +858,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-raw.el devel/apel/fil
 +(product-provide (provide 'pces-raw) (require 'apel-ver))
 +
 +;;; pces-raw.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-xfc.el devel/apel/files/pces-xfc.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/pces-xfc.el devel/apel/files/pces-xfc.el
 --- /usr/pkgsrc/devel/apel/files/pces-xfc.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/pces-xfc.el	2026-09-21 16:59:53.612561414 +0000
 @@ -0,0 +1,48 @@
@@ -923,7 +910,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-xfc.el devel/apel/fil
 +(product-provide (provide 'pces-xfc) (require 'apel-ver))
 +
 +;;; pces-xfc.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-xm.el devel/apel/files/pces-xm.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/pces-xm.el devel/apel/files/pces-xm.el
 --- /usr/pkgsrc/devel/apel/files/pces-xm.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/pces-xm.el	2026-09-21 16:59:53.620927899 +0000
 @@ -0,0 +1,78 @@
@@ -1005,7 +992,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/pces-xm.el devel/apel/file
 +(product-provide (provide 'pces-xm) (require 'apel-ver))
 +
 +;;; pces-xm.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poe-xemacs.el devel/apel/files/poe-xemacs.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/poe-xemacs.el devel/apel/files/poe-xemacs.el
 --- /usr/pkgsrc/devel/apel/files/poe-xemacs.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/poe-xemacs.el	2026-09-21 16:59:53.630233387 +0000
 @@ -0,0 +1,239 @@
@@ -1248,7 +1235,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poe-xemacs.el devel/apel/f
 +(product-provide (provide 'poe-xemacs) (require 'apel-ver))
 +
 +;;; poe-xemacs.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poem-ltn1.el devel/apel/files/poem-ltn1.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/poem-ltn1.el devel/apel/files/poem-ltn1.el
 --- /usr/pkgsrc/devel/apel/files/poem-ltn1.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/poem-ltn1.el	2026-09-21 16:59:53.638528455 +0000
 @@ -0,0 +1,154 @@
@@ -1406,7 +1393,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poem-ltn1.el devel/apel/fi
 +(product-provide (provide 'poem-ltn1) (require 'apel-ver))
 +
 +;;; poem-ltn1.el ends here
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poem-xm.el devel/apel/files/poem-xm.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/files/poem-xm.el devel/apel/files/poem-xm.el
 --- /usr/pkgsrc/devel/apel/files/poem-xm.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/files/poem-xm.el	2026-09-21 16:59:53.646769939 +0000
 @@ -0,0 +1,99 @@
@@ -1509,24 +1496,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/files/poem-xm.el devel/apel/file
 +(product-provide (provide 'poem-xm) (require 'apel-ver))
 +
 +;;; poem-xm.el ends here
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-EMU-ELS and devel/apel/patches/._patch-EMU-ELS differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-calist.el and devel/apel/patches/._patch-calist.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-emu.el and devel/apel/patches/._patch-emu.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-filename.el and devel/apel/patches/._patch-filename.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-install.el and devel/apel/patches/._patch-install.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-invisible.el and devel/apel/patches/._patch-invisible.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-mcharset.el and devel/apel/patches/._patch-mcharset.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-mcs-20.el and devel/apel/patches/._patch-mcs-20.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-mcs-e20.el and devel/apel/patches/._patch-mcs-e20.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-pccl-20.el and devel/apel/patches/._patch-pccl-20.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-pccl.el and devel/apel/patches/._patch-pccl.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-pces-e20.el and devel/apel/patches/._patch-pces-e20.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-pces.el and devel/apel/patches/._patch-pces.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-poe.el and devel/apel/patches/._patch-poe.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-poem-e20_3.el and devel/apel/patches/._patch-poem-e20_3.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-poem.el and devel/apel/patches/._patch-poem.el differ
-Binary files /usr/pkgsrc/devel/apel/patches/._patch-product.el and devel/apel/patches/._patch-product.el differ
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel/patches/patch-EMU-ELS
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel/patches/patch-EMU-ELS
 --- /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-EMU-ELS	2026-09-21 21:05:35.925091494 +0000
 @@ -0,0 +1,117 @@
@@ -1647,7 +1617,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-EMU-ELS devel/apel
 + 
 +    ;; emu modules; provided for backward compatibility with old "tm".
 +    '(emu)
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-calist.el devel/apel/patches/patch-calist.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-calist.el devel/apel/patches/patch-calist.el
 --- /usr/pkgsrc/devel/apel/patches/patch-calist.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-calist.el	2026-09-21 16:59:53.320340111 +0000
 @@ -0,0 +1,36 @@
@@ -1687,7 +1657,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-calist.el devel/ap
 + 		   ))
 + 	     (catch 'tag
 + 	       (while values
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-emu.el devel/apel/patches/patch-emu.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-emu.el devel/apel/patches/patch-emu.el
 --- /usr/pkgsrc/devel/apel/patches/patch-emu.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-emu.el	2026-09-21 16:59:53.333651278 +0000
 @@ -0,0 +1,131 @@
@@ -1822,7 +1792,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-emu.el devel/apel/
 + 
 + ;;; @ end
 + ;;;
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-filename.el devel/apel/patches/patch-filename.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-filename.el devel/apel/patches/patch-filename.el
 --- /usr/pkgsrc/devel/apel/patches/patch-filename.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-filename.el	2026-09-21 16:59:53.345091481 +0000
 @@ -0,0 +1,18 @@
@@ -1844,7 +1814,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-filename.el devel/
 +     ((?! ?\" ?# ?$ ?% ?& ?' ?\( ?\) ?* ?/
 + 	 ?: ?\; ?< ?> ?? ?\[ ?\\ ?\] ?` ?{ ?| ?}) . "_")
 +     (filename-control-p . ""))
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-install.el devel/apel/patches/patch-install.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-install.el devel/apel/patches/patch-install.el
 --- /usr/pkgsrc/devel/apel/patches/patch-install.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-install.el	2026-09-21 16:59:53.356424559 +0000
 @@ -0,0 +1,201 @@
@@ -2049,7 +2019,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-install.el devel/a
 + 
 + 
 + ;;; @ Other Utilities
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-invisible.el devel/apel/patches/patch-invisible.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-invisible.el devel/apel/patches/patch-invisible.el
 --- /usr/pkgsrc/devel/apel/patches/patch-invisible.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-invisible.el	2026-09-21 16:59:53.367148426 +0000
 @@ -0,0 +1,24 @@
@@ -2077,7 +2047,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-invisible.el devel
 + 
 + 
 + ;;; @ end
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcharset.el devel/apel/patches/patch-mcharset.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-mcharset.el devel/apel/patches/patch-mcharset.el
 --- /usr/pkgsrc/devel/apel/patches/patch-mcharset.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-mcharset.el	2026-09-21 16:59:53.384511565 +0000
 @@ -0,0 +1,49 @@
@@ -2130,7 +2100,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcharset.el devel/
 + (defun charsets-to-mime-charset (charsets)
 +   "Return MIME charset from list of charset CHARSETS.
 + Return nil if suitable mime-charset is not found."
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/apel/patches/patch-mcs-20.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/apel/patches/patch-mcs-20.el
 --- /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-mcs-20.el	2026-09-21 21:09:30.792871058 +0000
 @@ -0,0 +1,249 @@
@@ -2383,7 +2353,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-20.el devel/ap
 + 
 + (defun write-region-as-mime-charset (charset start end filename
 + 					     &optional append visit lockname)
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-e20.el devel/apel/patches/patch-mcs-e20.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-mcs-e20.el devel/apel/patches/patch-mcs-e20.el
 --- /usr/pkgsrc/devel/apel/patches/patch-mcs-e20.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-mcs-e20.el	2026-09-21 16:59:53.415641664 +0000
 @@ -0,0 +1,193 @@
@@ -2580,7 +2550,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-mcs-e20.el devel/a
 + 
 + 
 + ;;; @ end
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pccl-20.el devel/apel/patches/patch-pccl-20.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-pccl-20.el devel/apel/patches/patch-pccl-20.el
 --- /usr/pkgsrc/devel/apel/patches/patch-pccl-20.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-pccl-20.el	2026-09-21 17:01:17.034512862 +0000
 @@ -0,0 +1,96 @@
@@ -2680,7 +2650,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pccl-20.el devel/a
 + 
 +   (when-broken ccl-accept-symbol-as-program
 + 
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pccl.el devel/apel/patches/patch-pccl.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-pccl.el devel/apel/patches/patch-pccl.el
 --- /usr/pkgsrc/devel/apel/patches/patch-pccl.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-pccl.el	2026-09-21 16:59:53.442179706 +0000
 @@ -0,0 +1,153 @@
@@ -2837,7 +2807,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pccl.el devel/apel
 + 
 + ;;; @ end
 + ;;;
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces-e20.el devel/apel/patches/patch-pces-e20.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-pces-e20.el devel/apel/patches/patch-pces-e20.el
 --- /usr/pkgsrc/devel/apel/patches/patch-pces-e20.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-pces-e20.el	2026-09-21 16:59:53.455585582 +0000
 @@ -0,0 +1,20 @@
@@ -2861,7 +2831,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces-e20.el devel/
 +   "Return OBJ if it is a coding-system."
 +   (if (coding-system-p obj)
 +       obj))
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel/patches/patch-pces.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel/patches/patch-pces.el
 --- /usr/pkgsrc/devel/apel/patches/patch-pces.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-pces.el	2026-09-21 16:59:53.472041634 +0000
 @@ -0,0 +1,40 @@
@@ -2905,7 +2875,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel
 + 
 + 	 
 + ;;; @ end
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/patches/patch-poe.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/patches/patch-poe.el
 --- /usr/pkgsrc/devel/apel/patches/patch-poe.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-poe.el	2026-09-22 01:23:19.915214819 +0000
 @@ -0,0 +1,1685 @@
@@ -4594,7 +4564,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + 
 + ;;; @ End.
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poem-e20_3.el devel/apel/patches/patch-poem-e20_3.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-poem-e20_3.el devel/apel/patches/patch-poem-e20_3.el
 --- /usr/pkgsrc/devel/apel/patches/patch-poem-e20_3.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-poem-e20_3.el	2026-09-21 16:59:53.505793158 +0000
 @@ -0,0 +1,18 @@
@@ -4616,7 +4586,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poem-e20_3.el deve
 + 
 + ;;; @ string
 + ;;;
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poem.el devel/apel/patches/patch-poem.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-poem.el devel/apel/patches/patch-poem.el
 --- /usr/pkgsrc/devel/apel/patches/patch-poem.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-poem.el	2026-09-21 16:59:53.521797251 +0000
 @@ -0,0 +1,77 @@
@@ -4697,7 +4667,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poem.el devel/apel
 +   "Return the octet numbered N (should be 0 or 1) of char CH.
 + N defaults to 0 if omitted. [XEmacs-mule emulating function]"
 +   (or (nth (if n
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-product.el devel/apel/patches/patch-product.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/apel/patches/patch-product.el devel/apel/patches/patch-product.el
 --- /usr/pkgsrc/devel/apel/patches/patch-product.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/apel/patches/patch-product.el	2026-09-21 16:59:53.536019962 +0000
 @@ -0,0 +1,122 @@

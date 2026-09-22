@@ -1,9 +1,8 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/Makefile math/ess/Makefile
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/math/ess/Makefile math/ess/Makefile
 --- /usr/pkgsrc/math/ess/Makefile	2022-06-28 11:34:36.000000000 +0000
-+++ math/ess/Makefile	2026-09-21 12:01:20.803282438 +0000
++++ math/ess/Makefile	2026-09-22 09:56:01.755162073 +0000
 @@ -1,53 +1,59 @@
--# $NetBSD: Makefile,v 1.38 2022/06/28 11:34:36 wiz Exp $
-+# $NetBSD: Makefile,v 1.41 2026/09/12 14:31:50 wiz Exp $
+ # $NetBSD: Makefile,v 1.38 2022/06/28 11:34:36 wiz Exp $
  
 -DISTNAME=	ess-13.09-1
 -PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/-1$/.1/}
@@ -95,7 +94,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/Makefile math/ess/Makefile
  
  .include "../../editors/emacs/modules.mk"
  .include "../../mk/bsd.pkg.mk"
-diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/PLIST math/ess/PLIST
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/math/ess/PLIST math/ess/PLIST
 --- /usr/pkgsrc/math/ess/PLIST	2014-02-19 09:19:01.000000000 +0000
 +++ math/ess/PLIST	2026-09-21 12:01:35.693293320 +0000
 @@ -1,101 +1,54 @@
@@ -293,7 +292,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/PLIST math/ess/PLIST
 +${EMACS_LISPPREFIX}/ess/julia-mode-latexsubs.elc
 +${EMACS_LISPPREFIX}/ess/julia-mode.el
 +${EMACS_LISPPREFIX}/ess/julia-mode.elc
-diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/distinfo math/ess/distinfo
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/math/ess/distinfo math/ess/distinfo
 --- /usr/pkgsrc/math/ess/distinfo	2021-10-26 10:55:39.000000000 +0000
 +++ math/ess/distinfo	2026-09-21 12:01:21.179678880 +0000
 @@ -1,7 +1,13 @@
@@ -313,7 +312,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/distinfo math/ess/distinfo
 +Size (julia-mode.el-af4efef00b3d7126cb241073a7b14903b310e1fd) = 45682 bytes
  SHA1 (patch-aa) = 2e2c39c4c98e37cbbb968d605afd3d98a4199e68
  SHA1 (patch-ab) = 22673b8f70ac9ba952d9e23eb9ca3fcbb18e371b
-diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/patches/patch-aa math/ess/patches/patch-aa
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/math/ess/patches/patch-aa math/ess/patches/patch-aa
 --- /usr/pkgsrc/math/ess/patches/patch-aa	2014-02-06 09:49:15.000000000 +0000
 +++ math/ess/patches/patch-aa	1970-01-01 00:00:00.000000000 +0000
 @@ -1,45 +0,0 @@
@@ -362,7 +361,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/patches/patch-aa math/ess/patches/
 - #INSTALL = install
 - #
 - UNINSTALL = rm -f
-diff -ruN -x CVS -x work /usr/pkgsrc/math/ess/patches/patch-ab math/ess/patches/patch-ab
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/math/ess/patches/patch-ab math/ess/patches/patch-ab
 --- /usr/pkgsrc/math/ess/patches/patch-ab	2014-02-06 09:49:15.000000000 +0000
 +++ math/ess/patches/patch-ab	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
