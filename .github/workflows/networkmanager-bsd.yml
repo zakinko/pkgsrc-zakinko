@@ -234,9 +234,9 @@ jobs:
           if [ -w /dev/kvm ]; then
             echo "KVM あり"
           elif [ -e /dev/kvm ]; then
-            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
           else
-            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
           fi
 
       - name: 組んで確かめる

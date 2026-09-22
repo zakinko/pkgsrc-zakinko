@@ -80,18 +80,23 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm || true
-          # trigger は非同期。settle で待ち、駄目なら chmod する。待たずに -w を
-          # 読んで負けると TCG に落ち、そのまま何時間も回る (run 35069883047 は
-          # 四つの job が違う答えを出し、負けた二つが 3h20m と 3h30m かかった)。
+          # trigger は非同期なので、待たずに -w を読むと負けることがある
+          # (run 35069883047 は四つの job が違う答えを出した)。settle で待ち、
+          # 駄目なら chmod する。
+          #
+          # 負けても遅くはならない。accel を決めるのはここではなく、後から
+          # 見直す側 (netbsd-ci-images の runvm.sh、run-freebsd-i386.sh の
+          # accel=kvm:tcg、vmactions 自身の chmod) で、そのときには規則が
+          # 当たっている。ここを直す理由は、警告が嘘をつかないようにするため。
           sudo udevadm settle --timeout=10 || true
           [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
           # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
           if [ -w /dev/kvm ]; then
             echo "KVM あり"
           elif [ -e /dev/kvm ]; then
-            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
           else
-            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
           fi
       - name: 建てて確かめる
         env:

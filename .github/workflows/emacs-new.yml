@@ -43,7 +43,8 @@ jobs:
           sudo udevadm trigger --name-match=kvm || true
           sudo udevadm settle --timeout=10 || true
           [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
-          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::/dev/kvm が使えない。TCG になり相当遅い"
+          # 負けても遅くはならない。accel は起動時に再判定される。
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::/dev/kvm が使えない (起動時に再判定される)"
 
       - name: 組む
         env:
