@@ -1,0 +1,38 @@
+--- lang/go/version.mk.orig
++++ lang/go/version.mk
+@@ -26,12 +26,32 @@
+ GOVERSSUFFIX=		${GO_VERSION_DEFAULT}
+ .endif
+ 
+-# How to find the Go tool
+-GO=			${TOOLBASE}/go${GOVERSSUFFIX}/bin/go
++# GO_TYPE picks which Go toolchain builds Go packages.  "src" is
++# lang/go${GOVERSSUFFIX}, built from source; "bin" is the upstream binary
++# release packaged as lang/go-bin.
++#
++# Two things fall back to "src" whatever the user asked for: a package
++# that pins a release with GO_VERSION_REQD needs that release, and a
++# platform for which upstream publishes no binary has nothing to
++# install.  Falling back rather than failing is what makes GO_TYPE=bin
++# safe to put in mk.conf: the same file is read on every machine, and
++# the ones upstream does not build for should keep working.
++GO_TYPE?=		src
+ 
+-# Build dependency for Go
++.include "../../lang/go-bin/platforms.mk"
++
++.if ${GO_TYPE} == "bin" && !defined(GO_VERSION_REQD) && \
++    ${GO_BIN_SUPPORTED} == "yes"
++GO_DIR=			go-bin
++GO_PACKAGE_DEP=		go-bin>=${GO${GOVERSSUFFIX}_VERSION:R}:../../lang/go-bin
++.else
++GO_DIR=			go${GOVERSSUFFIX}
+ GO_PACKAGE_DEP=		go${GOVERSSUFFIX}-${GO${GOVERSSUFFIX}_VERSION}*:../../lang/go${GOVERSSUFFIX}
++.endif
+ 
++# How to find the Go tool
++GO=			${TOOLBASE}/${GO_DIR}/bin/go
++
+ #ONLY_FOR_PLATFORM?=	*-*-i386 *-*-x86_64 *-*-earmv[67]hf *-*-aarch64
+ 
+ NOT_FOR_PLATFORM=	SunOS-*-i386

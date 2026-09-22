@@ -1,0 +1,99 @@
+--- lang/rust/platform.mk.orig
++++ lang/rust/platform.mk
+@@ -22,6 +22,34 @@
+ RUST_TYPE?=	bin
+ .endif
+ 
++# The platforms lang/rust-bin has a binary for.  The first group is what
++# upstream publishes; the second is what he@NetBSD.org builds and puts in
++# the pkgsrc distfile mirror.  lang/rust-bin turns this into its
++# ONLY_FOR_PLATFORM, and rust.mk asks whether RUST_TYPE=bin can be
++# honoured here, so the two can never disagree.
++.for rust_bin_platform in \
++	Darwin-*-aarch64 Darwin-*-x86_64 \
++	FreeBSD-*-x86_64 \
++	Linux-*-aarch64 Linux-*-i386 Linux-*-x86_64 \
++	NetBSD-*-x86_64 \
++	NetBSD-*-aarch64 NetBSD-*-aarch64eb \
++	NetBSD-*-earmv7hf NetBSD-*-earmv6hf \
++	NetBSD-*-i386 NetBSD-*-powerpc NetBSD-*-sparc64 \
++	NetBSD-*-mipsel NetBSD-*-riscv64 \
++	SunOS-*-x86_64
++# The bootstraps were built for NetBSD 9 or newer; -8's gcc is too old.
++.  if ${OPSYS} != "NetBSD" || empty(OS_VERSION:M[0-8].*)
++RUST_BIN_PLATFORMS+=	${rust_bin_platform}
++.  endif
++.endfor
++
++.for rust_bin_platform in ${RUST_BIN_PLATFORMS}
++.  if !empty(MACHINE_PLATFORM:M${rust_bin_platform})
++PLATFORM_SUPPORTS_RUST_BIN?=	yes
++.  endif
++.endfor
++PLATFORM_SUPPORTS_RUST_BIN?=	no
++
+ RUST_DIR?=	../../lang/rust
+ 
+ .for rust_platform in ${RUST_PLATFORMS}
+--- lang/rust/rust.mk.orig
++++ lang/rust/rust.mk
+@@ -47,15 +47,18 @@
+ RUST_TYPE?=	src
+ .endif
+ 
+-.if ${RUST_TYPE} == "bin"
++# "bin" only means anything where lang/rust-bin has a binary.  Asking for
++# it elsewhere falls back to "src" rather than failing, so that a single
++# RUST_TYPE=bin in mk.conf does not break the machines upstream does not
++# build for.  "native" is the user's own rustup, and is taken at their
++# word.
++.if ${RUST_TYPE} == "bin" && ${PLATFORM_SUPPORTS_RUST_BIN} == "yes"
+ .  if ${RUST_RUNTIME} == "no"
+ BUILDLINK_DEPMETHOD.rust-bin?=		build
+ .  endif
+ BUILDLINK_API_DEPENDS.rust-bin+=	rust-bin>=${RUST_REQ}
+ .  include "${RUST_DIR}-bin/buildlink3.mk"
+-.endif
+-
+-.if ${RUST_TYPE} == "src"
++.elif ${RUST_TYPE} != "native"
+ .  if ${RUST_RUNTIME} == "no"
+ BUILDLINK_DEPMETHOD.rust?=		build
+ .  endif
+--- lang/rust-bin/Makefile.orig
++++ lang/rust-bin/Makefile
+@@ -13,28 +13,13 @@
+ 
+ CONFLICTS+=	rust-[0-9]*
+ 
+-# Rust upstream provided binaries
+-ONLY_FOR_PLATFORM+=	Darwin-*-aarch64
+-ONLY_FOR_PLATFORM+=	Darwin-*-x86_64
+-ONLY_FOR_PLATFORM+=	FreeBSD-*-x86_64
+-ONLY_FOR_PLATFORM+=	Linux-*-aarch64
+-ONLY_FOR_PLATFORM+=	Linux-*-i386
+-ONLY_FOR_PLATFORM+=	Linux-*-x86_64
+-ONLY_FOR_PLATFORM+=	NetBSD-*-x86_64
++# The list lives in lang/rust/platform.mk so that rust.mk can ask the
++# same question when it decides whether RUST_TYPE=bin can be honoured.
++.include "../../lang/rust/platform.mk"
+ 
+-# he@NetBSD.org provided binaries
+-ONLY_FOR_PLATFORM+=	NetBSD-*-aarch64
+-ONLY_FOR_PLATFORM+=	NetBSD-*-aarch64eb
+-ONLY_FOR_PLATFORM+=	NetBSD-*-earmv7hf
+-ONLY_FOR_PLATFORM+=	NetBSD-*-earmv6hf
+-ONLY_FOR_PLATFORM+=	NetBSD-*-i386
+-ONLY_FOR_PLATFORM+=	NetBSD-*-powerpc
+-ONLY_FOR_PLATFORM+=	NetBSD-*-sparc64
+-ONLY_FOR_PLATFORM+=	NetBSD-*-mipsel
+-ONLY_FOR_PLATFORM+=	NetBSD-*-riscv64
+-
+-# Illumos, jperkin@ provided binaries
+-ONLY_FOR_PLATFORM+=	SunOS-*-x86_64
++.for rust_bin_platform in ${RUST_BIN_PLATFORMS}
++ONLY_FOR_PLATFORM+=	${rust_bin_platform}
++.endfor
+ 
+ NETBSD_REPO=	https://cdn.NetBSD.org/pub/pkgsrc/distfiles/LOCAL_PORTS/rust/
+ 
