@@ -1,12 +1,12 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Makefile
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Makefile
 --- /usr/pkgsrc/editors/emacs20/Makefile	2026-09-18 05:45:57.215520598 +0000
-+++ editors/emacs20/Makefile	2026-09-21 14:49:15.546459853 +0000
++++ editors/emacs20/Makefile	2026-09-22 05:38:33.538715291 +0000
 @@ -2,7 +2,7 @@
  
  DISTNAME=	emacs-20.7
  PKGNAME=	${DISTNAME:S/emacs/emacs20/}
 -PKGREVISION=	26
-+PKGREVISION=	27
++PKGREVISION=	28
  CATEGORIES=	editors
  MASTER_SITES=	http://ftp.gnu.org/pub/old-gnu/emacs/
  MASTER_SITES+=	ftp://ftp.gnu.org/pub/old-gnu/emacs
@@ -29,20 +29,21 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/Makefile editors/emacs20/Ma
  pre-install:
  	@${FIND} ${WRKSRC} -type f -name "*.orig*" -print | ${XARGS} ${RM} -f
  
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/distinfo editors/emacs20/distinfo
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/distinfo editors/emacs20/distinfo
 --- /usr/pkgsrc/editors/emacs20/distinfo	2021-12-29 03:40:23.000000000 +0000
-+++ editors/emacs20/distinfo	2026-09-21 20:32:42.260521276 +0000
-@@ -54,4 +54,9 @@
++++ editors/emacs20/distinfo	2026-09-22 05:38:33.532059138 +0000
+@@ -54,4 +54,10 @@
  SHA1 (patch-ce) = df4d2a5639a72d2c719662496f17db35686f4ac2
  SHA1 (patch-cf) = 1b5b83eb02872414fd7ca29c344c0560feaf1b7e
  SHA1 (patch-cg) = b2bd4cbff399922e44ad54459255ffb1d61e1bd4
 +SHA1 (patch-lib-src_etags.c) = b660a50193b2ce8d5f3ac718fd97c01f05211f9f
++SHA1 (patch-lib-src_rcs2log) = df71b903017e6b6c39937bb8c926c1a55c0b0565
 +SHA1 (patch-lisp_files.el) = e4d8fa857dd92d382243c573ba43478f1bceab74
 +SHA1 (patch-src_coding.h) = f6a894f6a248e104d5c0158aeef86536f22efa4b
 +SHA1 (patch-src_keyboard.c) = 97dc675ffcc9cfe26fbabcce454f25027735da31
 +SHA1 (patch-src_lisp.h) = 13d658e3a73479d2a314758c420846b999d57d20
  SHA1 (patch-src_m_aarch64.h) = 861757ce6568303ea55cb9c9f290abc6100d3dc2
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c editors/emacs20/patches/patch-lib-src_etags.c
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c editors/emacs20/patches/patch-lib-src_etags.c
 --- /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags.c	1970-01-01 00:00:00.000000000 +0000
 +++ editors/emacs20/patches/patch-lib-src_etags.c	2026-09-21 14:05:21.444444653 +0000
 @@ -0,0 +1,91 @@
@@ -137,7 +138,45 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_etags
 + 	}
 +       append_to_tagfile = TRUE;
 +     }
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el editors/emacs20/patches/patch-lisp_files.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_rcs2log editors/emacs20/patches/patch-lib-src_rcs2log
+--- /usr/pkgsrc/editors/emacs20/patches/patch-lib-src_rcs2log	1970-01-01 00:00:00.000000000 +0000
++++ editors/emacs20/patches/patch-lib-src_rcs2log	2026-09-22 05:38:33.034121551 +0000
+@@ -0,0 +1,34 @@
++$NetBSD$
++
++rcs2log kept its two scratch files under $TMPDIR with predictable names
++(rcs2log<pid>l, rcs2log<pid>r), so a local user could plant symlinks and
++have the rlog output written over the caller's files (CVE-2001-1301,
++fixed in Emacs 21).  A private directory from mktemp -d holds them now,
++and is removed on every exit path.
++
++--- lib-src/rcs2log.orig
+++++ lib-src/rcs2log
++@@ -300,10 +300,11 @@
++ 	esac
++ esac
++ 
++-llogout=$TMPDIR/rcs2log$$l
++-rlogout=$TMPDIR/rcs2log$$r
+++tmpdir=`mktemp -d "${TMPDIR}/rcs2logXXXXXX"` || exit
+++llogout=$tmpdir/l
+++rlogout=$tmpdir/r
++ trap exit 1 2 13 15
++-trap "rm -f $llogout $rlogout; exit 1" 0
+++trap "rm -fr $tmpdir; exit 1" 0
++ 
++ case $datearg in
++ ?*) $rlog $rlog_options "$datearg" ${1+"$@"} >$rlogout;;
++@@ -670,7 +671,7 @@
++ 
++ # Exit successfully.
++ 
++-exec rm -f $llogout $rlogout
+++exec rm -fr $tmpdir
++ 
++ # Local Variables:
++ # tab-width:4
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el editors/emacs20/patches/patch-lisp_files.el
 --- /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el	1970-01-01 00:00:00.000000000 +0000
 +++ editors/emacs20/patches/patch-lisp_files.el	2026-09-21 14:43:54.308278185 +0000
 @@ -0,0 +1,38 @@
@@ -179,7 +218,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-lisp_files.el
 + 		  (setq buffer-backed-up t)
 + 		  ;; Now delete the old versions, if desired.
 + 		  (if delete-old-versions
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-src_coding.h editors/emacs20/patches/patch-src_coding.h
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/patches/patch-src_coding.h editors/emacs20/patches/patch-src_coding.h
 --- /usr/pkgsrc/editors/emacs20/patches/patch-src_coding.h	1970-01-01 00:00:00.000000000 +0000
 +++ editors/emacs20/patches/patch-src_coding.h	2026-09-21 20:32:41.862444146 +0000
 @@ -0,0 +1,20 @@
@@ -203,7 +242,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-src_coding.h 
 + extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
 + extern Lisp_Object Qraw_text, Qemacs_mule;
 + extern Lisp_Object Qbuffer_file_coding_system;
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-src_keyboard.c editors/emacs20/patches/patch-src_keyboard.c
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/patches/patch-src_keyboard.c editors/emacs20/patches/patch-src_keyboard.c
 --- /usr/pkgsrc/editors/emacs20/patches/patch-src_keyboard.c	1970-01-01 00:00:00.000000000 +0000
 +++ editors/emacs20/patches/patch-src_keyboard.c	2026-09-21 19:19:16.248160767 +0000
 @@ -0,0 +1,25 @@
@@ -232,7 +271,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-src_keyboard.
 +       if (n_to_read == 0)
 + 	return 0;
 +       if (n_to_read > sizeof cbuf)
-diff -ruN -x CVS -x work /usr/pkgsrc/editors/emacs20/patches/patch-src_lisp.h editors/emacs20/patches/patch-src_lisp.h
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/editors/emacs20/patches/patch-src_lisp.h editors/emacs20/patches/patch-src_lisp.h
 --- /usr/pkgsrc/editors/emacs20/patches/patch-src_lisp.h	1970-01-01 00:00:00.000000000 +0000
 +++ editors/emacs20/patches/patch-src_lisp.h	2026-09-21 20:32:41.863128311 +0000
 @@ -0,0 +1,16 @@

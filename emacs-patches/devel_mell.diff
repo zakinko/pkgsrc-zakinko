@@ -1,0 +1,144 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/mell/Makefile devel/mell/Makefile
+--- /usr/pkgsrc/devel/mell/Makefile	2022-05-14 22:25:34.000000000 +0000
++++ devel/mell/Makefile	2026-09-22 05:34:49.549313845 +0000
+@@ -3,7 +3,7 @@
+ 
+ DISTNAME=	mell-1.0.0
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	3
++PKGREVISION=	4
+ CATEGORIES=	devel
+ #MASTER_SITES=	http://taiyaki.org/elisp/mell/src/
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/mell/distinfo devel/mell/distinfo
+--- /usr/pkgsrc/devel/mell/distinfo	2021-10-26 10:15:40.000000000 +0000
++++ devel/mell/distinfo	2026-09-22 05:35:25.071360921 +0000
+@@ -5,3 +5,5 @@
+ Size (mell-1.0.0.tar.gz) = 54979 bytes
+ SHA1 (patch-aa) = b680bd1c40e9e7e94ca93744293b8eb8afac7154
+ SHA1 (patch-ab) = e484c2935ea9b06559a0a289c152218d86845a0f
++SHA1 (patch-src_mell-alist.el) = 686890d29cf6e8d7b7f78efa5e7a78dd6a25c50b
++SHA1 (patch-src_mell.el) = 3ba708b99742ed2e94df8c6b2fb6aab88bf327cb
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/mell/patches/patch-src_mell-alist.el devel/mell/patches/patch-src_mell-alist.el
+--- /usr/pkgsrc/devel/mell/patches/patch-src_mell-alist.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/mell/patches/patch-src_mell-alist.el	2026-09-22 05:35:24.869603993 +0000
+@@ -0,0 +1,27 @@
++$NetBSD$
++
++define-obsolete-function-alias requires its WHEN argument since Emacs
++29; every call here had two, so mell-alist.el (and through it dictem and
++the rest) stopped loading with a wrong-number-of-arguments error.  The
++version the package carries is given as WHEN.
++
++--- src/mell-alist.el.orig
+++++ src/mell-alist.el
++@@ -47,7 +47,7 @@
++   )
++ 
++ (define-obsolete-function-alias
++-  'delete-assoc 'mell-alist-delete)
+++  'delete-assoc 'mell-alist-delete "1.0.0")
++ 
++ (defun mell-alist-combine (var-list val-list)
++   (let ((i 0))
++@@ -57,7 +57,7 @@
++ 	    var-list)))
++ 
++ (define-obsolete-function-alias
++-  'mell-make-alist 'mell-alist-combine)
+++  'mell-make-alist 'mell-alist-combine "1.0.0")
++ 
++ (defun mell-alist-get-value (key alist)
++   (if (consp alist)
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/mell/patches/patch-src_mell.el devel/mell/patches/patch-src_mell.el
+--- /usr/pkgsrc/devel/mell/patches/patch-src_mell.el	1970-01-01 00:00:00.000000000 +0000
++++ devel/mell/patches/patch-src_mell.el	2026-09-22 05:35:24.865117110 +0000
+@@ -0,0 +1,88 @@
++$NetBSD$
++
++define-obsolete-function-alias requires its WHEN argument since Emacs
++29; every call here had two, so mell-alist.el (and through it dictem and
++the rest) stopped loading with a wrong-number-of-arguments error.  The
++version the package carries is given as WHEN.
++
++--- src/mell.el.orig
+++++ src/mell.el
++@@ -220,7 +220,7 @@
++        (mell-region-active-p)))
++ 
++ (define-obsolete-function-alias
++-  'transient-region-active-p 'mell-transient-region-active-p)
+++  'transient-region-active-p 'mell-transient-region-active-p "1.0.0")
++ 
++ (defun mell-transient-region-stay ()
++   (and running-xemacs
++@@ -240,7 +240,7 @@
++     ))
++ 
++ (define-obsolete-function-alias
++-  'read-region-or-string 'mell-read-region-or-string)
+++  'read-region-or-string 'mell-read-region-or-string "1.0.0")
++ 
++ (defun mell-paragraph-string (&optional point)
++   (buffer-substring (mell-point-at-bop point) (mell-point-at-eop point)))
++@@ -396,7 +396,7 @@
++   )
++ 
++ (define-obsolete-function-alias
++-  'count-string-match 'mell-match-count-string)
+++  'count-string-match 'mell-match-count-string "1.0.0")
++ 
++ ;; ------------------------------------------------------------
++ ;; mell-alist
++@@ -434,7 +434,7 @@
++   )
++ 
++ (define-obsolete-function-alias
++-  'delete-assoc 'mell-alist-delete)
+++  'delete-assoc 'mell-alist-delete "1.0.0")
++ 
++ (defun mell-alist-combine (var-list val-list)
++   (let ((i 0))
++@@ -444,7 +444,7 @@
++ 	    var-list)))
++ 
++ (define-obsolete-function-alias
++-  'mell-make-alist 'mell-alist-combine)
+++  'mell-make-alist 'mell-alist-combine "1.0.0")
++ 
++ ;; ------------------------------------------------------------
++ ;; mell-list
++@@ -463,13 +463,13 @@
++   value)
++ 
++ (define-obsolete-function-alias
++-  'mapfunc 'mell-list-mapfunc)
+++  'mapfunc 'mell-list-mapfunc "1.0.0")
++ 
++ (defun mell-list-mapadd (number-list)
++   (mell-list-mapfunc '+ number-list 0))
++ 
++ (define-obsolete-function-alias
++-  'mapadd 'mell-list-mapadd)
+++  'mapadd 'mell-list-mapadd "1.0.0")
++ 
++ ;; elmo-uniq-list (from wanderlust) より.
++ (defun mell-list-uniq (list)
++@@ -494,7 +494,7 @@
++ 	 (current-minor-mode-maps))
++   ))
++ (define-obsolete-function-alias
++-  'minor-mode-key-binding-list 'mell-key-binding-minor-mode-list)
+++  'minor-mode-key-binding-list 'mell-key-binding-minor-mode-list "1.0.0")
++ 
++ (defun mell-key-binding-next-minor-mode (keymap)
++   (car (delq nil
++@@ -502,7 +502,7 @@
++ 		     (cdr (member keymap (current-minor-mode-maps))))
++ 	     )))
++ (define-obsolete-function-alias
++-  'next-minor-mode-key-binding 'mell-key-binding-next-minor-mode)
+++  'next-minor-mode-key-binding 'mell-key-binding-next-minor-mode "1.0.0")
++ 
++ (defun mell-key-binding-next (&optional keymap command-keys)
++   (let ((mode-maps (if keymap (member keymap (current-minor-mode-maps))
