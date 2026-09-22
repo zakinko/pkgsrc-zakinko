@@ -1,0 +1,65 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/lang/ruby34/Makefile lang/ruby34/Makefile
+--- /usr/pkgsrc/lang/ruby34/Makefile	2026-09-18 05:47:20.827063127 +0000
++++ lang/ruby34/Makefile	2026-09-22 06:46:11.364176907 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=	${RUBY_DISTNAME}
+ PKGNAME=	${RUBY_PKGPREFIX}-${RUBY_VERSION}
+-PKGREVISION=	2
++PKGREVISION=	3
+ CATEGORIES=	lang ruby
+ MASTER_SITES=	${MASTER_SITE_RUBY}
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/lang/ruby34/distinfo lang/ruby34/distinfo
+--- /usr/pkgsrc/lang/ruby34/distinfo	2026-09-18 05:47:20.831730759 +0000
++++ lang/ruby34/distinfo	2026-09-22 06:46:11.686227894 +0000
+@@ -19,7 +19,7 @@
+ SHA1 (patch-lib_rubygems_installer.rb) = 4ef74b4f79837a929e81bcd0e7eba9061a442304
+ SHA1 (patch-lib_rubygems_platform.rb) = bde36a8fc1ba2fbf4d6fb8829bc116fb4d09b404
+ SHA1 (patch-lib_rubygems_specification.rb) = a3154185ef89fb33e699dd54b19a8e274f3275e0
+-SHA1 (patch-template_Makefile.in) = 3cf5d612ef725dc64d6a90d377b191a29ebfdf17
++SHA1 (patch-template_Makefile.in) = 6138ccea7ac17dbb31a70d123700350154ffc503
+ SHA1 (patch-test_rubygems_test__gem.rb) = 32f7c7d7f8a024c045d78c2bce93944fc3113d04
+ SHA1 (patch-thread__pthread.c) = 7c1231933a2d6ce9d56891ab512371841697fbca
+ SHA1 (patch-tool_ifchange) = 1803bb6a1836e232dcabcf38f11c9881dbf726ea
+diff -ruN -x CVS -x work /usr/pkgsrc/lang/ruby34/patches/patch-template_Makefile.in lang/ruby34/patches/patch-template_Makefile.in
+--- /usr/pkgsrc/lang/ruby34/patches/patch-template_Makefile.in	2026-09-06 15:13:58.000000000 +0000
++++ lang/ruby34/patches/patch-template_Makefile.in	2026-09-22 06:46:11.359395014 +0000
+@@ -8,9 +8,27 @@
+ 
+ https://bugs.ruby-lang.org/issues/22059
+ 
++rjit_c.c has a DTrace hook (RUBY_DTRACE_CMETHOD_RETURN_HOOK) but its
++object was not in DTRACE_DEPENDENT_OBJS, so on a DTRACE_REBUILD=yes
++system such as NetBSD "dtrace -G" never processed it and linking
++miniruby failed with --enable-rjit:
++
++  ld: rjit_c.o: relocation R_X86_64_PLT32 against absolute symbol
++  `__dtraceenabled_ruby___cmethod__return' in section `.text' is disallowed
++
++Same fix as upstream made for yjit.o (https://bugs.ruby-lang.org/issues/18480).
++
+ --- template/Makefile.in.orig	2026-05-07 20:25:14.644318083 +0000
+ +++ template/Makefile.in
+-@@ -523,7 +523,7 @@ probes.stamp: $(DTRACE_REBUILD_OBJS)
++@@ -203,6 +203,7 @@
++ 			string.$(OBJEXT) \
++ 			symbol.$(OBJEXT) \
++ 			vm.$(OBJEXT) \
+++			rjit_c.$(OBJEXT) \
++ 			$(YJIT_OBJ)
++ 
++ THREAD_MODEL  = @THREAD_MODEL@
++@@ -513,7 +514,7 @@
+  
+  probes.stamp: $(DTRACE_REBUILD_OBJS)
+  	$(Q) if test -f $@ -o -f probes.$(OBJEXT); then \
+@@ -19,7 +37,7 @@
+  	  $(ECHO0) "rebuilding objects which were modified by \"dtrace -G\""; \
+  	  $(MAKE) $(DTRACE_REBUILD_OBJS); \
+  	fi
+-@@ -537,7 +537,7 @@ probes.$(OBJEXT): $(srcdir)/probes.d $(DTRACE_REBUILD:
++@@ -527,7 +528,7 @@
+  
+  # DTrace static library hacks described here:
+  # https://marc.info/?l=opensolaris-dtrace-discuss&m=114761203110734&w=4

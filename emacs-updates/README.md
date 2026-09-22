@@ -27,7 +27,7 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | devel/php-mode | 1.13.1 | 1.28.0 | from GitHub (sourceforge is stale); installs all of lisp/ |
 | devel/rainbow-delimiters-el | 1.3.5 | 2.1.5 | |
 | devel/reformatter-el | – | 0.7 | **new**, needed by zig-mode |
-| devel/ruby-rd-mode | 0.6.38 | 0.6.39 | the one not built through the package: it needs ruby34, whose build here kept pulling rust. The gem was fetched (distinfo is real) and its rd-mode.el byte-compiled and loaded by hand under 30.2 |
+| devel/ruby-rd-mode | 0.6.38 | 0.6.39 | built through the package on emacs30 once lang/ruby34 was fixed (below); rd-mode loads |
 | devel/sml-mode | 3.9.5 (2000) | 6.12 | from GNU ELPA, one file now; needs Emacs 24.3. With Debian's fixes: the texinfo's direntry line, braces in @center and @setchapternewpage, which newer makeinfo rejects, and sml-indent-level marked safe as a file-local variable |
 | devel/zig-mode | 2022-01-05 snapshot | 2025-11-21 snapshot | depends on reformatter-el |
 | editors/matlab-mode | 2.3.1 | 8.2.1 | upstream moved to mathworks/Emacs-MATLAB-Mode; many more files |
@@ -49,6 +49,21 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | inputmethod/tamago-tsunagi | 5.0.7.1 | same | accepts emacs20 again instead of being marked incompatible. 5.0.7.1 is Tamago 4 ported to the Mule of Emacs 23+; its egg-com.el defines the fixed-euc coding systems with define-charset keywords Emacs 20 has no idea of, so on Emacs 20 Tamago 4.0.6's own egg-com.el is used (files/egg-com-e20.el) and devel/emacs20-compat supplies obarray-make and set-process-query-on-exit-flag; its/aynu (JIS X 0213) is left out there. Built for emacs20 and emacs30. On emacs20 and on emacs30 the installed package starts anthy-agent, sends にほんごをかく through egg-convert-region and gets 日本語を 書く back (the earlier "Invalid code(s)" on emacs30 was the test's own doing: (string 164 203 …) is Latin-1 text on Emacs 23+, not EUC bytes) |
 | www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
 | www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
+
+## lang/ruby34 (`lang_ruby34.diff`, not an Emacs package)
+
+ruby34 3.4.10 does not link on a system where configure chooses
+"dtrace needs post processing... rebuild" (NetBSD is one) when the
+`ruby-rjit` option is on: rjit_c.c carries a DTrace hook but
+rjit_c.o is missing from DTRACE_DEPENDENT_OBJS, so "dtrace -G" never
+rewrites it and ld stops with "relocation R_X86_64_PLT32 against
+absolute symbol `__dtraceenabled_ruby___cmethod__return`".  The
+default yjit build is fine, since rjit_c.c compiles to nothing there.
+One line added to the existing patch-template_Makefile.in, the same
+fix upstream made for yjit.o (bugs.ruby-lang.org #18480).  Built with
+ruby-rjit on NetBSD 11.0/amd64: "processing probes in object files"
+runs, miniruby links, RubyVM::RJIT is defined.  It matters here because
+howm, mew, migemo-elisp and ruby-rd-mode all depend on ruby34.
 
 ## Checked and left alone (2026-09-22)
 
