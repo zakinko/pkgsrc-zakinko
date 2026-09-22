@@ -68,3 +68,42 @@ it follows the same six lines as the others.
 They are copies of the tree's packages with the change applied, as
 built on NetBSD 11.0/amd64 under /usr/pkgsrc/<session>/ so that the
 tree itself stayed untouched.  A's PLIST is the generated one.
+
+## Measured while doing it
+
+**It works.**  On NetBSD 11.0/amd64, `/usr/pkg` now has
+`emacs30-nox11-30.2nb1` and `emacs31-nox11-31.1nb1` installed together;
+`emacs-30.2` and `emacs-31.1` both open a file, insert text and save it,
+and `bin/emacs` is the alternatives symlink.  69 info files live under
+`share/emacs/30.2/info` and 77 under `share/emacs/31.1/info`.
+
+**`pkgtools/pkg_alternatives` has to be installed**, or the
+`ALTERNATIVES` file is read and then silently ignored -- the framework
+writes `+INSTALL` with a `test -x` guard around the registration.  The
+box this was done on had no `bin/python` for exactly that reason.
+
+**x11 and nox11 are not the axis.**  `editors/emacs30-nox11` points its
+`PKGDIR`, `PLIST`, `PATCHDIR` and `DISTINFO_FILE` at `editors/emacs30`,
+so the two share one PLIST and the `.el` files in it are identical; the
+difference is what configure is told.  `modules.mk` does offer
+`FOR_emacs_x`, `NOTFOR_emacs_x`, `FOR_emacs_nox` and `NOTFOR_emacs_nox`
+for a package that wants to install different lisp for the two, and
+documents them at line 189 -- but nothing in pkgsrc, `wip` or this
+repository uses any of the four.  Other distributions do not split lisp
+that way either: Debian has `emacs-gtk`, `emacs-lucid`, `emacs-pgtk` and
+`emacs-nox` sharing one `emacs-common` for the lisp, Fedora the same
+with `emacs-nw`, and Gentoo and FreeBSD build one package with the X
+support behind a USE flag or an OPTION.  So the version is the only axis
+worth splitting on, and that is what this does.
+
+**What still shares a name across versions.**  Nine elisp packages
+install a helper program under a version-less name -- `bin/mozc_emacs_helper`
+(inputmethod/mozc-elisp), `bin/gnuclient` and four more (editors/gnuserv),
+`bin/incm` and friends (mail/mew), `bin/base64-decode` (mail/vm),
+`bin/doxymacs_parser`, `bin/tcinput`, `bin/dcc`,
+`libexec/emacs-jabber-uri-handler`.  Their lisp goes to the versioned
+directory but the helper does not, so the emacs30 and emacs31 builds of
+those packages collide on that one file.  None of them links X
+(`mozc_emacs_helper` pulls in zero X libraries), so they are candidates
+for a `-bin` package shared between versions, the way Debian has
+`emacs-bin-common`.  Not done here.
