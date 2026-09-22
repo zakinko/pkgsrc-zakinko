@@ -21,15 +21,17 @@ DEPENDS+=	${EMACS_PKGNAME_PREFIX}vue-html-mode-[0-9]*:../../devel/vue-html-mode
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/vue-mode
 
 post-extract:
-	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/edit-indirect -L ${EMACS_LISPPREFIX}/mmm-mode -L ${EMACS_LISPPREFIX}/ssass-mode -L ${EMACS_LISPPREFIX}/vue-html-mode -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/vue-mode
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/vue-mode
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/vue-mode; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

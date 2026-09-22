@@ -26,9 +26,11 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/helm -L ${EMACS_LISPPREFIX}/async -L ${EMACS_LISPPREFIX}/wfnames -L ${EMACS_LISPPREFIX}/jq-mode -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/restclient
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/restclient
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/restclient; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

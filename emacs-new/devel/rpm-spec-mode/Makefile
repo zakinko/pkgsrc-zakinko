@@ -6,7 +6,6 @@ CATEGORIES=	devel
 MASTER_SITES=	${MASTER_SITE_GITHUB:=Thaodan/}
 GITHUB_PROJECT=	rpm-spec-mode
 GITHUB_TAG=	283d2aac4ede343586a1fb9e9d2a5917f34809a1
-WRKSRC=		${WRKDIR}/rpm-spec-mode-283d2aac4ede343586a1fb9e9d2a5917f34809a1
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://www.emacswiki.org/emacs/RpmSpecMode
@@ -24,9 +23,11 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L .  -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/rpm-spec-mode
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/rpm-spec-mode
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/rpm-spec-mode; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

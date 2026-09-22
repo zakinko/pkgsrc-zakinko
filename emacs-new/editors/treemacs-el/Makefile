@@ -33,9 +33,11 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/ace-window -L ${EMACS_LISPPREFIX}/avy -L ${EMACS_LISPPREFIX}/cfrs -L ${EMACS_LISPPREFIX}/dash -L ${EMACS_LISPPREFIX}/posframe -L ${EMACS_LISPPREFIX}/s -L ${EMACS_LISPPREFIX}/ht -L ${EMACS_LISPPREFIX}/hydra -L ${EMACS_LISPPREFIX}/lv -L ${EMACS_LISPPREFIX}/pfuture -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/treemacs
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/treemacs
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/treemacs; done
 	cd ${WRKSRC}/../.. && ${PAX} -rw icons ${DESTDIR}${EMACS_LISPPREFIX}/treemacs
 	${MKDIR} ${DESTDIR}${EMACS_LISPPREFIX}/treemacs/src
 	cd ${WRKSRC}/.. && ${PAX} -rw scripts ${DESTDIR}${EMACS_LISPPREFIX}/treemacs/src

@@ -30,7 +30,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} desktop-entry-mode.el ${DESTDIR}${EMACS_LISPPREFIX}/desktop-entry-mode
 	cd ${WRKSRC} && for f in desktop-entry-mode.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/desktop-entry-mode; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/desktop-entry-mode; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

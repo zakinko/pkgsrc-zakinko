@@ -9,7 +9,7 @@ EXTRACT_SUFX=	.tar.gz
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://www.emacswiki.org/emacs/MlDonkey
-COMMENT=	An Emacs Lisp interface to the MLDonkey core
+COMMENT=	Emacs Lisp interface to the MLDonkey core
 LICENSE=	gnu-gpl-v2
 
 EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
@@ -27,7 +27,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/mldonkey
 	cd ${WRKSRC} && for f in *.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/mldonkey; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/mldonkey; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

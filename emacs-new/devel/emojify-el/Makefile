@@ -26,9 +26,11 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/ht -L ${EMACS_LISPPREFIX}/dash -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/emojify
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/emojify
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/emojify; done
 	cd ${WRKSRC}/. && ${PAX} -rw data ${DESTDIR}${EMACS_LISPPREFIX}/emojify
 
 .include "../../editors/emacs/modules.mk"

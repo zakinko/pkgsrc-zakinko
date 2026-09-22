@@ -11,7 +11,7 @@ USE_TOOLS+=	xz
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	http://www.loveshack.ukfsn.org/emacs/
-COMMENT=	An Emacs mode that reformats IETF RFCs for display
+COMMENT=	Emacs mode that reformats IETF RFCs for display
 LICENSE=	gnu-gpl-v3
 
 EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
@@ -33,7 +33,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/rfcview
 	cd ${WRKSRC} && for f in *.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/rfcview; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/rfcview; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

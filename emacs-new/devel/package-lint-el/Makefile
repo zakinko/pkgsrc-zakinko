@@ -25,9 +25,11 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/compat -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/package-lint
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/package-lint
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/package-lint; done
 	cd ${WRKSRC}/. && ${PAX} -rw data ${DESTDIR}${EMACS_LISPPREFIX}/package-lint
 
 .include "../../editors/emacs/modules.mk"

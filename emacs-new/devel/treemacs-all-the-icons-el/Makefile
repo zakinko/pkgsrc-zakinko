@@ -26,9 +26,11 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/all-the-icons -L ${EMACS_LISPPREFIX}/treemacs -L ${EMACS_LISPPREFIX}/ace-window -L ${EMACS_LISPPREFIX}/avy -L ${EMACS_LISPPREFIX}/cfrs -L ${EMACS_LISPPREFIX}/dash -L ${EMACS_LISPPREFIX}/posframe -L ${EMACS_LISPPREFIX}/s -L ${EMACS_LISPPREFIX}/ht -L ${EMACS_LISPPREFIX}/hydra -L ${EMACS_LISPPREFIX}/lv -L ${EMACS_LISPPREFIX}/pfuture -f batch-byte-compile treemacs-all-the-icons.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} treemacs-all-the-icons.el treemacs-all-the-icons.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/treemacs-all-the-icons
+	cd ${WRKSRC} && ${INSTALL_DATA} treemacs-all-the-icons.el ${DESTDIR}${EMACS_LISPPREFIX}/treemacs-all-the-icons
+	cd ${WRKSRC} && for f in treemacs-all-the-icons.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/treemacs-all-the-icons; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

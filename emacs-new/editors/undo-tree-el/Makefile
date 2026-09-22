@@ -3,8 +3,9 @@
 DISTNAME=	undo-tree-0.8.2
 PKGNAME=	${EMACS_PKGNAME_PREFIX}undo-tree-el-0.8.2
 CATEGORIES=	editors
-MASTER_SITES=	https://elpa.gnu.org/packages/
-EXTRACT_SUFX=	.tar
+MASTER_SITES=	https://dev.gentoo.org/~xgqt/distfiles/repackaged/
+EXTRACT_SUFX=	.tar.xz
+# upstream is gone; Gentoo keeps the file on its developers' mirror
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	http://www.dr-qubit.org/undo-tree.html
@@ -17,15 +18,17 @@ DEPENDS+=	${EMACS_PKGNAME_PREFIX}queue-el-[0-9]*:../../devel/queue-el
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/undo-tree
 
 post-extract:
-	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/queue -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/undo-tree
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/undo-tree
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/undo-tree; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

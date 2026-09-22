@@ -10,7 +10,7 @@ WRKSRC=		${WRKDIR}/tuareg-3.1.0
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	http://forge.ocamlcore.org/projects/tuareg/
-COMMENT=	An Objective Caml/Camllight mode for Emacs
+COMMENT=	Objective Caml/Camllight mode for Emacs
 LICENSE=	gnu-gpl-v2
 
 EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
@@ -18,15 +18,17 @@ EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31no
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/tuareg-mode
 
 post-extract:
-	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
-		-L . -f batch-byte-compile *.el
+		-L .  -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/tuareg-mode
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/tuareg-mode
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/tuareg-mode; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

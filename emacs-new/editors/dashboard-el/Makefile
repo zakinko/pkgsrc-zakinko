@@ -28,7 +28,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/dashboard
 	cd ${WRKSRC} && for f in *.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/dashboard; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/dashboard; done
 	cd ${WRKSRC}/. && ${PAX} -rw banners ${DESTDIR}${EMACS_LISPPREFIX}/dashboard
 
 .include "../../editors/emacs/modules.mk"

@@ -13,6 +13,13 @@ and its PLIST regenerated from what was installed.
 `patch -p0` is not the form here: these are whole package directories.
 Copy `<category>/<pkg>` into a pkgsrc tree and add the SUBDIR line.
 
+`licenses/` carries two licence texts the tree does not have yet (wtfpl for
+switch-window, mpg123-el-license for mpg123-el); they go to
+pkgsrc/licenses.  pkglint over the set: no errors, the warnings that
+remain are the Codeberg/GitLab MASTER_SITE shorthands (the 2026Q2 tree
+lacks MASTER_SITE_CODEBERG) and treemacs' install step reaching for icons
+two directories up.
+
 What every package has in common:
 
 - `EMACS_VERSIONS_ACCEPTED= emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox`

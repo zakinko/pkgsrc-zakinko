@@ -10,7 +10,7 @@ WRKSRC=		${WRKDIR}/magit-4.7.0/lisp
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://magit.vc/
-COMMENT=	A Git porcelain inside Emacs
+COMMENT=	Git porcelain inside Emacs
 LICENSE=	gnu-gpl-v3
 
 EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
@@ -33,7 +33,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/magit
 	cd ${WRKSRC} && for f in *.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/magit; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/magit; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

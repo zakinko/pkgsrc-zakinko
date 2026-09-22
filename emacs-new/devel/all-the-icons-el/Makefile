@@ -24,11 +24,14 @@ do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L data -f batch-byte-compile *.el data/*.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/all-the-icons
-	cd ${WRKSRC} && ${INSTALL_DATA} data/*.el data/*.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/all-the-icons/data
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/all-the-icons
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/all-the-icons; done
+	cd ${WRKSRC} && ${INSTALL_DATA} data/*.el ${DESTDIR}${EMACS_LISPPREFIX}/all-the-icons/data
+	cd ${WRKSRC} && for f in data/*.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/all-the-icons/data; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

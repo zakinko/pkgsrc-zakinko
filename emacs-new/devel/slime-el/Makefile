@@ -18,17 +18,20 @@ EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31no
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/slime ${EMACS_LISPPREFIX}/slime/contrib
 
 post-extract:
-	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L contrib -f batch-byte-compile *.el contrib/*.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/slime
-	cd ${WRKSRC} && ${INSTALL_DATA} contrib/*.el contrib/*.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/slime/contrib
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/slime
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/slime; done
+	cd ${WRKSRC} && ${INSTALL_DATA} contrib/*.el ${DESTDIR}${EMACS_LISPPREFIX}/slime/contrib
+	cd ${WRKSRC} && for f in contrib/*.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/slime/contrib; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

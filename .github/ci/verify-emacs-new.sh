@@ -31,6 +31,7 @@ MKARGS=
 echo "--- $(uname -s) $(uname -r) / $(uname -m) / $(ls $SRC/devel $SRC/editors | grep -c .) packages ---"
 
 echo "--- 木へ写す ---"
+[ -d "$SRC/licenses" ] && cp "$SRC"/licenses/* "$TREE/licenses/"
 for c in devel editors; do
 	for d in "$SRC"/$c/*/; do
 		p=$(basename "$d"); rm -rf "$TREE/$c/$p"; cp -R "$d" "$TREE/$c/$p"

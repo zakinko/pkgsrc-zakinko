@@ -28,15 +28,17 @@ DEPENDS+=	${EMACS_PKGNAME_PREFIX}with-editor-el-[0-9]*:../../devel/with-editor-e
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/emacs-ipython-notebook
 
 post-extract:
-	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
 		-L . -L ${EMACS_LISPPREFIX}/anaphora -L ${EMACS_LISPPREFIX}/dash -L ${EMACS_LISPPREFIX}/deferred -L ${EMACS_LISPPREFIX}/polymode -L ${EMACS_LISPPREFIX}/request -L ${EMACS_LISPPREFIX}/websocket -L ${EMACS_LISPPREFIX}/with-editor -L ${EMACS_LISPPREFIX}/compat -L ${EMACS_LISPPREFIX}/cond-let -L ${EMACS_LISPPREFIX}/llama -f batch-byte-compile *.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/emacs-ipython-notebook
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/emacs-ipython-notebook
+	cd ${WRKSRC} && for f in *.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/emacs-ipython-notebook; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

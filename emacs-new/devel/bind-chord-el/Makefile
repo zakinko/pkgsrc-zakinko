@@ -29,7 +29,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} bind-chord.el ${DESTDIR}${EMACS_LISPPREFIX}/bind-chord
 	cd ${WRKSRC} && for f in bind-chord.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/bind-chord; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/bind-chord; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"

@@ -30,7 +30,7 @@ do-build:
 do-install:
 	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/geiser-guile
 	cd ${WRKSRC} && for f in *.elc; do \
-		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/geiser-guile; done
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/geiser-guile; done
 	cd ${WRKSRC}/. && ${PAX} -rw src ${DESTDIR}${EMACS_LISPPREFIX}/geiser-guile
 
 .include "../../editors/emacs/modules.mk"

@@ -18,17 +18,19 @@ EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31no
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/ivy
 
 post-extract:
-	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
 
 # Ivy proper, as Gentoo splits it: swiper, counsel and the ivy-* extensions
 # in the same tarball are not built
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
-		-L . -f batch-byte-compile colir.el ivy.el ivy-overlay.el ivy-faces.el
+		-L .  -f batch-byte-compile colir.el ivy.el ivy-overlay.el ivy-faces.el
 
+# files marked no-byte-compile leave no .elc behind
 do-install:
-	cd ${WRKSRC} && ${INSTALL_DATA} colir.el ivy.el ivy-overlay.el ivy-faces.el colir.elc ivy.elc ivy-overlay.elc ivy-faces.elc \
-		${DESTDIR}${EMACS_LISPPREFIX}/ivy
+	cd ${WRKSRC} && ${INSTALL_DATA} colir.el ivy.el ivy-overlay.el ivy-faces.el ${DESTDIR}${EMACS_LISPPREFIX}/ivy
+	cd ${WRKSRC} && for f in colir.elc ivy.elc ivy-overlay.elc ivy-faces.elc; do \
+		${TEST} ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/ivy; done
 
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"
