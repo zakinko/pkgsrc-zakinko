@@ -68,7 +68,10 @@ echo "=== 当て物を当てる ==="
 bad=0
 for d in $SRC/emacs-patches/*.diff $SRC/emacs-updates/*.diff; do
 	[ -f "$d" ] || continue
-	if patch -d "$TREE" -p0 -N -f -s < "$d" > $LOG/patch.out 2>&1; then
+	# NetBSD の patch は既定で .orig を残す。patches/ に落ちると pkgsrc が
+	# それを当て物として拾い "invalid checksum" で止まる (run 35700632415 の
+	# math/ess)。-V none で backup を作らせない。
+	if patch -V none -d "$TREE" -p0 -N -f -s < "$d" > $LOG/patch.out 2>&1; then
 		printf 'ok  %s\n' "$(basename "$d")"
 	else
 		printf 'NG  %s\n' "$(basename "$d")"; sed 's/^/      /' $LOG/patch.out | head -8; bad=$((bad+1))
@@ -80,6 +83,8 @@ for n in "$SRC"/emacs-updates/new/*/; do
 	rm -rf "$TREE/$c/$p"; cp -R "$n" "$TREE/$c/$p"; printf 'new %s/%s\n' "$c" "$p"
 done
 [ $bad -eq 0 ] || { echo "FAIL: $bad 本が当たらない"; exit 1; }
+# 念のため、残った剥がし跡を掃く。
+find "$TREE" -name '*.orig' -path '*/patches/*' -delete 2>/dev/null
 
 echo "=== $EMACS_PKG を入れる ==="
 grep -q '^EMACS_TYPE' /etc/mk.conf 2>/dev/null || printf 'EMACS_TYPE=\t%s\n' "$EMACS_TYPE" >> /etc/mk.conf
