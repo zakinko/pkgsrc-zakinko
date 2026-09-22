@@ -95,7 +95,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/PLIST.xemacs devel/apel/PLIST.xe
 -${EMACS_LISPPREFIX}/apel/timezone.elc
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 --- /usr/pkgsrc/devel/apel/distinfo	2022-01-31 00:17:58.000000000 +0000
-+++ devel/apel/distinfo	2026-09-21 21:14:44.190842588 +0000
++++ devel/apel/distinfo	2026-09-22 01:23:20.296924505 +0000
 @@ -1,5 +1,22 @@
  $NetBSD: distinfo,v 1.13 2022/01/31 00:17:58 mef Exp $
  
@@ -118,7 +118,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/distinfo devel/apel/distinfo
 +SHA1 (patch-pccl.el) = c347b8d6d786b9b8b1b06b0b9a9c307907013ad1
 +SHA1 (patch-pces-e20.el) = 021dfe2ebcdac5b6291765de22c2d0e53accf5b0
 +SHA1 (patch-pces.el) = 09b351de96dfc6af5c1a6ae5b53f33a0051cc9ff
-+SHA1 (patch-poe.el) = 75c6d1c06dce4bb5bb4d143d894ae123c1aa410e
++SHA1 (patch-poe.el) = b17ad6a6661a0c0069d285c35f36837c962225a2
 +SHA1 (patch-poem-e20_3.el) = 06ef84c86fb290657402b10ae695575206052bf3
 +SHA1 (patch-poem.el) = 93f4b95175ffe71a5a88a660e6f95011c01cfa2a
 +SHA1 (patch-product.el) = 03e692126e9682b5158bc1250abe8b3fa9aa5a38
@@ -2907,8 +2907,8 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-pces.el devel/apel
 + ;;; @ end
 diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/patches/patch-poe.el
 --- /usr/pkgsrc/devel/apel/patches/patch-poe.el	1970-01-01 00:00:00.000000000 +0000
-+++ devel/apel/patches/patch-poe.el	2026-09-21 21:14:43.965411981 +0000
-@@ -0,0 +1,1662 @@
++++ devel/apel/patches/patch-poe.el	2026-09-22 01:23:19.915214819 +0000
+@@ -0,0 +1,1685 @@
 +$NetBSD$
 +
 +Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
@@ -3315,7 +3315,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Delete by side effect any elements of ALIST whose cdr is `eq' to VALUE.
 + The modified ALIST is returned.  If the first member of ALIST has a car
 + that is `eq' to VALUE, there is no way to remove it by side effect;
-+@@ -139,6 +484,118 @@
++@@ -139,6 +484,141 @@
 +                   tail (cdr tail))))))
 +   alist)
 + 
@@ -3378,6 +3378,11 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 ++  "Return t if the containing function was called by `call-interactively'."
 ++  (interactive-p))
 ++
+++;; Emacs 22; misc/elscreen uses it.
+++(defun-maybe booleanp (object)
+++  "Return t if OBJECT is one of the two canonical boolean values: t or nil."
+++  (or (eq object nil) (eq object t)))
+++
 ++(defun-maybe functionp (object)
 ++  "Non-nil if OBJECT is a type of object that can be called as a function."
 ++  (or (subrp object) (byte-code-function-p object)
@@ -3397,6 +3402,24 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 ++other hooks, such as major mode hooks, can do the job."
 ++  (or (member element (symbol-value list-var))
 ++      (set list-var (cons element (symbol-value list-var)))))
+++
+++;; Emacs 22 added APPEND, 23 COMPARE-FN; misc/elscreen passes APPEND.
+++(static-if (< emacs-major-version 22)
+++    (defun add-to-list (list-var element &optional append compare-fn)
+++      "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
+++If APPEND is non-nil, add at the end; COMPARE-FN, if non-nil, tests
+++membership in place of `equal'."
+++      (if (if compare-fn
+++	      (let ((l (symbol-value list-var)) found)
+++		(while (and l (not found))
+++		  (if (funcall compare-fn element (car l)) (setq found t))
+++		  (setq l (cdr l)))
+++		found)
+++	    (member element (symbol-value list-var)))
+++	  (symbol-value list-var)
+++	(set list-var (if append
+++			  (append (symbol-value list-var) (list element))
+++			(cons element (symbol-value list-var)))))))
 ++
 ++;; (eval-after-load FILE FORM)
 ++;; Emacs 19.28 and earlier do not evaluate FORM if FILE is already loaded.
@@ -3434,7 +3457,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + ;;; @@ Input and display facilities.
 + 
 + ;; XXX: (defun read-passwd (prompt &optional confirm default))
-+@@ -147,12 +604,719 @@
++@@ -147,12 +627,719 @@
 + 
 + ;; Avoid compiler warnings about this variable,
 + ;; which has a special meaning on certain system types.
@@ -4155,7 +4178,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + 
 + ;;; @ Frame commands emulation. (lisp/frame.el)
-+@@ -160,7 +1324,7 @@
++@@ -160,7 +1347,7 @@
 + 
 + ;; XEmacs 21.0 and later:
 + ;;  (save-selected-frame &rest BODY)
@@ -4164,7 +4187,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Execute forms in BODY, then restore the selected frame."
 +   (list 'let
 + 	'((save-selected-frame-frame (selected-frame)))
-+@@ -173,18 +1337,342 @@
++@@ -173,18 +1360,342 @@
 + ;;;
 + 
 + 
@@ -4509,7 +4532,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Convert keystroke CH into an event structure, replete with bucky bits.
 + Note that CH (the keystroke specifier) can be an integer, a character
 + or a symbol such as \\='clear."
-+@@ -192,18 +1680,24 @@
++@@ -192,18 +1703,24 @@
 + 
 + ;; XEmacs 21: (event-to-character EVENT
 + ;;             &optional ALLOW-EXTRA-MODIFIERS ALLOW-META ALLOW-NON-ASCII)
@@ -4544,7 +4567,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 + 
 + ;; v18: no event; (read-char)
 + ;; Emacs 19, 20.1 and 20.2: (read-event)
-+@@ -211,7 +1705,7 @@
++@@ -211,7 +1728,7 @@
 + ;; Emacs 20.4: (read-event &optional PROMPT INHERIT-INPUT-METHOD)
 + ;; XEmacs: (next-event &optional EVENT PROMPT),
 + ;;         (next-command-event &optional EVENT PROMPT)
@@ -4553,7 +4576,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/apel/patches/patch-poe.el devel/apel/
 +   "Read an event object from the input stream.
 + If EVENT is non-nil, it should be an event object and will be filled
 + in and returned; otherwise a new event object will be created and
-+@@ -225,11 +1719,13 @@
++@@ -225,11 +1742,13 @@
 + ;;; @ MULE 2 emulation.
 + ;;;
 + 
