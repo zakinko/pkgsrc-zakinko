@@ -1,6 +1,6 @@
 --- lang/go-bin/Makefile.orig
 +++ lang/go-bin/Makefile
-@@ -108,6 +108,20 @@
+@@ -108,6 +108,27 @@
  EXTRACT_ONLY+=			${DIST.netbsd-arm64}
  .endif
  
@@ -45,18 +45,19 @@
 +Size (go1.24.11.openbsd-riscv64.tar.gz) = 75193998 bytes
 --- lang/go/bootstrap.mk.orig
 +++ lang/go/bootstrap.mk
-@@ -1,9 +1,13 @@
+@@ -1,9 +1,15 @@
  # $NetBSD: bootstrap.mk,v 1.15 2025/02/06 00:24:36 riastradh Exp $
  
  .if !defined(GOROOT_BOOTSTRAP) || !exists(${GOROOT_BOOTSTRAP}/bin/go)
 +# OpenBSD only accepts system calls made from libc, and go14's go_bootstrap
 +# is a static binary from before that, so make.bash dies with an Abort trap
-+# the moment it runs it (seen on 7.9/amd64).  Start from go-bin instead.
++# the moment it runs it (seen on 7.9/amd64).  Start from go-bin instead, on
++# the architectures go-bin has a tarball for.
  .  if (${MACHINE_ARCH} == "aarch64" && ${USE_CROSS_COMPILE:tl} == "no") || \
      (${OPSYS} == "Darwin" && ${OPSYS_VERSION} >= 120000) || \
      (${OPSYS} == "FreeBSD" && ${OPSYS_VERSION} >= 140000) || \
 +    (${OPSYS} == "OpenBSD" && (${MACHINE_ARCH} == "x86_64" || \
-+			      ${MACHINE_ARCH} == "riscv64")) || \
++			       ${MACHINE_ARCH} == "riscv64")) || \
      (${OPSYS} == "SunOS" && ${OS_VARIANT} != "Solaris")
  TOOL_DEPENDS+=		go-bin-[0-9]*:../../lang/go-bin
  GOROOT_BOOTSTRAP=	${TOOLBASE}/go-bin

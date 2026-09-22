@@ -9,7 +9,7 @@
 #	./make.bash: line 170: 86020 Abort trap (core dumped)
 #	    "$GOTOOLDIR"/go_bootstrap clean -i std
 #
-# で止まる (run 35125854518)。go-bin に openbsd-amd64 と openbsd-arm64 の
+# で止まる (run 35125854518)。go-bin に openbsd-amd64 / arm64 / riscv64 の
 # 公式 binary を足し、bootstrap.mk の条件に OpenBSD を足す。
 #
 # 上流に入ったら bootstrap.mk の grep が当たって何もしない。
@@ -27,6 +27,9 @@ for f in lang/go-bin/Makefile lang/go-bin/distinfo lang/go/bootstrap.mk; do
 	mkdir -p "$TREE/.ci-orig/$(dirname "$f")"
 	cp "$TREE/$f" "$TREE/.ci-orig/$f"
 done
+# 先に空当て。手で diff を書き換えて hunk の行数がずれていたことがある
+# (run 35798802555 の macOS が malformed patch で落ちた)。
+patch -C -f -p0 -d "$TREE" < "$D" > /dev/null || { echo "!! go: 当て物が当たらない" >&2; exit 1; }
 patch -f -p0 -d "$TREE" < "$D" > /dev/null
 grep -q 'openbsd-amd64' "$TREE/lang/go-bin/distinfo" || { echo "!! go-bin: distinfo に入っていない" >&2; exit 1; }
-echo "  go: go-bin に openbsd-amd64/arm64 を足し、bootstrap.mk の go-bin の条件に OpenBSD を足した"
+echo "  go: go-bin に openbsd-amd64/arm64/riscv64 を足し、bootstrap.mk の go-bin の条件に OpenBSD を足した"
