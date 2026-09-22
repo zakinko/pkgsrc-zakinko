@@ -1,0 +1,35 @@
+--- pkgtools/libnbcompat/files/nbcompat/time.h.orig
++++ pkgtools/libnbcompat/files/nbcompat/time.h
+@@ -64,6 +64,17 @@
+ int utimes(const char *, const struct timeval *);
+ #endif
+ 
++/*
++ * lutimes.c is built whenever the host lacks lutimes(2), but nothing
++ * declared it, so every caller got an implicit declaration -- an error
++ * with the compilers that now default to -Werror=implicit-function-declaration.
++ * archivers/pax calls it from set_ftime(), which is how the pkgsrc
++ * bootstrap stopped on Solaris 11.4.
++ */
++#if !HAVE_LUTIMES
++int lutimes(const char *, const struct timeval *);
++#endif
++
+ #if !HAVE_TIMEGM
+ time_t timegm(struct tm *);
+ #endif
+--- pkgtools/libnbcompat/files/nbcompat/stat.h.orig
++++ pkgtools/libnbcompat/files/nbcompat/stat.h
+@@ -44,6 +44,12 @@
+ int	lchmod(const char *, mode_t);
+ #endif
+ 
++/* Same omission as lutimes: lchflags.c is built and nothing declared it.
++ * pkgtools/mtree calls lchflags() from compare.c and verify.c. */
++#if !HAVE_LCHFLAGS
++int	lchflags(const char *, unsigned long);
++#endif
++
+ #if !defined(S_ISLNK)
+ # define S_ISLNK(m)	((m & S_IFMT) == S_IFLNK)
+ #endif

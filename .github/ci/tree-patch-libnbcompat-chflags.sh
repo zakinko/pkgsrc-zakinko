@@ -11,6 +11,16 @@ if grep -q 'HAVE_CHFLAGS' "$F"; then
 	exit 0
 fi
 patch -f -p0 -d "$TREE" < "$D/tree-libnbcompat-chflags.diff" > /dev/null
+# 宣言の欠けは別の当て物。chflags の判定を直すと次に lutimes で止まるので、
+# 同じ script で続けて当てる。
+if ! grep -q 'HAVE_LUTIMES' "$TREE/pkgtools/libnbcompat/files/nbcompat/time.h"; then
+	patch -f -p0 -d "$TREE" < "$D/tree-libnbcompat-decls.diff" > /dev/null
+	grep -q 'HAVE_LUTIMES' "$TREE/pkgtools/libnbcompat/files/nbcompat/time.h" || {
+		echo "!! libnbcompat: lutimes の宣言が入っていない" >&2; exit 1; }
+	grep -q 'HAVE_LCHFLAGS' "$TREE/pkgtools/libnbcompat/files/nbcompat/stat.h" || {
+		echo "!! libnbcompat: lchflags の宣言が入っていない" >&2; exit 1; }
+	echo "  libnbcompat: lutimes と lchflags の宣言を足した"
+fi
 for c in 'lchflags.c:HAVE_CHFLAGS' 'configure:ac_cv_func_chflags' \
 	 'configure.ac:AC_CHECK_FUNCS(\[chflags\])' 'nbcompat/config.h.in:HAVE_CHFLAGS'; do
 	f=${c%%:*}; k=${c#*:}
