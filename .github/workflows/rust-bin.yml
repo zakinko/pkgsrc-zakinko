@@ -48,14 +48,34 @@ jobs:
         include:
           - { name: 'glibc x86_64',  runner: ubuntu-latest,    image: 'debian:13' }
           - { name: 'glibc aarch64', runner: ubuntu-24.04-arm, image: 'debian:13' }
-          # Linux-*-i386 も謳っているので、i386 の container で測る。
-          - { name: 'glibc i386',    runner: ubuntu-latest,    image: 'i386/debian:13' }
     container: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
       - name: 道具
         run: apt-get update -qq && apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch
       - run: PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # Linux-*-i386 も rust-bin が謳っているので測る。ただし container: では
+  # 動かない。actions が使う node は x86_64 の binary で、i386 の container の
+  # 中で exec できず "exec /__e/node24/bin/node: no such file or directory" に
+  # なる (run 35760404446)。node は host 側で走らせ、i386 の userland は
+  # docker run の中だけにする。
+  linux-i386:
+    name: Linux glibc i386
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: i386 の userland の中で建てる
+        run: |
+          docker run --rm --platform linux/386 \
+            -v "$PWD:/w" -w /w \
+            -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH \
+            -e PKGSRC_BASE=/tmp \
+            i386/debian:13 sh -c '
+              apt-get update -qq &&
+              apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch &&
+              sh .github/ci/build-on-bsd.sh'
 
   bsd:
     name: ${{ matrix.name }}
@@ -140,4 +160,6 @@ jobs:
           - { arch: x86_64,  runner: macos-13 }
     steps:
       - uses: actions/checkout@v4
-      - run: sh .github/ci/build-on-bsd.sh
+      # macOS の / は読み取り専用なので /pkgsrc-ci が掘れない
+      # (mkdir: /pkgsrc-ci: Read-only file system)。書ける所を渡す。
+      - run: PKGSRC_BASE="$RUNNER_TEMP" sh .github/ci/build-on-bsd.sh

@@ -84,7 +84,25 @@ if [ $rc = 0 ]; then
 	RUSTC=$PREFIX/bin/rustc
 	CARGO=$PREFIX/bin/cargo
 	if [ -x "$RUSTC" ]; then
-		echo "  rustc: $("$RUSTC" --version 2>&1)"
+		if _v=$("$RUSTC" --version 2>&1); then
+			echo "  rustc: $_v"
+		else
+			echo "  !! rustc が起動しない: $_v"
+			rc=1
+			# 「無い」と言われた library が本当に無いのか、在るのに
+			# 見えていないのかは別の話。ldd と在処を出して分ける。
+			# OpenIndiana は libgcc_s.so.1、NetBSD/riscv64 は
+			# libatomic.so.3 で、どちらも package が依存に挙げて
+			# いない形に見える (run 35760404446)。
+			echo "  --- ldd $RUSTC"
+			(ldd "$RUSTC" 2>&1 || true) | sed 's/^/      /' | head -30
+			for _l in libgcc_s.so.1 libatomic.so.3 libstdc++.so.6; do
+				echo "  --- $_l を箱の中で探す"
+				find /usr /opt "$PREFIX" -name "$_l*" 2>/dev/null |
+					sed 's/^/      /' | head -6
+			done
+			echo "  --- LD_LIBRARY_PATH=[${LD_LIBRARY_PATH:-未設定}]"
+		fi
 	else
 		echo "  !! $RUSTC が無い"; rc=1
 	fi
