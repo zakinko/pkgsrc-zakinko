@@ -234,9 +234,15 @@
 #
 #			NOTFOR_* is the opposite of FOR_*.
 #
-#			FOR_emacs_x and FOR_emacs_nox are unused: no
-#			package installs different lisp for the two, and
-#			emacs30-nox11 shares emacs30's PLIST anyway.
+#			FOR_emacs_x and FOR_emacs_nox tell the X11 build
+#			of an Emacs from the no-X11 one, for a package
+#			whose lisp differs between the two.  No package
+#			does: editors/emacs30-nox11 takes its PKGDIR,
+#			PLIST, PATCHDIR and DISTINFO_FILE from
+#			editors/emacs30, so the pair share one PLIST, and
+#			a package that installs the same lisp either way
+#			has nothing to mark.  They are kept for a package
+#			outside the tree that reads them.
 #		Possible values:
 #			"", "@comment"
 #

@@ -1,5 +1,5 @@
---- modules.mk.orig	2026-09-23 02:05:56
-+++ modules.mk	2026-09-23 02:06:25
+--- modules.mk.orig	2026-09-23 02:07:40
++++ modules.mk	2026-09-23 02:07:40
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
@@ -71,18 +71,24 @@
  #
  #	EMACS_VERSION_MAJOR
  #		Description:
-@@ -200,6 +233,10 @@
+@@ -200,6 +233,16 @@
  #			valid.
  #
  #			NOTFOR_* is the opposite of FOR_*.
 +#
-+#			FOR_emacs_x and FOR_emacs_nox are unused: no
-+#			package installs different lisp for the two, and
-+#			emacs30-nox11 shares emacs30's PLIST anyway.
++#			FOR_emacs_x and FOR_emacs_nox tell the X11 build
++#			of an Emacs from the no-X11 one, for a package
++#			whose lisp differs between the two.  No package
++#			does: editors/emacs30-nox11 takes its PKGDIR,
++#			PLIST, PATCHDIR and DISTINFO_FILE from
++#			editors/emacs30, so the pair share one PLIST, and
++#			a package that installs the same lisp either way
++#			has nothing to mark.  They are kept for a package
++#			outside the tree that reads them.
  #		Possible values:
  #			"", "@comment"
  #
-@@ -233,10 +270,14 @@
+@@ -233,10 +276,14 @@
  # Constants
  #
  
@@ -100,7 +106,7 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -251,9 +292,24 @@
+@@ -251,9 +298,24 @@
  	xemacs215@../../editors/xemacs-current \
  	xemacs215nox@../../editors/xemacs-current-nox11
  
@@ -127,7 +133,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,24 +332,192 @@
+@@ -276,24 +338,192 @@
  #		abort;
  #
  
@@ -326,7 +332,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,17 +530,48 @@
+@@ -306,17 +536,48 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -379,7 +385,7 @@
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
  .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
-@@ -354,7 +609,12 @@
+@@ -354,7 +615,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
