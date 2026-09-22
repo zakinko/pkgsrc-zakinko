@@ -54,12 +54,13 @@ jobs:
       - name: 二つの branch から diff を取り出す
         run: |
           git fetch --quiet --depth 1 origin emacs-patches emacs-updates
-          mkdir -p zakinko/emacs-diffs
-          git archive origin/emacs-patches emacs-patches | tar x -C zakinko/emacs-diffs
-          git archive origin/emacs-updates emacs-updates | tar x -C zakinko/emacs-diffs
-          cp .github/ci/emacs-existing.txt zakinko/emacs-diffs/
-          echo "emacs-patches: $(ls zakinko/emacs-diffs/emacs-patches/*.diff | wc -l) 本"
-          echo "emacs-updates: $(ls zakinko/emacs-diffs/emacs-updates/*.diff | wc -l) 本, new/ $(ls zakinko/emacs-diffs/emacs-updates/new | tr '\n' ' ')"
+          # zakinko/<pkg> は run-in-qemu.sh では root 直下の <pkg>/ を指す (emacs20 と同じ)
+          mkdir -p emacs-diffs
+          git archive origin/emacs-patches emacs-patches | tar x -C emacs-diffs
+          git archive origin/emacs-updates emacs-updates | tar x -C emacs-diffs
+          cp .github/ci/emacs-existing.txt emacs-diffs/
+          echo "emacs-patches: $(ls emacs-diffs/emacs-patches/*.diff | wc -l) 本"
+          echo "emacs-updates: $(ls emacs-diffs/emacs-updates/*.diff | wc -l) 本, new/ $(ls emacs-diffs/emacs-updates/new | tr '\n' ' ')"
 
       - name: ディスクを空ける
         run: |
