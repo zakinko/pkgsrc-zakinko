@@ -49,3 +49,54 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | inputmethod/tamago-tsunagi | 5.0.7.1 | same | accepts emacs20 again instead of being marked incompatible. 5.0.7.1 is Tamago 4 ported to the Mule of Emacs 23+; its egg-com.el defines the fixed-euc coding systems with define-charset keywords Emacs 20 has no idea of, so on Emacs 20 Tamago 4.0.6's own egg-com.el is used (files/egg-com-e20.el) and devel/emacs20-compat supplies obarray-make and set-process-query-on-exit-flag; its/aynu (JIS X 0213) is left out there. Built for emacs20 and emacs30. On emacs20 and on emacs30 the installed package starts anthy-agent, sends にほんごをかく through egg-convert-region and gets 日本語を 書く back (the earlier "Invalid code(s)" on emacs30 was the test's own doing: (string 164 203 …) is Latin-1 text on Emacs 23+, not EUC bytes) |
 | www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
 | www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
+
+## Checked and left alone (2026-09-22)
+
+The rest of the elisp packages, compared with their upstreams on the
+same day.  "last" means the upstream site is gone or that version is
+the last it ever published; "current" means it matches what upstream
+ships today.
+
+| package | pkgsrc | upstream | |
+|---|---|---|---|
+| cad/dinotrace-mode | 9.4f | v9.4f (2023-04) | current. Accepts only emacs26/emacs29, and emacs26 is not in the tree; builds and loads on emacs30 with EMACS_VERSIONS_ACCEPTED overridden |
+| chat/emacs-jabber | 0.8.92 | 0.14.0 (git.thanosapollo.org; Debian ships it) | the tree's package is the emacs20/XEmacs one; 0.14 wants Emacs 27 and would be a second package, as elscreen-current is |
+| chat/irchat-pj | 2.4.24.22 | his.luky.org is gone | last |
+| chat/riece | 9.0.0 | 9.0.0 | current |
+| chat/zenicb | 19981202 | LOCAL | last; accepts emacs31 only since 2026-09-08 |
+| chat/zenirc | 2.112 | splode.com lists no tarballs | last |
+| devel/cobol-mode | 20150505 | emacswiki | last |
+| devel/doxymacs | 1.8.0 | 1.8.0 | current |
+| devel/lua-mode | 20210802 | v20210802 (git goes on to 2025-03 without a tag) | current tag |
+| devel/mell | 1.0.0 | taiyaki.org is gone | last; fixed for Emacs 29+ in emacs-patches |
+| devel/semantic, editors/speedbar, lang/eieio | 1.4.4 / 0.14beta4 / 0.17 | last standalone releases; CEDET is in Emacs since 23 | last, for emacs20/XEmacs |
+| editors/gnuserv | 3.12.8 | 3.12.8 | last |
+| editors/javascript-mode | 2.2.1 | brgeight.se is gone | last |
+| editors/manued | 20191018 | git stops at 2019-10-17 | current |
+| graphics/artist | 1.2.6 | 1.2.6 | current (Emacs bundles it too) |
+| inputmethod/tc | 2.3.1 | 2.3.1 | current |
+| mail/etach | 1.2.9 | rulnick.com 404 | last |
+| mail/mailcrypt | 3.5.9 | 3.5.9 | current |
+| mail/mew | 6.11 | v6.11 | current |
+| mail/rmail-mime | 1.13.0 | m17n.org ftp is gone | last |
+| mail/vm | 8.2.0b | 8.2.0b | current |
+| math/texdrive | 20081126 | one file, never updated | last; loads and byte-compiles clean on emacs30 |
+| misc/color-theme | 6.6.0 | 6.6.0 | current (emacs-patches makes it work on 26–30) |
+| misc/emacs-wiki | 2.72 | mwolson.org is gone (muse succeeded it) | last |
+| misc/emacspeak | 60.0 | 60.0 | current |
+| misc/howm | 1.5.6 | 1.5.6 | current |
+| misc/lookup | 1.4.1 | 1.4.1 (openlab.jp) | current; 2.x is a different line |
+| net/twittering-mode | 3.0.0 | v3.0.0 (2018) | current |
+| textproc/dictem | 1.0.4 | 1.0.4 | current |
+| textproc/flyspell | 1.7m | inria 404 (Emacs bundles it) | last |
+| textproc/ispell-emacs | 3.6 | kdstevens.com ftp | last |
+| textproc/xslide | 0.2.2 | 0.2.2 | current |
+
+NVD was searched by name for all 99 packages that read modules.mk.
+Everything that came back and is about one of them is already fixed
+in the version the tree has: CVE-2008-4952 (emacs-jabber 0.7.91's
+/tmp log; 0.8.92 has no such file), CVE-2004-0422 (flim before
+1.14.3), CVE-2001-0191 (gnuserv before 3.12), CVE-2008-4191
+(emacspeak 26/28's extract-table.pl; 60.0's writes to stdout),
+CVE-2007-2833 (an Emacs 21 image bug reported through vm).  The
+emacs20 and xemacs entries are in emacs-patches.
