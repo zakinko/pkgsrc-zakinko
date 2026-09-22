@@ -272,18 +272,37 @@ echo "########## CVE-2007-0158 (underflow) on $OS ##########"
 # ASan が動くか。NetBSD は ASLR と shadow の置き場が衝突して起動すらしない
 # ので、binary ごとに外せるなら外して測る。測れない理由が箱の設定なら、
 # その設定の方を外す。
-asan_works() {
-	echo 'int main(){return 0;}' | $CC -fsanitize=address -x c - -o "$T/at" 2>/dev/null \
-	    || { echo "  この箱の $CC は -fsanitize=address を持たない"; return 1; }
-	"$T/at" 2>/dev/null && return 0
-	# paxctl(8) は小文字が「明示的に無効化」で、大文字は有効化。ASLR を
-	# 切るのは +a であって -A ではない (-A は有効化の印を外すだけ)。
+# ASan を持つ compiler を探す。$CC が駄目でも箱に別の物が在ることが
+# あるので、一つ落ちただけで「この箱では無理」と言わない。落ちた理由も
+# 出す。option を知らないのと libasan が見つからないのでは話が違う。
+ASANCC=""
+asan_try() { # $1=compiler
+	command -v "$1" >/dev/null 2>&1 || return 1
+	echo 'int main(){return 0;}' | "$1" -fsanitize=address -x c - -o "$T/at" \
+	    > "$T/at.err" 2>&1 || {
+		echo "    $1: 建たない"
+		sed 's/^/      /' "$T/at.err" | head -3
+		return 1
+	}
+	"$T/at" 2>/dev/null && { ASANCC=$1; return 0; }
+	# NetBSD は ASLR と shadow の置き場が衝突して起動しない。
 	if command -v paxctl >/dev/null 2>&1 && paxctl +a "$T/at" >/dev/null 2>&1 \
 	   && "$T/at" 2>/dev/null; then
-		echo "  ASLR が ASan を止めていた。paxctl +a で切って測る"
-		return 0
+		echo "    $1: ASLR が止めていた。paxctl +a で切って使う"
+		ASANCC=$1; return 0
 	fi
-	echo "  ASan を建てられても走らせられない"
+	echo "    $1: 建つが走らない"
+	return 1
+}
+
+asan_works() {
+	echo "  ASan を持つ compiler を探す"
+	for c in "$CC" cc clang gcc /opt/gcc-14/bin/gcc /opt/gcc-13/bin/gcc \
+	         "$PREFIX/bin/clang" "$PREFIX/bin/gcc" egcc clang19 clang18 gcc14 gcc13; do
+		[ -n "$c" ] || continue
+		asan_try "$c" && { echo "  使う: $ASANCC"; CC=$ASANCC; return 0; }
+	done
+	echo "  この箱には ASan を走らせられる compiler が無い"
 	return 1
 }
 
