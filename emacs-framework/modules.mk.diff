@@ -1,5 +1,5 @@
---- modules.mk.orig
-+++ modules.mk
+--- modules.mk.orig	2026-09-22 23:17:46
++++ modules.mk	2026-09-22 23:22:49
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
@@ -116,17 +116,17 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,24 +328,218 @@
+@@ -276,24 +328,192 @@
  #		abort;
  #
  
 -_EMACS_TYPE=	${EMACS_TYPE}
--
- EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
++EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
+ 
+-EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
 -.if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
 -PKG_FAIL_REASON+=		"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
 -PKG_FAIL_REASON+=		"No valid Emacs version installed found"
-+
 +# The Emacs this machine uses when the package does not care.  EMACS_TYPE
 +# is the name this has always had; keep honouring it.
 +EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
@@ -199,8 +199,8 @@
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
 +.else
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
-+.endif
-+
+ .endif
+ 
 +# When pkgsrc resolves a dependency it passes the pattern it is looking
 +# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
 +# part of the name, that pattern says which Emacs the package asking for
@@ -217,8 +217,8 @@
 +EMACS_VERSION_REQD?=	${_ev_}
 +.    endif
 +.  endfor
- .endif
- 
++.endif
++
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
 +.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
 +_EMACS_TYPE=		${EMACS_VERSION_REQD}
@@ -301,39 +301,13 @@
 +_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME}-nox11
 +.endif
  
-+# The ABI floor has to be as tolerant as the API one, or a package whose
-+# dependency is already satisfied by the nox build is told to build the
-+# X11 one instead -- which on a small i386 box means building a compiler
-+# for an Emacs that is already installed.  That is how this was found.
-+# A version.mk that does not say gets the API requirement as its floor
-+# rather than nothing.  Leaving it empty is how the floor for emacs20
-+# disappeared once: the buildlink file was changed to read this variable
-+# while its version.mk had not been given one, and an empty
-+# BUILDLINK_ABI_DEPENDS is not an error -- it is simply no check at all.
-+_EMACS_ABI?=		${_EMACS_REQD}
-+
-+_EMACS_ABI_NAME=	${_EMACS_ABI:C/[<>=].*//}
-+_EMACS_ABI_BOUND=	${_EMACS_ABI:C/^[^<>=]*//}
-+.if !empty(_EMACS_ABI_NAME:M*-nox11)
-+_EMACS_ABI_OTHER=	${_EMACS_ABI_NAME:C/-nox11$//}
-+.else
-+_EMACS_ABI_OTHER=	${_EMACS_ABI_NAME}-nox11
-+.endif
-+
 +.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
++# Accept either twin.  A package whose dependency is already satisfied by
++# the nox11 build must not be told to build the X11 one -- on a small i386
++# box that means building a compiler for an Emacs that is already there.
 +_EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
-+.  if !empty(_EMACS_ABI_NAME)
-+_EMACS_ABI_ANY=		{${_EMACS_ABI_NAME},${_EMACS_ABI_OTHER}}${_EMACS_ABI_BOUND}
-+.  else
-+# Never build the pair out of nothing: {,-nox11} is a pattern that looks
-+# like a check and matches nothing.  Better to fail loudly than to ship a
-+# package whose floor is a typo.
-+PKG_FAIL_REASON+=	"_EMACS_ABI is empty; ${_EMACS_PKGDIR}/version.mk must set it"
-+_EMACS_ABI_ANY=		${_EMACS_REQD_ANY}
-+.  endif
 +.else
 +_EMACS_REQD_ANY=	${_EMACS_REQD}
-+_EMACS_ABI_ANY=		${_EMACS_ABI}
 +.endif
 +
 +DEPENDS+=	${_EMACS_REQD_ANY}:${_EMACS_PKGDIR}
@@ -341,7 +315,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,17 +552,48 @@
+@@ -306,17 +526,48 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -394,7 +368,7 @@
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
  .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
-@@ -354,7 +631,12 @@
+@@ -354,7 +605,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

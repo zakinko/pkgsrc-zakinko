@@ -65,8 +65,14 @@ by contrast, costs nothing until `PKGBASE` moves.
   `lang/bigloo`) keeps its info where the user's `PKGINFODIR` says.
 - `EMACS_BIN` is the versioned binary (`bin/emacs-30.2`), so building for
   emacs29 no longer byte-compiles with whichever Emacs owns `bin/emacs`.
-- Each nox `version.mk` includes its X11 twin and sets only what differs;
-  the ABI floor moved from `buildlink3.mk` into `version.mk`.
+- Each nox `version.mk` includes its X11 twin and sets only what differs.
+- `BUILDLINK_API_DEPENDS` in the six `buildlink3.mk` files reads
+  `_EMACS_REQD_ANY`, which accepts either twin, so a package whose
+  dependency is already met by the nox11 build is not told to build the
+  X11 one.  The `BUILDLINK_ABI_DEPENDS` lines are left alone: nothing in
+  the tree includes an Emacs `buildlink3.mk`, so that floor is not read
+  today, and when something does, the value belongs in that Emacs's
+  `version.mk`.
 - pbulk: `emacs` is added to `_PBULK_MULTI` with the filtered list, so
   `devel/apel` yields `emacs30-apel`, `emacs29-apel`, `emacs31-apel`.
 
