@@ -1,7 +1,7 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/textproc/markdown-mode/Makefile textproc/markdown-mode/Makefile
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/textproc/markdown-mode/Makefile textproc/markdown-mode/Makefile
 --- /usr/pkgsrc/textproc/markdown-mode/Makefile	2022-05-14 22:25:41.000000000 +0000
-+++ textproc/markdown-mode/Makefile	2026-09-21 10:56:54.066672897 +0000
-@@ -1,8 +1,7 @@
++++ textproc/markdown-mode/Makefile	2026-09-22 18:42:14.679981846 +0000
+@@ -1,12 +1,16 @@
  # $NetBSD: Makefile,v 1.11 2022/05/14 22:25:41 dholland Exp $
  
 -DISTNAME=	markdown-mode-2.4
@@ -11,7 +11,26 @@ diff -ruN -x CVS -x work /usr/pkgsrc/textproc/markdown-mode/Makefile textproc/ma
  CATEGORIES=	textproc
  MASTER_SITES=	${MASTER_SITE_GITHUB:=jrblevin/}
  GITHUB_TAG=	v${PKGVERSION_NOREV}
-diff -ruN -x CVS -x work /usr/pkgsrc/textproc/markdown-mode/distinfo textproc/markdown-mode/distinfo
+ 
++# GitHub の既定は ${WRKDIR}/${PKGNAME} を指すが、PKGNAME には
++# EMACS_PKGNAME_PREFIX が付く。XEmacs では xemacs-... を探して
++# 展開先と食い違うので、DISTNAME で指す。
++WRKSRC=		${WRKDIR}/markdown-mode-2.8
++
+ MAINTAINER=	minskim@NetBSD.org
+ HOMEPAGE=	https://jblevins.org/projects/markdown-mode/
+ COMMENT=	Emacs major mode for editing Markdown-formatted text files
+@@ -19,6 +23,9 @@
+ 
+ EMACS_MODULES=	base
+ 
++# 2.8 requires color.el, which arrived in Emacs 24 and XEmacs does not have
++EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox emacs30 emacs30nox emacs29 emacs29nox
++
+ .include "../../editors/emacs/modules.mk"
+ 
+ do-build:
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/textproc/markdown-mode/distinfo textproc/markdown-mode/distinfo
 --- /usr/pkgsrc/textproc/markdown-mode/distinfo	2021-10-26 11:22:21.000000000 +0000
 +++ textproc/markdown-mode/distinfo	2026-09-21 10:56:55.871908200 +0000
 @@ -1,5 +1,5 @@

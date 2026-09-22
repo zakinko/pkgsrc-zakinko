@@ -1,7 +1,7 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/Makefile devel/sml-mode/Makefile
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/sml-mode/Makefile devel/sml-mode/Makefile
 --- /usr/pkgsrc/devel/sml-mode/Makefile	2022-05-14 22:25:35.000000000 +0000
-+++ devel/sml-mode/Makefile	2026-09-21 14:57:49.832214886 +0000
-@@ -1,23 +1,29 @@
++++ devel/sml-mode/Makefile	2026-09-22 16:18:59.690335397 +0000
+@@ -1,24 +1,33 @@
  # $NetBSD: Makefile,v 1.22 2022/05/14 22:25:35 dholland Exp $
  
 -DISTNAME=	sml-mode-3.9.5
@@ -37,8 +37,12 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/Makefile devel/sml-mode/Make
 +		${DESTDIR}${EMACS_LISPPREFIX}/sml-mode
  	${INSTALL_DATA} ${WRKSRC}/sml-mode.info ${DESTDIR}${EMACS_INFOPREFIX}
  
++# 6.12 needs Emacs 24.3: the reader rejects its dotted syntax on 20 and XEmacs 21.4
++EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox emacs30 emacs30nox emacs29 emacs29nox
++
  .include "../../editors/emacs/modules.mk"
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/PLIST devel/sml-mode/PLIST
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/sml-mode/PLIST devel/sml-mode/PLIST
 --- /usr/pkgsrc/devel/sml-mode/PLIST	2009-06-14 17:49:14.000000000 +0000
 +++ devel/sml-mode/PLIST	2026-09-21 14:57:06.158834889 +0000
 @@ -1,19 +1,6 @@
@@ -63,7 +67,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/PLIST devel/sml-mode/PLIST
 -${EMACS_LISPPREFIX}/sml-mode/ChangeLog
 +${EMACS_LISPPREFIX}/sml-mode/sml-mode.el
 +${EMACS_LISPPREFIX}/sml-mode/sml-mode.elc
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/distinfo devel/sml-mode/distinfo
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/sml-mode/distinfo devel/sml-mode/distinfo
 --- /usr/pkgsrc/devel/sml-mode/distinfo	2021-10-26 10:19:56.000000000 +0000
 +++ devel/sml-mode/distinfo	2026-09-21 18:49:21.786311845 +0000
 @@ -1,6 +1,7 @@
@@ -78,7 +82,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/distinfo devel/sml-mode/dist
 +Size (sml-mode-6.12.tar) = 143360 bytes
 +SHA1 (patch-sml-mode.el) = 3d5be9d8f77c0e3527922942354d0ff25558a233
 +SHA1 (patch-sml-mode.texi) = e2134a6caab8ce11c5d939a7358ecc30bfd4bdb8
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-aa devel/sml-mode/patches/patch-aa
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/sml-mode/patches/patch-aa devel/sml-mode/patches/patch-aa
 --- /usr/pkgsrc/devel/sml-mode/patches/patch-aa	2001-04-14 23:08:58.000000000 +0000
 +++ devel/sml-mode/patches/patch-aa	1970-01-01 00:00:00.000000000 +0000
 @@ -1,22 +0,0 @@
@@ -104,7 +108,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-aa devel/sml-m
 - startupfile = $(lispdir)/site-start.el
 - 
 - # the directory where you installed the elib .elc files.
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.el devel/sml-mode/patches/patch-sml-mode.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.el devel/sml-mode/patches/patch-sml-mode.el
 --- /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.el	1970-01-01 00:00:00.000000000 +0000
 +++ devel/sml-mode/patches/patch-sml-mode.el	2026-09-21 18:49:43.048417503 +0000
 @@ -0,0 +1,16 @@
@@ -124,7 +128,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.el de
 + 
 + (defcustom sml-indent-args sml-indent-level
 +   "Indentation of args placed on a separate line."
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.texi devel/sml-mode/patches/patch-sml-mode.texi
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.texi devel/sml-mode/patches/patch-sml-mode.texi
 --- /usr/pkgsrc/devel/sml-mode/patches/patch-sml-mode.texi	1970-01-01 00:00:00.000000000 +0000
 +++ devel/sml-mode/patches/patch-sml-mode.texi	2026-09-21 18:49:43.049061999 +0000
 @@ -0,0 +1,37 @@
