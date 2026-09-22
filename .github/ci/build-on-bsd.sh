@@ -165,8 +165,21 @@ if [ ! -d "$TREE/mk" ]; then
 	$TAR xzf "$REAL/pkgsrc.tar.gz" -C "$TOP"
 	rm -f "$REAL/pkgsrc.tar.gz"
 fi
-# どの日のツリーかは、転けたときに効く。current は毎日動く。
-echo "ツリー: $(ls -ld "$TREE/mk/bsd.pkg.mk" | awk '{ print $6, $7, $8 }')"
+# どの日のツリーかは、転けたときに効く。
+#
+# ここは長らく mk/bsd.pkg.mk の mtime を出していたが、あれは木の鮮度では
+# ない。bsd.pkg.mk は滅多に変わらないので、2026-09 の run が「Apr 11」と
+# 出して、半年古い木を掴んでいると誤読した。実際には数日の遅れだった。
+#
+# cdn の current/pkgsrc.tar.gz は毎日は作られない。掴んだ tarball が
+# いつのものかは、いちばん新しい file の mtime を数えるのが近い。doc/CHANGES
+# は毎日動くので、それを見る。
+echo "ツリー: bsd.pkg.mk は $(ls -ld "$TREE/mk/bsd.pkg.mk" | awk '{ print $6, $7, $8 }') (滅多に変わらない)"
+newest=$(ls -t "$TREE"/doc/CHANGES-* 2>/dev/null | head -1)
+if [ -n "$newest" ]; then
+	echo "ツリーの鮮度: $(basename "$newest") が $(ls -ld "$newest" | awk '{ print $6, $7, $8 }')"
+	echo "  最後の行: $(tail -1 "$newest" 2>/dev/null | cut -c1-100)"
+fi
 
 # 本家の木そのものに手を入れたいときの口。上流の bug を直して、その直しが
 # 効くかをここで測るのに使う。TREE_PATCH を設定しなければ何もしない。
