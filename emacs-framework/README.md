@@ -75,6 +75,14 @@ by contrast, costs nothing until `PKGBASE` moves.
   nothing in the tree includes an Emacs `buildlink3.mk`, so that floor is
   not read today, and when something does, the value belongs in that
   Emacs's `version.mk`.
+- `EMACS_PKGNAME_PREFIX` is offered to the PLIST, because a package whose
+  name carries it still installs `share/doc/<name>` and `info/` without it.
+  `graphics/artist` is the one that already fails: `pkg_add` refuses
+  `emacs30-artist` against a plain `artist` on `share/doc/artist/BUGS`.
+  Across the tree, 48 packages whose PKGNAME carries the prefix have 1192
+  PLIST lines that do not -- 30 of them under `bin/` and 14 under `man/`,
+  which break coexistence outright, the rest under `share/` and `info/`,
+  which stop the second Emacs's copy from installing.
 - pbulk: `emacs` is added to `_PBULK_MULTI` with the filtered list, so
   `devel/apel` yields `emacs30-apel`, `emacs29-apel`, `emacs31-apel`.
 

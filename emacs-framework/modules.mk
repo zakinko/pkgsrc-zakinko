@@ -598,6 +598,12 @@ _EMACS_PLIST_SUBST+=	EMACS_VERSION=${_EMACS_VERSION_MAJOR:Q}.${_EMACS_VERSION_MI
 _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
 _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
 _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
+# A package whose name carries the prefix installs its documentation and
+# its info files under share/doc/<name> and info/, which do not.  Two
+# Emacsen then cannot both have it: pkg_add refuses the second on
+# share/doc/artist/BUGS.  The prefix is offered to the PLIST so those
+# paths can carry it too.
+_EMACS_PLIST_SUBST+=	EMACS_PKGNAME_PREFIX=${EMACS_PKGNAME_PREFIX:Q}
 
 _EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
 
@@ -624,3 +630,4 @@ ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_M
 .endif
 
 .endif	# EMACS_MK
+

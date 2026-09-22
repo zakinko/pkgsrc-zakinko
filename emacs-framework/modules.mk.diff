@@ -1,5 +1,5 @@
---- modules.mk.orig	2026-09-22 20:01:40.033724291 +0000
-+++ modules.mk	2026-09-22 20:01:40.035289853 +0000
+--- modules.mk.orig	2026-09-22 23:57:06.342655454 +0000
++++ modules.mk	2026-09-22 23:57:06.344216266 +0000
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
@@ -382,7 +382,20 @@
  
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
-@@ -354,8 +614,14 @@
+@@ -338,6 +598,12 @@
+ _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
+ _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
+ _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
++# A package whose name carries the prefix installs its documentation and
++# its info files under share/doc/<name> and info/, which do not.  Two
++# Emacsen then cannot both have it: pkg_add refuses the second on
++# share/doc/artist/BUGS.  The prefix is offered to the PLIST so those
++# paths can carry it too.
++_EMACS_PLIST_SUBST+=	EMACS_PKGNAME_PREFIX=${EMACS_PKGNAME_PREFIX:Q}
+ 
+ _EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
+ 
+@@ -354,8 +620,14 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
