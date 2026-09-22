@@ -50,7 +50,7 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
 | www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
 
-## lang/ruby34 (`lang_ruby34.diff`, not an Emacs package)
+## lang/ruby34 (`lang_ruby34.diff`, not an Emacs package; sent as pkg/60763 on 2026-09-22)
 
 ruby34 3.4.10 does not link on a system where configure chooses
 "dtrace needs post processing... rebuild" (NetBSD is one) when the
