@@ -12,7 +12,7 @@ if grep -q 'x86_64-unknown-illumos' "$M" && ! grep -q '#RUST_ARCH:=	x86_64-unkno
 	exit 0
 fi
 patch -f -p0 -d "$TREE" < "$D/tree-rust-bin-illumos.diff" > /dev/null
-grep -q 'OS_VARIANT} != "Solaris"' "$M" || {
+grep -q 'OS_VARIANT:U} != "Solaris"' "$M" || {
 	echo "!! rust-bin: OS_VARIANT の分岐が入っていない" >&2; exit 1; }
 grep -q 'x86_64-unknown-illumos' "$TREE/lang/rust-bin/distinfo" || {
 	echo "!! rust-bin: distinfo に illumos が入っていない" >&2; exit 1; }
