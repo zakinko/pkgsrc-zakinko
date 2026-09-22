@@ -6,7 +6,20 @@
 #   上流の binary がこの箱の分だけ取られるか
 #   入った go が version を答え、実際に program を建てるか
 set -e
+# 出力を C で読みたいが、C のままだと展開が通らない。go の tarball には
+# go/test/fixedbugs/issue27836.dir/{THORN}foo.go など U+00DE を含む名前が
+# 二本入っていて、libarchive の bsdtar は archive が UTF-8 だと言っている
+# 名前を現行 locale へ変換できないと落ちる (illumos で実測)。既定の locale
+# が C の箱はそのまま踏むので、UTF-8 があれば使い、無ければ C のまま進めて
+# 何を持っていたかを記録に残す。
 LC_ALL=C; export LC_ALL
+for _l in C.UTF-8 en_US.UTF-8; do
+	if locale -a 2>/dev/null | grep -qx "$_l"; then
+		LC_ALL=$_l; break
+	fi
+done
+export LC_ALL
+echo "  locale: LC_ALL=$LC_ALL (この箱にある UTF-8: $(locale -a 2>/dev/null | grep -i 'utf-*8' | tr '\n' ' ')) "
 OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
