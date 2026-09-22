@@ -491,6 +491,49 @@ jobs:
           # 建て、ld.so.hints が残るかを verify-openssl.sh の末尾で見る。
           run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='devel/ncurses security/openssl' sh .github/ci/build-on-bsd.sh
 
+  # openssl の当て物は patches/ に置くので、OpenBSD だけでなく全 platform の
+  # openssl に当たる。当てた木が他の OS でも建ち、configure が選ぶ target が
+  # 変わらないことを見る。これを見ずに送ると、OpenBSD/arm64 を直すために
+  # 木の openssl を全員分壊す形になりうる。
+  openssl-others:
+    if: inputs.target == 'go' || inputs.target == 'openssl'
+    name: openssl on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'FreeBSD 14.4',  os: ubuntu-latest, vm: freebsd }
+          - { name: 'DragonFly',     os: ubuntu-latest, vm: dragonflybsd }
+          - { name: 'macOS 26',      os: macos-latest,  vm: none }
+          - { name: 'Debian 13',     os: ubuntu-latest, vm: docker }
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - if: matrix.vm == 'freebsd'
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'dragonflybsd'
+        uses: vmactions/dragonflybsd-vm@v1
+        with:
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'none'
+        run: sudo env TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' PKGSRC_BASE=/Users/runner/pkgsrcwork sh .github/ci/build-on-bsd.sh
+      - if: matrix.vm == 'docker'
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w debian:13 sh -c '
+            apt-get update -qq && apt-get install -y -qq build-essential curl ca-certificates               file patch perl pkg-config procps > /dev/null
+            useradd -m pkgsrc-ci
+            chmod 777 /w
+            su pkgsrc-ci -c "TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS= TREE_PKGS=security/openssl sh .github/ci/build-on-bsd.sh"'
+
   croc-openbsd:
     if: inputs.target == 'all' || inputs.target == 'croc'
     name: croc on OpenBSD
