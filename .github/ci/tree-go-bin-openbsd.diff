@@ -18,12 +18,19 @@
 +EXTRACT_ONLY+=			${DIST.openbsd-arm64}
 +.endif
 +
++ONLY_FOR_PLATFORM+=		OpenBSD-*-riscv64
++DIST.openbsd-riscv64=		go${PKGVERSION_NOREV}.openbsd-riscv64.tar.gz
++.if ${MACHINE_PLATFORM:MOpenBSD-*-riscv64} || make(distinfo) || make(mdi)
++DISTFILES+=			${DIST.openbsd-riscv64}
++EXTRACT_ONLY+=			${DIST.openbsd-riscv64}
++.endif
++
  ONLY_FOR_PLATFORM+=		SunOS-*-x86_64
  DIST.illumos-amd64=		go${PKGVERSION_NOREV}.illumos-amd64.tar.gz
  .if ${MACHINE_PLATFORM:MSunOS-*-x86_64} || make(distinfo) || make(mdi)
 --- lang/go-bin/distinfo.orig
 +++ lang/go-bin/distinfo
-@@ -36,3 +36,9 @@
+@@ -36,3 +36,12 @@
  BLAKE2s (go1.24.11.netbsd-arm64.tar.gz) = 89ff3e26803dda951fa64496576d0d7cb4e9dbf23c189e2686f4e46dcf9add42
  SHA512 (go1.24.11.netbsd-arm64.tar.gz) = 6627f77a54dff6c1701a5869b1c5f20d80e92454f6a7c7e3905acbbc1894cb8cb2ec26847cf85876c7c70d6648441fe12b2ca8197dc8671d325bfa077c83aa55
  Size (go1.24.11.netbsd-arm64.tar.gz) = 74450529 bytes
@@ -33,6 +40,9 @@
 +BLAKE2s (go1.24.11.openbsd-arm64.tar.gz) = a9ddf13143c4029f5b22efeb6e4897352be63efe076f888aea800f5e6e3aa9f9
 +SHA512 (go1.24.11.openbsd-arm64.tar.gz) = d43332e3f1042de2e178dce758217d64e96252a4c7b45d0b77e79c15389c57bd22962d7cec95bdd920eeb273bfc6342196670aef18951c1a903c8ca471421335
 +Size (go1.24.11.openbsd-arm64.tar.gz) = 74016476 bytes
++BLAKE2s (go1.24.11.openbsd-riscv64.tar.gz) = 44f44bfd604f657ca7cd41a3efc78c37fc0a7df3b6130e9cab53b1ebc0d2ba29
++SHA512 (go1.24.11.openbsd-riscv64.tar.gz) = ac684ca6430dc54296c3fdb96e6eeea04811f902729774682c275b59c5b94bb71dc71aa45f2dfdaf87d4cd275cf82d5bd8789434640fa6983a4fa27dc0588123
++Size (go1.24.11.openbsd-riscv64.tar.gz) = 75193998 bytes
 --- lang/go/bootstrap.mk.orig
 +++ lang/go/bootstrap.mk
 @@ -1,9 +1,13 @@
@@ -45,7 +55,8 @@
  .  if (${MACHINE_ARCH} == "aarch64" && ${USE_CROSS_COMPILE:tl} == "no") || \
      (${OPSYS} == "Darwin" && ${OPSYS_VERSION} >= 120000) || \
      (${OPSYS} == "FreeBSD" && ${OPSYS_VERSION} >= 140000) || \
-+    (${OPSYS} == "OpenBSD") || \
++    (${OPSYS} == "OpenBSD" && (${MACHINE_ARCH} == "x86_64" || \
++			      ${MACHINE_ARCH} == "riscv64")) || \
      (${OPSYS} == "SunOS" && ${OS_VARIANT} != "Solaris")
  TOOL_DEPENDS+=		go-bin-[0-9]*:../../lang/go-bin
  GOROOT_BOOTSTRAP=	${TOOLBASE}/go-bin

@@ -22,6 +22,11 @@ OS=$(uname -s); ARCH=$(uname -m)
 echo "--- $PKG ($OS $(uname -r) / $ARCH) ---"
 
 echo "########## 1. make distinfo で変わらないか ##########"
+# distinfo は arch に依らないので、TCG の箱では飛ばす。全 platform の
+# tarball を 1GB 引く段でもあり、riscv64 の箱では時間も disk も惜しい。
+if [ -n "${GOBIN_SKIP_DISTINFO:-}" ]; then
+	echo "  (飛ばした。amd64 と arm64 で見ている)"
+else
 cp distinfo "$T/distinfo.before"
 if $BMAKE distinfo > "$T/go-bin-distinfo.log" 2>&1; then
 	if diff -u "$T/distinfo.before" distinfo > "$T/distinfo.diff"; then
@@ -32,6 +37,8 @@ if $BMAKE distinfo > "$T/go-bin-distinfo.log" 2>&1; then
 	fi
 else
 	echo "!! make distinfo が落ちた"; tail -15 "$T/go-bin-distinfo.log"; rc=1
+fi
+
 fi
 
 echo "########## 2. install と go version ##########"

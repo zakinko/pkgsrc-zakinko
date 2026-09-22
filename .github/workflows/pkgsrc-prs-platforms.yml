@@ -459,13 +459,22 @@ jobs:
     if: inputs.target == 'all' || inputs.target == 'go'
     name: go-bin/go127 on OpenBSD ${{ matrix.release }} ${{ matrix.arch }}
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 360
+    env:
+      # riscv64 は TCG。distinfo の段は全 platform の tarball を 1GB 引くので
+      # 飛ばす (arch に依らない検査で、amd64 と arm64 で見ている)。
+      GOBIN_SKIP_DISTINFO: ${{ matrix.arch == 'riscv64' && '1' || '' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { release: '7.8', arch: x86_64 }
-          - { release: '7.9', arch: x86_64 }
+          - { release: '7.8', arch: x86_64,  pkgs: 'lang/go-bin lang/go127' }
+          - { release: '7.9', arch: x86_64,  pkgs: 'lang/go-bin lang/go127' }
+          # riscv64 は TCG なので go127 まで建てると 6 時間に入らない。
+          # diff が主張するのは「その arch の tarball を選んで入り、その go が
+          # 動く」ところまでなので、go-bin だけを見る。go-bin から go127 が
+          # 建つことは amd64 と arm64 で見ている。
+          - { release: '7.9', arch: riscv64, pkgs: 'lang/go-bin' }
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -477,7 +486,8 @@ jobs:
           # 木の直しは三つ: go-bin (本題)、openssl (arm64 の連鎖の底)、ncurses
           # (configure の ldconfig -v が ld.so.hints を潰す)。ncurses の直しが
           # 効けば持ち帰りの rsync も死なないので、copyback を戻して測る。
-          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='lang/go-bin lang/go127' sh .github/ci/build-on-bsd.sh
+          envs: 'GOBIN_SKIP_DISTINFO'
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='${{ matrix.pkgs }}' sh .github/ci/build-on-bsd.sh
 
   # security/openssl が OpenBSD/arm64 (手元の HVF 箱) で engines/dasync.so の
   # link に落ちる (-z defs で libc の symbol が未定義)。amd64 では通っている
