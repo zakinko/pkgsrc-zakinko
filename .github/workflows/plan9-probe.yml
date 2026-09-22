@@ -4,8 +4,16 @@ name: plan9 probe
 # 2013 年の移植の試み (9p.io の contrib/staal1978) は bmake を建てる所で
 # 止まったと README に書いてあるが、今も同じかは誰も測っていない。
 #
-# 注意: この箱の shell は rc で、sh は無い。POSIX shell は APE の下に
-# 在る (在るはず) なので、まず rc で在り処を探してから渡す。
+# 注意が二つある。
+#
+# この箱の shell は rc で、sh は無い。POSIX shell は APE の下に在るはず
+# なので、まず rc で在り処を探してから渡す。
+#
+# そして run: は一行で書く。vmactions は run: の行と行の間に && を挿し込む
+# ので、複数行の rc を書くと `for(...){ && if(...){` という閉じない形に
+# なり、rc が入力待ちのまま一文字も出さずに座る。run 35689668395 は
+# これで 88 分黙ったあと 90 分の timeout で切られた。rc の中の区切りは
+# 改行ではなく ; を使う。
 
 on:
   workflow_dispatch:
@@ -21,7 +29,8 @@ jobs:
   probe:
     name: Plan 9 (9front ${{ matrix.release }})
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # 黙って座られたときに 90 分使わない。bootstrap まで行っても届く長さ。
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -32,26 +41,5 @@ jobs:
       - uses: vmactions/plan9-vm@v1
         with:
           release: ${{ matrix.release }}
-          run: |
-            echo '########## rc から見た箱 ##########'
-            cat /dev/osversion
-            echo 'objtype='$objtype
-            echo 'path='$path
-            echo '--- /bin に ape は在るか'
-            ls /bin | grep ape
-            echo '--- /bin/ape の中身'
-            ls /bin/ape
-            echo '########## POSIX shell を探す ##########'
-            posix=()
-            for(s in /bin/ape/psh /bin/ape/sh /rc/bin/ape/psh /$objtype/bin/ape/psh){
-                if(test -x $s){
-                    echo '  見つかった: '$s
-                    posix=($posix $s)
-                }
-            }
-            if(~ $#posix 0){
-                echo '  !! POSIX shell が無い。ここで終わり'
-                exit 0
-            }
-            echo '########## 偵察 script を渡す ##########'
-            $posix(1) .github/ci/probe-plan9.sh
+          # 一行。改行を入れると && が挿し込まれて rc が閉じなくなる。
+          run: echo '########## rc から見た箱 ##########'; cat /dev/osversion; echo 'objtype='$objtype; echo 'path='$path; echo '--- /bin/ape'; ls /bin/ape >[2]/dev/null; echo '########## POSIX shell を探す ##########'; posix=(); for(s in /bin/ape/psh /bin/ape/sh /rc/bin/ape/psh /$objtype/bin/ape/psh){ if(test -x $s){ echo '  見つかった: '$s; posix=($posix $s) } }; if(~ $#posix 0){ echo '  !! POSIX shell が無い。ここで終わり'; exit '' }; echo '########## 偵察 script を渡す ##########'; $posix(1) .github/ci/probe-plan9.sh
