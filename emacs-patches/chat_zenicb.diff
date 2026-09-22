@@ -1,0 +1,21 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/chat/zenicb/Makefile chat/zenicb/Makefile
+--- /usr/pkgsrc/chat/zenicb/Makefile	2026-09-18 05:44:33.428659419 +0000
++++ chat/zenicb/Makefile	2026-09-22 08:23:24.347561666 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=		zenicb-19981202
+ PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=		7
++PKGREVISION=		8
+ CATEGORIES=		chat
+ MASTER_SITES=		${MASTER_SITE_LOCAL}
+ 
+@@ -13,7 +13,7 @@
+ 
+ NO_SRC_ON_FTP=		Already in MASTER_SITE_LOCAL
+ 
+-EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox
++EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox emacs30 emacs30nox
+ 
+ .include "../../editors/emacs/modules.mk"
+ 

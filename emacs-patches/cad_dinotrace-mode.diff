@@ -1,0 +1,22 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/cad/dinotrace-mode/Makefile cad/dinotrace-mode/Makefile
+--- /usr/pkgsrc/cad/dinotrace-mode/Makefile	2026-08-27 07:44:09.163091951 +0000
++++ cad/dinotrace-mode/Makefile	2026-09-22 08:23:24.344648447 +0000
+@@ -3,7 +3,7 @@
+ 
+ VERSION=	9.4f
+ DISTNAME=	dinotrace-${VERSION}
+-PKGREVISION=	3
++PKGREVISION=	4
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}dinotrace-mode-${VERSION}
+ CATEGORIES=	cad editors
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=veripool/}
+@@ -17,8 +17,7 @@
+ 
+ DEPENDS+=	${EMACS_PKGNAME_PREFIX}verilog-mode>=3.13:../../cad/verilog-mode
+ 
+-# failed to build with emacs28; needs athena widgets which are not enabled by default
+-EMACS_VERSIONS_ACCEPTED=	emacs26 emacs29
++EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox emacs30 emacs30nox emacs29 emacs29nox
+ 
+ .include "../../mk/bsd.prefs.mk"
+ .include "../../editors/emacs/modules.mk"
