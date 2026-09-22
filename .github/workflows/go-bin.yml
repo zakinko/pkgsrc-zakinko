@@ -25,10 +25,14 @@ env:
   # が 180 分の timeout に当たっていた (run 35687631661)。測っているのは
   # go の binary が入って動くかで、nls はそこに関わらないので外す。
   MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
-  # OpenBSD の箱でだけ効く。devel/ncurses の configure が ld.so.hints を
-  # 潰すのを止める当て物が要る。pkgsrc-prs-platforms.yml が既に使っている
-  # ものをそのまま指す。
-  TREE_PATCH: .github/ci/tree-patch-openbsd-all.sh
+  # 木の直し二つ。OpenBSD の側は devel/ncurses の configure が ld.so.hints を
+  # 潰すのを止めるもので、pkgsrc-prs-platforms.yml が既に使っている。
+  # libnbcompat の側は Solaris 11.4 の bootstrap が lchflags.c で落ちるもの。
+  # どちらも当たらない箱では何も起きない。
+  # Solaris 11.4 の bootstrap が libnbcompat の lchflags.c で落ちる。
+  # chflags(2) の有無を OS の名前で決めていて Solaris がその列に無いため。
+  # 当たらない箱では何も起きないので全箱に配る。
+  TREE_PATCH: .github/ci/tree-patch-libnbcompat-chflags.sh
 
 jobs:
   linux:
@@ -85,14 +89,14 @@ jobs:
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS MKCONF_EXTRA'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/freebsd-vm@v1
         if: matrix.action == 'freebsd-vm'
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS MKCONF_EXTRA'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           run: sh .github/ci/build-on-bsd.sh
       # devel/ncurses の configure が `ldconfig -v` を走らせ、OpenBSD では
       # それが /var/run/ld.so.hints を /usr/lib だけで書き直す。/usr/local の
@@ -101,6 +105,10 @@ jobs:
       # 報告に貼るものと CI が測るものが同じ一つになる。
       - uses: vmactions/openbsd-vm@v1
         if: matrix.action == 'openbsd-vm'
+        # ncurses の当て物はこの箱でしか要らない。openbsd-all は go-bin と
+        # openssl の当て物も連れてくるので、他の箱には配らない。
+        env:
+          TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-openbsd-all.sh'
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
@@ -109,7 +117,7 @@ jobs:
       - uses: vmactions/dragonflybsd-vm@v1
         if: matrix.action == 'dragonflybsd-vm'
         with:
-          envs: 'PKGS MKCONF_EXTRA'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           prepare: pkg install -y curl
           run: sh .github/ci/build-on-bsd.sh
 
@@ -136,7 +144,7 @@ jobs:
         if: matrix.action == 'omnios-vm'
         with:
           release: ${{ matrix.release }}
-          envs: 'PKGS MKCONF_EXTRA'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
@@ -148,13 +156,13 @@ jobs:
       - uses: vmactions/openindiana-vm@v1
         if: matrix.action == 'openindiana-vm'
         with:
-          envs: 'PKGS MKCONF_EXTRA'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           prepare: pkg install developer/gcc-14 developer/build/gnu-make web/curl || true
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/solaris-vm@v1
         if: matrix.action == 'solaris-vm'
         with:
           release: ${{ matrix.release }}
-          envs: 'PKGS MKCONF_EXTRA'
+          envs: 'PKGS MKCONF_EXTRA TREE_PATCH'
           prepare: pkg install --accept developer/gcc developer/build/gnu-make || true
           run: sh .github/ci/build-on-bsd.sh

@@ -1,0 +1,68 @@
+--- pkgtools/libnbcompat/files/configure.ac.orig
++++ pkgtools/libnbcompat/files/configure.ac
+@@ -304,6 +304,10 @@
+ esac
+ 
+ AC_CHECK_DECLS([isblank(int)], [], [AC_LIBOBJ(isblank)], [#include <ctype.h>])
++
++# lchflags.c calls chflags(2) when it has to emulate lchflags(2).  Only the
++# BSDs have it, so ask for it rather than listing the systems that do not.
++AC_CHECK_FUNCS([chflags])
+ 
+ AC_REPLACE_FUNCS([err fgetln fnmatch fparseln getdelim getenv \
+ 	getline lchflags lchmod lchown lutimes mkdtemp mkstemp setenv \
+--- pkgtools/libnbcompat/files/configure.orig
++++ pkgtools/libnbcompat/files/configure
+@@ -7013,6 +7013,16 @@
+ esac
+  ;;
+ esac
++fi
++
++
++# lchflags.c calls chflags(2) when it has to emulate lchflags(2).  Only the
++# BSDs have it, so ask for it rather than listing the systems that do not.
++ac_fn_c_check_func "$LINENO" "chflags" "ac_cv_func_chflags"
++if test "x$ac_cv_func_chflags" = xyes
++then :
++  printf "%s\n" "#define HAVE_CHFLAGS 1" >>confdefs.h
++
+ fi
+ 
+ 
+--- pkgtools/libnbcompat/files/lchflags.c.orig
++++ pkgtools/libnbcompat/files/lchflags.c
+@@ -48,10 +48,18 @@
+ 	if (S_ISLNK(psb.st_mode)) {
+ 		return 0;
+ 	}
+-#if defined(__illumos__) || defined(__linux__)
++	/*
++	 * Ask whether the system has chflags(2), rather than naming the
++	 * ones that do not.  The list was __illumos__ and __linux__, and
++	 * Solaris is neither, so it fell through to the call and the
++	 * bootstrap stopped with "implicit declaration of function
++	 * 'chflags'".  Any other system without it would have done the
++	 * same on its first build.
++	 */
++#if HAVE_CHFLAGS
++	return (chflags(path, flags));
++#else
+ 	errno = (path == NULL ? EINVAL : ENOSYS);
+ 	return -1;
+-#else
+-	return (chflags(path, flags));
+ #endif
+ }
+--- pkgtools/libnbcompat/files/nbcompat/config.h.in.orig
++++ pkgtools/libnbcompat/files/nbcompat/config.h.in
+@@ -21,6 +21,9 @@
+ /* Define to 1 if you have the <bsd/libutil.h> header file. */
+ #undef HAVE_BSD_LIBUTIL_H
+ 
++/* Define to 1 if you have the 'chflags' function. */
++#undef HAVE_CHFLAGS
++
+ /* Define to 1 if you have the <ctype.h> header file. */
+ #undef HAVE_CTYPE_H
+ 
