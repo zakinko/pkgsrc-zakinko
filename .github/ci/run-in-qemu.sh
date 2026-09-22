@@ -307,6 +307,14 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 		;;
 	esac
 
+	# 木そのものへの当て物。build-on-bsd.sh の TREE_PATCH と同じ口で、
+	# 送る diff をゲストの /usr/pkgsrc に当ててから検査する。
+	if [ -n "${TREE_PATCH:-}" ]; then
+		echo "=== ツリーに当て物をする ($TREE_PATCH) ==="
+		$SSH "sh /tmp/${TREE_PATCH#.github/ci/} /usr/pkgsrc" 2>/dev/null ||
+		$SSH "sh /tmp/$TREE_PATCH /usr/pkgsrc" || exit 1
+	fi
+
 	echo "=== 検査を走らせる ==="
 	# 検査はゲストの中で走るので、ホスト側の環境変数は自分では見えない。
 	# 渡すものだけを明示して持っていく。BINPKG_SITES を渡し忘れていて、

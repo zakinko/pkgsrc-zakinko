@@ -507,7 +507,7 @@ jobs:
           - { name: 'FreeBSD 14.4',  os: ubuntu-latest, vm: freebsd }
           - { name: 'DragonFly',     os: ubuntu-latest, vm: dragonflybsd }
           - { name: 'macOS 26',      os: macos-latest,  vm: none }
-          - { name: 'Debian 13',     os: ubuntu-latest, vm: docker }
+          - { name: 'NetBSD 11.0',   os: ubuntu-latest, vm: qemu }
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -526,13 +526,20 @@ jobs:
           copyback: false
       - if: matrix.vm == 'none'
         run: sudo env TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' PKGSRC_BASE=/Users/runner/pkgsrcwork sh .github/ci/build-on-bsd.sh
-      - if: matrix.vm == 'docker'
+      # NetBSD は pkgsrc の本拠地なので、当て物が当たった木で openssl が建つ
+      # ことをここで見ないと送れない。箱は croc と同じ qemu の image。
+      - if: matrix.vm == 'qemu'
         run: |
-          docker run --rm -v "$PWD:/w" -w /w debian:13 sh -c '
-            apt-get update -qq && apt-get install -y -qq build-essential curl ca-certificates               file patch perl pkg-config procps > /dev/null
-            useradd -m pkgsrc-ci
-            chmod 777 /w
-            su pkgsrc-ci -c "TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS= TREE_PKGS=security/openssl sh .github/ci/build-on-bsd.sh"'
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          TREE_PATCH=tree-patch-openbsd-all.sh \
+          UPSTREAM_PKG=security/openssl VERIFY_SCRIPT=verify-openssl.sh \
+          PKGSRC_URL=http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz \
+            sh .github/ci/run-in-qemu.sh amd64-11.0
 
   croc-openbsd:
     if: inputs.target == 'all' || inputs.target == 'croc'
