@@ -69,6 +69,17 @@ STAGE=開始
 stage() { STAGE=$1; echo; echo "=== $STAGE ==="; }
 report() {
 	rc=$?
+	# OpenBSD では devel/ncurses の configure (CF_LD_SEARCHPATH) が
+	# `ldconfig -v` を走らせる。Linux では一覧を出すだけの命令だが、
+	# OpenBSD の -v は /var/run/ld.so.hints を既定の /usr/lib だけで
+	# 書き直してしまい、/usr/local の binary が全部 library を見失う。
+	# この job では成功した直後の copyback の rsync が
+	# `ld.so: rsync: can't load library 'liblz4.so.3.3'` で Killed になり、
+	# 緑の建ちが赤い job として出ていた。rc と同じ一覧で貼り直す。
+	if [ "$(uname -s)" = OpenBSD ]; then
+		ldconfig /usr/local/lib /usr/X11R6/lib 2>&1 |
+			sed 's/^/  ldconfig: /' || true
+	fi
 	[ $rc -eq 0 ] || {
 		echo "=== ここで止まった: $STAGE (exit=$rc) ==="
 		# lib-src/Makefile と src/Makefile は Makefile.in.in を system の
