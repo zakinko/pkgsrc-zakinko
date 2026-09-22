@@ -50,20 +50,15 @@ original `$NetBSD$` line and any `${PLIST.*}` conditionals.
 | www/emacs-w3m | 1.4.5 + 2023 snapshot | 1.4.632 (2026-08-27 snapshot) | |
 | www/emacs-w3m-snapshot | 2021-01-06 (Debian) | 2022-12-06 (Debian) | and accepts emacs30/31; the 2021 snapshot's configure refuses Emacs 30 |
 
-## lang/ruby34 (`lang_ruby34.diff`, not an Emacs package; sent as pkg/60763 on 2026-09-22)
+## lang/ruby34 — in the tree now
 
-ruby34 3.4.10 does not link on a system where configure chooses
-"dtrace needs post processing... rebuild" (NetBSD is one) when the
-`ruby-rjit` option is on: rjit_c.c carries a DTrace hook but
-rjit_c.o is missing from DTRACE_DEPENDENT_OBJS, so "dtrace -G" never
-rewrites it and ld stops with "relocation R_X86_64_PLT32 against
-absolute symbol `__dtraceenabled_ruby___cmethod__return`".  The
-default yjit build is fine, since rjit_c.c compiles to nothing there.
-One line added to the existing patch-template_Makefile.in, the same
-fix upstream made for yjit.o (bugs.ruby-lang.org #18480).  Built with
-ruby-rjit on NetBSD 11.0/amd64: "processing probes in object files"
-runs, miniruby links, RubyVM::RJIT is defined.  It matters here because
-howm, mew, migemo-elisp and ruby-rd-mode all depend on ruby34.
+ruby34 3.4.10 would not link with the `ruby-rjit` option on a system
+where dtrace rewrites objects (NetBSD): rjit_c.c has a DTrace hook but
+rjit_c.o was missing from DTRACE_DEPENDENT_OBJS.  Sent as pkg/60763 on
+2026-09-22 and committed by taca@ the same day
+(patch-template_Makefile.in rev 1.2), so the diff that was here is gone.
+howm, mew, migemo-elisp and ruby-rd-mode depend on ruby34 and build
+through the package again.
 
 ## Checked and left alone (2026-09-22)
 
