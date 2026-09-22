@@ -311,8 +311,9 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 	# 送る diff をゲストの /usr/pkgsrc に当ててから検査する。
 	if [ -n "${TREE_PATCH:-}" ]; then
 		echo "=== ツリーに当て物をする ($TREE_PATCH) ==="
-		$SSH "sh /tmp/${TREE_PATCH#.github/ci/} /usr/pkgsrc" 2>/dev/null ||
-		$SSH "sh /tmp/$TREE_PATCH /usr/pkgsrc" || exit 1
+		# 検査は /tmp/.github/ci/ に展開されている。呼ぶ側が
+		# .github/ci/foo.sh と書いても foo.sh と書いても同じ所を指す。
+		$SSH "sh /tmp/.github/ci/$(basename "$TREE_PATCH") /usr/pkgsrc" || exit 1
 	fi
 
 	echo "=== 検査を走らせる ==="

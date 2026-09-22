@@ -1,0 +1,30 @@
+--- devel/zlib/Makefile.orig
++++ devel/zlib/Makefile
+@@ -1,6 +1,7 @@
+ # $NetBSD: Makefile,v 1.64 2024/06/04 18:33:45 bsiegert Exp $
+ 
+ DISTNAME=	zlib-1.3.1
++PKGREVISION=	1
+ CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_SOURCEFORGE:=libpng/}
+ MASTER_SITES+=	http://zlib.net/
+--- devel/zlib/files/crc32.c.orig
++++ devel/zlib/files/crc32.c
+@@ -1019,6 +1019,8 @@
+ 
+ /* ========================================================================= */
+ uLong ZEXPORT crc32_combine64(uLong crc1, uLong crc2, z_off64_t len2) {
++    if (len2 < 0)
++        return 0;
+ #ifdef DYNAMIC_CRC_TABLE
+     once(&made, make_crc_table);
+ #endif /* DYNAMIC_CRC_TABLE */
+@@ -1032,6 +1034,8 @@
+ 
+ /* ========================================================================= */
+ uLong ZEXPORT crc32_combine_gen64(z_off64_t len2) {
++    if (len2 < 0)
++        return 0;
+ #ifdef DYNAMIC_CRC_TABLE
+     once(&made, make_crc_table);
+ #endif /* DYNAMIC_CRC_TABLE */
