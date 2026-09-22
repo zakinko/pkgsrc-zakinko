@@ -23,7 +23,10 @@
 # 一つ転けても残りは続ける。最後に数を言い、一つでも落ちたら非零。
 set -u
 FLAVOUR=${VERIFY_OPTS%% *}; FLAVOUR=${FLAVOUR:-30}
-ONLY=${VERIFY_OPTS#$FLAVOUR}
+# packages 入力が空でも workflow は "30 " と末尾に空白を付けて渡すので、
+# 空白だけの ONLY は空にする。そうしないと case が何にも合わず全部飛ばす
+# (run 35697141167 は 54 本当てて 0 個建てた)。
+ONLY=$(echo ${VERIFY_OPTS#$FLAVOUR})
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
 SRC=$TREE/zakinko/emacs-diffs
@@ -99,7 +102,7 @@ ok=0; ng=0; skip=0; : > $LOG/failed
 # 一覧は fd 3 から読む。loop の中の make や emacs に stdin を食われない。
 while read -r p f feat extra <&3; do
 	[ "$f" = "$FLAVOUR" ] || continue
-	case " $ONLY " in "  ") ;; *" $p "*) ;; *) continue ;; esac
+	[ -z "$ONLY" ] || case " $ONLY " in *" $p "*) ;; *) continue ;; esac
 	d=$TREE/$p; n=$(echo "$p" | tr / _)
 	[ -d "$d" ] || { echo "  --- $p  ★ 木に無い"; skip=$((skip+1)); continue; }
 	acc=$(cd "$d" && make $MKARGS show-var VARNAME=EMACS_VERSIONS_ACCEPTED 2>/dev/null)
