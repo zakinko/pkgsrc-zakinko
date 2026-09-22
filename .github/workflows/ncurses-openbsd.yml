@@ -1,0 +1,50 @@
+name: ncurses ld.so.hints on OpenBSD
+
+# devel/ncurses の configure (CF_LD_SEARCHPATH) が OpenBSD で
+# /var/run/ld.so.hints を /usr/lib だけに書き直す件の対照を取る。
+# send-pr に貼る根拠はここが測ったものだけにする。
+#
+# 一本の job で当て物あり・なし・ありの三段を回すので、当て物が効いた
+# ことと、その箱で bug が実際に再現することの両方が同じ log に出る。
+
+on:
+  push:
+    branches: [thttpd, ncurses]
+    paths:
+      - '.github/ci/verify-ncurses.sh'
+      - '.github/ci/tree-ncurses-openbsd.diff'
+      - '.github/workflows/ncurses-openbsd.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ncurses-openbsd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hints:
+    name: OpenBSD ${{ matrix.release }} ${{ matrix.arch || 'amd64' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { release: '7.8', arch: '' }
+          - { release: '7.9', arch: '' }
+          - { release: '7.9', arch: 'aarch64' }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: ncurses-${{ matrix.release }}-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: ncurses-${{ matrix.release }}-${{ matrix.arch }}-
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
+          run: |
+            TREE_PATCH=.github/ci/tree-patch-ncurses-only.sh \
+            PKGS='' TREE_PKGS='devel/ncurses' \
+            sh .github/ci/build-on-bsd.sh
