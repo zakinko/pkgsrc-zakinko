@@ -1,4 +1,4 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/Makefile chat/emacs-jabber/Makefile
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/chat/emacs-jabber/Makefile chat/emacs-jabber/Makefile
 --- /usr/pkgsrc/chat/emacs-jabber/Makefile	2026-09-18 05:44:28.404228381 +0000
 +++ chat/emacs-jabber/Makefile	2026-09-21 14:03:21.425693108 +0000
 @@ -1,6 +1,7 @@
@@ -18,7 +18,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/Makefile chat/emacs-jabbe
  
  # net-utils, mule-ucs for xemacs
  EMACS_MODULES=		base
-diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/distinfo chat/emacs-jabber/distinfo
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/chat/emacs-jabber/distinfo chat/emacs-jabber/distinfo
 --- /usr/pkgsrc/chat/emacs-jabber/distinfo	2023-09-09 10:27:20.000000000 +0000
 +++ chat/emacs-jabber/distinfo	2026-09-21 14:01:03.686551401 +0000
 @@ -3,5 +3,6 @@
@@ -30,7 +30,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/distinfo chat/emacs-jabbe
 +SHA1 (patch-Makefile.in) = 4b4c7df245db5e0db21be4676b976c92ec8ddff3
 +SHA1 (patch-jabber-menu.el) = a3bde0bc4d7506e3e9816448cfb075b1a7ee7bb0
 +SHA1 (patch-jabber-roster.el) = 7ec1e6c66d9d5475c1885bb64ced5ab996874f55
-diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/patches/patch-Makefile.in chat/emacs-jabber/patches/patch-Makefile.in
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/chat/emacs-jabber/patches/patch-Makefile.in chat/emacs-jabber/patches/patch-Makefile.in
 --- /usr/pkgsrc/chat/emacs-jabber/patches/patch-Makefile.in	1970-01-01 00:00:00.000000000 +0000
 +++ chat/emacs-jabber/patches/patch-Makefile.in	2026-09-21 14:01:03.204885156 +0000
 @@ -0,0 +1,16 @@
@@ -50,12 +50,11 @@ diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/patches/patch-Makefile.in
 + elpa: dist
 + 	rm -rf emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
 + 	$(AMTAR) xzf emacs-jabber-$(PACKAGE_VERSION).tar.gz
-diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-menu.el chat/emacs-jabber/patches/patch-jabber-menu.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-menu.el chat/emacs-jabber/patches/patch-jabber-menu.el
 --- /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-menu.el	2023-09-09 10:27:20.000000000 +0000
-+++ chat/emacs-jabber/patches/patch-jabber-menu.el	2026-09-21 14:01:03.205424610 +0000
++++ chat/emacs-jabber/patches/patch-jabber-menu.el	2026-09-22 09:56:01.430217143 +0000
 @@ -1,15 +1,15 @@
--$NetBSD: patch-jabber-menu.el,v 1.1 2023/09/09 10:27:20 mef Exp $
-+$NetBSD$
+ $NetBSD: patch-jabber-menu.el,v 1.1 2023/09/09 10:27:20 mef Exp $
  
 -wrong number of argumnet with emacs28
 +Emacs 28 made the WHEN argument of make-obsolete mandatory.  From Gentoo.
@@ -75,12 +74,11 @@ diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-menu
   
   ;; This used to be:
   ;; (define-key-after global-map [menu-bar jabber-menu] ...)
-diff -ruN -x CVS -x work /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-roster.el chat/emacs-jabber/patches/patch-jabber-roster.el
+diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-roster.el chat/emacs-jabber/patches/patch-jabber-roster.el
 --- /usr/pkgsrc/chat/emacs-jabber/patches/patch-jabber-roster.el	2023-09-09 10:27:20.000000000 +0000
-+++ chat/emacs-jabber/patches/patch-jabber-roster.el	2026-09-21 14:01:03.205849803 +0000
++++ chat/emacs-jabber/patches/patch-jabber-roster.el	2026-09-22 09:56:01.438845893 +0000
 @@ -1,15 +1,15 @@
--$NetBSD: patch-jabber-roster.el,v 1.1 2023/09/09 10:27:20 mef Exp $
-+$NetBSD$
+ $NetBSD: patch-jabber-roster.el,v 1.1 2023/09/09 10:27:20 mef Exp $
  
 -wrong number of argument (with emacs28)
 +Emacs 28 made the WHEN argument of make-obsolete mandatory.  From Gentoo.
