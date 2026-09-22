@@ -1,5 +1,5 @@
---- modules.mk.orig	2026-09-23 02:04:55
-+++ modules.mk	2026-09-23 02:05:11
+--- modules.mk.orig	2026-09-23 02:05:56
++++ modules.mk	2026-09-23 02:06:25
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
@@ -71,23 +71,18 @@
  #
  #	EMACS_VERSION_MAJOR
  #		Description:
-@@ -200,6 +233,15 @@
+@@ -200,6 +233,10 @@
  #			valid.
  #
  #			NOTFOR_* is the opposite of FOR_*.
 +#
-+#			FOR_emacs_x and FOR_emacs_nox are for a package
-+#			that installs different lisp for the X11 and the
-+#			no-X11 build of the same Emacs.  No package uses
-+#			them: checked across pkgsrc and wip on 2026-09-23
-+#			and the count was zero, and editors/emacs30 and
-+#			editors/emacs30-nox11 share one PLIST anyway.  They
-+#			are kept because a package outside the tree may
-+#			read them and they cost nothing.
++#			FOR_emacs_x and FOR_emacs_nox are unused: no
++#			package installs different lisp for the two, and
++#			emacs30-nox11 shares emacs30's PLIST anyway.
  #		Possible values:
  #			"", "@comment"
  #
-@@ -233,10 +275,14 @@
+@@ -233,10 +270,14 @@
  # Constants
  #
  
@@ -105,7 +100,7 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -251,9 +297,24 @@
+@@ -251,9 +292,24 @@
  	xemacs215@../../editors/xemacs-current \
  	xemacs215nox@../../editors/xemacs-current-nox11
  
@@ -132,7 +127,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,24 +337,192 @@
+@@ -276,24 +332,192 @@
  #		abort;
  #
  
@@ -331,7 +326,7 @@
  EMACS_MODULES?=
  .for _mod_ in ${EMACS_MODULES}
  .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,17 +535,48 @@
+@@ -306,17 +530,48 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -384,7 +379,7 @@
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
  .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
-@@ -354,7 +614,12 @@
+@@ -354,7 +609,12 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
