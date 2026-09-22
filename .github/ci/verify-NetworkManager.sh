@@ -114,6 +114,44 @@ else
 fi
 
 # ------------------------------------------------------------------
+step "0.7 security/polkit を FreeBSD 系でも通す"
+# polkit-127 の polkitagenthelper-pam.c は SO_PEERPIDFD の区画で errno を
+# ENODATA と比べる。polkit は SO_PEERPIDFD を持たない系でも自前で 77 と
+# define するので区画が常に compile され、ENODATA を持たない FreeBSD 系で
+#
+#   polkitagenthelper-pam.c:156:48: error: use of undeclared identifier 'ENODATA'
+#
+# になる。NetBSD には ENODATA が在るので落ちない。pkgsrc の既存の当て物は
+# SO_PEERCRED の半分だけで、FreeBSD 側は FreeBSD ports の sysutils/polkit が
+# 持っている。両方を素の 127 に当てて diff を取り直した合成版がここに在る。
+#
+# 最初これを tree-patch でやって Linux を壊した。あちらは bootstrap より前に
+# 走るので bmake がまだ無く、distinfo の SHA1 を自分で計算していた。pkgsrc は
+# digest -p という patch 専用の数え方をするので合わず、Ignoring patch file ...
+# invalid checksum で patch 段ごと転ぶ。ここなら bmake が在るので
+# makepatchsum に数えさせられる。自分で数えない。
+pkdir=$TREE/security/polkit
+pksrc=$(dirname "$0")/tree-patches/patch-src_polkitagent_polkitagenthelper-pam.c
+pkdst=$pkdir/patches/patch-src_polkitagent_polkitagenthelper-pam.c
+if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
+	if grep -q 'SO_PEERPIDFD' "$pkdst"; then
+		echo "  既に SO_PEERPIDFD を見ている。そのまま"
+	else
+		cp "$pksrc" "$pkdst"
+		if ( cd "$pkdir" && $BM makepatchsum ) > /dev/null 2>&1; then
+			echo "  差し替えて makepatchsum で数え直した"
+			grep 'polkitagenthelper-pam' "$pkdir/distinfo" | sed 's/^/    /'
+		else
+			echo "  makepatchsum が通らない。元に戻す"
+			( cd "$pkdir" && git checkout -- patches distinfo ) 2>/dev/null ||
+				echo "    戻せない (git 管理下ではない)"
+		fi
+	fi
+else
+	echo "  security/polkit が見当たらない。そのまま"
+fi
+
+# ------------------------------------------------------------------
 step "1. 建てて入れる"
 cd "$DIR"
 pkg_delete -f "$PKG" >/dev/null 2>&1 || true

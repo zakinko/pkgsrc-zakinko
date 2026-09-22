@@ -107,47 +107,13 @@ else
 	say "dbus: 既に XML_CATALOG_FILES を持っている。そのまま"
 fi
 
-# ------------------------------------------------------------------
-# security/polkit: FreeBSD で ENODATA が無い
+# security/polkit の手当ては、ここではなく verify-NetworkManager.sh に在る。
+# TREE_PATCH は bootstrap より前に走るので bmake がまだ無く、distinfo の
+# SHA1 を自分で計算することになる。pkgsrc は digest -p という patch 専用の
+# 数え方をしていて、sed '1d' | sha1 では合わない。実際に合わず
 #
-# pkgsrc の既存の当て物は SO_PEERCRED の半分しか持っておらず、NetBSD には
-# 足りるが FreeBSD では
+#   Ignoring patch file .../patch-src_polkitagent_polkitagenthelper-pam.c:
+#     invalid checksum
+#   ERROR: Patching failed due to modified or broken patch file(s)
 #
-#   polkitagenthelper-pam.c:156:48: error: use of undeclared identifier 'ENODATA'
-#
-# で止まる。polkit は SO_PEERPIDFD が無い系でも自前で 77 と define して
-# しまうため pidfd の区画が常に compile され、その中で errno を ENODATA と
-# 比べている。FreeBSD に ENODATA は無い (NetBSD には在るので、落ちるのは
-# FreeBSD だけ)。FreeBSD ports は define を Linux 限定にして区画ごと囲う
-# ことで解いていて、その半分を貰った合成版を用意してある。
-#
-# 当て物を差し替えたら distinfo の SHA1 も直す。pkgsrc は $NetBSD$ の行を
-# 除いて数えるので、そこを落としてから sha1 を取る。合わないと checksum で
-# 弾かれ、当て物を置いた意味が無くなる。
-d=$TREE/security/polkit
-f=$d/patches/patch-src_polkitagent_polkitagenthelper-pam.c
-src=$(dirname "$0")/tree-patches/patch-src_polkitagent_polkitagenthelper-pam.c
-if [ -f "$f" ] && [ -f "$src" ]; then
-	if grep -q 'SO_PEERPIDFD' "$f"; then
-		say "polkit: 既に SO_PEERPIDFD を見ている。そのまま"
-	else
-		cp "$src" "$f"
-		new=$(sed '1d' "$f" | (sha1 2>/dev/null || sha1sum 2>/dev/null || openssl sha1) |
-		      awk '{print $NF}')
-		[ -n "$new" ] || { echo "!! sha1 が取れない" >&2; exit 1; }
-		awk -v s="$new" '
-			/^SHA1 \(patch-src_polkitagent_polkitagenthelper-pam\.c\)/ {
-				print "SHA1 (patch-src_polkitagent_polkitagenthelper-pam.c) = " s
-				done = 1; next
-			}
-			{ print }
-			END { if (!done) exit 3 }
-		' "$d/distinfo" > "$d/distinfo.n" || {
-			echo "!! distinfo に該当行が無い" >&2; exit 1; }
-		mv "$d/distinfo.n" "$d/distinfo"
-		grep -q "$new" "$d/distinfo" || { echo "!! distinfo が直っていない" >&2; exit 1; }
-		say "polkit: SO_PEERPIDFD 込みへ差し替え、SHA1 も直した"
-	fi
-else
-	say "polkit: 見当たらない。そのまま"
-fi
+# で Linux の build を壊した。自分で数えずに makepatchsum に数えさせる。
