@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/pyvenv/pyvenv.el
+${EMACS_LISPPREFIX}/pyvenv/pyvenv.elc

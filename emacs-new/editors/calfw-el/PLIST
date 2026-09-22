@@ -1,0 +1,12 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/calfw/calfw-cal.el
+${EMACS_LISPPREFIX}/calfw/calfw-cal.elc
+${EMACS_LISPPREFIX}/calfw/calfw-compat.el
+${EMACS_LISPPREFIX}/calfw/calfw-compat.elc
+${EMACS_LISPPREFIX}/calfw/calfw-howm.el
+${EMACS_LISPPREFIX}/calfw/calfw-ical.el
+${EMACS_LISPPREFIX}/calfw/calfw-ical.elc
+${EMACS_LISPPREFIX}/calfw/calfw-org.el
+${EMACS_LISPPREFIX}/calfw/calfw-org.elc
+${EMACS_LISPPREFIX}/calfw/calfw.el
+${EMACS_LISPPREFIX}/calfw/calfw.elc

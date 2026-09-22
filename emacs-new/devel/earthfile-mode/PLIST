@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/earthfile-mode/earthfile-mode.el
+${EMACS_LISPPREFIX}/earthfile-mode/earthfile-mode.elc

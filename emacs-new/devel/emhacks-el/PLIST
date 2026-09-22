@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emhacks/dir-tree.el
+${EMACS_LISPPREFIX}/emhacks/dir-tree.elc
+${EMACS_LISPPREFIX}/emhacks/findstr.el
+${EMACS_LISPPREFIX}/emhacks/findstr.elc
+${EMACS_LISPPREFIX}/emhacks/gdiff-setup.el
+${EMACS_LISPPREFIX}/emhacks/gdiff-setup.elc
+${EMACS_LISPPREFIX}/emhacks/gdiff.el
+${EMACS_LISPPREFIX}/emhacks/gdiff.elc
+${EMACS_LISPPREFIX}/emhacks/jjar.el
+${EMACS_LISPPREFIX}/emhacks/jjar.elc
+${EMACS_LISPPREFIX}/emhacks/jmaker.el
+${EMACS_LISPPREFIX}/emhacks/jmaker.elc
+${EMACS_LISPPREFIX}/emhacks/overlay-fix.el
+${EMACS_LISPPREFIX}/emhacks/overlay-fix.elc
+${EMACS_LISPPREFIX}/emhacks/swbuff.el
+${EMACS_LISPPREFIX}/emhacks/swbuff.elc
+${EMACS_LISPPREFIX}/emhacks/tabbar.el
+${EMACS_LISPPREFIX}/emhacks/tabbar.elc

@@ -1,0 +1,21 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-buttons.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-buttons.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-checkpoint.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-checkpoint.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-loop.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-loop.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-mirror.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-mirror.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-modeline.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-modeline.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-popviewer.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-popviewer.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-tabs.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-tabs.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-tree.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-tree.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-w32.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise-w32.elc
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise.el
+${EMACS_LISPPREFIX}/sunrise-commander/sunrise.elc

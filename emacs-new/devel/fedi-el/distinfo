@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (fedi.el-0.4/0.4.tar.gz) = 2351f6b17de6f34c8e03a67a0da00d85a2f383abeb308b596e791c1eebe391f4
+SHA512 (fedi.el-0.4/0.4.tar.gz) = be7544bd3bebb7847c3e2c434d562691589c3e51b9ed9539b55b721d433876c33ab4d44cf3d609585d1807d61ad5330bac784d68ba187a7f3d899c831d0d353e
+Size (fedi.el-0.4/0.4.tar.gz) = 27556 bytes

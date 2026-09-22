@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/sesman/sesman-browser.el
+${EMACS_LISPPREFIX}/sesman/sesman-browser.elc
+${EMACS_LISPPREFIX}/sesman/sesman.el
+${EMACS_LISPPREFIX}/sesman/sesman.elc

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (sesman-0.3.4.tar.gz) = 395f728495483b3422c035fef1422ff3b26a55be269273dbef2dd3298128ee71
+SHA512 (sesman-0.3.4.tar.gz) = e9478ca4a3cbe1cc357b983c14d94fbe20b95cc8ac1789136700016ce749febcbf3ce28879e9fc02373fbf1a828c0786b35a6e808baf8a607aa34292838a49bf
+Size (sesman-0.3.4.tar.gz) = 18256 bytes

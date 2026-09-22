@@ -1,0 +1,8 @@
+$NetBSD$
+
+BLAKE2s (teco-7.el.bz2) = 3fbd6b7cf62a6990099edff3af56f9e72d914e80b7025826f9fb87cc1076ab74
+SHA512 (teco-7.el.bz2) = 7fb050d2d12aadeccc18d852b4191493be301c90ac5426ee4f985a89eba62f9b57d263a2156d5252e88d06bbe68508aca2bebeca65402ff9e8f00937f5189feb
+Size (teco-7.el.bz2) = 16372 bytes
+SHA1 (patch-teco.el) = 438cabd2f6be7d40d32dff625877e5ee13c53f8a
+SHA1 (patch-teco.el-1) = 19ab52bd2ea51035023f6859f7409ca4473914b9
+SHA1 (patch-teco.el-2) = ac4a2c03f90a4468e6495541cc3ad97e60a7d73f

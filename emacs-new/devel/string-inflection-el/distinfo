@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (string-inflection-1.0.16.tar.gz) = 0dd386bc0d67818ff9f980ed47452a67b92e3ccbc3ae2807d2979f025dd06df6
+SHA512 (string-inflection-1.0.16.tar.gz) = 7bd575c02e1917d9f52f49c4409150dbc9d097968304e687eb1145520ed88dee0bc359bbc85883dd1c167e8918440c91d1f362983f0a35f99feff61c85a08ca8
+Size (string-inflection-1.0.16.tar.gz) = 6238 bytes

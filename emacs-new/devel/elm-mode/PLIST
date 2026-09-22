@@ -1,0 +1,21 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elm-mode/elm-defuns.el
+${EMACS_LISPPREFIX}/elm-mode/elm-defuns.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-font-lock.el
+${EMACS_LISPPREFIX}/elm-mode/elm-font-lock.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-format.el
+${EMACS_LISPPREFIX}/elm-mode/elm-format.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-imenu.el
+${EMACS_LISPPREFIX}/elm-mode/elm-imenu.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-indent-simple.el
+${EMACS_LISPPREFIX}/elm-mode/elm-indent-simple.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-indent.el
+${EMACS_LISPPREFIX}/elm-mode/elm-indent.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-interactive.el
+${EMACS_LISPPREFIX}/elm-mode/elm-interactive.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-mode.el
+${EMACS_LISPPREFIX}/elm-mode/elm-mode.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-tags.el
+${EMACS_LISPPREFIX}/elm-mode/elm-tags.elc
+${EMACS_LISPPREFIX}/elm-mode/elm-util.el
+${EMACS_LISPPREFIX}/elm-mode/elm-util.elc

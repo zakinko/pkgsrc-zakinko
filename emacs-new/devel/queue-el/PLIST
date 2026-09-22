@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/queue/queue-pkg.el
+${EMACS_LISPPREFIX}/queue/queue.el
+${EMACS_LISPPREFIX}/queue/queue.elc

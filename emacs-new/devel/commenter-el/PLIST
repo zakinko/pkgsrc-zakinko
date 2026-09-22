@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/commenter/commenter.el
+${EMACS_LISPPREFIX}/commenter/commenter.elc

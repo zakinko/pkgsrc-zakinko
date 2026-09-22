@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/bui/bui-button.el
+${EMACS_LISPPREFIX}/bui/bui-button.elc
+${EMACS_LISPPREFIX}/bui/bui-core.el
+${EMACS_LISPPREFIX}/bui/bui-core.elc
+${EMACS_LISPPREFIX}/bui/bui-entry.el
+${EMACS_LISPPREFIX}/bui/bui-entry.elc
+${EMACS_LISPPREFIX}/bui/bui-history.el
+${EMACS_LISPPREFIX}/bui/bui-history.elc
+${EMACS_LISPPREFIX}/bui/bui-info.el
+${EMACS_LISPPREFIX}/bui/bui-info.elc
+${EMACS_LISPPREFIX}/bui/bui-list.el
+${EMACS_LISPPREFIX}/bui/bui-list.elc
+${EMACS_LISPPREFIX}/bui/bui-utils.el
+${EMACS_LISPPREFIX}/bui/bui-utils.elc
+${EMACS_LISPPREFIX}/bui/bui.el
+${EMACS_LISPPREFIX}/bui/bui.elc

@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/erlang-mode/erlang-edoc.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang-edoc.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang-eunit.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang-eunit.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang-flymake.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang-flymake.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang-skels-old.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang-skels-old.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang-skels.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang-skels.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang-start.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang-start.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang.elc
+${EMACS_LISPPREFIX}/erlang-mode/erlang_appwiz.el
+${EMACS_LISPPREFIX}/erlang-mode/erlang_appwiz.elc
+${EMACS_LISPPREFIX}/erlang-mode/erldoc.el
+${EMACS_LISPPREFIX}/erlang-mode/erldoc.elc

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (tempel-1.14.tar.gz) = b9720ca9d7841daab19b5d11c4ee70a2176d748757abc864bdb2850d8da35a09
+SHA512 (tempel-1.14.tar.gz) = 011bd595aad01274f05b03578d54d5d098568aba1b519f038dc356da003c7a0fed81d1d62fd70ed8c7fcf781ddf346bf289240749860da69bcf36195a82d75f8
+Size (tempel-1.14.tar.gz) = 31191 bytes

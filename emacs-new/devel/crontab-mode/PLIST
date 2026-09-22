@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/crontab-mode/crontab-mode.el
+${EMACS_LISPPREFIX}/crontab-mode/crontab-mode.elc

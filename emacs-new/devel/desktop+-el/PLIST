@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/desktop+/desktop+.el
+${EMACS_LISPPREFIX}/desktop+/desktop+.elc

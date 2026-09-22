@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (dashboard-1.8.0.tar.gz) = 998fc6c53b865f5569089d5cb22ddb7755cd17b760c8f1cfda5dd884cc57471d
+SHA512 (dashboard-1.8.0.tar.gz) = 6c7074591f167e0e317d2c9e561677e6ff5d06a7cdab7f8fdbd6ad4968cda0b7537e77fb82b6ddd21c6d8a75f98ee614b4a03ed0f13f1124588da50ea8cd1ec3
+Size (dashboard-1.8.0.tar.gz) = 195731 bytes

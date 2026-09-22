@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/typescript-mode/typescript-mode-test-utilities.el
+${EMACS_LISPPREFIX}/typescript-mode/typescript-mode-test-utilities.elc
+${EMACS_LISPPREFIX}/typescript-mode/typescript-mode.el
+${EMACS_LISPPREFIX}/typescript-mode/typescript-mode.elc

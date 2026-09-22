@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/vw-mode/vw-mode.el
+${EMACS_LISPPREFIX}/vw-mode/vw-mode.elc

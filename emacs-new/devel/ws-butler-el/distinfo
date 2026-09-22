@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ws-butler-1.3.tar.gz) = 5927d3ba2e090eca7dcc29021fec80b2c4f935176c35ad68e5b5709a080088f5
+SHA512 (ws-butler-1.3.tar.gz) = a0532df2f9d45fbe1839a7e1be5b7fb1282ba74eed37b04669b082d943903ea5855926a8619a77d51f0b56d9d551d09c4c761db14d0d3cba5336a7a045374aca
+Size (ws-butler-1.3.tar.gz) = 19131 bytes

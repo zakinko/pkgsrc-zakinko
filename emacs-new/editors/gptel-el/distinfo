@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (gptel-0.9.9.6.tar.gz) = 10a704dae5a39625a42fa0e83e51cdc04c69c1201016ab5e9bd0e3cb2279feb9
+SHA512 (gptel-0.9.9.6.tar.gz) = dd8edf21de2b3cfcbaf3b6c3f531ae503d98ae6b7b5d8bb117ecd04c9bc3265f43e39a96c298d187585ac0cd33bf27d8a544059d344c0d7c653e126fd1a8311a
+Size (gptel-0.9.9.6.tar.gz) = 244775 bytes

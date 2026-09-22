@@ -1,0 +1,23 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ocaml-mode/caml-compat.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-compat.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-emacs.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-emacs.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-font-old.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-font-old.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-font.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-font.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-help.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-help.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-hilit.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-hilit.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-types.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-types.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml-xemacs.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml-xemacs.elc
+${EMACS_LISPPREFIX}/ocaml-mode/caml.el
+${EMACS_LISPPREFIX}/ocaml-mode/caml.elc
+${EMACS_LISPPREFIX}/ocaml-mode/camldebug.el
+${EMACS_LISPPREFIX}/ocaml-mode/camldebug.elc
+${EMACS_LISPPREFIX}/ocaml-mode/inf-caml.el
+${EMACS_LISPPREFIX}/ocaml-mode/inf-caml.elc

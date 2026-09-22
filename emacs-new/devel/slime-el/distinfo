@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (slime-2.31.tar.gz) = 5b4a69dfb12991589c24a4cbeee0f9fa373f7fca9cfcbfea92f1c7e46f595183
+SHA512 (slime-2.31.tar.gz) = 27d7fe0ce1dc7551f6478bf1110c207af98dbdb773d80511de40837c923cc573648e51767f6868248f423c21109849b7902c2089a5bee0c85cf3e6fc1bb8e172
+Size (slime-2.31.tar.gz) = 767099 bytes

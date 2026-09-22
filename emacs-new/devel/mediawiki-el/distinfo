@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (mediawiki-2.3.1.tar.gz) = bb2bacfe470d1fa7091425a1ebbeebb2867330a98aed9197630d30e595541221
+SHA512 (mediawiki-2.3.1.tar.gz) = d2fe0c76e3d856131a3876a062a333e75d3d2c84c9e88865b1cf9516f8888ad81b4d90d9fc576fe14e051390c1504349c9f3b7cac71a34b8d59ed4824a434efd
+Size (mediawiki-2.3.1.tar.gz) = 36613 bytes

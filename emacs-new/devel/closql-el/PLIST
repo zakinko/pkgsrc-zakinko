@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/closql/closql.el
+${EMACS_LISPPREFIX}/closql/closql.elc

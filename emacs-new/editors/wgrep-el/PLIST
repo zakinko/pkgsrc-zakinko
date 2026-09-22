@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/wgrep/wgrep-ack.el
+${EMACS_LISPPREFIX}/wgrep/wgrep-ack.elc
+${EMACS_LISPPREFIX}/wgrep/wgrep-ag.el
+${EMACS_LISPPREFIX}/wgrep/wgrep-ag.elc
+${EMACS_LISPPREFIX}/wgrep/wgrep-helm.el
+${EMACS_LISPPREFIX}/wgrep/wgrep-helm.elc
+${EMACS_LISPPREFIX}/wgrep/wgrep-pt.el
+${EMACS_LISPPREFIX}/wgrep/wgrep-pt.elc
+${EMACS_LISPPREFIX}/wgrep/wgrep.el
+${EMACS_LISPPREFIX}/wgrep/wgrep.elc

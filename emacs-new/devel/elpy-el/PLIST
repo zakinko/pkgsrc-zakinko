@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elpy/elpy-django.el
+${EMACS_LISPPREFIX}/elpy/elpy-django.elc
+${EMACS_LISPPREFIX}/elpy/elpy-profile.el
+${EMACS_LISPPREFIX}/elpy/elpy-profile.elc
+${EMACS_LISPPREFIX}/elpy/elpy-refactor.el
+${EMACS_LISPPREFIX}/elpy/elpy-refactor.elc
+${EMACS_LISPPREFIX}/elpy/elpy-rpc.el
+${EMACS_LISPPREFIX}/elpy/elpy-rpc.elc
+${EMACS_LISPPREFIX}/elpy/elpy-shell.el
+${EMACS_LISPPREFIX}/elpy/elpy-shell.elc
+${EMACS_LISPPREFIX}/elpy/elpy.el
+${EMACS_LISPPREFIX}/elpy/elpy.elc

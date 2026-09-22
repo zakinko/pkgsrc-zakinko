@@ -1,0 +1,6 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/svg-lib/svg-lib-demo.el
+${EMACS_LISPPREFIX}/svg-lib/svg-lib-demo.elc
+${EMACS_LISPPREFIX}/svg-lib/svg-lib-pkg.el
+${EMACS_LISPPREFIX}/svg-lib/svg-lib.el
+${EMACS_LISPPREFIX}/svg-lib/svg-lib.elc

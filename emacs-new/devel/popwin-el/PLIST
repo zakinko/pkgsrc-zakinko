@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/popwin/popwin.el
+${EMACS_LISPPREFIX}/popwin/popwin.elc

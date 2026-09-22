@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-gnus.el
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-gnus.elc
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-message.el
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-message.elc
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-mu4e.el
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-mu4e.elc
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-rmail.el
+${EMACS_LISPPREFIX}/autocrypt/autocrypt-rmail.elc
+${EMACS_LISPPREFIX}/autocrypt/autocrypt.el
+${EMACS_LISPPREFIX}/autocrypt/autocrypt.elc

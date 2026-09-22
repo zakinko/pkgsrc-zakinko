@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (gambit-0.18.1.tar.gz) = ee19dd6775cc83883bcbaf6908c0c5728d46b70db40e62a3b0cddd256a60e125
+SHA512 (gambit-0.18.1.tar.gz) = b5808eac6cc23873f848b96720cf86a4bd5ad2737c44b33def134b2ec61b0d05aaffe0e4cdcd17b296ca04757b37d3a3478741adc8db195ac9c9a90b2e15184a
+Size (gambit-0.18.1.tar.gz) = 19163 bytes

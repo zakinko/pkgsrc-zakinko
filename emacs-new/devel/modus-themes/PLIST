@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-deuteranopia-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-deuteranopia-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-tinted-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-tinted-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-tritanopia-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-operandi-tritanopia-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-themes.el
+${EMACS_LISPPREFIX}/modus-themes/modus-themes.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-deuteranopia-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-deuteranopia-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-tinted-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-tinted-theme.elc
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-tritanopia-theme.el
+${EMACS_LISPPREFIX}/modus-themes/modus-vivendi-tritanopia-theme.elc

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (editorconfig-emacs-0.11.0.tar.gz) = 8cf0258ea350f41ef4980c25e334233cae508fd095c8b8635f0496d019516b75
+SHA512 (editorconfig-emacs-0.11.0.tar.gz) = 61d96c093a4617488cd0e361bbe9c37b928b26b1e25b87a83e6f49ffeef0832110768a38ea274aa6f960e68b08839d3ace30ec185a94aa5ea478216c0a9f7585
+Size (editorconfig-emacs-0.11.0.tar.gz) = 41902 bytes

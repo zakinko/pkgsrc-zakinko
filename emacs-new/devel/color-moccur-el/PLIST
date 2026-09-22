@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/color-moccur/color-moccur.el
+${EMACS_LISPPREFIX}/color-moccur/color-moccur.elc

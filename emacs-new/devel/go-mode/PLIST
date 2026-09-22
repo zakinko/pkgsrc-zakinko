@@ -1,0 +1,8 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/go-mode/go-guru.el
+${EMACS_LISPPREFIX}/go-mode/go-guru.elc
+${EMACS_LISPPREFIX}/go-mode/go-mode-pkg.el
+${EMACS_LISPPREFIX}/go-mode/go-mode.el
+${EMACS_LISPPREFIX}/go-mode/go-mode.elc
+${EMACS_LISPPREFIX}/go-mode/go-rename.el
+${EMACS_LISPPREFIX}/go-mode/go-rename.elc

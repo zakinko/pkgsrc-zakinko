@@ -1,0 +1,23 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/biblio/biblio-arxiv.el
+${EMACS_LISPPREFIX}/biblio/biblio-arxiv.elc
+${EMACS_LISPPREFIX}/biblio/biblio-core.el
+${EMACS_LISPPREFIX}/biblio/biblio-core.elc
+${EMACS_LISPPREFIX}/biblio/biblio-crossref.el
+${EMACS_LISPPREFIX}/biblio/biblio-crossref.elc
+${EMACS_LISPPREFIX}/biblio/biblio-dblp.el
+${EMACS_LISPPREFIX}/biblio/biblio-dblp.elc
+${EMACS_LISPPREFIX}/biblio/biblio-dissemin.el
+${EMACS_LISPPREFIX}/biblio/biblio-dissemin.elc
+${EMACS_LISPPREFIX}/biblio/biblio-doi.el
+${EMACS_LISPPREFIX}/biblio/biblio-doi.elc
+${EMACS_LISPPREFIX}/biblio/biblio-download.el
+${EMACS_LISPPREFIX}/biblio/biblio-download.elc
+${EMACS_LISPPREFIX}/biblio/biblio-hal.el
+${EMACS_LISPPREFIX}/biblio/biblio-hal.elc
+${EMACS_LISPPREFIX}/biblio/biblio-ieee.el
+${EMACS_LISPPREFIX}/biblio/biblio-ieee.elc
+${EMACS_LISPPREFIX}/biblio/biblio-pkg.el
+${EMACS_LISPPREFIX}/biblio/biblio-pkg.elc
+${EMACS_LISPPREFIX}/biblio/biblio.el
+${EMACS_LISPPREFIX}/biblio/biblio.elc

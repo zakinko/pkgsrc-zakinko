@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (nginx-mode-1.1.10.tar.gz) = 89f475d1f4e6ac84e822dc7cb67b1d65a6de6e98336f01f3a8fbbfd48e1218f3
+SHA512 (nginx-mode-1.1.10.tar.gz) = 93801701322afdbd6f02152108d69abd050bda9456b2016446d03c22ff1c886ec0d14da4be07f49c02ab2346b45480926c0ea4c00769233e4b32ad1a7cff4f00
+Size (nginx-mode-1.1.10.tar.gz) = 3204 bytes

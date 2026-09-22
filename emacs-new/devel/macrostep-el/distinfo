@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (macrostep-0.9.5.tar.gz) = 0996936ad9433784d72a6cd9f8db9d0595f40329c45838acda71471957d445a3
+SHA512 (macrostep-0.9.5.tar.gz) = 6de01357e1da7ba3e030a099ce04370c2f2a0a0e88c80b362dcbea6d3260b23af7af6828ab8a37b2e21a58014205f403f4b091c4acfb93a31f993c2c3b58619c
+Size (macrostep-0.9.5.tar.gz) = 33585 bytes

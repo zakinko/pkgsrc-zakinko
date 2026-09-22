@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/rescript-mode/rescript-indent.el
+${EMACS_LISPPREFIX}/rescript-mode/rescript-indent.elc
+${EMACS_LISPPREFIX}/rescript-mode/rescript-mode.el
+${EMACS_LISPPREFIX}/rescript-mode/rescript-mode.elc

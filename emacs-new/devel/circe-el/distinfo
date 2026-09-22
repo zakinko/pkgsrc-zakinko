@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (circe-2.14.tar.gz) = f401cfee2eb2391b6ac20de02230f64f0209eb47a7dda72281477cde93e3a0fb
+SHA512 (circe-2.14.tar.gz) = 1711fb4a9ac1f3078b3ccab82daefcf55dac84806f554b20f07fe49d2066b8c3802f582f56feb709c112519f448f4394157edc9d031fdd29412b75f66b1eb8e0
+Size (circe-2.14.tar.gz) = 241907 bytes

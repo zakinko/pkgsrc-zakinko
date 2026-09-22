@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (god-mode-2.19.0.tar.gz) = dfcfebb6d01ba4de18f04c5822da7cbf8b3219da4599d3bc9184556ebe84df4f
+SHA512 (god-mode-2.19.0.tar.gz) = e0bdc5a811621252824d42a514e8f4a34371a59bfcc86a91dbba1eab642ea5cd54227de1728dfbb42c18210ca7c3c4ea46b75a17f04e0869c7d698ab4d9136f2
+Size (god-mode-2.19.0.tar.gz) = 28070 bytes

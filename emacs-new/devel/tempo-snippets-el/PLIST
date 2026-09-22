@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/tempo-snippets/tempo-snippets.el
+${EMACS_LISPPREFIX}/tempo-snippets/tempo-snippets.elc

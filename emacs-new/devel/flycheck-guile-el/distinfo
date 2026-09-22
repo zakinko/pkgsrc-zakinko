@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (flycheck-guile-0.5.tar.gz) = 68e658bab2c2a92994255daf6aeb432bc9347d658139e5efe1500064823cee39
+SHA512 (flycheck-guile-0.5.tar.gz) = d23a7912fc6f305310d646220b1979ae5ac78969b84b270ca512161ff79615f4f29f8cc01a0759db6162f7af3ef5658f3ce6f8af90e7273b8a8aa940ca3159de
+Size (flycheck-guile-0.5.tar.gz) = 16064 bytes

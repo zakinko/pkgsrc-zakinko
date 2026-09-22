@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (parseedn-1.2.1.tar.gz) = 9b6d33c431eb6949069ee6014f21bb4f83f65b6529351fdc91ee2ce03aaaeac6
+SHA512 (parseedn-1.2.1.tar.gz) = d5251c5af0aa66c43037499d52e227d8ee558482756900af0a3932c599c88a0c69db2077d33b58bdb151d4bb2eba5312ca867483072c32d8ac246d0e28cdadca
+Size (parseedn-1.2.1.tar.gz) = 12172 bytes

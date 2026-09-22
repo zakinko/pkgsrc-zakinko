@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/bind-chord/bind-chord.el
+${EMACS_LISPPREFIX}/bind-chord/bind-chord.elc

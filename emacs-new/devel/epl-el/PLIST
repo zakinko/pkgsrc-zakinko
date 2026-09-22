@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/epl/epl.el
+${EMACS_LISPPREFIX}/epl/epl.elc

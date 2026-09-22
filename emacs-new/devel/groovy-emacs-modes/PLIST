@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/groovy-emacs-modes/grails-mode.el
+${EMACS_LISPPREFIX}/groovy-emacs-modes/grails-mode.elc
+${EMACS_LISPPREFIX}/groovy-emacs-modes/groovy-electric.el
+${EMACS_LISPPREFIX}/groovy-emacs-modes/groovy-electric.elc
+${EMACS_LISPPREFIX}/groovy-emacs-modes/groovy-mode.el
+${EMACS_LISPPREFIX}/groovy-emacs-modes/groovy-mode.elc
+${EMACS_LISPPREFIX}/groovy-emacs-modes/inf-groovy.el
+${EMACS_LISPPREFIX}/groovy-emacs-modes/inf-groovy.elc

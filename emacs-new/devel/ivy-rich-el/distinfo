@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ivy-rich-0.1.7.tar.gz) = 5451bd71f478f61c10f998f8118054aa51b7a8ac1ca1910c16f0eaec2d671f99
+SHA512 (ivy-rich-0.1.7.tar.gz) = f702f4e6e10715cf76382e93354d37a8c09d6eb5bd23091002d26a2bff817354e995a8c23e64ed9e9026c33364dfaed2ca88f2c2c748c3faf63d3d7c133d79a3
+Size (ivy-rich-0.1.7.tar.gz) = 605948 bytes

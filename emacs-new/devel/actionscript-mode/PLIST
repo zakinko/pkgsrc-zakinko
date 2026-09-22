@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/actionscript-mode/actionscript-config.el
+${EMACS_LISPPREFIX}/actionscript-mode/actionscript-config.elc
+${EMACS_LISPPREFIX}/actionscript-mode/actionscript-mode.el
+${EMACS_LISPPREFIX}/actionscript-mode/actionscript-mode.elc

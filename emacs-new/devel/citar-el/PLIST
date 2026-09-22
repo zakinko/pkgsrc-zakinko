@@ -1,0 +1,21 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/citar/citar-cache.el
+${EMACS_LISPPREFIX}/citar/citar-cache.elc
+${EMACS_LISPPREFIX}/citar/citar-capf.el
+${EMACS_LISPPREFIX}/citar/citar-capf.elc
+${EMACS_LISPPREFIX}/citar/citar-citeproc.el
+${EMACS_LISPPREFIX}/citar/citar-citeproc.elc
+${EMACS_LISPPREFIX}/citar/citar-embark.el
+${EMACS_LISPPREFIX}/citar/citar-embark.elc
+${EMACS_LISPPREFIX}/citar/citar-file.el
+${EMACS_LISPPREFIX}/citar/citar-file.elc
+${EMACS_LISPPREFIX}/citar/citar-format.el
+${EMACS_LISPPREFIX}/citar/citar-format.elc
+${EMACS_LISPPREFIX}/citar/citar-latex.el
+${EMACS_LISPPREFIX}/citar/citar-latex.elc
+${EMACS_LISPPREFIX}/citar/citar-markdown.el
+${EMACS_LISPPREFIX}/citar/citar-markdown.elc
+${EMACS_LISPPREFIX}/citar/citar-org.el
+${EMACS_LISPPREFIX}/citar/citar-org.elc
+${EMACS_LISPPREFIX}/citar/citar.el
+${EMACS_LISPPREFIX}/citar/citar.elc

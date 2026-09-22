@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-websearch/websearch-custom.el
+${EMACS_LISPPREFIX}/emacs-websearch/websearch-custom.elc
+${EMACS_LISPPREFIX}/emacs-websearch/websearch-mode.el
+${EMACS_LISPPREFIX}/emacs-websearch/websearch-mode.elc
+${EMACS_LISPPREFIX}/emacs-websearch/websearch.el
+${EMACS_LISPPREFIX}/emacs-websearch/websearch.elc

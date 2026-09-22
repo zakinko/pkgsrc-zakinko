@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (crux-0.5.0.tar.gz) = 18e82e8ea76a944583618feb34ad7b2f4eed816f1c2e469026cb4fa8c459cb06
+SHA512 (crux-0.5.0.tar.gz) = 047f40c4a6ca8ad415923809890c957a8746a6bb92e78e161a3403a5e87a2af27c013fe4684a9c1315b4bbcaa29903ac1d8c3e7b50aa82a527ebdcfb1e910274
+Size (crux-0.5.0.tar.gz) = 13100 bytes

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (llama-1.0.5.tar.gz) = 8b94eeb8df75694e73968eba242c075fb316704679c07fac31ddf772a978a0cd
+SHA512 (llama-1.0.5.tar.gz) = e70f1b6617fd7a991c02772b892c411b23d91b30319ea2f4bedc70cc4b92910bddfb96efec71b895b9c9007ecfae6e905176aecf8cd0e9dc20c435cd9a700bcd
+Size (llama-1.0.5.tar.gz) = 22517 bytes

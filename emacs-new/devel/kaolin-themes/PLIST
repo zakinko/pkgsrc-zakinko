@@ -1,0 +1,6 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/kaolin-themes/kaolin-themes-lib.el
+${EMACS_LISPPREFIX}/kaolin-themes/kaolin-themes-lib.elc
+${EMACS_LISPPREFIX}/kaolin-themes/kaolin-themes-treemacs.el
+${EMACS_LISPPREFIX}/kaolin-themes/kaolin-themes.el
+${EMACS_LISPPREFIX}/kaolin-themes/kaolin-themes.elc

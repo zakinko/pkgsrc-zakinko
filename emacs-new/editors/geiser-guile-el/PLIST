@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/geiser-guile/geiser-guile-pkg.el
+${EMACS_LISPPREFIX}/geiser-guile/geiser-guile.el
+${EMACS_LISPPREFIX}/geiser-guile/geiser-guile.elc
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/completion.scm
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/doc.scm
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/emacs.scm
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/evaluation.scm
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/modules.scm
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/utils.scm
+${EMACS_LISPPREFIX}/geiser-guile/src/geiser/xref.scm

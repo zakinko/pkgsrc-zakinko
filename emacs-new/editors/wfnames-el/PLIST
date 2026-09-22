@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/wfnames/wfnames.el
+${EMACS_LISPPREFIX}/wfnames/wfnames.elc

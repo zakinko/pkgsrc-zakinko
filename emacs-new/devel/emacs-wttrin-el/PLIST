@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-wttrin/wttrin-debug.el
+${EMACS_LISPPREFIX}/emacs-wttrin/wttrin-debug.elc
+${EMACS_LISPPREFIX}/emacs-wttrin/wttrin-geolocation.el
+${EMACS_LISPPREFIX}/emacs-wttrin/wttrin-geolocation.elc
+${EMACS_LISPPREFIX}/emacs-wttrin/wttrin.el
+${EMACS_LISPPREFIX}/emacs-wttrin/wttrin.elc

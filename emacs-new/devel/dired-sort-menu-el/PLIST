@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/dired-sort-menu/dired-sort-menu.el
+${EMACS_LISPPREFIX}/dired-sort-menu/dired-sort-menu.elc

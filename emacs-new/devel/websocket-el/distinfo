@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (websocket-1.16.tar.gz) = bac40c5c7dc1971712b2e89b637ced3b404b3705ec57fb6a7c4ff3c830e4a799
+SHA512 (websocket-1.16.tar.gz) = 3a4d10d92c50cf37c8aa5db51fe1a0d46c6ecb6b9ff4a50e436e09d0d86fa381fcc888cffe89b8457f8d41f38e2023c8696c47f51866071a0263afddc03e64b6
+Size (websocket-1.16.tar.gz) = 27468 bytes

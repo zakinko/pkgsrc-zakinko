@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/yaml/yaml.el
+${EMACS_LISPPREFIX}/yaml/yaml.elc

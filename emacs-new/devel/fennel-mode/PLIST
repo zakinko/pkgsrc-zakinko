@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/fennel-mode/antifennel.el
+${EMACS_LISPPREFIX}/fennel-mode/antifennel.elc
+${EMACS_LISPPREFIX}/fennel-mode/fennel-ls-flymake.el
+${EMACS_LISPPREFIX}/fennel-mode/fennel-ls-flymake.elc
+${EMACS_LISPPREFIX}/fennel-mode/fennel-mode.el
+${EMACS_LISPPREFIX}/fennel-mode/fennel-mode.elc
+${EMACS_LISPPREFIX}/fennel-mode/fennel-proto-repl.el
+${EMACS_LISPPREFIX}/fennel-mode/fennel-proto-repl.elc
+${EMACS_LISPPREFIX}/fennel-mode/fennel-scratch.el
+${EMACS_LISPPREFIX}/fennel-mode/fennel-scratch.elc
+${EMACS_LISPPREFIX}/fennel-mode/ob-fennel.el
+${EMACS_LISPPREFIX}/fennel-mode/ob-fennel.elc

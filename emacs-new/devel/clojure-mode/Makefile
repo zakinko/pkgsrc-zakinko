@@ -1,0 +1,31 @@
+# $NetBSD$
+
+DISTNAME=	clojure-mode-5.23.0
+PKGNAME=	${EMACS_PKGNAME_PREFIX}clojure-mode-5.23.0
+CATEGORIES=	devel
+MASTER_SITES=	${MASTER_SITE_GITHUB:=clojure-emacs/}
+GITHUB_PROJECT=	clojure-mode
+GITHUB_TAG=	v${PKGVERSION_NOREV}
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/clojure-emacs/clojure-mode/
+COMMENT=	Major mode for Clojure code
+LICENSE=	gnu-gpl-v3
+
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
+
+INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/clojure-mode
+
+post-extract:
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+
+do-build:
+	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
+		-L . -f batch-byte-compile *.el
+
+do-install:
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
+		${DESTDIR}${EMACS_LISPPREFIX}/clojure-mode
+
+.include "../../editors/emacs/modules.mk"
+.include "../../mk/bsd.pkg.mk"

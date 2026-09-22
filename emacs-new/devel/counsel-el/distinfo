@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (counsel-0.15.1.tar.gz) = f67fa08707de04e01faaa4bc8f2176ace8e1c828429823412f9326b3d9bb41c9
+SHA512 (counsel-0.15.1.tar.gz) = c2706e2a9453965012284268c8d9d65cca562b03b4f9d1f53632789ccff9d193733edada2f974d1240783257b97faa8b74d98e32520a8ca1e8aad5b1115cd2dd
+Size (counsel-0.15.1.tar.gz) = 259310 bytes

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (el-mock-1.25.1.tar.gz) = 79ba7e98e4518c35a1f7ec5bf53ee362e9c3770aca9d3dfcc65457cbd1cbd4e6
+SHA512 (el-mock-1.25.1.tar.gz) = 8b55c94489d6461124c3e39920e5aeb2e1adb492f08aa4312c6029f392c6acdea1c01872995934e500d6ff63c3d2d38c9dde86c55135421a28e3a79ace38d7d8
+Size (el-mock-1.25.1.tar.gz) = 5825 bytes

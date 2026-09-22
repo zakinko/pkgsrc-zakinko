@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/espuds/espuds.el
+${EMACS_LISPPREFIX}/espuds/espuds.elc

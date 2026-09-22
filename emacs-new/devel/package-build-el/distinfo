@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (package-build-5.0.2.tar.gz) = 68037a7070b3a7f0d5ac1e656018867b8bf2ce83e2ebfa77bae9592190339388
+SHA512 (package-build-5.0.2.tar.gz) = a2a22786c321b42097482f2de81ac08246e42f5903006d642614d1e79aede14a05147da7f4ade4298b465cbd00f196a15c626a99e69eac27f86255b0577cc122
+Size (package-build-5.0.2.tar.gz) = 38583 bytes

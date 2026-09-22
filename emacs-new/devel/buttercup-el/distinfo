@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (buttercup-1.40.tar.gz) = f0eb7f796fd0a65d9bcff37c90f93c3aaec14d8b200221e29604d478ad38e5c4
+SHA512 (buttercup-1.40.tar.gz) = 63947338701b26a33f7667f5cc05aa41a283d0f1e9af0dc58b5e3860adfd7e81ff52a0ae54aee3d117501afe66096a52684930235054f85b6ac0c9dbba1421a3
+Size (buttercup-1.40.tar.gz) = 95884 bytes

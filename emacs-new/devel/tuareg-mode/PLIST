@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/tuareg-mode/dot-emacs.el
+${EMACS_LISPPREFIX}/tuareg-mode/dot-emacs.elc
+${EMACS_LISPPREFIX}/tuareg-mode/ocamldebug.el
+${EMACS_LISPPREFIX}/tuareg-mode/ocamldebug.elc
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg-compat.el
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg-compat.elc
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg-menhir.el
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg-menhir.elc
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg-opam.el
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg-opam.elc
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg.el
+${EMACS_LISPPREFIX}/tuareg-mode/tuareg.elc

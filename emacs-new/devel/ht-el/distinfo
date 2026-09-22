@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ht-2.3.tar.gz) = 38aa10916db761b6c1a16525a7f537c793c283e804a1219ddf4351d866033596
+SHA512 (ht-2.3.tar.gz) = c66ef8c05a6b164728f1d61e7d4298a5f30545fb57a90dd7ff0d382be2ef083da8a60bfbf2da225e670bf25b98d938afa1c8ac7e5cd1dbd8486d7981ab31c7a2
+Size (ht-2.3.tar.gz) = 8890 bytes

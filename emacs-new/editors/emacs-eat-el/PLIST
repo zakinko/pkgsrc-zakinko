@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-eat/eat.el
+${EMACS_LISPPREFIX}/emacs-eat/eat.elc

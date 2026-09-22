@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (rnc-mode-1.0.6.tar.gz) = 27e3e04e247d530dd98cdff5faefe75f48b7a56bac2de7f4b9d206691e524cc0
+SHA512 (rnc-mode-1.0.6.tar.gz) = 18dcf594bb12f8152578be85a36047d55bf407fb8ed086c03d7a7a69028f6616f651a5485e69aa1df30df6fda6fb742de05c8b54bd1b3c5c4e65021a83d63e30
+Size (rnc-mode-1.0.6.tar.gz) = 5438 bytes
+SHA1 (patch-rnc-mode.el) = 1befb6316694d74eee8671204dd2f3a9ef4a0e43

@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/fsharp-mode/eglot-fsharp.el
+${EMACS_LISPPREFIX}/fsharp-mode/eglot-fsharp.elc
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode-font.el
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode-font.elc
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode-structure.el
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode-structure.elc
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode-util.el
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode-util.elc
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode.el
+${EMACS_LISPPREFIX}/fsharp-mode/fsharp-mode.elc
+${EMACS_LISPPREFIX}/fsharp-mode/inf-fsharp-mode.el
+${EMACS_LISPPREFIX}/fsharp-mode/inf-fsharp-mode.elc

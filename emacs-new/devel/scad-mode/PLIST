@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/scad-mode/ob-scad.el
+${EMACS_LISPPREFIX}/scad-mode/ob-scad.elc
+${EMACS_LISPPREFIX}/scad-mode/scad-mode.el
+${EMACS_LISPPREFIX}/scad-mode/scad-mode.elc

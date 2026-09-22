@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/eldoc-box/eldoc-box.el
+${EMACS_LISPPREFIX}/eldoc-box/eldoc-box.elc

@@ -1,0 +1,21 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ebib/ebib-biblio.el
+${EMACS_LISPPREFIX}/ebib/ebib-biblio.elc
+${EMACS_LISPPREFIX}/ebib/ebib-db.el
+${EMACS_LISPPREFIX}/ebib/ebib-db.elc
+${EMACS_LISPPREFIX}/ebib/ebib-filters.el
+${EMACS_LISPPREFIX}/ebib/ebib-filters.elc
+${EMACS_LISPPREFIX}/ebib/ebib-ivy.el
+${EMACS_LISPPREFIX}/ebib/ebib-ivy.elc
+${EMACS_LISPPREFIX}/ebib/ebib-keywords.el
+${EMACS_LISPPREFIX}/ebib/ebib-keywords.elc
+${EMACS_LISPPREFIX}/ebib/ebib-notes.el
+${EMACS_LISPPREFIX}/ebib/ebib-notes.elc
+${EMACS_LISPPREFIX}/ebib/ebib-reading-list.el
+${EMACS_LISPPREFIX}/ebib/ebib-reading-list.elc
+${EMACS_LISPPREFIX}/ebib/ebib-utils.el
+${EMACS_LISPPREFIX}/ebib/ebib-utils.elc
+${EMACS_LISPPREFIX}/ebib/ebib.el
+${EMACS_LISPPREFIX}/ebib/ebib.elc
+${EMACS_LISPPREFIX}/ebib/org-ebib.el
+${EMACS_LISPPREFIX}/ebib/org-ebib.elc

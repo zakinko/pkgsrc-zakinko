@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/servant/servant-cli.el
+${EMACS_LISPPREFIX}/servant/servant-cli.elc
+${EMACS_LISPPREFIX}/servant/servant.el
+${EMACS_LISPPREFIX}/servant/servant.elc

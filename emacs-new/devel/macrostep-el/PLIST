@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/macrostep/macrostep-c.el
+${EMACS_LISPPREFIX}/macrostep/macrostep-c.elc
+${EMACS_LISPPREFIX}/macrostep/macrostep.el
+${EMACS_LISPPREFIX}/macrostep/macrostep.elc

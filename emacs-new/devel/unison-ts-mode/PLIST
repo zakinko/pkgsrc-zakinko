@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-font-lock.el
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-font-lock.elc
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-indent-rules.el
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-indent-rules.elc
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-install.el
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-install.elc
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-mode.el
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-mode.elc
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-repl.el
+${EMACS_LISPPREFIX}/unison-ts-mode/unison-ts-repl.elc

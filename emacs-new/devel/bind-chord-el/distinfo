@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (bind-chord-2.4.4.tar.gz) = 4bd2489a85fb8861ad83e72a272f79fa91a5be772a9d8e495b7499b0bb9221c9
+SHA512 (bind-chord-2.4.4.tar.gz) = 09bca5a9a48fdbdf204a4b92f1f301a6bc63f57192868671d833d829f0eba0a4b95e706584158407bc8c9ee4549e699f6b43a333a4de15c6b0aabc74db2acc0e
+Size (bind-chord-2.4.4.tar.gz) = 80065 bytes

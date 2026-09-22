@@ -1,0 +1,14 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/remember/read-file-name.el
+${EMACS_LISPPREFIX}/remember/read-file-name.elc
+${EMACS_LISPPREFIX}/remember/remember-bbdb.el
+${EMACS_LISPPREFIX}/remember/remember-bbdb.elc
+${EMACS_LISPPREFIX}/remember/remember-bibl.el
+${EMACS_LISPPREFIX}/remember/remember-blosxom.el
+${EMACS_LISPPREFIX}/remember/remember-emacs-wiki-journal.el
+${EMACS_LISPPREFIX}/remember/remember-experimental.el
+${EMACS_LISPPREFIX}/remember/remember-experimental.elc
+${EMACS_LISPPREFIX}/remember/remember-planner.el
+${EMACS_LISPPREFIX}/remember/remember-planner.elc
+${EMACS_LISPPREFIX}/remember/remember.el
+${EMACS_LISPPREFIX}/remember/remember.elc

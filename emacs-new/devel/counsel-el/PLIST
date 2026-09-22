@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/counsel/colir.el
+${EMACS_LISPPREFIX}/counsel/colir.elc
+${EMACS_LISPPREFIX}/counsel/counsel.el
+${EMACS_LISPPREFIX}/counsel/counsel.elc
+${EMACS_LISPPREFIX}/counsel/ivy-avy.el
+${EMACS_LISPPREFIX}/counsel/ivy-avy.elc
+${EMACS_LISPPREFIX}/counsel/ivy-faces.el
+${EMACS_LISPPREFIX}/counsel/ivy-faces.elc
+${EMACS_LISPPREFIX}/counsel/ivy-hydra.el
+${EMACS_LISPPREFIX}/counsel/ivy-hydra.elc
+${EMACS_LISPPREFIX}/counsel/ivy-overlay.el
+${EMACS_LISPPREFIX}/counsel/ivy-overlay.elc
+${EMACS_LISPPREFIX}/counsel/ivy.el
+${EMACS_LISPPREFIX}/counsel/ivy.elc
+${EMACS_LISPPREFIX}/counsel/swiper.el
+${EMACS_LISPPREFIX}/counsel/swiper.elc

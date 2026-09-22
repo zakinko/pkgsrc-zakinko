@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (plz-0.9.1.tar.gz) = edf6ebabda9daee52ec1e818f1df042b5968f1a83010db2596808ed0d3492d0f
+SHA512 (plz-0.9.1.tar.gz) = 6e35e34accfba52428176345bfd07e1146587aed662c5df4443ba16ca02558a1137dc17ce7906d6e3ff296eb628ecca702d0f1595e504f0e102d4fb411ed295c
+Size (plz-0.9.1.tar.gz) = 102132 bytes

@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/web-server/web-server-status-codes.el
+${EMACS_LISPPREFIX}/web-server/web-server-status-codes.elc
+${EMACS_LISPPREFIX}/web-server/web-server.el
+${EMACS_LISPPREFIX}/web-server/web-server.elc

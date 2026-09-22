@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (pdf-tools-1.3.0.tar.gz) = b69236e9f1dd67d7745a7c1e86ddfdc1daf2926486e660563a1f7601201a281e
+SHA512 (pdf-tools-1.3.0.tar.gz) = 6bcc9ae7a571d2090f0a47535100dadd1b802a6827c1d675b6e3f76aa338b70467ce15e77e4cfd2040d169aa80072d14579695affb50c4b99a4adcbf8b7ad32f
+Size (pdf-tools-1.3.0.tar.gz) = 479665 bytes

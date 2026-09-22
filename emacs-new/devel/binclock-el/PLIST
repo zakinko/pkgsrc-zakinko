@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/binclock/binclock.el
+${EMACS_LISPPREFIX}/binclock/binclock.elc

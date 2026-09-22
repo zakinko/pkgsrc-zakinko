@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (citre-0.4.2.tar.gz) = 5fa41feb69d0c7379a4703e88810a2de5d6db331cf2fedbb272079df68d81cc8
+SHA512 (citre-0.4.2.tar.gz) = e105fc3cea8c1c13ded2336e14d51170ee69202cbbd00666474f61e7ce60c68b7fe753aa023f8d4f56a70d1699cb6dd041d2ac51ba2a07c93597a805c16fb6a1
+Size (citre-0.4.2.tar.gz) = 684966 bytes

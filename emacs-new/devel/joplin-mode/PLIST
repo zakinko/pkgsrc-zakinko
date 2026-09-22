@@ -1,0 +1,16 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/joplin-mode/joplin-gen.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-gen.elc
+${EMACS_LISPPREFIX}/joplin-mode/joplin-http-post-simple.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-http-post-simple.elc
+${EMACS_LISPPREFIX}/joplin-mode/joplin-http.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-http.elc
+${EMACS_LISPPREFIX}/joplin-mode/joplin-mode-pkg.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-mode.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-mode.elc
+${EMACS_LISPPREFIX}/joplin-mode/joplin-res.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-res.elc
+${EMACS_LISPPREFIX}/joplin-mode/joplin-struct.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-struct.elc
+${EMACS_LISPPREFIX}/joplin-mode/joplin-tags.el
+${EMACS_LISPPREFIX}/joplin-mode/joplin-tags.elc

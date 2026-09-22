@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/projectile/projectile-consult.el
+${EMACS_LISPPREFIX}/projectile/projectile-consult.elc
+${EMACS_LISPPREFIX}/projectile/projectile.el
+${EMACS_LISPPREFIX}/projectile/projectile.elc

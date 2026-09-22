@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/graphql/graphql-examples.el
+${EMACS_LISPPREFIX}/graphql/graphql-examples.elc
+${EMACS_LISPPREFIX}/graphql/graphql.el
+${EMACS_LISPPREFIX}/graphql/graphql.elc

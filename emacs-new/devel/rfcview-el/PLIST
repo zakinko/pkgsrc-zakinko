@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/rfcview/rfcview.el
+${EMACS_LISPPREFIX}/rfcview/rfcview.elc

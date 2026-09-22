@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/jq-mode/jq-mode.el
+${EMACS_LISPPREFIX}/jq-mode/jq-mode.elc
+${EMACS_LISPPREFIX}/jq-mode/ob-jq.el
+${EMACS_LISPPREFIX}/jq-mode/ob-jq.elc

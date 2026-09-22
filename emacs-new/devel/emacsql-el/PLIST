@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacsql/emacsql-compiler.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-compiler.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql-mysql.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-mysql.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql-pg.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-pg.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql-psql.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-psql.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql-sqlite-builtin.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-sqlite-builtin.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql-sqlite-module.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-sqlite-module.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql-sqlite.el
+${EMACS_LISPPREFIX}/emacsql/emacsql-sqlite.elc
+${EMACS_LISPPREFIX}/emacsql/emacsql.el
+${EMACS_LISPPREFIX}/emacsql/emacsql.elc

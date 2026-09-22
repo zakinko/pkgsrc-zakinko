@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/dts-mode/dts-mode-pkg.el
+${EMACS_LISPPREFIX}/dts-mode/dts-mode.el
+${EMACS_LISPPREFIX}/dts-mode/dts-mode.elc

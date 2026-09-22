@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/erefactor/erefactor.el
+${EMACS_LISPPREFIX}/erefactor/erefactor.elc

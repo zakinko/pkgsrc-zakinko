@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/qwerty/qwerty.el
+${EMACS_LISPPREFIX}/qwerty/qwerty.elc

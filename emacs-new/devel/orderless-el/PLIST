@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/orderless/orderless-kwd.el
+${EMACS_LISPPREFIX}/orderless/orderless-kwd.elc
+${EMACS_LISPPREFIX}/orderless/orderless.el
+${EMACS_LISPPREFIX}/orderless/orderless.elc

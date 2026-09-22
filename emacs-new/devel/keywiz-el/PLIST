@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/keywiz/keywiz.el
+${EMACS_LISPPREFIX}/keywiz/keywiz.elc

@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/sokoban/sokoban-pkg.el
+${EMACS_LISPPREFIX}/sokoban/sokoban.el
+${EMACS_LISPPREFIX}/sokoban/sokoban.elc

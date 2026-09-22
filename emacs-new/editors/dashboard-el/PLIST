@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/dashboard/banners/1.txt
+${EMACS_LISPPREFIX}/dashboard/banners/2.txt
+${EMACS_LISPPREFIX}/dashboard/banners/3.txt
+${EMACS_LISPPREFIX}/dashboard/banners/4.txt
+${EMACS_LISPPREFIX}/dashboard/banners/emacs.png
+${EMACS_LISPPREFIX}/dashboard/banners/logo.png
+${EMACS_LISPPREFIX}/dashboard/dashboard-widgets.el
+${EMACS_LISPPREFIX}/dashboard/dashboard-widgets.elc
+${EMACS_LISPPREFIX}/dashboard/dashboard.el
+${EMACS_LISPPREFIX}/dashboard/dashboard.elc

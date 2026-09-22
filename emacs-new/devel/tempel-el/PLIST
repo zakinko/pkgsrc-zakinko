@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/tempel/tempel.el
+${EMACS_LISPPREFIX}/tempel/tempel.elc

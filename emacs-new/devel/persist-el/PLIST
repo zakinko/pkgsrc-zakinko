@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/persist/persist-pkg.el
+${EMACS_LISPPREFIX}/persist/persist.el
+${EMACS_LISPPREFIX}/persist/persist.elc

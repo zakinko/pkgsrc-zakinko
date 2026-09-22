@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (erobot-2.1.0.tar.bz2) = d867d17c436158c0873d03a9c40e5d3b675f83b99ffb34dc5016d7bf5e72e085
+SHA512 (erobot-2.1.0.tar.bz2) = a5e8ad1d6cbc736302d846576a3effb6ef6a22b31677e604374df50920435a8082a8b3124a3a76c5086a066956ba457bfb4d2477cdc16ae45919aa7dd8c7e874
+Size (erobot-2.1.0.tar.bz2) = 8748 bytes
+SHA1 (patch-erobot.el) = f3493cf7fcae6e53e5ee0d6f5dc16256ab1355e5

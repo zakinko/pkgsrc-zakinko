@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (docker-2.5.0.tar.gz) = 23203c5218f67e92db648d1033f63535b04ffc3bc25e8633d18b1db7eaec3a73
+SHA512 (docker-2.5.0.tar.gz) = e2c856e215992fc00d3ac93a69355473d60b971c163acfac056cbe60d2b7ce42a6d71b3784d684f0974ea738d3c4d24f7fd509454583cb4a4c1fed256ad42934
+Size (docker-2.5.0.tar.gz) = 116339 bytes

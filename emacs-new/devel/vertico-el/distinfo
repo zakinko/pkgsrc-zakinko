@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (vertico-2.14.tar.gz) = 88772a79208b813b6dbe2624c994818d8e6a764a541b0ff325ec2dc228f7d7da
+SHA512 (vertico-2.14.tar.gz) = 8fb66a682efdd29268a49c2b40aef19cb79ebc9d0d71b1cb04a388956e59d53f4105e47cdbbd0f124b2f09ac29637ddd12393c079155388dc939d49c4064db3e
+Size (vertico-2.14.tar.gz) = 51062 bytes

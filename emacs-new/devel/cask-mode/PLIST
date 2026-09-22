@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/cask-mode/cask-mode.el
+${EMACS_LISPPREFIX}/cask-mode/cask-mode.elc

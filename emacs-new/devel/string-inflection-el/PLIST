@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/string-inflection/string-inflection.el
+${EMACS_LISPPREFIX}/string-inflection/string-inflection.elc

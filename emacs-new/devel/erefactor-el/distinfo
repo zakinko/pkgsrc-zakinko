@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (erefactor-0.7.2-bfe27a1b8c7cac0fe054e76113e941efa3775fe8.tar.gz) = 5880c0e2fd451672d20abec28fa085c8e3f1d0e48e81f85d11dfe547c5575a09
+SHA512 (erefactor-0.7.2-bfe27a1b8c7cac0fe054e76113e941efa3775fe8.tar.gz) = fa6ce709948d169bf6beb1c25f9ecbc87d8d6f0d8fc1ad2972148ba3daee986387888c72aaa9f8813f29421ac31bd5e10a9e75e76b1871b911fefc2663b7c8e6
+Size (erefactor-0.7.2-bfe27a1b8c7cac0fe054e76113e941efa3775fe8.tar.gz) = 12873 bytes

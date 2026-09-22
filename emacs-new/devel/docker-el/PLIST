@@ -1,0 +1,25 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/docker/docker-compose.el
+${EMACS_LISPPREFIX}/docker/docker-compose.elc
+${EMACS_LISPPREFIX}/docker/docker-container.el
+${EMACS_LISPPREFIX}/docker/docker-container.elc
+${EMACS_LISPPREFIX}/docker/docker-context.el
+${EMACS_LISPPREFIX}/docker/docker-context.elc
+${EMACS_LISPPREFIX}/docker/docker-core.el
+${EMACS_LISPPREFIX}/docker/docker-core.elc
+${EMACS_LISPPREFIX}/docker/docker-faces.el
+${EMACS_LISPPREFIX}/docker/docker-faces.elc
+${EMACS_LISPPREFIX}/docker/docker-group.el
+${EMACS_LISPPREFIX}/docker/docker-group.elc
+${EMACS_LISPPREFIX}/docker/docker-image.el
+${EMACS_LISPPREFIX}/docker/docker-image.elc
+${EMACS_LISPPREFIX}/docker/docker-network.el
+${EMACS_LISPPREFIX}/docker/docker-network.elc
+${EMACS_LISPPREFIX}/docker/docker-process.el
+${EMACS_LISPPREFIX}/docker/docker-process.elc
+${EMACS_LISPPREFIX}/docker/docker-utils.el
+${EMACS_LISPPREFIX}/docker/docker-utils.elc
+${EMACS_LISPPREFIX}/docker/docker-volume.el
+${EMACS_LISPPREFIX}/docker/docker-volume.elc
+${EMACS_LISPPREFIX}/docker/docker.el
+${EMACS_LISPPREFIX}/docker/docker.elc

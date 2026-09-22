@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/git-modes/git-modes.el
+${EMACS_LISPPREFIX}/git-modes/git-modes.elc
+${EMACS_LISPPREFIX}/git-modes/gitattributes-mode.el
+${EMACS_LISPPREFIX}/git-modes/gitattributes-mode.elc
+${EMACS_LISPPREFIX}/git-modes/gitconfig-mode.el
+${EMACS_LISPPREFIX}/git-modes/gitconfig-mode.elc
+${EMACS_LISPPREFIX}/git-modes/gitignore-mode.el
+${EMACS_LISPPREFIX}/git-modes/gitignore-mode.elc

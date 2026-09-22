@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (binclock-1.12.tar.gz) = d08d619a7fe9e30ab0a9a50633a1b98f1de5325f286e73692b862657d92f2512
+SHA512 (binclock-1.12.tar.gz) = e445ee73847ccfdad3edbb3427692c0c520327a620326ca2cee8905a0659af846789e52dbfa4b1ac62db9e08288a95737ac46bd1719fdbdc198b79db971fb0af
+Size (binclock-1.12.tar.gz) = 15010 bytes

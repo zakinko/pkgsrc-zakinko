@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/setnu/setnu.el
+${EMACS_LISPPREFIX}/setnu/setnu.elc

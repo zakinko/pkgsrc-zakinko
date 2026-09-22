@@ -1,0 +1,6 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/systemd-mode/network-directives.txt
+${EMACS_LISPPREFIX}/systemd-mode/nspawn-directives.txt
+${EMACS_LISPPREFIX}/systemd-mode/systemd.el
+${EMACS_LISPPREFIX}/systemd-mode/systemd.elc
+${EMACS_LISPPREFIX}/systemd-mode/unit-directives.txt

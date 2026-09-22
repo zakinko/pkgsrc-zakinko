@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/fedi/fedi-auth.el
+${EMACS_LISPPREFIX}/fedi/fedi-auth.elc
+${EMACS_LISPPREFIX}/fedi/fedi-http.el
+${EMACS_LISPPREFIX}/fedi/fedi-http.elc
+${EMACS_LISPPREFIX}/fedi/fedi-iso.el
+${EMACS_LISPPREFIX}/fedi/fedi-iso.elc
+${EMACS_LISPPREFIX}/fedi/fedi-post.el
+${EMACS_LISPPREFIX}/fedi/fedi-post.elc
+${EMACS_LISPPREFIX}/fedi/fedi.el
+${EMACS_LISPPREFIX}/fedi/fedi.elc

@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/clojure-mode/clojure-mode-extra-font-locking.el
+${EMACS_LISPPREFIX}/clojure-mode/clojure-mode-extra-font-locking.elc
+${EMACS_LISPPREFIX}/clojure-mode/clojure-mode.el
+${EMACS_LISPPREFIX}/clojure-mode/clojure-mode.elc

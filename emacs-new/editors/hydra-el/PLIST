@@ -1,0 +1,8 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/hydra/hydra-examples.el
+${EMACS_LISPPREFIX}/hydra/hydra-ox.el
+${EMACS_LISPPREFIX}/hydra/hydra-ox.elc
+${EMACS_LISPPREFIX}/hydra/hydra.el
+${EMACS_LISPPREFIX}/hydra/hydra.elc
+${EMACS_LISPPREFIX}/hydra/lv.el
+${EMACS_LISPPREFIX}/hydra/lv.elc

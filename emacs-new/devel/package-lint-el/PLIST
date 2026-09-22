@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/package-lint/data/compat-symbols
+${EMACS_LISPPREFIX}/package-lint/data/stdlib-changes
+${EMACS_LISPPREFIX}/package-lint/package-lint-flymake.el
+${EMACS_LISPPREFIX}/package-lint/package-lint-flymake.elc
+${EMACS_LISPPREFIX}/package-lint/package-lint.el
+${EMACS_LISPPREFIX}/package-lint/package-lint.elc

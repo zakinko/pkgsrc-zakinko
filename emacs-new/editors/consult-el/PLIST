@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/consult/consult-compile.el
+${EMACS_LISPPREFIX}/consult/consult-compile.elc
+${EMACS_LISPPREFIX}/consult/consult-flymake.el
+${EMACS_LISPPREFIX}/consult/consult-flymake.elc
+${EMACS_LISPPREFIX}/consult/consult-imenu.el
+${EMACS_LISPPREFIX}/consult/consult-imenu.elc
+${EMACS_LISPPREFIX}/consult/consult-info.el
+${EMACS_LISPPREFIX}/consult/consult-info.elc
+${EMACS_LISPPREFIX}/consult/consult-kmacro.el
+${EMACS_LISPPREFIX}/consult/consult-kmacro.elc
+${EMACS_LISPPREFIX}/consult/consult-org.el
+${EMACS_LISPPREFIX}/consult/consult-org.elc
+${EMACS_LISPPREFIX}/consult/consult-register.el
+${EMACS_LISPPREFIX}/consult/consult-register.elc
+${EMACS_LISPPREFIX}/consult/consult-xref.el
+${EMACS_LISPPREFIX}/consult/consult-xref.elc
+${EMACS_LISPPREFIX}/consult/consult.el
+${EMACS_LISPPREFIX}/consult/consult.elc

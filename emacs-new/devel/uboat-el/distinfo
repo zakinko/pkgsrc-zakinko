@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (uboat-1.2.tar.bz2) = 9cce1eda5a7c37f6a0388a11b0ddd8821fd9727ed901aae3d87d168a559dd83a
+SHA512 (uboat-1.2.tar.bz2) = f77de2c0859a5eb8c09f03aea5be068e2f61f96e10c72d9f18ec6c3fdcc19ab7ca62d606d06aa669b07a89e9f677f5bcb6d3e211b7b7710840cacf9d4f3e307c
+Size (uboat-1.2.tar.bz2) = 1978 bytes
+SHA1 (patch-uboat.el) = b2ca843feab00bccada5b1a09485e9626356c5bf

@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/load-relative/load-relative.el
+${EMACS_LISPPREFIX}/load-relative/load-relative.elc

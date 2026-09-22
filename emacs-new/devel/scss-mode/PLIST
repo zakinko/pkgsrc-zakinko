@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/scss-mode/scss-mode.el
+${EMACS_LISPPREFIX}/scss-mode/scss-mode.elc

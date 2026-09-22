@@ -1,0 +1,2 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/julia-repl/julia-repl.el

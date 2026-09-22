@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (emacs-eat-v0.9.4/v0.9.4.tar.gz) = 6f2dab2e116587b99931ee6950863bd9e4c82d740dd119e7ae33d17628c8c1db
+SHA512 (emacs-eat-v0.9.4/v0.9.4.tar.gz) = a2ae955a6403f1df061bcf3ce7e975d9c11cd3992da2f7f35c12eb3945bc2c476a23a95ef5db9b9767435b0820b7ec4e7f056beb31606d1b8ec252bea0393109
+Size (emacs-eat-v0.9.4/v0.9.4.tar.gz) = 275808 bytes

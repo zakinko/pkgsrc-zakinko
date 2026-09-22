@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/fsm/fsm-pkg.el
+${EMACS_LISPPREFIX}/fsm/fsm.el
+${EMACS_LISPPREFIX}/fsm/fsm.elc

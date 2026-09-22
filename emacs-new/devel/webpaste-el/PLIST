@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/webpaste/webpaste.el
+${EMACS_LISPPREFIX}/webpaste/webpaste.elc

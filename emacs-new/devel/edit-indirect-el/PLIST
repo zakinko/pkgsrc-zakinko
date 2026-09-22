@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/edit-indirect/edit-indirect.el
+${EMACS_LISPPREFIX}/edit-indirect/edit-indirect.elc

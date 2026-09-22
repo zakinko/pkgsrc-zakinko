@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (popwin-1.0.2.tar.gz) = 629e9476138101998290113955122a7d09ae115736dd3d9e8d8098f74eab8f70
+SHA512 (popwin-1.0.2.tar.gz) = 9a5c655ec0be45de8293f4e2059d774dbbf831291ca7c2489df06d71a8c6a1402ddde5b9ccbc84e210918b5aec2bd792c8685dbd1fca40522d8cfde334097fc8
+Size (popwin-1.0.2.tar.gz) = 70340 bytes

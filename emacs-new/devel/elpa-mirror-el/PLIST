@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elpa-mirror/elpa-mirror.el
+${EMACS_LISPPREFIX}/elpa-mirror/elpa-mirror.elc

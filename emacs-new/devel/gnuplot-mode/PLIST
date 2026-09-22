@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot-context.el
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot-context.elc
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot-eldoc.el
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot-eldoc.elc
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot-gui.el
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot-gui.elc
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot.el
+${EMACS_LISPPREFIX}/gnuplot-mode/gnuplot.elc

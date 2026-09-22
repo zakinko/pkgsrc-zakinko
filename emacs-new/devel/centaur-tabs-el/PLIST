@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs-elements.el
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs-elements.elc
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs-functions.el
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs-functions.elc
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs-interactive.el
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs-interactive.elc
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs.el
+${EMACS_LISPPREFIX}/centaur-tabs/centaur-tabs.elc

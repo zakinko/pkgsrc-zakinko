@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/indent-bars/indent-bars-ts.el
+${EMACS_LISPPREFIX}/indent-bars/indent-bars-ts.elc
+${EMACS_LISPPREFIX}/indent-bars/indent-bars.el
+${EMACS_LISPPREFIX}/indent-bars/indent-bars.elc

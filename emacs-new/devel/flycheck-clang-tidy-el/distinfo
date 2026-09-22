@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (flycheck-clang-tidy-0.3.0.20201116-f9ae7306bd6ca08b689b36c1e8f6f6b91d61db5f.tar.gz) = 4386c005aa85fcfc4a41da17e32d10e17a6ac60cb93a8b94d9e22ec3f9cdf2ec
+SHA512 (flycheck-clang-tidy-0.3.0.20201116-f9ae7306bd6ca08b689b36c1e8f6f6b91d61db5f.tar.gz) = f29bd187ceb72b58c4954e1aefe2ed1034a70bb9b4d8992e16d29bea5399374111cff29b96cb3d90ed4dbee15d1c3593b6365fabe7ad2e4669b01a2482558a64
+Size (flycheck-clang-tidy-0.3.0.20201116-f9ae7306bd6ca08b689b36c1e8f6f6b91d61db5f.tar.gz) = 4485 bytes

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (agent-shell-0.74.3.tar.gz) = 002a7576a3d38af26b187b86a8b74d08b77cf0a0db8225b98ce9ca781df726fa
+SHA512 (agent-shell-0.74.3.tar.gz) = 9fa3641b8096270d25bfb1bb26fb6e7b8a21723c49a08f80d504ae3cd45d6aace928ba75fdc7a04941bee196fd1e976ffa4f95360e5ab7a8fbd58fc5edaa4797
+Size (agent-shell-0.74.3.tar.gz) = 1815020 bytes

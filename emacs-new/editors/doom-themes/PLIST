@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/doom-themes/doom-themes-base.el
+${EMACS_LISPPREFIX}/doom-themes/doom-themes-base.elc
+${EMACS_LISPPREFIX}/doom-themes/doom-themes.el
+${EMACS_LISPPREFIX}/doom-themes/doom-themes.elc

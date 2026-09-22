@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/key-chord/key-chord.el
+${EMACS_LISPPREFIX}/key-chord/key-chord.elc

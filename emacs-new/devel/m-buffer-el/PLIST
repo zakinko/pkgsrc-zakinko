@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/m-buffer/m-buffer-at.el
+${EMACS_LISPPREFIX}/m-buffer/m-buffer-at.elc
+${EMACS_LISPPREFIX}/m-buffer/m-buffer-macro.el
+${EMACS_LISPPREFIX}/m-buffer/m-buffer-macro.elc
+${EMACS_LISPPREFIX}/m-buffer/m-buffer.el
+${EMACS_LISPPREFIX}/m-buffer/m-buffer.elc

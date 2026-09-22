@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/quack/quack.el
+${EMACS_LISPPREFIX}/quack/quack.elc

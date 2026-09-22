@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/proofgeneral/proof-general.el
+${EMACS_LISPPREFIX}/proofgeneral/proof-general.elc

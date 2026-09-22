@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/raku-mode/nqp-mode.el
+${EMACS_LISPPREFIX}/raku-mode/nqp-mode.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-detect.el
+${EMACS_LISPPREFIX}/raku-mode/raku-detect.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-font-lock.el
+${EMACS_LISPPREFIX}/raku-mode/raku-font-lock.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-imenu.el
+${EMACS_LISPPREFIX}/raku-mode/raku-imenu.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-indent.el
+${EMACS_LISPPREFIX}/raku-mode/raku-indent.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-mode.el
+${EMACS_LISPPREFIX}/raku-mode/raku-mode.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-repl.el
+${EMACS_LISPPREFIX}/raku-mode/raku-repl.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-skeletons.el
+${EMACS_LISPPREFIX}/raku-mode/raku-skeletons.elc
+${EMACS_LISPPREFIX}/raku-mode/raku-unicode-menu.el
+${EMACS_LISPPREFIX}/raku-mode/raku-unicode-menu.elc

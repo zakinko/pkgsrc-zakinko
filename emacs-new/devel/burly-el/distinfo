@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (burly-0.3.tar.gz) = e146c07a26f16ddeef0310a11b9c69794df752f0eaa3c0b54f959ae00676a291
+SHA512 (burly-0.3.tar.gz) = 3e79a786873f8a94001c8d57f74eba54c2679d006256ba7bf1447c89cb5c33759d7f01f3b58eba83b496d07905daeaf04d6828b2f6ca3899f6c1cb9fa017aa05
+Size (burly-0.3.tar.gz) = 233444 bytes

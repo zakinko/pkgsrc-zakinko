@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elpher/elpher-pkg.el
+${EMACS_LISPPREFIX}/elpher/elpher.el
+${EMACS_LISPPREFIX}/elpher/elpher.elc

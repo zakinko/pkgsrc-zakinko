@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline-core.el
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline-core.elc
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline-env.el
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline-env.elc
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline-segments.el
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline-segments.elc
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline.el
+${EMACS_LISPPREFIX}/doom-modeline/doom-modeline.elc

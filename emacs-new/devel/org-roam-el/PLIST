@@ -1,0 +1,21 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/org-roam/org-roam-capture.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-capture.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-compat.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-compat.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-db.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-db.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-id.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-id.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-log.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-log.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-migrate.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-migrate.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-mode.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-mode.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-node.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-node.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam-utils.el
+${EMACS_LISPPREFIX}/org-roam/org-roam-utils.elc
+${EMACS_LISPPREFIX}/org-roam/org-roam.el
+${EMACS_LISPPREFIX}/org-roam/org-roam.elc

@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/powerline/powerline-separators.el
+${EMACS_LISPPREFIX}/powerline/powerline-separators.elc
+${EMACS_LISPPREFIX}/powerline/powerline-themes.el
+${EMACS_LISPPREFIX}/powerline/powerline-themes.elc
+${EMACS_LISPPREFIX}/powerline/powerline.el
+${EMACS_LISPPREFIX}/powerline/powerline.elc

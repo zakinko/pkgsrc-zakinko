@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (regress-1.5.1.tar.gz) = bfade35fe8b057cd0efbea7a05adc210bb25d177ca33081a3171b97f62083579
+SHA512 (regress-1.5.1.tar.gz) = 8718d44fc8cd62b9f02f53e59b0843f23cd9f1852c8f3c3038a3009b72f65efff94ac0fa9a18356d5efe7dde593e4643ed17fb54b5cc602f60c730cbb5cbd64a
+Size (regress-1.5.1.tar.gz) = 8633 bytes
+SHA1 (patch-regress.el) = 40e899d80889a4184ace12eaf7fa3664c443b785

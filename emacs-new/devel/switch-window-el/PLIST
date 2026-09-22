@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/switch-window/switch-window-asciiart.el
+${EMACS_LISPPREFIX}/switch-window/switch-window-asciiart.elc
+${EMACS_LISPPREFIX}/switch-window/switch-window-mvborder.el
+${EMACS_LISPPREFIX}/switch-window/switch-window-mvborder.elc
+${EMACS_LISPPREFIX}/switch-window/switch-window.el
+${EMACS_LISPPREFIX}/switch-window/switch-window.elc

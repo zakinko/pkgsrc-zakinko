@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (dockerfile-mode-1.9.tar.gz) = 2453e45b3e1bce2660766833c2a06e800712714f226ab53a4cb082837c8493ce
+SHA512 (dockerfile-mode-1.9.tar.gz) = fdf37d15b0ee7608aa1580850ec0475a02cc3357ac1c262934063bd6efc0ab00fd3ef2b11389f221994fb3428def525f7d14e5da198bdd27b7f3f26fb0a94746
+Size (dockerfile-mode-1.9.tar.gz) = 7865 bytes

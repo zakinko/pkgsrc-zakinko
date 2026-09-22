@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (citar-1.4.0.tar.gz) = 70e7b92546b2172a5cbae1b2a97f948870853ffd303cf223be5635cedca5d25a
+SHA512 (citar-1.4.0.tar.gz) = 42ddb8eec21ad8c53b77b5ee235cd839fdb8d3a3efef8db28effd2bfc63d1d25c1031abb21df476e0243c99aaa619c2d1f29142f5569deb06281774c960924a9
+Size (citar-1.4.0.tar.gz) = 1604664 bytes

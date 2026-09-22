@@ -1,0 +1,14 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/boogie-friends/boogie-friends-pkg.el
+${EMACS_LISPPREFIX}/boogie-friends/boogie-friends.el
+${EMACS_LISPPREFIX}/boogie-friends/boogie-friends.elc
+${EMACS_LISPPREFIX}/boogie-friends/boogie-mode.el
+${EMACS_LISPPREFIX}/boogie-friends/boogie-mode.elc
+${EMACS_LISPPREFIX}/boogie-friends/dafny-docs.el
+${EMACS_LISPPREFIX}/boogie-friends/dafny-docs.elc
+${EMACS_LISPPREFIX}/boogie-friends/dafny-mode.el
+${EMACS_LISPPREFIX}/boogie-friends/dafny-mode.elc
+${EMACS_LISPPREFIX}/boogie-friends/inferior-dafny.el
+${EMACS_LISPPREFIX}/boogie-friends/inferior-dafny.elc
+${EMACS_LISPPREFIX}/boogie-friends/z3-smt2-mode.el
+${EMACS_LISPPREFIX}/boogie-friends/z3-smt2-mode.elc

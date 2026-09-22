@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ert-async/ert-async.el
+${EMACS_LISPPREFIX}/ert-async/ert-async.elc

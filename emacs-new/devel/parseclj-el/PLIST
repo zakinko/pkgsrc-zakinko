@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/parseclj/parseclj-alist.el
+${EMACS_LISPPREFIX}/parseclj/parseclj-alist.elc
+${EMACS_LISPPREFIX}/parseclj/parseclj-ast.el
+${EMACS_LISPPREFIX}/parseclj/parseclj-ast.elc
+${EMACS_LISPPREFIX}/parseclj/parseclj-lex.el
+${EMACS_LISPPREFIX}/parseclj/parseclj-lex.elc
+${EMACS_LISPPREFIX}/parseclj/parseclj-parser.el
+${EMACS_LISPPREFIX}/parseclj/parseclj-parser.elc
+${EMACS_LISPPREFIX}/parseclj/parseclj.el
+${EMACS_LISPPREFIX}/parseclj/parseclj.elc

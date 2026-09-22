@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (key-chord-0.8.2.tar.gz) = 3482e00239999a71267063f753bcccbc5a22704f2a23dfaf0d3fbfca18e8c51a
+SHA512 (key-chord-0.8.2.tar.gz) = f7adea97fc65c54fe28f47ab3b6df3c819c78aab7b77acab66922ea31572fddd92ebb66103ee648e6949f83461ae0fe7e54fdb9adcba333a992abb1eca929ad9
+Size (key-chord-0.8.2.tar.gz) = 9429 bytes

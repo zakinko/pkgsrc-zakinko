@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (closql-2.4.1.tar.gz) = a7d709501cc22e75e50419b5b8d4b1fe6d34e69038f9ad4379179caf927fed80
+SHA512 (closql-2.4.1.tar.gz) = 1959615cc6b154637c5a97c2d77c915bbb1ead79bfe63597fe62b7fd959f883056003f59595185af31ef6524ecab5f9df08b57b378914ec2bd5542c1b9dee82d
+Size (closql-2.4.1.tar.gz) = 22283 bytes

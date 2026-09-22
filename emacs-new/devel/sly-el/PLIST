@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/sly/sly-autoloads.el
+${EMACS_LISPPREFIX}/sly/sly.el
+${EMACS_LISPPREFIX}/sly/sly.elc

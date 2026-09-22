@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (devil-0.6.0.tar.gz) = 0114afb82f47b053aa772e67c07cbd9a35827b8ab3e7663ef21d4a538cca4c5c
+SHA512 (devil-0.6.0.tar.gz) = d45a876da49784e6f8b7d4c2f77dd68077be69fb559abb797ef08f19ac91a9bfd4f84749d3e3eea0e719778c4151b2034530c4d789034506256bd9fcb110559c
+Size (devil-0.6.0.tar.gz) = 23943 bytes

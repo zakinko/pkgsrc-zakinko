@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/shut-up/shut-up.el
+${EMACS_LISPPREFIX}/shut-up/shut-up.elc

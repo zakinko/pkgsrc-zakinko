@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/poke/poke-pkg.el
+${EMACS_LISPPREFIX}/poke/poke.el
+${EMACS_LISPPREFIX}/poke/poke.elc

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (epc-0.1.1.tar.gz) = 3d93ddcab162162aab6649a030811c25ea16a15966297bff0b129b9e4d664feb
+SHA512 (epc-0.1.1.tar.gz) = c6c6e9c2f241ca275b807a387c4fb6916edb02c390d7bc350388d729e2214d7fe5addb7ea634bebc75aa09e510ab2d141ae6a197b328d1f506ee51660a5b8ddc
+Size (epc-0.1.1.tar.gz) = 158462 bytes

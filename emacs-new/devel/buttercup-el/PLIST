@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/buttercup/buttercup-compat.el
+${EMACS_LISPPREFIX}/buttercup/buttercup-compat.elc
+${EMACS_LISPPREFIX}/buttercup/buttercup.el
+${EMACS_LISPPREFIX}/buttercup/buttercup.elc

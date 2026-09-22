@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/flycheck-guile/flycheck-guile.el
+${EMACS_LISPPREFIX}/flycheck-guile/flycheck-guile.elc

@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/macrostep-geiser/macrostep-geiser.el
+${EMACS_LISPPREFIX}/macrostep-geiser/macrostep-geiser.elc

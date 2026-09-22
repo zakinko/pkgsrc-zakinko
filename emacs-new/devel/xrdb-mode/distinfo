@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (xrdb-mode-3.0.el.xz) = aea8012c417acf49c64ff0e5d4485fe81749067bf23adb457288fe657925d065
+SHA512 (xrdb-mode-3.0.el.xz) = 1ad0f92edf08cca604b9534a5a715f79d019f73f8ad80bf8297fa3b4a201f8dbd864c23bed86579b7c48ddd9180add7b39e22469f6c23dceef4be9fdfd1ae290
+Size (xrdb-mode-3.0.el.xz) = 5448 bytes
+SHA1 (patch-xrdb-mode.el) = 100b3d9049dd9d53bda5b4c92c0d3d0f1ff95ac9

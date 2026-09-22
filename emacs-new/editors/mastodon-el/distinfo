@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (mastodon.el-2.0.7/2.0.7.tar.gz) = f153ebef6770326fa0ee6e2be86de963124b0c8716da74061eaa00d58dfbf7ed
+SHA512 (mastodon.el-2.0.7/2.0.7.tar.gz) = 6945b98082072ee42d65c24084648ff440501beafd852563801dca56676d5a974511b1ab02f03e303e6ab52bef17573fc15b8c57d3bdd951f3b518bec097bb43
+Size (mastodon.el-2.0.7/2.0.7.tar.gz) = 713507 bytes

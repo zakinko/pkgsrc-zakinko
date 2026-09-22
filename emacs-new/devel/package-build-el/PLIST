@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/package-build/package-build-badges.el
+${EMACS_LISPPREFIX}/package-build/package-build-badges.elc
+${EMACS_LISPPREFIX}/package-build/package-build.el
+${EMACS_LISPPREFIX}/package-build/package-build.elc
+${EMACS_LISPPREFIX}/package-build/package-recipe-mode.el
+${EMACS_LISPPREFIX}/package-build/package-recipe-mode.elc
+${EMACS_LISPPREFIX}/package-build/package-recipe.el
+${EMACS_LISPPREFIX}/package-build/package-recipe.elc

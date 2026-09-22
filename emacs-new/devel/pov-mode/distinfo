@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (pov-mode-3.3.tar.gz) = c95f138e86e73b115e8080a9bb816ad91719291144df14878f82de2380b22856
+SHA512 (pov-mode-3.3.tar.gz) = bdac1b6b872b8de08660adc8eec706cce4b085b62e7c48bb6bd57e25d9e1f9b8c0086f30ee9c5befee7b0d933831d459eb0704dfe5e8cce8cae378d7404b9c9e
+Size (pov-mode-3.3.tar.gz) = 65926 bytes

@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/git-timemachine/git-timemachine.el
+${EMACS_LISPPREFIX}/git-timemachine/git-timemachine.elc

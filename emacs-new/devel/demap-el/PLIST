@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/demap/demap-minimap.el
+${EMACS_LISPPREFIX}/demap/demap-minimap.elc
+${EMACS_LISPPREFIX}/demap/demap-modes.el
+${EMACS_LISPPREFIX}/demap/demap-modes.elc
+${EMACS_LISPPREFIX}/demap/demap-tools.el
+${EMACS_LISPPREFIX}/demap/demap-tools.elc
+${EMACS_LISPPREFIX}/demap/demap.el
+${EMACS_LISPPREFIX}/demap/demap.elc

@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/acp/acp-fakes.el
+${EMACS_LISPPREFIX}/acp/acp-fakes.elc
+${EMACS_LISPPREFIX}/acp/acp-traffic.el
+${EMACS_LISPPREFIX}/acp/acp-traffic.elc
+${EMACS_LISPPREFIX}/acp/acp.el
+${EMACS_LISPPREFIX}/acp/acp.elc

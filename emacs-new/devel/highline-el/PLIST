@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/highline/highline.el
+${EMACS_LISPPREFIX}/highline/highline.elc

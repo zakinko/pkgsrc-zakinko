@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/revive/revive.el
+${EMACS_LISPPREFIX}/revive/revive.elc

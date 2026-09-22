@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (apache-mode-2.2.0.tar.gz) = 526951730f4798e9e9866aa128e0a3d2d557430d59ab5078216c86569e4abcbf
+SHA512 (apache-mode-2.2.0.tar.gz) = 3b309291813b309215250fc1ae1ff206df6474981302a145c305adebb6ffe6a20338b9d8fd5fef1ba491a6bd2427d372178f02d90af214dd24d389c574789aa5
+Size (apache-mode-2.2.0.tar.gz) = 16077 bytes

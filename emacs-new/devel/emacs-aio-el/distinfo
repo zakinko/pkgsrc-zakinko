@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (emacs-aio-1.1.tar.gz) = e3aeac9f9d5f88a1b12f73796895c091010f3873112b155a4b1a3578fc118627
+SHA512 (emacs-aio-1.1.tar.gz) = a000e70d82ad2656894a49214f3f7f4a0cd728d0e99d27724a8e15969e4e5c3be915b062d98531777ed84c700dbdd2b818e127dd9ffaef2e38273374c219db27
+Size (emacs-aio-1.1.tar.gz) = 10641 bytes

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (geiser-guile-0.28.5.tar) = e05bafdf7e272f9d7fd9d4508007788660294d3227b23253b2eef614268e31a4
+SHA512 (geiser-guile-0.28.5.tar) = 7663e523aa7cc783be6ce4eef1c75cfab575b13f6ca41a3b9872507a65454140fe977679c3dda64a71eaa2828fb9bacb4cf2aed46951117a3b5319f72c7bc2a9
+Size (geiser-guile-0.28.5.tar) = 81920 bytes

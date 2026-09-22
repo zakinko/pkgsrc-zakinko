@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/embark-consult/avy-embark-collect.el
+${EMACS_LISPPREFIX}/embark-consult/avy-embark-collect.elc
+${EMACS_LISPPREFIX}/embark-consult/embark-consult.el
+${EMACS_LISPPREFIX}/embark-consult/embark-consult.elc
+${EMACS_LISPPREFIX}/embark-consult/embark-org.el
+${EMACS_LISPPREFIX}/embark-consult/embark-org.elc
+${EMACS_LISPPREFIX}/embark-consult/embark.el
+${EMACS_LISPPREFIX}/embark-consult/embark.elc

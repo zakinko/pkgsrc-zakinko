@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/develock/develock.el
+${EMACS_LISPPREFIX}/develock/develock.elc

@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/xclip/xclip-pkg.el
+${EMACS_LISPPREFIX}/xclip/xclip.el
+${EMACS_LISPPREFIX}/xclip/xclip.elc

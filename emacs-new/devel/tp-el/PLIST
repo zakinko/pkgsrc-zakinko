@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/tp/tp.el
+${EMACS_LISPPREFIX}/tp/tp.elc

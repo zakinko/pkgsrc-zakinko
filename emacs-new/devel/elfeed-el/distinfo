@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (elfeed-4.2.0.tar.gz) = 88aeea739958c32e036cf5531e51e70cf329aaacb199732d5cac3ed7409442ff
+SHA512 (elfeed-4.2.0.tar.gz) = e74d9aa6a6bbfdb152afa708cbfd62af52d3215a36a8405219a43df1fa1823dc614e7d46edef216f8b583afd04b1ef16541545f8f0fcbb9b8134c8e1c8bdd08f
+Size (elfeed-4.2.0.tar.gz) = 92854 bytes

@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/deferred/concurrent.el
+${EMACS_LISPPREFIX}/deferred/concurrent.elc
+${EMACS_LISPPREFIX}/deferred/deferred.el
+${EMACS_LISPPREFIX}/deferred/deferred.elc

@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ghub/ghub-graphql.el
+${EMACS_LISPPREFIX}/ghub/ghub-graphql.elc
+${EMACS_LISPPREFIX}/ghub/ghub-legacy.el
+${EMACS_LISPPREFIX}/ghub/ghub-legacy.elc
+${EMACS_LISPPREFIX}/ghub/ghub.el
+${EMACS_LISPPREFIX}/ghub/ghub.elc
+${EMACS_LISPPREFIX}/ghub/gsexp.el
+${EMACS_LISPPREFIX}/ghub/gsexp.elc

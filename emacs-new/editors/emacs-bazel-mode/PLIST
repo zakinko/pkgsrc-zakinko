@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-bazel-mode/bazel.el
+${EMACS_LISPPREFIX}/emacs-bazel-mode/bazel.elc
+${EMACS_LISPPREFIX}/emacs-bazel-mode/test.el
+${EMACS_LISPPREFIX}/emacs-bazel-mode/test.elc

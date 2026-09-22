@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (hydra-0.15.0.tar.gz) = efb68e7914e3819474908473f60951df88b2268cb445bdf8d5e49208764f2a17
+SHA512 (hydra-0.15.0.tar.gz) = 815a8c425aaeb4d2aeb5d9faa0f66a41e37420b8e9435d93b9e78913c0e0722d1e39cad2e8f4bc12cfe34dad2e3fc1290b23d816181b12fd093f9e4d9d37e814
+Size (hydra-0.15.0.tar.gz) = 36150 bytes

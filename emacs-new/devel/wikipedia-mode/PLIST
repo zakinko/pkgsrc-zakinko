@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/wikipedia-mode/wikipedia-mode.el
+${EMACS_LISPPREFIX}/wikipedia-mode/wikipedia-mode.elc

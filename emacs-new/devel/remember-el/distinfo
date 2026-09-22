@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (remember-2.0.tar.gz) = 6aee77a2cb68b433f4b15350ac12569a40b1cad50423a2561b2f157c95b8411e
+SHA512 (remember-2.0.tar.gz) = 9744a4f5893f6191de667d6fe5f5fe8d5730b46115f290993a082a14d3bd51ebb4e0ac3dd7f8b29de4db0aeb10259d6bf9f5833fd98b95077fb963683cb0f859
+Size (remember-2.0.tar.gz) = 44481 bytes
+SHA1 (patch-remember.el) = 4bda1ab3228196818bccf2c749969faad28c5f4c

@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/multiple-cursors/mc-cycle-cursors.el
+${EMACS_LISPPREFIX}/multiple-cursors/mc-cycle-cursors.elc
+${EMACS_LISPPREFIX}/multiple-cursors/mc-edit-lines.el
+${EMACS_LISPPREFIX}/multiple-cursors/mc-edit-lines.elc
+${EMACS_LISPPREFIX}/multiple-cursors/mc-hide-unmatched-lines-mode.el
+${EMACS_LISPPREFIX}/multiple-cursors/mc-hide-unmatched-lines-mode.elc
+${EMACS_LISPPREFIX}/multiple-cursors/mc-mark-more.el
+${EMACS_LISPPREFIX}/multiple-cursors/mc-mark-more.elc
+${EMACS_LISPPREFIX}/multiple-cursors/mc-mark-pop.el
+${EMACS_LISPPREFIX}/multiple-cursors/mc-mark-pop.elc
+${EMACS_LISPPREFIX}/multiple-cursors/mc-separate-operations.el
+${EMACS_LISPPREFIX}/multiple-cursors/mc-separate-operations.elc
+${EMACS_LISPPREFIX}/multiple-cursors/multiple-cursors-core.el
+${EMACS_LISPPREFIX}/multiple-cursors/multiple-cursors-core.elc
+${EMACS_LISPPREFIX}/multiple-cursors/multiple-cursors.el
+${EMACS_LISPPREFIX}/multiple-cursors/multiple-cursors.elc
+${EMACS_LISPPREFIX}/multiple-cursors/rectangular-region-mode.el
+${EMACS_LISPPREFIX}/multiple-cursors/rectangular-region-mode.elc

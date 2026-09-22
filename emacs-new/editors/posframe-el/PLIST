@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/posframe/posframe-benchmark.el
+${EMACS_LISPPREFIX}/posframe/posframe-benchmark.elc
+${EMACS_LISPPREFIX}/posframe/posframe.el
+${EMACS_LISPPREFIX}/posframe/posframe.elc

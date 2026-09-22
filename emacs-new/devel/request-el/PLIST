@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/request/request-deferred.el
+${EMACS_LISPPREFIX}/request/request-deferred.elc
+${EMACS_LISPPREFIX}/request/request.el
+${EMACS_LISPPREFIX}/request/request.elc

@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-brew.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-brew.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-dnf.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-dnf.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-dpkg.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-dpkg.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-guix.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-guix.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-pacman.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-pacman.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-portage.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-portage.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-xbps.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages-xbps.elc
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages.el
+${EMACS_LISPPREFIX}/helm-system-packages/helm-system-packages.elc

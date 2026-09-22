@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (git-timemachine-4.13/4.13.tar.gz) = fae2c9e537e5ab13db632223712d8b84a95ef0fecf3d9d63a0aaed601e2f87f2
+SHA512 (git-timemachine-4.13/4.13.tar.gz) = f47a169c16c07d4f80ba9539332d302b1539b0315eadf5ffbf7d55bb1c77124bef183b22641f321ca0c48ae61ed450d0f3133a7875ffce22272608d3fd3d74cb
+Size (git-timemachine-4.13/4.13.tar.gz) = 429649 bytes

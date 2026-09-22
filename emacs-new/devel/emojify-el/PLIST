@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emojify/data/emoji-sets.json
+${EMACS_LISPPREFIX}/emojify/data/emoji.json
+${EMACS_LISPPREFIX}/emojify/emojify.el
+${EMACS_LISPPREFIX}/emojify/emojify.elc

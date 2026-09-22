@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (shell-maker-0.97.3.tar.gz) = 27caf0eda8c13c1ef3431008fd73f8020ab4dde767b20a9fce55f4dfdb0e0e53
+SHA512 (shell-maker-0.97.3.tar.gz) = a503c5304413aaaeb21b5f6a47b099a16055caf9a3c8cfdcf8d382c219210214559a4a47e50bf08c59cd72ff2baf8a7b5fad9f3c0bede1bcbdf640852917d138
+Size (shell-maker-0.97.3.tar.gz) = 236833 bytes

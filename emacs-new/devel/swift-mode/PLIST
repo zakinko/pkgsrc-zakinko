@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-beginning-of-defun.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-beginning-of-defun.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-fill.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-fill.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-font-lock.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-font-lock.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-imenu.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-imenu.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-indent.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-indent.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-lexer.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-lexer.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-repl.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-repl.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-standard-types.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode-standard-types.elc
+${EMACS_LISPPREFIX}/swift-mode/swift-mode.el
+${EMACS_LISPPREFIX}/swift-mode/swift-mode.elc

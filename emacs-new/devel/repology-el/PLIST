@@ -1,0 +1,8 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/repology/repology-license.el
+${EMACS_LISPPREFIX}/repology/repology-license.elc
+${EMACS_LISPPREFIX}/repology/repology-pkg.el
+${EMACS_LISPPREFIX}/repology/repology-utils.el
+${EMACS_LISPPREFIX}/repology/repology-utils.elc
+${EMACS_LISPPREFIX}/repology/repology.el
+${EMACS_LISPPREFIX}/repology/repology.elc

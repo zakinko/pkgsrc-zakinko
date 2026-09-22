@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/inform-mode/inform-mode.el
+${EMACS_LISPPREFIX}/inform-mode/inform-mode.elc

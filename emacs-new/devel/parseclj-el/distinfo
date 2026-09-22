@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (parseclj-1.1.1.tar.gz) = fe674d174003f2eb758fdc456ae10404abc9a2e51fe0b69cd9feb33ccb7f9cc6
+SHA512 (parseclj-1.1.1.tar.gz) = b28c91a1d9d649cda041a89d1d6ccddc7aa0d6018e7ed45928a7ecebd59a3c1de8559347e695a64d2385477991280db9451a915868d54e272125ecaab951d6d4
+Size (parseclj-1.1.1.tar.gz) = 39388 bytes

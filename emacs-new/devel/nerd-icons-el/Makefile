@@ -1,0 +1,34 @@
+# $NetBSD$
+
+DISTNAME=	nerd-icons-0.1.0
+PKGNAME=	${EMACS_PKGNAME_PREFIX}nerd-icons-el-0.1.0
+CATEGORIES=	devel
+MASTER_SITES=	${MASTER_SITE_GITHUB:=rainstormstudio/}
+GITHUB_PROJECT=	nerd-icons.el
+GITHUB_TAG=	${PKGVERSION_NOREV}
+WRKSRC=		${WRKDIR}/nerd-icons.el-0.1.0
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/rainstormstudio/nerd-icons.el/
+COMMENT=	Emacs Nerd Font Icons Library
+LICENSE=	gnu-gpl-v3
+
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
+
+INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/nerd-icons ${EMACS_LISPPREFIX}/nerd-icons/data
+
+post-extract:
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
+
+do-build:
+	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
+		-L . -L data -f batch-byte-compile *.el data/*.el
+
+do-install:
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
+		${DESTDIR}${EMACS_LISPPREFIX}/nerd-icons
+	cd ${WRKSRC} && ${INSTALL_DATA} data/*.el data/*.elc \
+		${DESTDIR}${EMACS_LISPPREFIX}/nerd-icons/data
+
+.include "../../editors/emacs/modules.mk"
+.include "../../mk/bsd.pkg.mk"

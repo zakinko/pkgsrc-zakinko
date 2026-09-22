@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (multiple-cursors-1.5.0.tar.gz) = 6667b6d718df231e56e1c231eb027bd9fa99e2d2bbbadae8f8d7ff830b76e183
+SHA512 (multiple-cursors-1.5.0.tar.gz) = 05ec6c4e8b9cb008c7afe1418d136915da2cc994b845e996a4285a71c8708094a3d9ada95fc39eed8790991e8edc51802119d8d0965a05611a527cc45cf6e30e
+Size (multiple-cursors-1.5.0.tar.gz) = 33275 bytes

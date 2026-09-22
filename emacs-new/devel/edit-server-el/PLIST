@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/edit-server/edit-server-ert.el
+${EMACS_LISPPREFIX}/edit-server/edit-server-ert.elc
+${EMACS_LISPPREFIX}/edit-server/edit-server.el
+${EMACS_LISPPREFIX}/edit-server/edit-server.elc

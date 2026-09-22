@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (dune-format-0.1.tar.gz) = 34623d2e0677e460e61a701ccaeb19f2f704f6f4da99b0d28f520290c290913f
+SHA512 (dune-format-0.1.tar.gz) = 511dcdc5f4413dc680cb1102c35b737c406ef4fb8e69150b60e7bc11bf877d94a039ebe7224c62a304004015471dab7f2b50fae32d9119221d435b06041df9d9
+Size (dune-format-0.1.tar.gz) = 2477 bytes

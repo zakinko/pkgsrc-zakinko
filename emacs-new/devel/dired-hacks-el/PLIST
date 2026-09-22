@@ -1,0 +1,26 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/dired-hacks/dired-avfs.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-avfs.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-collapse.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-collapse.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-columns.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-filter.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-filter.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-hacks-utils.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-hacks-utils.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-hacks.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-images.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-list.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-list.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-narrow.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-narrow.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-open.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-open.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-rainbow.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-rainbow.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-ranger.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-ranger.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-subtree.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-subtree.elc
+${EMACS_LISPPREFIX}/dired-hacks/dired-tagsistant.el
+${EMACS_LISPPREFIX}/dired-hacks/dired-tagsistant.elc

@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/flycheck-clang-tidy/flycheck-clang-tidy.el
+${EMACS_LISPPREFIX}/flycheck-clang-tidy/flycheck-clang-tidy.elc

@@ -1,0 +1,25 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/polymode/poly-lock.el
+${EMACS_LISPPREFIX}/polymode/poly-lock.elc
+${EMACS_LISPPREFIX}/polymode/polymode-base.el
+${EMACS_LISPPREFIX}/polymode/polymode-base.elc
+${EMACS_LISPPREFIX}/polymode/polymode-classes.el
+${EMACS_LISPPREFIX}/polymode/polymode-classes.elc
+${EMACS_LISPPREFIX}/polymode/polymode-compat.el
+${EMACS_LISPPREFIX}/polymode/polymode-compat.elc
+${EMACS_LISPPREFIX}/polymode/polymode-core.el
+${EMACS_LISPPREFIX}/polymode/polymode-core.elc
+${EMACS_LISPPREFIX}/polymode/polymode-debug.el
+${EMACS_LISPPREFIX}/polymode/polymode-debug.elc
+${EMACS_LISPPREFIX}/polymode/polymode-export.el
+${EMACS_LISPPREFIX}/polymode/polymode-export.elc
+${EMACS_LISPPREFIX}/polymode/polymode-methods.el
+${EMACS_LISPPREFIX}/polymode/polymode-methods.elc
+${EMACS_LISPPREFIX}/polymode/polymode-tangle.el
+${EMACS_LISPPREFIX}/polymode/polymode-tangle.elc
+${EMACS_LISPPREFIX}/polymode/polymode-test-utils.el
+${EMACS_LISPPREFIX}/polymode/polymode-test-utils.elc
+${EMACS_LISPPREFIX}/polymode/polymode-weave.el
+${EMACS_LISPPREFIX}/polymode/polymode-weave.elc
+${EMACS_LISPPREFIX}/polymode/polymode.el
+${EMACS_LISPPREFIX}/polymode/polymode.elc

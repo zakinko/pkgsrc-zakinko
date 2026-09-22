@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (proofgeneral-4.5.tar.gz) = 21f3e0155c47c9d95498a24099763cdee88a9157c35fe53e9f68a17de8b664f4
+SHA512 (proofgeneral-4.5.tar.gz) = ab2eed43053e3b6749e840a8d742058eaa91bfff7edbe12ea67bc492ffab07e1d77cf6a7772cb8c42ac73cae2cce65b48898b1cd10a77b906089768f8055b366
+Size (proofgeneral-4.5.tar.gz) = 1198535 bytes

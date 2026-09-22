@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/inf-clojure/inf-clojure.el
+${EMACS_LISPPREFIX}/inf-clojure/inf-clojure.elc

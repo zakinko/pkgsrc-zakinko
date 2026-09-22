@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/xrdb-mode/xrdb-mode.el
+${EMACS_LISPPREFIX}/xrdb-mode/xrdb-mode.elc

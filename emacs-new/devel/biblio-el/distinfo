@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (biblio-0.3.tar.gz) = d0ed8be7785c38f963894b2e32ce449aa49a939546dc309e58e74a46a89a3dc1
+SHA512 (biblio-0.3.tar.gz) = 45489cf8edbc1b05785739fafa7d2a145e077b9b04e9985d682b482956f1eeef23bdf44c2ce83c472eab12edba2e78d6b9c6716280cb294c56648e422462a4a8
+Size (biblio-0.3.tar.gz) = 205899 bytes

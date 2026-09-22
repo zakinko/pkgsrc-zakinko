@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/cape/cape-char.el
+${EMACS_LISPPREFIX}/cape/cape-char.elc
+${EMACS_LISPPREFIX}/cape/cape-keyword.el
+${EMACS_LISPPREFIX}/cape/cape-keyword.elc
+${EMACS_LISPPREFIX}/cape/cape.el
+${EMACS_LISPPREFIX}/cape/cape.elc

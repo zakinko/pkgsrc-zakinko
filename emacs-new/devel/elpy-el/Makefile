@@ -1,0 +1,40 @@
+# $NetBSD$
+
+DISTNAME=	elpy-1.35.0.20260415
+PKGNAME=	${EMACS_PKGNAME_PREFIX}elpy-el-1.35.0.20260415
+CATEGORIES=	devel
+MASTER_SITES=	${MASTER_SITE_GITHUB:=jorgenschaefer/}
+GITHUB_PROJECT=	elpy
+GITHUB_TAG=	3b3394e94e0bb5920fc4ea9cdd00210140da7aa2
+WRKSRC=		${WRKDIR}/elpy-3b3394e94e0bb5920fc4ea9cdd00210140da7aa2
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/jorgenschaefer/elpy/
+COMMENT=	Emacs Python Development Environment
+LICENSE=	gnu-gpl-v3
+
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
+# XXX Gentoo also depends on dev-python/flake8
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}company-mode-[0-9]*:../../devel/company-mode
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}highlight-indentation-el-[0-9]*:../../editors/highlight-indentation-el
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}pyvenv-el-[0-9]*:../../editors/pyvenv-el
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}s-el-[0-9]*:../../devel/s-el
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}yasnippet-el-[0-9]*:../../devel/yasnippet-el
+
+INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/elpy
+
+post-extract:
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el .dir-locals.el
+
+do-build:
+	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
+		-L . -L ${EMACS_LISPPREFIX}/company-mode -L ${EMACS_LISPPREFIX}/posframe -L ${EMACS_LISPPREFIX}/highlight-indentation -L ${EMACS_LISPPREFIX}/pyvenv -L ${EMACS_LISPPREFIX}/s -L ${EMACS_LISPPREFIX}/yasnippet -f batch-byte-compile *.el
+
+# files marked no-byte-compile leave no .elc behind
+do-install:
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el ${DESTDIR}${EMACS_LISPPREFIX}/elpy
+	cd ${WRKSRC} && for f in *.elc; do \
+		test ! -f "$$f" || ${INSTALL_DATA} "$$f" ${DESTDIR}${EMACS_LISPPREFIX}/elpy; done
+
+.include "../../editors/emacs/modules.mk"
+.include "../../mk/bsd.pkg.mk"

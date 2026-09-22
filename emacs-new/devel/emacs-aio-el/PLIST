@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-aio/aio-contrib.el
+${EMACS_LISPPREFIX}/emacs-aio/aio.el
+${EMACS_LISPPREFIX}/emacs-aio/aio.elc

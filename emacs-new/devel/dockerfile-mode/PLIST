@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/dockerfile-mode/dockerfile-mode.el
+${EMACS_LISPPREFIX}/dockerfile-mode/dockerfile-mode.elc

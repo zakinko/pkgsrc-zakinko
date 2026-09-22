@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (emacs-wttrin-0.3.2.tar.gz) = c3cfb197a1ac6d1fb7bffc80e4c009957602e96d8856a88479f7e39b61f38718
+SHA512 (emacs-wttrin-0.3.2.tar.gz) = 0d7799d2ea024a2cb2a6f1ac25af6546d9892be9c560cdbb7d293771f9973aa23233839f77950109e54563718a67bd9d456bdbd28749c796512641fd0632c1bd
+Size (emacs-wttrin-0.3.2.tar.gz) = 292811 bytes

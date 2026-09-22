@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (deferred-0.5.1.tar.gz) = 8e2013b903e65ea99ecdf9add7646d73d4826ab45e5251dd03bf919133b60dfa
+SHA512 (deferred-0.5.1.tar.gz) = 357890f73917c7929cbb79f71a26901ac24abe9ea532181b730deee8eba97709b41c360904e2a2a8028ee1295e7ae845da5c702c74256a450f3d144080960a2b
+Size (deferred-0.5.1.tar.gz) = 55894 bytes
+SHA1 (patch-deferred.el) = 387c8a91fad65a1aa6fd6055d5804818dfa5380e

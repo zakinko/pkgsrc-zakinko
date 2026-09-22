@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ebib-2.51.1.tar.gz) = 06356f51ee6835137d989cacde92db2bd03deef879211e595977cb5a21a7d9d6
+SHA512 (ebib-2.51.1.tar.gz) = 530c4791af4e675d0fa111db54784f03b1e4c35d9d7bcf42ee712e0b3241e4edd77cc828fb52368b2b2ab77e4dc33cfda5c097af172b3b9417c7810ff42aefab
+Size (ebib-2.51.1.tar.gz) = 1059266 bytes

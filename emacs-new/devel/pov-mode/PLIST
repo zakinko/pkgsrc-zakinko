@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/pov-mode/pov-mode-pkg.el
+${EMACS_LISPPREFIX}/pov-mode/pov-mode-pkg.elc
+${EMACS_LISPPREFIX}/pov-mode/pov-mode.el
+${EMACS_LISPPREFIX}/pov-mode/pov-mode.elc

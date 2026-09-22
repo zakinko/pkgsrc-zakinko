@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (julia-repl-1.5.2.tar.gz) = 923690b4dd063f4de454a9a9c91fb3e6871a3dc9b30284180b38a066ec7c6b3c
+SHA512 (julia-repl-1.5.2.tar.gz) = c16353ea73be1503994655c10d7e7b9ef47d5dd48c724f08d977268c978ebcfca08466e43eac2aad55d32c14d454254880557fe166f808658f7d5df2b1b2e0c9
+Size (julia-repl-1.5.2.tar.gz) = 185091 bytes

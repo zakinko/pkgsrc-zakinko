@@ -1,0 +1,27 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/icicles/icicles-chg.el
+${EMACS_LISPPREFIX}/icicles/icicles-chg.elc
+${EMACS_LISPPREFIX}/icicles/icicles-cmd1.el
+${EMACS_LISPPREFIX}/icicles/icicles-cmd1.elc
+${EMACS_LISPPREFIX}/icicles/icicles-cmd2.el
+${EMACS_LISPPREFIX}/icicles/icicles-cmd2.elc
+${EMACS_LISPPREFIX}/icicles/icicles-doc1.el
+${EMACS_LISPPREFIX}/icicles/icicles-doc1.elc
+${EMACS_LISPPREFIX}/icicles/icicles-doc2.el
+${EMACS_LISPPREFIX}/icicles/icicles-doc2.elc
+${EMACS_LISPPREFIX}/icicles/icicles-face.el
+${EMACS_LISPPREFIX}/icicles/icicles-face.elc
+${EMACS_LISPPREFIX}/icicles/icicles-fn.el
+${EMACS_LISPPREFIX}/icicles/icicles-fn.elc
+${EMACS_LISPPREFIX}/icicles/icicles-mac.el
+${EMACS_LISPPREFIX}/icicles/icicles-mac.elc
+${EMACS_LISPPREFIX}/icicles/icicles-mcmd.el
+${EMACS_LISPPREFIX}/icicles/icicles-mcmd.elc
+${EMACS_LISPPREFIX}/icicles/icicles-mode.el
+${EMACS_LISPPREFIX}/icicles/icicles-mode.elc
+${EMACS_LISPPREFIX}/icicles/icicles-opt.el
+${EMACS_LISPPREFIX}/icicles/icicles-opt.elc
+${EMACS_LISPPREFIX}/icicles/icicles-var.el
+${EMACS_LISPPREFIX}/icicles/icicles-var.elc
+${EMACS_LISPPREFIX}/icicles/icicles.el
+${EMACS_LISPPREFIX}/icicles/icicles.elc

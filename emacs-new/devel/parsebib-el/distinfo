@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (parsebib-6.7.tar.gz) = d4cbac685125341374381dd73d3271fe9b3dc3ae4a0e4797effe1bc7ff40ace4
+SHA512 (parsebib-6.7.tar.gz) = 11e557c061970507f56d48727a31d11ee62bb47bcb881232b624d1da0f4b6bc3d1708ca1061f079475d3b6763a479c74e81fa9009641b767f5abd7c620fd7b13
+Size (parsebib-6.7.tar.gz) = 30434 bytes

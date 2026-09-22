@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (clojure-mode-5.23.0.tar.gz) = 5efed5158a207527130b9c33eb28eb365cbbda5e504ee88d0a9045aa7b401669
+SHA512 (clojure-mode-5.23.0.tar.gz) = 04df012bf56465efd54ec2096c5eeed944847eff62c213ab0f30b46b7b830cc10a13de4cb3acd4c4d15dfac1ae86efaab9de57481178272bd4dceb3d84037b83
+Size (clojure-mode-5.23.0.tar.gz) = 23424842 bytes

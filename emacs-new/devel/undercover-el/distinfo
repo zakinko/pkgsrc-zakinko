@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (undercover-0.8.1.tar.gz) = 8d07a54763d2d1bb66f16d0ac1e8ec6e37d5f31ff78ebc458c62b1cd458d3e57
+SHA512 (undercover-0.8.1.tar.gz) = 33508f3c6cbacd30ee3ad8312e51b596a7547713837595ec2836f627bcccc90107e5198f541d8bc74ad20fb9c8ea6e0616fd0de8eb46f743d2606397000f0e74
+Size (undercover-0.8.1.tar.gz) = 20800 bytes

@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/cdlatex/cdlatex-pkg.el
+${EMACS_LISPPREFIX}/cdlatex/cdlatex.el
+${EMACS_LISPPREFIX}/cdlatex/cdlatex.elc

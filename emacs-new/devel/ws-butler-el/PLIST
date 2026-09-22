@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ws-butler/ws-butler.el
+${EMACS_LISPPREFIX}/ws-butler/ws-butler.elc

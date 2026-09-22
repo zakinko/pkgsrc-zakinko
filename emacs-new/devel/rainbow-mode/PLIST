@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/rainbow-mode/rainbow-mode-pkg.el
+${EMACS_LISPPREFIX}/rainbow-mode/rainbow-mode.el
+${EMACS_LISPPREFIX}/rainbow-mode/rainbow-mode.elc

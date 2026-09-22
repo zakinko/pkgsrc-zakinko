@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (xelb-0.23.tar.gz) = f7ff354af6371d37663270865b207fa8710cb705fa4b6f0e13a3893490d9bbde
+SHA512 (xelb-0.23.tar.gz) = ef4a2609aa889371fd45058dbfd1fb84a197e45bdbf297828cb1c061e417f7b4e3d1fc05a20fef457a4a38997ccbc7e348bc400b568c5b3056bd81ff9463c8bd
+Size (xelb-0.23.tar.gz) = 144376 bytes

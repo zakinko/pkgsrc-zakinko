@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-dark-hard-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-dark-hard-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-dark-medium-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-dark-medium-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-dark-soft-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-dark-soft-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-light-hard-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-light-hard-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-light-medium-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-light-medium-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-light-soft-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-light-soft-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-theme.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox-theme.elc
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox.el
+${EMACS_LISPPREFIX}/gruvbox-theme/gruvbox.elc

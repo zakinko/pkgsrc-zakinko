@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (system-packages-1.1.2.tar.bz2) = bcc58f662ed71aa730c71e2cb334ac6a9212e23e996a5cf90783e7e645e96166
+SHA512 (system-packages-1.1.2.tar.bz2) = 2aa6ee5ee6b6820c82c0b97d55b6f4b9f1a558e919410567785a9ffc93569f0b29209939ac3a8c958fbd0f74a8a466b597407f04e1fc24d3c5c0469f178e0526
+Size (system-packages-1.1.2.tar.bz2) = 17168 bytes

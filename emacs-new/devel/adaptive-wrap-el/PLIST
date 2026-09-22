@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/adaptive-wrap/adaptive-wrap-pkg.el
+${EMACS_LISPPREFIX}/adaptive-wrap/adaptive-wrap.el
+${EMACS_LISPPREFIX}/adaptive-wrap/adaptive-wrap.elc

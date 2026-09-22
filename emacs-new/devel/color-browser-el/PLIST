@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/color-browser/color-browser.el
+${EMACS_LISPPREFIX}/color-browser/color-browser.elc

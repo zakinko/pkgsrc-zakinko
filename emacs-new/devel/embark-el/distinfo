@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (embark-1.2.tar.gz) = 202bb0eccf937dcfccf71fc86c2e5291fff8b1cf4da0936ed5789749f31a1e91
+SHA512 (embark-1.2.tar.gz) = 4f7000a5abe2ab624abd6e183ee5a5ff73f5d88d84a36ef79ad2b226124906d51393a1f62a9359870e1205ba048db77292b5adab42f207ea0a2a3437bda85cfb
+Size (embark-1.2.tar.gz) = 118145 bytes

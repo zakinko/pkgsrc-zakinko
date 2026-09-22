@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ace-window-0.10.0.tar.gz) = b4f49562e2f502eb1a4cde4ce07dd54f80f4f29ab1cecff75d9fe9be79312371
+SHA512 (ace-window-0.10.0.tar.gz) = 15153b3b3e70337804a5fa0f51eba79b4fe4970b431b3a9cabeaf387a4cc83364a916045163e21b89104b23254a612491ae2e9f968a97f3b5232350ef571c5dd
+Size (ace-window-0.10.0.tar.gz) = 12929 bytes

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (anaphora-1.0.4.tar.gz) = 73e67de5122c44c4aa2b9eeaa8b00ad3edd1f98f5a0da076c2c1094d9e29bf30
+SHA512 (anaphora-1.0.4.tar.gz) = 1cfdb9f91c8fee4598dbc01701cf6cf84296cf18ae244f061c82a753f47f4904fccf8fbc0299e87408e17b4e41df65455f56be393d003c16cf8932f1e9f86d5e
+Size (anaphora-1.0.4.tar.gz) = 9215 bytes

@@ -1,0 +1,16 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/compat/compat-26.el
+${EMACS_LISPPREFIX}/compat/compat-26.elc
+${EMACS_LISPPREFIX}/compat/compat-27.el
+${EMACS_LISPPREFIX}/compat/compat-27.elc
+${EMACS_LISPPREFIX}/compat/compat-28.el
+${EMACS_LISPPREFIX}/compat/compat-28.elc
+${EMACS_LISPPREFIX}/compat/compat-29.el
+${EMACS_LISPPREFIX}/compat/compat-29.elc
+${EMACS_LISPPREFIX}/compat/compat-30.el
+${EMACS_LISPPREFIX}/compat/compat-30.elc
+${EMACS_LISPPREFIX}/compat/compat-31.el
+${EMACS_LISPPREFIX}/compat/compat-31.elc
+${EMACS_LISPPREFIX}/compat/compat-macs.el
+${EMACS_LISPPREFIX}/compat/compat.el
+${EMACS_LISPPREFIX}/compat/compat.elc

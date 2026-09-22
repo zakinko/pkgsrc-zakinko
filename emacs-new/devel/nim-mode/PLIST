@@ -1,0 +1,23 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/nim-mode/nim-capf.el
+${EMACS_LISPPREFIX}/nim-mode/nim-capf.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-compile.el
+${EMACS_LISPPREFIX}/nim-mode/nim-compile.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-fill.el
+${EMACS_LISPPREFIX}/nim-mode/nim-fill.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-helper.el
+${EMACS_LISPPREFIX}/nim-mode/nim-helper.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-mode.el
+${EMACS_LISPPREFIX}/nim-mode/nim-mode.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-rx.el
+${EMACS_LISPPREFIX}/nim-mode/nim-rx.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-smie.el
+${EMACS_LISPPREFIX}/nim-mode/nim-smie.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-suggest.el
+${EMACS_LISPPREFIX}/nim-mode/nim-suggest.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-syntax.el
+${EMACS_LISPPREFIX}/nim-mode/nim-syntax.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-util.el
+${EMACS_LISPPREFIX}/nim-mode/nim-util.elc
+${EMACS_LISPPREFIX}/nim-mode/nim-vars.el
+${EMACS_LISPPREFIX}/nim-mode/nim-vars.elc

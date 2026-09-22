@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (load-relative-1.3.2.tar.gz) = 5109c400e5b1e2432448d3bf8da0e9498f4697fdfa03e11f0a7c8d1b5e69d6cf
+SHA512 (load-relative-1.3.2.tar.gz) = 73ba6b33492348722da5d06a5b999658d4b43265bec57440216724521bc56470fccbeeb5e97a5bfcc870492a1a2ce3331fbbe520711f1c2bab29b402eca07a0d
+Size (load-relative-1.3.2.tar.gz) = 33225 bytes

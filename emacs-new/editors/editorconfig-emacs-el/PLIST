@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-conf-mode.el
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-conf-mode.elc
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-core-handle.el
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-core-handle.elc
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-core.el
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-core.elc
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-fnmatch.el
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-fnmatch.elc
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-tools.el
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig-tools.elc
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig.el
+${EMACS_LISPPREFIX}/editorconfig-emacs/editorconfig.elc

@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/esup/esup-child.el
+${EMACS_LISPPREFIX}/esup/esup-child.elc
+${EMACS_LISPPREFIX}/esup/esup.el
+${EMACS_LISPPREFIX}/esup/esup.elc

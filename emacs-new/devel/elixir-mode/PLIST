@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elixir-mode/elixir-format.el
+${EMACS_LISPPREFIX}/elixir-mode/elixir-format.elc
+${EMACS_LISPPREFIX}/elixir-mode/elixir-mode.el
+${EMACS_LISPPREFIX}/elixir-mode/elixir-mode.elc
+${EMACS_LISPPREFIX}/elixir-mode/elixir-smie.el
+${EMACS_LISPPREFIX}/elixir-mode/elixir-smie.elc

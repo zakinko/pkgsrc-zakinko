@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/paredit/paredit.el
+${EMACS_LISPPREFIX}/paredit/paredit.elc
+${EMACS_LISPPREFIX}/paredit/test.el
+${EMACS_LISPPREFIX}/paredit/test.elc

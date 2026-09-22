@@ -1,0 +1,10 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/company-coq/company-coq-abbrev.el
+${EMACS_LISPPREFIX}/company-coq/company-coq-abbrev.elc
+${EMACS_LISPPREFIX}/company-coq/company-coq-pkg.el
+${EMACS_LISPPREFIX}/company-coq/company-coq-tg.el
+${EMACS_LISPPREFIX}/company-coq/company-coq-tg.elc
+${EMACS_LISPPREFIX}/company-coq/company-coq-utils.el
+${EMACS_LISPPREFIX}/company-coq/company-coq-utils.elc
+${EMACS_LISPPREFIX}/company-coq/company-coq.el
+${EMACS_LISPPREFIX}/company-coq/company-coq.elc

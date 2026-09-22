@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (rust-mode-1.0.6.tar.gz) = ea52bac838401e5900393294dfa862f31a89fba424841392f35b16168becee94
+SHA512 (rust-mode-1.0.6.tar.gz) = 4ed9c8f06d50f5757417bcdfe40f0c5dda3a2536b018ca10c7ac0f8c597bb759a2cbf7b4aeb53801e4bc663fbf7c20a7236be9c3e482322ca0d8340bf36d5538
+Size (rust-mode-1.0.6.tar.gz) = 55124 bytes

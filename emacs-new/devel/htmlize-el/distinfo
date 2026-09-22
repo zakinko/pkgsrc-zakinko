@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (htmlize-1.59.tar.gz) = 788152b1b70583d5e5afc3a6ad5c4b88c6c2dcf07c334cef5903a2ccf296e7c8
+SHA512 (htmlize-1.59.tar.gz) = 8df2efe789bd365822877ecf250b79e9746713b573250098f4b2fc8a0bf80dd31aa9a530296e4f20567b9766a801e7ef7c72f796567864f343ca80d0ac83a45b
+Size (htmlize-1.59.tar.gz) = 60902 bytes

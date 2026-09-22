@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-amend.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-amend.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-dired.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-dired.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-flydiff.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-flydiff.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-inline-popup.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-inline-popup.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-margin.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-margin.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-show-hunk-posframe.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-show-hunk-posframe.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-show-hunk.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl-show-hunk.elc
+${EMACS_LISPPREFIX}/diff-hl/diff-hl.el
+${EMACS_LISPPREFIX}/diff-hl/diff-hl.elc

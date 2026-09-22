@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/async/async-bytecomp.el
+${EMACS_LISPPREFIX}/async/async-bytecomp.elc
+${EMACS_LISPPREFIX}/async/async-package.el
+${EMACS_LISPPREFIX}/async/async-package.elc
+${EMACS_LISPPREFIX}/async/async.el
+${EMACS_LISPPREFIX}/async/async.elc
+${EMACS_LISPPREFIX}/async/dired-async.el
+${EMACS_LISPPREFIX}/async/dired-async.elc
+${EMACS_LISPPREFIX}/async/smtpmail-async.el
+${EMACS_LISPPREFIX}/async/smtpmail-async.elc

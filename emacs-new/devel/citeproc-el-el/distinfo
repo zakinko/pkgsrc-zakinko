@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (citeproc-el-0.9.4.tar.gz) = f17af2c2e12fddba6cfbede2b982aec97a552fc4a33d8762e9855c29f842923f
+SHA512 (citeproc-el-0.9.4.tar.gz) = 6772fea40203221e7016a5a0a5c2522b72889202f89eef4603dcbdb8c3c8c0050c5aabee8d56d5e56148e100fac33cd24489d3e03f2caa85964796b7d89ae019
+Size (citeproc-el-0.9.4.tar.gz) = 109594 bytes

@@ -1,0 +1,1200 @@
+{
+ "a": [],
+ "a68-mode": [
+  "50a68-mode-gentoo.el"
+ ],
+ "ace-window": [],
+ "acp": [],
+ "actionscript-mode": [
+  "50actionscript-mode-gentoo.el"
+ ],
+ "adaptive-wrap": [
+  "50adaptive-wrap-gentoo.el"
+ ],
+ "agent-shell": [
+  "50agent-shell-gentoo.el"
+ ],
+ "agitjo": [],
+ "all-the-icons": [],
+ "all-the-icons-dired": [
+  "50all-the-icons-dired-gentoo.el"
+ ],
+ "all-the-icons-ibuffer": [
+  "50all-the-icons-ibuffer-gentoo.el"
+ ],
+ "all-the-icons-ivy-rich": [
+  "50all-the-icons-ivy-rich-gentoo.el"
+ ],
+ "amx": [
+  "50amx-gentoo.el"
+ ],
+ "analog": [
+  "50analog-gentoo.el"
+ ],
+ "anaphora": [],
+ "ansi": [],
+ "apache-mode": [
+  "50apache-mode-gentoo.el"
+ ],
+ "apheleia": [
+  "50apheleia-gentoo.el"
+ ],
+ "assess": [],
+ "async": [
+  "50async-gentoo.el"
+ ],
+ "atomic-chrome": [
+  "50atomic-chrome-gentoo.el"
+ ],
+ "auto-complete": [
+  "50auto-complete-gentoo.el"
+ ],
+ "autoconf-mode": [
+  "50autoconf-mode-gentoo.el"
+ ],
+ "autocrypt": [
+  "50autocrypt-gentoo.el"
+ ],
+ "autothemer": [
+  "50autothemer-gentoo.el"
+ ],
+ "avy": [
+  "50avy-gentoo.el"
+ ],
+ "avy-embark-collect": [
+  "50avy-embark-collect-gentoo.el"
+ ],
+ "biblio": [
+  "50biblio-gentoo.el"
+ ],
+ "binclock": [
+  "50binclock-gentoo.el"
+ ],
+ "bind-chord": [],
+ "bison-mode": [
+  "50bison-mode-gentoo.el"
+ ],
+ "blogmax": [
+  "50blogmax-gentoo.el"
+ ],
+ "bm": [
+  "50bm-gentoo.el"
+ ],
+ "bnf-mode": [
+  "50bnf-mode-gentoo.el"
+ ],
+ "bongo": [
+  "50bongo-gentoo.el"
+ ],
+ "boogie-friends": [
+  "50boogie-friends-gentoo.el",
+  "boogie-friends-flycheck-dfy-exe.patch",
+  "boogie-friends-paths.patch"
+ ],
+ "boxquote": [
+  "50boxquote-gentoo.el"
+ ],
+ "browse-kill-ring": [
+  "50browse-kill-ring-gentoo.el"
+ ],
+ "bubblet": [
+  "50bubblet-gentoo.el"
+ ],
+ "bui": [],
+ "burly": [
+  "50burly-gentoo.el"
+ ],
+ "buttercup": [],
+ "calfw": [
+  "50calfw-gentoo.el",
+  "calfw-1.6-time-ranges.patch"
+ ],
+ "cape": [
+  "50cape-gentoo.el"
+ ],
+ "cask": [
+  "cask-0.9.0-bin-launcher-fix.patch",
+  "cask-0.9.0-home-dir.patch",
+  "cask-no-bootstrap.patch"
+ ],
+ "cask-mode": [
+  "50cask-mode-gentoo.el"
+ ],
+ "cdlatex": [
+  "50cdlatex-gentoo.el"
+ ],
+ "centaur-tabs": [
+  "50centaur-tabs-gentoo.el"
+ ],
+ "cfrs": [
+  "50cfrs-gentoo.el"
+ ],
+ "chess": [
+  "50chess-gentoo-2.0.4.el"
+ ],
+ "cider": [
+  "50cider-gentoo.el"
+ ],
+ "circe": [
+  "50circe-gentoo.el"
+ ],
+ "citar": [
+  "50citar-gentoo.el"
+ ],
+ "citeproc-el": [],
+ "citre": [
+  "50citre-gentoo.el"
+ ],
+ "clatter": [
+  "50clatter-gentoo.el"
+ ],
+ "cldoc": [
+  "50cldoc-gentoo.el"
+ ],
+ "clojure-mode": [
+  "50clojure-mode-gentoo.el"
+ ],
+ "closql": [
+  "50closql-gentoo.el"
+ ],
+ "cmake-font-lock": [
+  "50cmake-font-lock-gentoo.el"
+ ],
+ "color-browser": [
+  "60color-browser-gentoo.el",
+  "color-browser-0.3-gentoo.patch"
+ ],
+ "color-moccur": [
+  "50color-moccur-gentoo.el"
+ ],
+ "commander": [],
+ "commenter": [],
+ "company-coq": [
+  "50company-coq-gentoo.el",
+  "company-coq-refman-path.patch"
+ ],
+ "company-ebuild": [
+  "50company-ebuild-gentoo.el"
+ ],
+ "company-math": [],
+ "company-mode": [
+  "50company-mode-gentoo-r1.el",
+  "50company-mode-gentoo.el",
+  "company-mode-company-icons-root.patch"
+ ],
+ "company-quickhelp": [
+  "50company-quickhelp-gentoo.el"
+ ],
+ "compat": [],
+ "cond-let": [],
+ "consult": [
+  "50consult-gentoo.el"
+ ],
+ "consult-flycheck": [
+  "50consult-flycheck-gentoo.el"
+ ],
+ "corfu": [
+  "50corfu-gentoo.el"
+ ],
+ "counsel": [
+  "50counsel-gentoo.el"
+ ],
+ "crontab-mode": [
+  "50crontab-mode-gentoo.el"
+ ],
+ "crux": [
+  "50crux-gentoo.el"
+ ],
+ "css-sort-buffer": [
+  "50css-sort-buffer-gentoo.el"
+ ],
+ "csv-mode": [
+  "50csv-mode-gentoo.el"
+ ],
+ "ctable": [],
+ "cycle-buffer": [
+  "50cycle-buffer-gentoo.el"
+ ],
+ "d-mode": [
+  "50d-mode-gentoo.el"
+ ],
+ "dap-mode": [
+  "dap-mode-dap-ui-images-root-dir.patch"
+ ],
+ "dape": [
+  "50dape-gentoo.el"
+ ],
+ "dashboard": [
+  "50dashboard-gentoo.el",
+  "dashboard-1.8.0-dashboard-widgets.el-banners.patch"
+ ],
+ "deferred": [],
+ "deft": [
+  "50deft-gentoo.el"
+ ],
+ "demap": [
+  "50demap-gentoo.el"
+ ],
+ "denote": [
+  "50denote-gentoo.el"
+ ],
+ "desktop+": [
+  "50desktop+-gentoo.el"
+ ],
+ "desktop-entry-mode": [
+  "50desktop-entry-mode-gentoo.el"
+ ],
+ "develock": [
+  "50develock-gentoo.el"
+ ],
+ "devil": [
+  "50devil-gentoo.el"
+ ],
+ "df-mode": [
+  "50df-mode-gentoo.el"
+ ],
+ "diff-hl": [
+  "50diff-hl-gentoo.el"
+ ],
+ "diminish": [],
+ "dircolors": [
+  "50dircolors-gentoo.el"
+ ],
+ "dired-hacks": [
+  "50dired-hacks-gentoo.el"
+ ],
+ "dired-sort-menu": [
+  "50dired-sort-menu-gentoo.el"
+ ],
+ "distel": [
+  "50distel-gentoo.el"
+ ],
+ "docker": [
+  "50docker-gentoo.el"
+ ],
+ "dockerfile-mode": [
+  "50dockerfile-mode-gentoo.el"
+ ],
+ "doctest-mode": [
+  "60doctest-mode-gentoo.el"
+ ],
+ "doom-modeline": [
+  "50doom-modeline-gentoo.el"
+ ],
+ "doom-themes": [
+  "50doom-themes-gentoo.el"
+ ],
+ "dropdown-list": [
+  "50dropdown-list-gentoo.el",
+  "dropdown-list-20090814-selection-face.patch"
+ ],
+ "dts-mode": [
+  "50dts-mode-gentoo.el"
+ ],
+ "dune-format": [],
+ "dwarf-mode": [
+  "50dwarf-mode-gentoo.el"
+ ],
+ "earthfile-mode": [
+  "50earthfile-mode-gentoo.el"
+ ],
+ "ebib": [
+  "50ebib-gentoo.el"
+ ],
+ "ebuild-mode": [
+  "50ebuild-mode-gentoo-1.72.el",
+  "50ebuild-mode-gentoo-1.81.el"
+ ],
+ "ebuild-run-mode": [
+  "50ebuild-run-mode-gentoo.el"
+ ],
+ "ecukes": [
+  "ecukes-bin-launcher-fix.patch"
+ ],
+ "edb": [
+  "50edb-gentoo.el"
+ ],
+ "edit-indirect": [
+  "50edit-indirect-gentoo.el"
+ ],
+ "edit-list": [
+  "50edit-list-gentoo.el"
+ ],
+ "edit-server": [
+  "50edit-server-gentoo.el"
+ ],
+ "editorconfig-emacs": [
+  "50editorconfig-emacs-gentoo.el"
+ ],
+ "ef-themes": [
+  "50ef-themes-gentoo.el"
+ ],
+ "eimp": [
+  "50eimp-gentoo.el"
+ ],
+ "el-mock": [],
+ "eldev": [],
+ "eldoc-box": [
+  "50eldoc-box-gentoo.el"
+ ],
+ "elfeed": [
+  "50elfeed-gentoo.el"
+ ],
+ "elfeed-protocol": [
+  "50elfeed-protocol-gentoo.el"
+ ],
+ "elixir-mode": [
+  "50elixir-mode-gentoo.el"
+ ],
+ "elm-mode": [
+  "50elm-mode-gentoo.el"
+ ],
+ "elpa-mirror": [
+  "50elpa-mirror-gentoo.el"
+ ],
+ "elpher": [
+  "50elpher-gentoo.el"
+ ],
+ "elpy": [
+  "50elpy-gentoo.el",
+  "elpy-elpy-rpc.el-elpy-rpc-pythonpath.patch",
+  "elpy-elpy.el-yas-snippet-dirs.patch"
+ ],
+ "emacs-aio": [],
+ "emacs-ansilove": [],
+ "emacs-bazel-mode": [
+  "50emacs-bazel-mode-gentoo.el"
+ ],
+ "emacs-ccls": [
+  "50emacs-ccls-gentoo.el"
+ ],
+ "emacs-common": [],
+ "emacs-crystal-mode": [
+  "50emacs-crystal-mode-gentoo.el"
+ ],
+ "emacs-daemon": [],
+ "emacs-eat": [
+  "50emacs-eat-gentoo.el"
+ ],
+ "emacs-ebuild-snippets": [],
+ "emacs-eix": [
+  "50emacs-eix-gentoo.el"
+ ],
+ "emacs-el-fetch": [],
+ "emacs-ipython-notebook": [
+  "50emacs-ipython-notebook-gentoo.el"
+ ],
+ "emacs-openrc": [
+  "50emacs-openrc-gentoo.el"
+ ],
+ "emacs-secil-mode": [],
+ "emacs-websearch": [],
+ "emacs-wget": [
+  "50emacs-wget-gentoo.el"
+ ],
+ "emacs-wttrin": [
+  "50emacs-wttrin-gentoo.el"
+ ],
+ "emacsql": [],
+ "embark": [
+  "50embark-gentoo.el"
+ ],
+ "embark-consult": [],
+ "emhacks": [
+  "50emhacks-gentoo.el"
+ ],
+ "emms": [
+  "50emms-gentoo.el"
+ ],
+ "emojify": [
+  "50emojify-gentoo.el",
+  "emojify-json-data.patch"
+ ],
+ "engrave-faces": [],
+ "epc": [],
+ "epl": [
+  "50epl-gentoo.el"
+ ],
+ "erefactor": [
+  "50erefactor-gentoo.el"
+ ],
+ "erlang-mode": [
+  "50erlang-mode-gentoo.el"
+ ],
+ "erobot": [
+  "50erobot-gentoo.el",
+  "erobot-2.1.0-fix-interactive.patch"
+ ],
+ "ert-async": [],
+ "ert-runner": [
+  "ert-runner-bin-launcher-fix.patch"
+ ],
+ "eselect-mode": [
+  "50eselect-mode-gentoo.el"
+ ],
+ "espuds": [],
+ "esup": [
+  "50esup-gentoo.el"
+ ],
+ "evil": [
+  "50evil-gentoo.el"
+ ],
+ "exec-path-from-shell": [
+  "50exec-path-from-shell-gentoo.el"
+ ],
+ "exheres-mode": [
+  "50exheres-mode-gentoo.el"
+ ],
+ "expand-region": [
+  "50expand-region-gentoo.el"
+ ],
+ "external-completion": [],
+ "exwm": [],
+ "f": [],
+ "fedi": [],
+ "fennel-mode": [
+  "50fennel-mode-gentoo.el"
+ ],
+ "fff": [
+  "50fff-gentoo.el"
+ ],
+ "filladapt": [],
+ "flashcard": [
+  "50flashcard-gentoo.el"
+ ],
+ "flycheck-clang-tidy": [],
+ "flycheck-guile": [],
+ "flycheck-inline": [
+  "50flycheck-inline-gentoo.el"
+ ],
+ "flycheck-nimsuggest": [
+  "50flycheck-nimsuggest-gentoo.el"
+ ],
+ "flycheck-package": [
+  "50flycheck-package-gentoo.el"
+ ],
+ "folding": [
+  "50folding-gentoo.el",
+  "folding-2019.0524.1621-info-filename.patch"
+ ],
+ "forge": [
+  "50forge-gentoo.el"
+ ],
+ "fsharp-mode": [
+  "50fsharp-mode-gentoo.el"
+ ],
+ "fsm": [],
+ "gap-mode": [
+  "50gap-mode-gentoo.el",
+  "gap-mode-2.2.2-warnings.patch"
+ ],
+ "geiser": [
+  "50geiser-gentoo.el"
+ ],
+ "geiser-chez": [
+  "50geiser-chez-gentoo.el",
+  "geiser-chez-chez-scheme-binary.patch",
+  "geiser-chez-chez-scheme-src-dir.patch"
+ ],
+ "geiser-chicken": [
+  "50geiser-chicken-gentoo.el",
+  "geiser-chicken-scheme-dir.patch"
+ ],
+ "geiser-gambit": [
+  "50geiser-gambit-gentoo.el",
+  "geiser-gambit-scheme-dir.patch"
+ ],
+ "geiser-guile": [
+  "50geiser-guile-gentoo.el",
+  "geiser-guile-guile-scheme-src-dir.patch"
+ ],
+ "geiser-mit": [
+  "50geiser-mit-gentoo.el",
+  "geiser-mit-src-dir.patch"
+ ],
+ "ghub": [
+  "50ghub-gentoo.el"
+ ],
+ "git-modes": [
+  "50git-modes-gentoo.el"
+ ],
+ "git-timemachine": [
+  "50git-timemachine-gentoo.el"
+ ],
+ "gnuplot-mode": [
+  "50gnuplot-mode-gentoo.el"
+ ],
+ "go-mode": [
+  "50go-mode-1.6.0-gentoo.el"
+ ],
+ "god-mode": [
+  "50god-mode-gentoo.el"
+ ],
+ "google-c-style": [
+  "50google-c-style-gentoo.el"
+ ],
+ "gptel": [
+  "50gptel-gentoo.el"
+ ],
+ "graphql": [],
+ "groovy-emacs-modes": [
+  "50groovy-emacs-modes-gentoo.el"
+ ],
+ "gruvbox-theme": [
+  "50gruvbox-theme-gentoo.el"
+ ],
+ "h4x0r": [
+  "50h4x0r-gentoo.el"
+ ],
+ "haxe-mode": [
+  "50haxe-mode-gentoo.el"
+ ],
+ "helm": [
+  "50helm-gentoo.el",
+  "helm-3.8.8-no-autoload-check.patch"
+ ],
+ "helm-system-packages": [
+  "50helm-system-packages-gentoo.el"
+ ],
+ "hexrgb": [],
+ "highlight-indentation": [
+  "50highlight-indentation-gentoo.el"
+ ],
+ "highline": [
+  "50highline-gentoo.el"
+ ],
+ "hl-todo": [
+  "50hl-todo-gentoo.el"
+ ],
+ "ht": [
+  "50ht-gentoo.el"
+ ],
+ "htmlize": [
+  "50htmlize-gentoo.el"
+ ],
+ "httpd": [],
+ "hydra": [],
+ "icicles": [
+  "50icicles-gentoo.el",
+  "icicles-2018.10.15.23738-emacs-28.patch"
+ ],
+ "igrep": [
+  "50igrep-gentoo.el"
+ ],
+ "indent-bars": [
+  "50indent-bars-gentoo.el"
+ ],
+ "inf-clojure": [
+  "50inf-clojure-gentoo.el"
+ ],
+ "inform-mode": [
+  "50inform-mode-gentoo.el"
+ ],
+ "initsplit": [
+  "50initsplit-gentoo.el"
+ ],
+ "ivy": [
+  "50ivy-gentoo.el",
+  "ivy-0.15.0-ivy-test.patch"
+ ],
+ "ivy-rich": [
+  "50ivy-rich-gentoo.el"
+ ],
+ "jam-mode": [
+  "50jam-mode-gentoo.el"
+ ],
+ "jasmin": [
+  "50jasmin-gentoo.el"
+ ],
+ "jinx": [
+  "50jinx-gentoo.el"
+ ],
+ "joplin-mode": [
+  "50joplin-mode-gentoo.el"
+ ],
+ "jq-mode": [
+  "50jq-mode-gentoo.el"
+ ],
+ "js-comint": [
+  "50js-comint-gentoo.el"
+ ],
+ "julia-mode": [
+  "50julia-mode-gentoo.el"
+ ],
+ "julia-repl": [
+  "50julia-repl-gentoo.el",
+  "julia-repl-force-compile.patch"
+ ],
+ "kaolin-themes": [],
+ "key-chord": [],
+ "keymap-popup": [
+  "50keymap-popup-gentoo.el"
+ ],
+ "keywiz": [
+  "50keywiz-gentoo.el"
+ ],
+ "kind-icon": [
+  "50kind-icon-gentoo.el"
+ ],
+ "lean-mode": [
+  "50lean-mode-gentoo.el"
+ ],
+ "ledger-mode": [
+  "50ledger-mode-gentoo.el",
+  "ledger-mode-4.0.0-emacs-28.patch"
+ ],
+ "lice-el": [
+  "50lice-el-gentoo.el",
+  "lice-el-0.3-siteetc.patch"
+ ],
+ "llama": [],
+ "load-relative": [],
+ "log4e": [],
+ "lsp-docker": [
+  "50lsp-docker-gentoo.el"
+ ],
+ "lsp-java": [
+  "lsp-java-icons-3.1_p20240328.patch"
+ ],
+ "lsp-mode": [
+  "50lsp-mode-gentoo.el"
+ ],
+ "lsp-treemacs": [
+  "lsp-treemacs-themes-icon-directory.patch"
+ ],
+ "lsp-ui": [
+  "50lsp-ui-gentoo.el"
+ ],
+ "lv": [
+  "50lv-gentoo.el"
+ ],
+ "lyskom-elisp-client": [
+  "50lyskom-elisp-client-gentoo.el",
+  "lyskom-elisp-client-0.48_p20161231-no-git.patch"
+ ],
+ "m-buffer": [],
+ "macrostep": [
+  "50macrostep-gentoo.el",
+  "macrostep-test.patch"
+ ],
+ "macrostep-geiser": [
+  "50macrostep-geiser-gentoo.el"
+ ],
+ "magit": [
+  "50magit-gentoo.el"
+ ],
+ "magit-popup": [],
+ "marginalia": [
+  "50marginalia-gentoo.el"
+ ],
+ "mastodon": [
+  "50mastodon-gentoo.el"
+ ],
+ "math-symbol-lists": [],
+ "mediawiki": [
+  "50mediawiki-gentoo-2.2.9.el"
+ ],
+ "meson-mode": [
+  "50meson-mode-gentoo.el"
+ ],
+ "metamath-mode": [
+  "50metamath-mode-gentoo.el"
+ ],
+ "mldonkey": [
+  "50mldonkey-gentoo.el",
+  "mldonkey-0.0.4b-emacs-26.patch",
+  "mldonkey-0.0.4b-vd.patch"
+ ],
+ "mmm-mode": [
+  "50mmm-mode-gentoo.el"
+ ],
+ "moccur-edit": [
+  "60moccur-edit-gentoo.el"
+ ],
+ "mocker": [],
+ "modus-themes": [
+  "50modus-themes-gentoo.el"
+ ],
+ "mpg123-el": [
+  "50mpg123-el-gentoo.el",
+  "mpg123-el-1.61-stdlib.patch"
+ ],
+ "mu-cite": [
+  "50mu-cite-gentoo.el"
+ ],
+ "multi-term": [
+  "50multi-term-gentoo.el"
+ ],
+ "multiple-cursors": [
+  "50multiple-cursors-gentoo.el"
+ ],
+ "nagios-mode": [
+  "50nagios-mode-gentoo.el"
+ ],
+ "navi2ch": [
+  "50navi2ch-gentoo.el"
+ ],
+ "nerd-icons": [
+  "50nerd-icons-gentoo.el"
+ ],
+ "nginx-mode": [
+  "50nginx-mode-gentoo.el"
+ ],
+ "nim-mode": [
+  "50nim-mode-gentoo.el"
+ ],
+ "ninja-mode": [
+  "50ninja-mode-gentoo-r1.el"
+ ],
+ "nix-mode": [
+  "50nix-mode-gentoo.el"
+ ],
+ "no-littering": [],
+ "noflet": [
+  "noflet-fix-requires.patch"
+ ],
+ "nxml-docbook5-schemas": [
+  "60nxml-docbook5-schemas-gentoo.el",
+  "schemas.xml"
+ ],
+ "nxml-gentoo-schemas": [
+  "60nxml-gentoo-schemas-gentoo.el"
+ ],
+ "nxml-libvirt-schemas": [
+  "60nxml-libvirt-schemas-gentoo.el",
+  "schemas.xml"
+ ],
+ "nxml-svg-schemas": [
+  "60nxml-svg-schemas-gentoo.el",
+  "Makefile-trang",
+  "schemas.xml"
+ ],
+ "oauth2": [],
+ "ocaml-mode": [
+  "50ocaml-mode-gentoo-3.12.1.el"
+ ],
+ "orderless": [
+  "50orderless-gentoo.el"
+ ],
+ "org-appear": [
+  "50org-appear-gentoo.el"
+ ],
+ "org-contrib": [],
+ "org-mode": [
+  "50org-mode-gentoo.el"
+ ],
+ "org-modern": [
+  "50org-modern-gentoo.el"
+ ],
+ "org-roam": [
+  "50org-roam-gentoo.el"
+ ],
+ "org-static-blog": [
+  "50org-static-blog-gentoo.el"
+ ],
+ "org-superstar-mode": [
+  "50org-superstar-mode-gentoo.el"
+ ],
+ "osm": [
+  "50osm-gentoo.el"
+ ],
+ "outline-magic": [],
+ "package-build": [],
+ "package-lint": [
+  "package-lint-0.22-load-data-directory.patch"
+ ],
+ "pandoc-mode": [
+  "50pandoc-mode-gentoo.el"
+ ],
+ "paredit": [
+  "50paredit-gentoo-r1.el",
+  "50paredit-gentoo.el"
+ ],
+ "pariemacs": [
+  "64pariemacs-gentoo.el",
+  "pariemacs-3.14-makefile.patch"
+ ],
+ "parsebib": [],
+ "parseclj": [],
+ "parseedn": [],
+ "pass": [
+  "60pass-gentoo.el"
+ ],
+ "password-store-otp": [
+  "50password-store-otp-gentoo.el"
+ ],
+ "pdf-tools": [
+  "50pdf-tools-gentoo.el",
+  "pdf-tools-1.3.0-test-helper.patch"
+ ],
+ "persist": [],
+ "pfuture": [],
+ "pinentry": [
+  "50pinentry-gentoo.el",
+  "README.gentoo"
+ ],
+ "pkg-info": [
+  "50pkg-info-gentoo.el"
+ ],
+ "pkl-mode": [
+  "50pkl-mode-gentoo.el"
+ ],
+ "planner": [
+  "80planner-gentoo.el"
+ ],
+ "plz": [],
+ "poke": [
+  "50poke-el-gentoo.el"
+ ],
+ "poke-mode": [
+  "50poke-mode-gentoo.el"
+ ],
+ "polymode": [],
+ "popup": [],
+ "popwin": [
+  "50popwin-gentoo.el"
+ ],
+ "pos-tip": [],
+ "posframe": [],
+ "pov-mode": [
+  "50pov-mode-gentoo.el"
+ ],
+ "powerline": [
+  "50powerline-gentoo.el"
+ ],
+ "powershell": [
+  "50powershell-gentoo.el"
+ ],
+ "projectile": [
+  "50projectile-gentoo.el"
+ ],
+ "proofgeneral": [
+  "50proofgeneral-gentoo.el",
+  "proofgeneral-4.4-desktop.patch",
+  "proofgeneral-4.5-paths.patch",
+  "proofgeneral-4.5-posix-no-which.patch"
+ ],
+ "protbuf": [
+  "50protbuf-gentoo.el"
+ ],
+ "puppet-mode": [
+  "50puppet-mode-1-gentoo.el"
+ ],
+ "pymacs": [
+  "50pymacs-gentoo.el",
+  "pymacs-0.26-setup.patch"
+ ],
+ "pyvenv": [],
+ "quack": [
+  "50quack-gentoo.el"
+ ],
+ "queue": [],
+ "qwerty": [
+  "50qwerty-gentoo.el"
+ ],
+ "racket-mode": [
+  "50racket-mode-gentoo.el",
+  "racket-mode-rkt-source-dir.patch"
+ ],
+ "rainbow-mode": [
+  "50rainbow-mode-gentoo.el"
+ ],
+ "raku-mode": [
+  "50raku-mode-gentoo.el"
+ ],
+ "reazon": [],
+ "redo+": [],
+ "regress": [
+  "1.5.1-regress.el-gentoo.patch",
+  "50regress-gentoo.el"
+ ],
+ "remember": [
+  "50remember-gentoo.el",
+  "remember-1.9-make-elc.patch",
+  "remember-2.0-emacs-28.patch"
+ ],
+ "repology": [
+  "50repology-gentoo.el"
+ ],
+ "request": [],
+ "rescript-mode": [
+  "50rescript-mode-gentoo.el"
+ ],
+ "restclient": [
+  "50restclient-gentoo.el"
+ ],
+ "revive": [
+  "50revive-gentoo-2.24.el"
+ ],
+ "rfcview": [
+  "50rfcview-gentoo.el"
+ ],
+ "rg": [
+  "50rg-gentoo.el"
+ ],
+ "rnc-mode": [
+  "50rnc-mode-gentoo.el",
+  "rnc-mode-1.0.6-flymake.patch",
+  "rnc-mode-1.0.6-font-lock.patch"
+ ],
+ "rpm-spec-mode": [
+  "50rpm-spec-mode-gentoo.el",
+  "rpm-spec-mode-0.15-emacs-28.patch"
+ ],
+ "rudel": [
+  "60rudel-gentoo-0.3.1.el"
+ ],
+ "rust-mode": [
+  "50rust-mode-gentoo.el",
+  "rust-mode-1.0.5-tests.patch"
+ ],
+ "s": [],
+ "scad-mode": [
+  "50scad-mode-gentoo.el"
+ ],
+ "scala-mode": [
+  "50scala-mode-gentoo.el"
+ ],
+ "scala-ts-mode": [
+  "50scala-ts-mode-gentoo.el"
+ ],
+ "scheme-complete": [
+  "60scheme-complete-gentoo.el"
+ ],
+ "scim-bridge-el": [
+  "scim-bridge-el-0.8.2-im-agent.patch"
+ ],
+ "scss-mode": [
+  "50scss-mode-gentoo.el"
+ ],
+ "servant": [
+  "servant-bin-launcher-fix.patch"
+ ],
+ "sesman": [
+  "50sesman-gentoo.el"
+ ],
+ "session": [],
+ "setnu": [
+  "50setnu-gentoo.el"
+ ],
+ "setup": [
+  "50setup-gentoo.el"
+ ],
+ "sharper": [
+  "50sharper-gentoo.el"
+ ],
+ "shell-maker": [],
+ "shell-split-string": [],
+ "shrink-path": [],
+ "shut-up": [],
+ "slime": [
+  "70slime-gentoo.el"
+ ],
+ "sly": [
+  "50sly-gentoo-r1.el",
+  "50sly-gentoo.el"
+ ],
+ "sokoban": [
+  "50sokoban-gentoo.el"
+ ],
+ "spacemacs-theme": [
+  "50spacemacs-theme-gentoo.el"
+ ],
+ "speed-type": [
+  "50-speed-type-gentoo.el"
+ ],
+ "spinner": [
+  "50spinner-gentoo.el"
+ ],
+ "ssass-mode": [
+  "50ssass-mode-gentoo.el"
+ ],
+ "ssh": [
+  "50ssh-gentoo.el"
+ ],
+ "string-inflection": [
+  "50string-inflection-gentoo.el"
+ ],
+ "stripes": [
+  "50stripes-gentoo.el"
+ ],
+ "sumibi": [
+  "50sumibi-gentoo-0.7.4.el"
+ ],
+ "sunrise-commander": [
+  "50sunrise-commander-gentoo.el"
+ ],
+ "svg-lib": [
+  "50svg-lib-gentoo.el"
+ ],
+ "swift-mode": [
+  "50swift-mode-gentoo.el"
+ ],
+ "swiper": [
+  "50swiper-gentoo.el"
+ ],
+ "switch-window": [
+  "50switch-window-gentoo.el"
+ ],
+ "system-packages": [],
+ "systemd-mode": [
+  "50systemd-mode-gentoo.el",
+  "systemd-mode-1.6-directive-txt-files.patch"
+ ],
+ "tablist": [],
+ "teco": [
+  "50teco-gentoo.el",
+  "teco-7-backquotes.patch",
+  "teco-7-emacs-24.patch",
+  "teco-7-minibuffer-prompt.patch"
+ ],
+ "telega": [
+  "50telega-gentoo.el",
+  "telega-0.8.660-gentoo.patch"
+ ],
+ "tempel": [
+  "50tempel-gentoo.el"
+ ],
+ "template": [
+  "50template-gentoo.el"
+ ],
+ "tempo-snippets": [
+  "50tempo-snippets-gentoo.el"
+ ],
+ "thinks": [
+  "50thinks-gentoo.el"
+ ],
+ "timu-caribbean-theme": [],
+ "tp": [],
+ "transient": [],
+ "treemacs": [
+  "50treemacs-gentoo.el",
+  "treemacs-async-scripts.patch",
+  "treemacs-icons-icon-directory.patch"
+ ],
+ "treemacs-all-the-icons": [],
+ "treepy": [],
+ "treesit-auto": [],
+ "ts": [
+  "ts-0.3-test.patch"
+ ],
+ "tty-format": [
+  "50tty-format-gentoo.el"
+ ],
+ "tuareg-mode": [
+  "50tuareg-mode-gentoo.el"
+ ],
+ "typescript-mode": [
+  "50typescript-mode-gentoo.el"
+ ],
+ "typing": [
+  "50typing-gentoo.el"
+ ],
+ "uboat": [
+  "50uboat-gentoo.el",
+  "uboat-1.2-iap.patch"
+ ],
+ "undercover": [],
+ "undo-tree": [
+  "50undo-tree-gentoo.el"
+ ],
+ "unison-ts-mode": [
+  "50unison-ts-mode-gentoo.el"
+ ],
+ "uptimes": [],
+ "uxntal-mode": [
+  "50uxntal-mode-gentoo.el"
+ ],
+ "vertico": [
+  "50vertico-gentoo.el"
+ ],
+ "vhdl-mode": [
+  "50vhdl-mode-gentoo.el",
+  "vhdl-mode-info-dir-gentoo.patch"
+ ],
+ "visual-basic-mode": [
+  "50visual-basic-mode-gentoo.el"
+ ],
+ "visual-fill-column": [
+  "50visual-fill-column-gentoo.el"
+ ],
+ "volume": [
+  "50volume-gentoo.el",
+  "volume-1.0-emacs-28.patch",
+  "volume-1.0-mode-line.patch"
+ ],
+ "vscode-dark-plus-emacs-theme": [
+  "50vscode-dark-plus-emacs-theme-gentoo.el"
+ ],
+ "vterm": [
+  "50vterm-gentoo.el",
+  "vterm-0.0.1_pre20210618-dont-compile.patch"
+ ],
+ "vue-html-mode": [
+  "50vue-html-mode-gentoo.el"
+ ],
+ "vue-mode": [
+  "50vue-mode-gentoo.el"
+ ],
+ "vw-mode": [
+  "50vw-mode-gentoo.el"
+ ],
+ "w3mnav": [
+  "75w3mnav-gentoo.el"
+ ],
+ "web-mode": [
+  "50web-mode-gentoo.el"
+ ],
+ "web-server": [],
+ "webpaste": [
+  "50webpaste-gentoo.el"
+ ],
+ "websocket": [],
+ "wfnames": [],
+ "wgrep": [],
+ "which-key": [
+  "50which-key-gentoo.el"
+ ],
+ "whine": [
+  "50whine-gentoo.el"
+ ],
+ "wikipedia-mode": [
+  "50wikipedia-mode-gentoo.el",
+  "wikipedia-mode-0.5-require-outline-magic.patch"
+ ],
+ "with-editor": [],
+ "with-simulated-input": [],
+ "ws-butler": [],
+ "xclip": [
+  "50xclip-gentoo.el"
+ ],
+ "xelb": [],
+ "xrdb-mode": [
+  "50xrdb-mode-gentoo.el",
+  "xrdb-mode-3.0-backquotes.patch"
+ ],
+ "xterm-color": [],
+ "yaml": [],
+ "yaml-mode": [
+  "50yaml-mode-gentoo.el"
+ ],
+ "yasnippet": [
+  "50yasnippet-gentoo-0.13.0.el"
+ ],
+ "yasnippet-snippets": [
+  "50yasnippet-snippets-gentoo.el",
+  "yasnippet-snippets-dir.patch"
+ ],
+ "yatex": [
+  "50yatex-gentoo.el",
+  "yatex-1.76-direntry.patch",
+  "yatex-1.80-texinfo-5.patch",
+  "yatex-1.82-texinfo.patch"
+ ],
+ "zenburn": [
+  "50zenburn-gentoo.el"
+ ],
+ "zenburn-theme": [
+  "50zenburn-theme-gentoo.el"
+ ]
+}

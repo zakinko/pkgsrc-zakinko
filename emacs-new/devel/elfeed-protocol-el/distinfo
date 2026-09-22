@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (elfeed-protocol-1.0.0.tar.gz) = 2734b5ba116e8bfd122480cd613130a2c94cd77482ba56ea8dfd23802dbffa8d
+SHA512 (elfeed-protocol-1.0.0.tar.gz) = ed995af184d171c735507c9917bbb2c92ed53b05bf27a9f2b909a9d954249dc5d55acff60348600a95bb23fd6f1c9b398f9b53afb3b452e9efe362432d34e7b3
+Size (elfeed-protocol-1.0.0.tar.gz) = 52388 bytes

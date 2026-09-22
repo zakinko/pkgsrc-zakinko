@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/denote/denote.el
+${EMACS_LISPPREFIX}/denote/denote.elc

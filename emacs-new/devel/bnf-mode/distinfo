@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (bnf-mode-0.4.5.tar.gz) = 51b3bad774ff899592b425b19d1392bc5ad979438125336f13f841569619fed2
+SHA512 (bnf-mode-0.4.5.tar.gz) = df2d57a7d2bff8cbdfafcecd22241b3b8218a95c929db5b419a969300814fddc209968eaf2b6761407aaf553b6e456b372d16bd47c0d51ae3b24507112c20f9f
+Size (bnf-mode-0.4.5.tar.gz) = 26998 bytes

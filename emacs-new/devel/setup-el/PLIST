@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/setup/setup-pkg.el
+${EMACS_LISPPREFIX}/setup/setup.el
+${EMACS_LISPPREFIX}/setup/setup.elc

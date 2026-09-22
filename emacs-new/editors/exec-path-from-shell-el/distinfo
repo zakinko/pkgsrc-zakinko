@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (exec-path-from-shell-2.3.tar.gz) = 5b1aef1fe1b7d43ae870dca06ea8854ddde68b6fefae75dff931c0693fc1505f
+SHA512 (exec-path-from-shell-2.3.tar.gz) = 5d49c37d01368d8f3e38b04e9699414c5da156b09521442e8d33f951b01715abae4c09fe145045172c0f1a1ce5dfd9c2d732a8e373eb76bf508fc229e7489a54
+Size (exec-path-from-shell-2.3.tar.gz) = 19244 bytes

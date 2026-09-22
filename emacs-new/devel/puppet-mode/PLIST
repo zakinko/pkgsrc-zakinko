@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/puppet-mode/puppet-mode.el
+${EMACS_LISPPREFIX}/puppet-mode/puppet-mode.elc

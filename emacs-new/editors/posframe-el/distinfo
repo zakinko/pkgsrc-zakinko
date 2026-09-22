@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (posframe-1.5.2.tar.gz) = 17fa83dd496157179450f5ebbc31dffe31656977a39c700000ad012141223b55
+SHA512 (posframe-1.5.2.tar.gz) = aced29025ff61df942f977d80a1c2478676fabf3e37b94eb36e3a18bdc12cbc9efba39327fc841dfe3f47ef4b763487e2f943f969fa409b4e0c6eab82ae7e297
+Size (posframe-1.5.2.tar.gz) = 80315 bytes

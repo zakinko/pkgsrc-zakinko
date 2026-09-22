@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/bm/bm-sync.el
+${EMACS_LISPPREFIX}/bm/bm-sync.elc
+${EMACS_LISPPREFIX}/bm/bm.el
+${EMACS_LISPPREFIX}/bm/bm.elc

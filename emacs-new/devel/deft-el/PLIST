@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/deft/deft.el
+${EMACS_LISPPREFIX}/deft/deft.elc

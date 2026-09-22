@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/oauth2/oauth2-pkg.el
+${EMACS_LISPPREFIX}/oauth2/oauth2.el
+${EMACS_LISPPREFIX}/oauth2/oauth2.elc

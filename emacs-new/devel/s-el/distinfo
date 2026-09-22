@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (s-1.13.1.tar.gz) = ff819637f7d5abd273baaeecb5bee0f85fb874ada288ddbb2b2293e0e1d43d95
+SHA512 (s-1.13.1.tar.gz) = c393d68be5a4762ae1617c33d3e341c47677a231db1ca9f8443543e477a99a29f576c810c1f855bea5c9f178b1019c40bf4ebc6dd62d22a9326fcfd5601c61ef
+Size (s-1.13.1.tar.gz) = 62743 bytes

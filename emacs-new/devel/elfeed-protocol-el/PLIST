@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-common.el
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-common.elc
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-fever.el
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-fever.elc
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-newsblur.el
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-newsblur.elc
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-owncloud.el
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-owncloud.elc
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-ttrss.el
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol-ttrss.elc
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol.el
+${EMACS_LISPPREFIX}/elfeed-protocol/elfeed-protocol.elc

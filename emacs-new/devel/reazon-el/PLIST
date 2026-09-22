@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/reazon/reazon-perf.el
+${EMACS_LISPPREFIX}/reazon/reazon-perf.elc
+${EMACS_LISPPREFIX}/reazon/reazon-sudoku.el
+${EMACS_LISPPREFIX}/reazon/reazon-sudoku.elc
+${EMACS_LISPPREFIX}/reazon/reazon.el
+${EMACS_LISPPREFIX}/reazon/reazon.elc

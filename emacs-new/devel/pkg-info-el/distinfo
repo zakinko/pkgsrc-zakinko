@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (pkg-info-0.6.tar.gz) = 9238af7e5fc99da955415395a293377a3edf1898e2d33df1c792934d1e3a7a16
+SHA512 (pkg-info-0.6.tar.gz) = 73531a0a7ab54cf3e365a627d2905cc820f1328ad8ca8f985d1954c877f4a1ad7dc5129f52c4e2accd305661a9b952da9adf0a802c8ab6f35e1c16b55966ef54
+Size (pkg-info-0.6.tar.gz) = 18896 bytes

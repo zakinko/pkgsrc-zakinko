@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/plz/plz.el
+${EMACS_LISPPREFIX}/plz/plz.elc

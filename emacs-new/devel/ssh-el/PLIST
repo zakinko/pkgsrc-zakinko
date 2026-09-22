@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ssh/ssh.el
+${EMACS_LISPPREFIX}/ssh/ssh.elc

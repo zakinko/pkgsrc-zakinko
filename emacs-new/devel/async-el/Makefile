@@ -1,0 +1,32 @@
+# $NetBSD$
+
+DISTNAME=	async-1.9.9
+PKGNAME=	${EMACS_PKGNAME_PREFIX}async-el-1.9.9
+CATEGORIES=	devel
+MASTER_SITES=	${MASTER_SITE_GITHUB:=jwiegley/}
+GITHUB_PROJECT=	emacs-async
+GITHUB_TAG=	f317b0c9c3e60a959f45d035ed5e31a78f1263ac
+WRKSRC=		${WRKDIR}/emacs-async-f317b0c9c3e60a959f45d035ed5e31a78f1263ac
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/jwiegley/emacs-async/
+COMMENT=	Simple library for asynchronous processing in Emacs
+LICENSE=	gnu-gpl-v3
+
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
+
+INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/async
+
+post-extract:
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+
+do-build:
+	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
+		-L . -f batch-byte-compile *.el
+
+do-install:
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
+		${DESTDIR}${EMACS_LISPPREFIX}/async
+
+.include "../../editors/emacs/modules.mk"
+.include "../../mk/bsd.pkg.mk"

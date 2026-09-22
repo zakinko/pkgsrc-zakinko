@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (meson-mode-0.4.tar.gz) = 0fe31832c065fd7467ef40829c1e4c27d9b7f485f576f2218bcbaeda1b541a51
+SHA512 (meson-mode-0.4.tar.gz) = c73404c595564d439da9f9b1adcdd3e7e978e7b520d0d10ad2e6b098b2f31e9b542e00e1f0f9dab8aa58b8584258386512c2dfd42c5a303781b4e961b819c4cb
+Size (meson-mode-0.4.tar.gz) = 30669 bytes

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (chess-2.0.5.tar) = ee3933dde0fae31463cfd26dcebdfd88f82ff3029b192bdc1e8b205ef4faff57
+SHA512 (chess-2.0.5.tar) = 989c55b8d41bc386f1fdc846653a7c8efef917cc92a04f6378561767ca2f18c4cddda2722da8033c3d15c9412bfb6c55d8e824181a861f0b349447aa9d0f3da3
+Size (chess-2.0.5.tar) = 4710400 bytes

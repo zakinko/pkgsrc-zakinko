@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/pandoc-mode/pandoc-mode-utils.el
+${EMACS_LISPPREFIX}/pandoc-mode/pandoc-mode-utils.elc
+${EMACS_LISPPREFIX}/pandoc-mode/pandoc-mode.el
+${EMACS_LISPPREFIX}/pandoc-mode/pandoc-mode.elc

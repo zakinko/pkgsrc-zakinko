@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (httpd-1.1.tar.gz) = 536449fc6cd090b4cec9b2be158eb76f9f108b01f12b5280e83ea5b3a40a3916
+SHA512 (httpd-1.1.tar.gz) = b6078e8dd79ed4bcdabc85640ce14f556b14f82efb1429382ff75aefcd19ce586978ac79c59c4a20865fc67e103451937bc1e49dcca64dbdab4364c4e29510a2
+Size (httpd-1.1.tar.gz) = 3770 bytes

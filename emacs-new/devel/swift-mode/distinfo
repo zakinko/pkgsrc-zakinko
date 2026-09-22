@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (swift-mode-10.0.0.tar.gz) = d72d2a06ada19d9ff00c4b1e230b43e143f4d8a34b91dd9be728c4c120040b52
+SHA512 (swift-mode-10.0.0.tar.gz) = 31f7d7e8572d559c4433865bed1d5b36884829beed87f0fa99156b7fc5338a537b3187db23601b595b98d70b03afef8e0f4f89b921cb8e8dfd8279bb69a231e3
+Size (swift-mode-10.0.0.tar.gz) = 240591 bytes

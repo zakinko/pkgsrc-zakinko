@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (distel-4.1.1.tar.gz) = 749f944041ed2b8d3b4f1cb076b5ea7490b9991a495a871caf4a8f1fcbb1e91c
+SHA512 (distel-4.1.1.tar.gz) = 3ef73a650775f25f8e77c78cfaec3d2277a4e097128819d118ba566ac477455a1764383959f1d8eca33f8dedfa937eab605dfff899d344b9b03262c2abc7ac44
+Size (distel-4.1.1.tar.gz) = 214189 bytes

@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/fff/fff-elisp.el
+${EMACS_LISPPREFIX}/fff/fff-elisp.elc
+${EMACS_LISPPREFIX}/fff/fff-rfc.el
+${EMACS_LISPPREFIX}/fff/fff-rfc.elc
+${EMACS_LISPPREFIX}/fff/fff.el
+${EMACS_LISPPREFIX}/fff/fff.elc

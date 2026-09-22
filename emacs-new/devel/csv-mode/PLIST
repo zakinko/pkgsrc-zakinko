@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/csv-mode/csv-mode-pkg.el
+${EMACS_LISPPREFIX}/csv-mode/csv-mode.el
+${EMACS_LISPPREFIX}/csv-mode/csv-mode.elc

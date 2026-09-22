@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (pfuture-1.10.3.tar.gz) = 0b1147a465c78532a8d25e5178e7c90e9688ebee0c7bd0bf431232efc68c530c
+SHA512 (pfuture-1.10.3.tar.gz) = 1dbb0e4f168c36617f8c6890894bb618c4e13b667fae32a00ddfc01b7ccdb5c1742e7f93ddcc2e61e24fd69236debb32107c7a34efe9c19d66796c044d9ea1d5
+Size (pfuture-1.10.3.tar.gz) = 6187 bytes

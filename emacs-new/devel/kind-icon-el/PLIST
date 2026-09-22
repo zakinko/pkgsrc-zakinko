@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/kind-icon/kind-icon.el
+${EMACS_LISPPREFIX}/kind-icon/kind-icon.elc

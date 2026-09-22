@@ -1,0 +1,13 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/gap-mode/gap-company.el
+${EMACS_LISPPREFIX}/gap-mode/gap-company.elc
+${EMACS_LISPPREFIX}/gap-mode/gap-flycheck.el
+${EMACS_LISPPREFIX}/gap-mode/gap-flycheck.elc
+${EMACS_LISPPREFIX}/gap-mode/gap-flymake.el
+${EMACS_LISPPREFIX}/gap-mode/gap-flymake.elc
+${EMACS_LISPPREFIX}/gap-mode/gap-mode.el
+${EMACS_LISPPREFIX}/gap-mode/gap-mode.elc
+${EMACS_LISPPREFIX}/gap-mode/gap-process.el
+${EMACS_LISPPREFIX}/gap-mode/gap-process.elc
+${EMACS_LISPPREFIX}/gap-mode/gap-smie.el
+${EMACS_LISPPREFIX}/gap-mode/gap-smie.elc

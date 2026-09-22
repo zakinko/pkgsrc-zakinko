@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (apheleia-4.6.0.tar.gz) = 5f45a1c62e03ee0dac5ff18b318511f116a3e9ac56133cd98fa7196349d8a4b1
+SHA512 (apheleia-4.6.0.tar.gz) = 943afb7871de3144613a658a0592588e0f38c351b16947c5a0826fd1ccde376b6f2a56bbd36efe2d3a135fde1c82b7bade449c0a547be176fe4ae71d17819a6e
+Size (apheleia-4.6.0.tar.gz) = 204941 bytes

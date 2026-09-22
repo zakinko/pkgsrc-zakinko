@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/god-mode/god-mode-isearch.el
+${EMACS_LISPPREFIX}/god-mode/god-mode-isearch.elc
+${EMACS_LISPPREFIX}/god-mode/god-mode.el
+${EMACS_LISPPREFIX}/god-mode/god-mode.elc

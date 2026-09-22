@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/yasnippet-snippets/yasnippet-snippets.el
+${EMACS_LISPPREFIX}/yasnippet-snippets/yasnippet-snippets.elc

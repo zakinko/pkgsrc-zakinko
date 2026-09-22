@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/assess/assess-call.el
+${EMACS_LISPPREFIX}/assess/assess-call.elc
+${EMACS_LISPPREFIX}/assess/assess-discover.el
+${EMACS_LISPPREFIX}/assess/assess-discover.elc
+${EMACS_LISPPREFIX}/assess/assess-robot.el
+${EMACS_LISPPREFIX}/assess/assess-robot.elc
+${EMACS_LISPPREFIX}/assess/assess.el
+${EMACS_LISPPREFIX}/assess/assess.elc

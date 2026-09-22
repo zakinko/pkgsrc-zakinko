@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/company-quickhelp/company-quickhelp.el
+${EMACS_LISPPREFIX}/company-quickhelp/company-quickhelp.elc

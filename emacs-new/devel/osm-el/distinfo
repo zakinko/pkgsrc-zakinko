@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (osm-2.5.tar.gz) = 70381e7cbce958402ca8b5c6b98bef94bafacad5da33f030e37a2987b1b14fbf
+SHA512 (osm-2.5.tar.gz) = bc8fd32a412f5ff5ea2422e761aa7fd2480d80acd18d83459d78b17f90048ea470e2bae6f3420cc99a9603c3e44ef2d1375fb2226095099fd5515cc96c5e633a
+Size (osm-2.5.tar.gz) = 38942 bytes

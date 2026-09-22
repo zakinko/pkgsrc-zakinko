@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/shell-maker/markdown-overlays-tables.el
+${EMACS_LISPPREFIX}/shell-maker/markdown-overlays-tables.elc
+${EMACS_LISPPREFIX}/shell-maker/markdown-overlays.el
+${EMACS_LISPPREFIX}/shell-maker/markdown-overlays.elc
+${EMACS_LISPPREFIX}/shell-maker/shell-maker.el
+${EMACS_LISPPREFIX}/shell-maker/shell-maker.elc

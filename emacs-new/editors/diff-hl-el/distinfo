@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (diff-hl-1.10.0.tar.gz) = 13c7338410c1f2b5a977cd657db871bb32d4f49b2bdb51a9d41132489237dab6
+SHA512 (diff-hl-1.10.0.tar.gz) = 686d424fccec19bce4880e967a2ad3f27c8ea457a0e5f0d56eae0c46bd4c8df9951443115a2ee2614301cf5dbbc862f8233f00d3c8be0aa3c8335d1f5bbc7432
+Size (diff-hl-1.10.0.tar.gz) = 243449 bytes

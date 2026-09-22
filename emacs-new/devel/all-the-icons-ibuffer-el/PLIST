@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/all-the-icons-ibuffer/all-the-icons-ibuffer.el
+${EMACS_LISPPREFIX}/all-the-icons-ibuffer/all-the-icons-ibuffer.elc

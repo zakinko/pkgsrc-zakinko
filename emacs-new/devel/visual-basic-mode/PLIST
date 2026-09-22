@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/visual-basic-mode/visual-basic-mode.el
+${EMACS_LISPPREFIX}/visual-basic-mode/visual-basic-mode.elc

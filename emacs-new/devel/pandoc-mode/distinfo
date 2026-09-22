@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (pandoc-mode-2.90.2.tar.gz) = 4ddc664e11fd208ad31bc2b63ee0ce6587acc84ab85335450b538126edfce0c1
+SHA512 (pandoc-mode-2.90.2.tar.gz) = 6f14143b96c08a2e8a11cb696a4fceacff0d608ffd42122c69b7216c9254b6d6728deb0ad4b400053a5d33bb4226fc6d256fa29dd0edbeaf59b50d4617d01f32
+Size (pandoc-mode-2.90.2.tar.gz) = 97948 bytes

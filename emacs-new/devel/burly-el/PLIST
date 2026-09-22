@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/burly/burly-tabs.el
+${EMACS_LISPPREFIX}/burly/burly-tabs.elc
+${EMACS_LISPPREFIX}/burly/burly.el
+${EMACS_LISPPREFIX}/burly/burly.elc

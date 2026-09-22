@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/meson-mode/meson-mode.el
+${EMACS_LISPPREFIX}/meson-mode/meson-mode.elc
+${EMACS_LISPPREFIX}/meson-mode/utils.el
+${EMACS_LISPPREFIX}/meson-mode/utils.elc

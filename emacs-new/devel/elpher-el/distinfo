@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (elpher-3.7.0.tar) = 4ed5eb5f036cc4dfb6809dac0017ae19a2bd215f041a2ac6a91facbad4bbcc2a
+SHA512 (elpher-3.7.0.tar) = 482b140e91b4341222f8a47c262e95c5612dd14e04b1ea79659be6cab3d3bad451a913de1192d5681fe3e9a6f6dc880588e71ade05437a46c028c112d26499fc
+Size (elpher-3.7.0.tar) = 256000 bytes

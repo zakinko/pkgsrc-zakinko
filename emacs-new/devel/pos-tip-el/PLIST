@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/pos-tip/pos-tip.el
+${EMACS_LISPPREFIX}/pos-tip/pos-tip.elc

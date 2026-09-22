@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces-ansi.el
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces-ansi.elc
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces-html.el
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces-html.elc
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces-latex.el
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces-latex.elc
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces.el
+${EMACS_LISPPREFIX}/engrave-faces/engrave-faces.elc

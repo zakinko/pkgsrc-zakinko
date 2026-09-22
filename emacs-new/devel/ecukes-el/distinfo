@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ecukes-0.6.18.tar.gz) = 65e9ac7cc4dd7f0c301aff0497ec7828be8610d6ecc56b54bb2d034115096f79
+SHA512 (ecukes-0.6.18.tar.gz) = 6d3a16b8dbf021026be5d7134166079bb1495ad4fd6b7e30386aad56c0196c46cbd3ee541ec8c24d5b7e1bb26e3c14fe5f9423b50341867c50b92194139eca02
+Size (ecukes-0.6.18.tar.gz) = 85246 bytes

@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/speed-type/speed-type.el
+${EMACS_LISPPREFIX}/speed-type/speed-type.elc

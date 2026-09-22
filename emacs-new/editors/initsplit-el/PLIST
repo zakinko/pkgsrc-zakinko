@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/initsplit/initsplit.el
+${EMACS_LISPPREFIX}/initsplit/initsplit.elc

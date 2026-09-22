@@ -1,0 +1,8 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-dark-theme.el
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-dark-theme.elc
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-light-theme.el
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-light-theme.elc
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-theme-pkg.el
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-theme-pkg.elc
+${EMACS_LISPPREFIX}/spacemacs-theme/spacemacs-theme.el

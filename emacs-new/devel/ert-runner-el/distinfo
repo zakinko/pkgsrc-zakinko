@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ert-runner-0.8.0.tar.gz) = 59050d8a0e37e541eeb3d4bdf2d82f66ca08d28acbea715e16a4590ef5e165d4
+SHA512 (ert-runner-0.8.0.tar.gz) = a8d17c10b7c4db3fb784725c22d382e7cf213c7a6bc320658b64f1aaf9597cfe9cedc436771ade239cc9ad59e0d3457c257ce9342f9bee8a3fd65f76eb6d9e9b
+Size (ert-runner-0.8.0.tar.gz) = 36263 bytes

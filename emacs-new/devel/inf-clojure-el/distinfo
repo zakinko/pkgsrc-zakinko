@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (inf-clojure-3.4.0.tar.gz) = 86a50b704d487f1edf7eed5f9038fa171c9fabd2db3d3c42f5a6fd33433b35b7
+SHA512 (inf-clojure-3.4.0.tar.gz) = edf3f4c52559a57f9cf73c61c933b1b142a6bafb61336c8e62502fb68cc36e7f9f231b4a21f9e961134fbb47df7b18e6f81b7236034a90caa5c81311d554b362
+Size (inf-clojure-3.4.0.tar.gz) = 37350 bytes

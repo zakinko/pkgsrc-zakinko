@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (reazon-0.4.1.tar.gz) = 06a04a45e8cdbdc9cac7f1f8607c0bb25795644d4ea54ff43f568c32424c7643
+SHA512 (reazon-0.4.1.tar.gz) = fda8cda62bdf0818990a3a9bb5893b75bd4e875ecb6e6a280a1992e1d9b4b621e8ee7eac8e1d3ec0e06bf9bc8a37414695702247e5782e2859e4d8126906bf5f
+Size (reazon-0.4.1.tar.gz) = 38654 bytes

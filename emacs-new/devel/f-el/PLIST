@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/f/f-shortdoc.el
+${EMACS_LISPPREFIX}/f/f.el
+${EMACS_LISPPREFIX}/f/f.elc

@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/julia-mode/julia-mode-latexsubs.el
+${EMACS_LISPPREFIX}/julia-mode/julia-mode-latexsubs.elc
+${EMACS_LISPPREFIX}/julia-mode/julia-mode.el
+${EMACS_LISPPREFIX}/julia-mode/julia-mode.elc

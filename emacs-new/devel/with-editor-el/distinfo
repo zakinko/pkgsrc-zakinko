@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (with-editor-3.5.4.tar.gz) = 9ca8d04cd791c125dfb01d29438c94fd03a967e44a0a87160abff95e5b561999
+SHA512 (with-editor-3.5.4.tar.gz) = a7dfa9d2be9f7421bf528f39d13a83fc28f92e297d4702a88a831950308d31c2505f5d3563390e87d1b0de7832043594af702cc714012c73a70dc75121aecb1b
+Size (with-editor-3.5.4.tar.gz) = 35792 bytes

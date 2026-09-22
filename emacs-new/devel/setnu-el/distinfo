@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (setnu-1.06.tar.gz) = 79cd08269c92acf6103554fba473b898fa914590db6e0d61ea74f6baca42a983
+SHA512 (setnu-1.06.tar.gz) = 84ff5ba3da8c8d1c205f251ac408ff1f5b1368d5a418826dbe55e86e26e8dd9ea9a65d89c3432d45126adc2b4e6ed7b210b2c1bfe6abe38d77aba76a85d2792e
+Size (setnu-1.06.tar.gz) = 4488 bytes

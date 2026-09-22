@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/bongo/bongo.el
+${EMACS_LISPPREFIX}/bongo/bongo.elc
+${EMACS_LISPPREFIX}/bongo/lastfm-submit.el
+${EMACS_LISPPREFIX}/bongo/lastfm-submit.elc

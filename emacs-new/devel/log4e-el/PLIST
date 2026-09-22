@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/log4e/log4e.el
+${EMACS_LISPPREFIX}/log4e/log4e.elc

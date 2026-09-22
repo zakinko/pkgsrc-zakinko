@@ -1,0 +1,23 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/distel/derl.el
+${EMACS_LISPPREFIX}/distel/derl.elc
+${EMACS_LISPPREFIX}/distel/distel-ie.el
+${EMACS_LISPPREFIX}/distel/distel-ie.elc
+${EMACS_LISPPREFIX}/distel/distel.el
+${EMACS_LISPPREFIX}/distel/distel.elc
+${EMACS_LISPPREFIX}/distel/edb.el
+${EMACS_LISPPREFIX}/distel/edb.elc
+${EMACS_LISPPREFIX}/distel/epmd.el
+${EMACS_LISPPREFIX}/distel/epmd.elc
+${EMACS_LISPPREFIX}/distel/erl-example.el
+${EMACS_LISPPREFIX}/distel/erl-example.elc
+${EMACS_LISPPREFIX}/distel/erl-service.el
+${EMACS_LISPPREFIX}/distel/erl-service.elc
+${EMACS_LISPPREFIX}/distel/erl.el
+${EMACS_LISPPREFIX}/distel/erl.elc
+${EMACS_LISPPREFIX}/distel/erlext.el
+${EMACS_LISPPREFIX}/distel/erlext.elc
+${EMACS_LISPPREFIX}/distel/mcase.el
+${EMACS_LISPPREFIX}/distel/mcase.elc
+${EMACS_LISPPREFIX}/distel/net-fsm.el
+${EMACS_LISPPREFIX}/distel/net-fsm.elc

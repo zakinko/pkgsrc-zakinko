@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/restclient/restclient-helm.el
+${EMACS_LISPPREFIX}/restclient/restclient-helm.elc
+${EMACS_LISPPREFIX}/restclient/restclient-jq.el
+${EMACS_LISPPREFIX}/restclient/restclient-jq.elc
+${EMACS_LISPPREFIX}/restclient/restclient.el
+${EMACS_LISPPREFIX}/restclient/restclient.elc

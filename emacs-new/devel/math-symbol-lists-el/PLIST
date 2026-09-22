@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/math-symbol-lists/math-symbol-lists.el
+${EMACS_LISPPREFIX}/math-symbol-lists/math-symbol-lists.elc
+${EMACS_LISPPREFIX}/math-symbol-lists/msl-build.el
+${EMACS_LISPPREFIX}/math-symbol-lists/msl-build.elc

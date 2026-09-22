@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (agitjo-v2.0.0/v2.0.0.tar.gz) = 85c169b3a3ed2248284035f4c4b0d5419b6d2fc87aed609b2abe6f0b4d40e6d3
+SHA512 (agitjo-v2.0.0/v2.0.0.tar.gz) = 998b04daec2be307156307930ae6a8c95c58223b5fc9221600c12562fd66a69a12ecab0b23d2f28cd666ff6b6e958bef8588b373b54122f2d897909206395049
+Size (agitjo-v2.0.0/v2.0.0.tar.gz) = 61357 bytes

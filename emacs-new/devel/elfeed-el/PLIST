@@ -1,0 +1,23 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/elfeed/elfeed-csv.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-csv.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-curl.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-curl.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-db.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-db.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-lib.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-lib.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-link.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-link.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-log.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-log.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-search.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-search.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-show.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-show.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed-tree.el
+${EMACS_LISPPREFIX}/elfeed/elfeed-tree.elc
+${EMACS_LISPPREFIX}/elfeed/elfeed.el
+${EMACS_LISPPREFIX}/elfeed/elfeed.elc
+${EMACS_LISPPREFIX}/elfeed/xml-query.el
+${EMACS_LISPPREFIX}/elfeed/xml-query.elc

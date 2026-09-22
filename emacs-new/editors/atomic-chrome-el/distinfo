@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (atomic-chrome-2.0.0.tar.gz) = f445529aa5efa84255713dfc2d2cfb30e6ff84f1327689bad76b763203f55848
+SHA512 (atomic-chrome-2.0.0.tar.gz) = 702c8e80246f47dd46f4c864412e47c7cb74a13737754ccf81053a5054b97c4f48c4ca7613d1734dbf7251fbcd1d15269e2a605c36b3e7b631613506bb3a49bc
+Size (atomic-chrome-2.0.0.tar.gz) = 218286 bytes
+SHA1 (patch-atomic-chrome.el) = 8bbc9c710bfd5a236ad0b71b52c184cf14cf4ac5

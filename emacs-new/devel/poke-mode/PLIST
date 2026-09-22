@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/poke-mode/poke-mode-pkg.el
+${EMACS_LISPPREFIX}/poke-mode/poke-mode.el
+${EMACS_LISPPREFIX}/poke-mode/poke-mode.elc

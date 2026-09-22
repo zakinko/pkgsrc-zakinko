@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/blogmax/blogmax.el
+${EMACS_LISPPREFIX}/blogmax/blogmax.elc
+${EMACS_LISPPREFIX}/blogmax/iplookup.el
+${EMACS_LISPPREFIX}/blogmax/iplookup.elc
+${EMACS_LISPPREFIX}/blogmax/shortcuts.el
+${EMACS_LISPPREFIX}/blogmax/shortcuts.elc

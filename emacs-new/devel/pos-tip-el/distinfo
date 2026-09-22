@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (pos-tip-0.4.7.tar.gz) = f6ccc9a9a19ff7cca74684013561aec445097e3aad2987deb013b434860f6424
+SHA512 (pos-tip-0.4.7.tar.gz) = d43f6597a094390448ca0b9b53187aec5db282544df287f1c60f8bf4ed76f9f532daaeb573d4b86b9cf54347e3624861ec01460e650f470cc48353825cbdc092
+Size (pos-tip-0.4.7.tar.gz) = 9816 bytes

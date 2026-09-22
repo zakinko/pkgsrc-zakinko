@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/df-mode/df-mode.el
+${EMACS_LISPPREFIX}/df-mode/df-mode.elc

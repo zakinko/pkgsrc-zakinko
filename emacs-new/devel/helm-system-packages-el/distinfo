@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (helm-system-packages-1.10.2.tar.gz) = 6810c37a571639080ea5fe224ab71ffe58f6a2da2f013983b6f3992c50dfe51a
+SHA512 (helm-system-packages-1.10.2.tar.gz) = 291bb1a8c790b76adc78eb6537935e4ce21e7060289327f072fd4747f2db8a109c60d29c99e484e81c1abc79fb317489b8e6826aa8d8afecefc68228923ed85c
+Size (helm-system-packages-1.10.2.tar.gz) = 2685580 bytes

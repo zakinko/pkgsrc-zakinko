@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-crystal-mode/crystal-mode.el
+${EMACS_LISPPREFIX}/emacs-crystal-mode/crystal-mode.elc
+${EMACS_LISPPREFIX}/emacs-crystal-mode/flycheck-crystal.el
+${EMACS_LISPPREFIX}/emacs-crystal-mode/flycheck-crystal.elc

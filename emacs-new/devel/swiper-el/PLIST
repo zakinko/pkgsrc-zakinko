@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/swiper/colir.el
+${EMACS_LISPPREFIX}/swiper/colir.elc
+${EMACS_LISPPREFIX}/swiper/counsel.el
+${EMACS_LISPPREFIX}/swiper/counsel.elc
+${EMACS_LISPPREFIX}/swiper/ivy-avy.el
+${EMACS_LISPPREFIX}/swiper/ivy-avy.elc
+${EMACS_LISPPREFIX}/swiper/ivy-faces.el
+${EMACS_LISPPREFIX}/swiper/ivy-faces.elc
+${EMACS_LISPPREFIX}/swiper/ivy-hydra.el
+${EMACS_LISPPREFIX}/swiper/ivy-hydra.elc
+${EMACS_LISPPREFIX}/swiper/ivy-overlay.el
+${EMACS_LISPPREFIX}/swiper/ivy-overlay.elc
+${EMACS_LISPPREFIX}/swiper/ivy.el
+${EMACS_LISPPREFIX}/swiper/ivy.elc
+${EMACS_LISPPREFIX}/swiper/swiper.el
+${EMACS_LISPPREFIX}/swiper/swiper.elc

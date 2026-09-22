@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/tablist/tablist-filter.el
+${EMACS_LISPPREFIX}/tablist/tablist-filter.elc
+${EMACS_LISPPREFIX}/tablist/tablist.el
+${EMACS_LISPPREFIX}/tablist/tablist.elc

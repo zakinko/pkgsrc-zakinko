@@ -1,0 +1,25 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/exwm/exwm-background.el
+${EMACS_LISPPREFIX}/exwm/exwm-background.elc
+${EMACS_LISPPREFIX}/exwm/exwm-core.el
+${EMACS_LISPPREFIX}/exwm/exwm-core.elc
+${EMACS_LISPPREFIX}/exwm/exwm-floating.el
+${EMACS_LISPPREFIX}/exwm/exwm-floating.elc
+${EMACS_LISPPREFIX}/exwm/exwm-input.el
+${EMACS_LISPPREFIX}/exwm/exwm-input.elc
+${EMACS_LISPPREFIX}/exwm/exwm-layout.el
+${EMACS_LISPPREFIX}/exwm/exwm-layout.elc
+${EMACS_LISPPREFIX}/exwm/exwm-manage.el
+${EMACS_LISPPREFIX}/exwm/exwm-manage.elc
+${EMACS_LISPPREFIX}/exwm/exwm-randr.el
+${EMACS_LISPPREFIX}/exwm/exwm-randr.elc
+${EMACS_LISPPREFIX}/exwm/exwm-systemtray.el
+${EMACS_LISPPREFIX}/exwm/exwm-systemtray.elc
+${EMACS_LISPPREFIX}/exwm/exwm-workspace.el
+${EMACS_LISPPREFIX}/exwm/exwm-workspace.elc
+${EMACS_LISPPREFIX}/exwm/exwm-xim.el
+${EMACS_LISPPREFIX}/exwm/exwm-xim.elc
+${EMACS_LISPPREFIX}/exwm/exwm-xsettings.el
+${EMACS_LISPPREFIX}/exwm/exwm-xsettings.elc
+${EMACS_LISPPREFIX}/exwm/exwm.el
+${EMACS_LISPPREFIX}/exwm/exwm.elc

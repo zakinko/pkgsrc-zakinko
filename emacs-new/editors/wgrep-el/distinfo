@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (wgrep-3.0.0.tar.gz) = 758bfa883b5c6b4cccd4b507aa42b1a4c8ebc4838b4803236af81bc65b1c9b01
+SHA512 (wgrep-3.0.0.tar.gz) = 8e93e824bafe8b9018e82d5fb57104c2324df62798214d848ff98bb86865d4a8e56df1e4efede49966555cb9af5059699c2d178722d8462ddc5977a5abd3d799
+Size (wgrep-3.0.0.tar.gz) = 29569 bytes

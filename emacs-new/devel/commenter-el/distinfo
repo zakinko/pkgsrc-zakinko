@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (commenter-0.5.2.tar.gz) = f01208cc1f3aefb880ed33aded56eb05481ee5075aad6a80b1f34d5e3fc196e1
+SHA512 (commenter-0.5.2.tar.gz) = a2bdc675d39fedccc16b3cdde324a17588980bf66e899a8f58ed0e68d545ac955465bcad282dc4434a96baa340244f9b67e375c312a557dffafc20532dec4b51
+Size (commenter-0.5.2.tar.gz) = 2705 bytes

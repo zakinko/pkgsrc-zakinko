@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/ert-runner/ert-runner-reporter-dot.el
+${EMACS_LISPPREFIX}/ert-runner/ert-runner-reporter-dot.elc
+${EMACS_LISPPREFIX}/ert-runner/ert-runner-reporter-ert+duration.el
+${EMACS_LISPPREFIX}/ert-runner/ert-runner-reporter-ert+duration.elc
+${EMACS_LISPPREFIX}/ert-runner/ert-runner-reporter-ert.el
+${EMACS_LISPPREFIX}/ert-runner/ert-runner-reporter-ert.elc

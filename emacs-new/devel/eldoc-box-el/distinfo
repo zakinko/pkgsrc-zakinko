@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (eldoc-box-1.14.1.tar.gz) = 7854f7ee4457e09d6a785d99d255e263e165701b60a0cb0d71cd10ba369b687d
+SHA512 (eldoc-box-1.14.1.tar.gz) = 1afb29d0b0dbf4a451220e1fd6ab53fee9145a83944954d4820f107ea4aa57694c92ac49ca08460b467036127d63794fefbde700a40af29b9c429e64ce19db1c
+Size (eldoc-box-1.14.1.tar.gz) = 1274091 bytes

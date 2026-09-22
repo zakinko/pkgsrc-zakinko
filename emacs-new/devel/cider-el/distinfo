@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (cider-2.0.1.tar.gz) = f3e7b0ce9debdbb8d311a0b4e98ebfdcbc7671f9ea294386341156be179bae97
+SHA512 (cider-2.0.1.tar.gz) = b21f659005610676037891dc79dc41115bde353eb34e348c97ae70d8b8cad06157fe06347d57befcf674bdf05a54064d3d63214a8b5463dc98e93a63d47990bd
+Size (cider-2.0.1.tar.gz) = 10695015 bytes

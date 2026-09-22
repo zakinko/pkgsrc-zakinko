@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (systemd-mode-1.6.tar.gz) = 2d97c2b4746654bd0bb21615741aa15cce572090ca80fc6fab354472717118be
+SHA512 (systemd-mode-1.6.tar.gz) = 2461e07287c1dbe5990eaae83484e98f4e8f2e89ece4b2f5f53f3c9174fc20a0cdf2e930c356bfb6a84587595d66ac353f4f85b5a96507c5344a615d4516f646
+Size (systemd-mode-1.6.tar.gz) = 21986 bytes

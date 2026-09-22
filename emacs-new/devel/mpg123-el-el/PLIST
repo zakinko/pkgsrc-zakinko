@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/mpg123-el/id3.el
+${EMACS_LISPPREFIX}/mpg123-el/id3.elc
+${EMACS_LISPPREFIX}/mpg123-el/mpg123.el
+${EMACS_LISPPREFIX}/mpg123-el/mpg123.elc

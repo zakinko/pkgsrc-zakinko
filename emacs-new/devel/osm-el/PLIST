@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/osm/osm.el
+${EMACS_LISPPREFIX}/osm/osm.elc

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (consult-3.8.tar.gz) = e6e33a4f9f6e1eeba133b444f620ad1437d41669985ce9cf50b7556e491535db
+SHA512 (consult-3.8.tar.gz) = e695ff3283abdf4e4b4111a00c6c64575b5a5ed7a1b6be70ccdda6984d3da07c99d81c355573a8310673e94374e050be4ae75c47f9ed883c6d6d54825481a135
+Size (consult-3.8.tar.gz) = 115208 bytes

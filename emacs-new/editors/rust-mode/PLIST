@@ -1,0 +1,19 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/rust-mode/rust-cargo.el
+${EMACS_LISPPREFIX}/rust-mode/rust-cargo.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-common.el
+${EMACS_LISPPREFIX}/rust-mode/rust-common.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-compile.el
+${EMACS_LISPPREFIX}/rust-mode/rust-compile.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-mode-treesitter.el
+${EMACS_LISPPREFIX}/rust-mode/rust-mode-treesitter.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-mode.el
+${EMACS_LISPPREFIX}/rust-mode/rust-mode.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-playpen.el
+${EMACS_LISPPREFIX}/rust-mode/rust-playpen.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-prog-mode.el
+${EMACS_LISPPREFIX}/rust-mode/rust-prog-mode.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-rustfmt.el
+${EMACS_LISPPREFIX}/rust-mode/rust-rustfmt.elc
+${EMACS_LISPPREFIX}/rust-mode/rust-utils.el
+${EMACS_LISPPREFIX}/rust-mode/rust-utils.elc

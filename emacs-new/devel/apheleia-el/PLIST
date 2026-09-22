@@ -1,0 +1,15 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/apheleia/apheleia-dp.el
+${EMACS_LISPPREFIX}/apheleia/apheleia-dp.elc
+${EMACS_LISPPREFIX}/apheleia/apheleia-formatter-context.el
+${EMACS_LISPPREFIX}/apheleia/apheleia-formatter-context.elc
+${EMACS_LISPPREFIX}/apheleia/apheleia-formatters.el
+${EMACS_LISPPREFIX}/apheleia/apheleia-formatters.elc
+${EMACS_LISPPREFIX}/apheleia/apheleia-log.el
+${EMACS_LISPPREFIX}/apheleia/apheleia-log.elc
+${EMACS_LISPPREFIX}/apheleia/apheleia-rcs.el
+${EMACS_LISPPREFIX}/apheleia/apheleia-rcs.elc
+${EMACS_LISPPREFIX}/apheleia/apheleia-utils.el
+${EMACS_LISPPREFIX}/apheleia/apheleia-utils.elc
+${EMACS_LISPPREFIX}/apheleia/apheleia.el
+${EMACS_LISPPREFIX}/apheleia/apheleia.elc

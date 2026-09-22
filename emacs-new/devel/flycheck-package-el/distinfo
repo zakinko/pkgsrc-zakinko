@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (flycheck-package-0.14.tar.gz) = 312c40921cfd19156ac236cf2467dbbb184c3f225963ca424f2f249b55e64e48
+SHA512 (flycheck-package-0.14.tar.gz) = c1a94ae2c3c460843225f121f4e9c837c8fc86e958987e9a31b95aafc9999c9a7475491f08ed16a5cc95085be5dedee045b08b9ee114688a722b612cef096bfa
+Size (flycheck-package-0.14.tar.gz) = 3214 bytes

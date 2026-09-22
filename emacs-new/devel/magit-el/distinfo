@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (magit-4.7.0.tar.gz) = 0cd595446367455bf6056c4d8719c5ac87d80d73a39c911b42de7192af38556b
+SHA512 (magit-4.7.0.tar.gz) = a62cabfa195bdf5a6a254fe7ae34bfa2c907a39fc6b2aa33224410af982e81a0351c2dc5e838b8bbe21ab3df632015f9e24d67db279b0d9ab90d346b37d48044
+Size (magit-4.7.0.tar.gz) = 717998 bytes

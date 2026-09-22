@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/popup/popup.el
+${EMACS_LISPPREFIX}/popup/popup.elc

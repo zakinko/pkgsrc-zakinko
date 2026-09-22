@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/protbuf/protbuf.el
+${EMACS_LISPPREFIX}/protbuf/protbuf.elc

@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (cfrs-1.7.0.tar.gz) = f32869ff550590f018eec93398a8ed127f6fd9170f99c245ba5f12e5cf2d26ee
+SHA512 (cfrs-1.7.0.tar.gz) = 3999c460726fc14532b559abba5b9b48faddc1b12501d9d7f79a71c2540ce2da1032d1bc3bcc59b475157cf00723a7cfa371a7e32276be066c3616def0750aa2
+Size (cfrs-1.7.0.tar.gz) = 28044 bytes

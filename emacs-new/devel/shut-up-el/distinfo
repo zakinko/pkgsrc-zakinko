@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (shut-up-0.3.3.tar.gz) = f648949cc8a4a22b68037cc707b3064ce55b5606d84a5c1c58a5f935eca430ac
+SHA512 (shut-up-0.3.3.tar.gz) = b14110022bd1512985fe40194c419f06cc8f5f6c819f02e681a89c2f80a32140e20eea6e3bb659b1abee85021b01bdc0b48d3ff12d6fac6072635fbdcb808484
+Size (shut-up-0.3.3.tar.gz) = 4479 bytes

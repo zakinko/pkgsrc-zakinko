@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/h4x0r/h4x0r.el
+${EMACS_LISPPREFIX}/h4x0r/h4x0r.elc

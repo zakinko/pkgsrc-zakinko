@@ -1,0 +1,7 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/auto-complete/auto-complete-config.el
+${EMACS_LISPPREFIX}/auto-complete/auto-complete-config.elc
+${EMACS_LISPPREFIX}/auto-complete/auto-complete-pkg.el
+${EMACS_LISPPREFIX}/auto-complete/auto-complete-pkg.elc
+${EMACS_LISPPREFIX}/auto-complete/auto-complete.el
+${EMACS_LISPPREFIX}/auto-complete/auto-complete.elc

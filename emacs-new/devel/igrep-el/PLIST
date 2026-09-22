@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/igrep/igrep.el
+${EMACS_LISPPREFIX}/igrep/igrep.elc

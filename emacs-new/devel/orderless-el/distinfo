@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (orderless-1.7.tar.gz) = 09eac4a5b97addee8099422f7f015a52ded3e1789da16304372e523ffad0932a
+SHA512 (orderless-1.7.tar.gz) = deb4ed1bc3bcd11319af5926f5e5df204987172ce427b207d234738d396768e8bd2d50f83e0982368662259c83ebfde4d1cada6febf0241b9d5c61c76689f15c
+Size (orderless-1.7.tar.gz) = 36722 bytes

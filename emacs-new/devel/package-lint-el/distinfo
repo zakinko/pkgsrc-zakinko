@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (package-lint-0.26.tar.gz) = fbb2ee83ace62c76462185aecf6750d662c0dde11e6ef426262ff60a79647da5
+SHA512 (package-lint-0.26.tar.gz) = efc8669b9c1ed62e5737c6e40c7f13ead5f03bf5db215840ef817b435a2e7ab30f510de04d835e162f728ec6ccf92c723c7ed7cb598dd1b8ded0958cbb6fe603
+Size (package-lint-0.26.tar.gz) = 352503 bytes

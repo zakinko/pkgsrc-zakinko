@@ -1,0 +1,4 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/undo-tree/undo-tree-pkg.el
+${EMACS_LISPPREFIX}/undo-tree/undo-tree.el
+${EMACS_LISPPREFIX}/undo-tree/undo-tree.elc

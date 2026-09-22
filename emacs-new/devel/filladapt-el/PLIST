@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/filladapt/filladapt.el
+${EMACS_LISPPREFIX}/filladapt/filladapt.elc

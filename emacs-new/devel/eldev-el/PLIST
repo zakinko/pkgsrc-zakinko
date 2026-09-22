@@ -1,0 +1,21 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/eldev/eldev-build.el
+${EMACS_LISPPREFIX}/eldev/eldev-build.elc
+${EMACS_LISPPREFIX}/eldev/eldev-buttercup.el
+${EMACS_LISPPREFIX}/eldev/eldev-buttercup.elc
+${EMACS_LISPPREFIX}/eldev/eldev-doctest.el
+${EMACS_LISPPREFIX}/eldev/eldev-doctest.elc
+${EMACS_LISPPREFIX}/eldev/eldev-doctor.el
+${EMACS_LISPPREFIX}/eldev/eldev-doctor.elc
+${EMACS_LISPPREFIX}/eldev/eldev-ecukes.el
+${EMACS_LISPPREFIX}/eldev/eldev-ecukes.elc
+${EMACS_LISPPREFIX}/eldev/eldev-ert.el
+${EMACS_LISPPREFIX}/eldev/eldev-ert.elc
+${EMACS_LISPPREFIX}/eldev/eldev-plugins.el
+${EMACS_LISPPREFIX}/eldev/eldev-plugins.elc
+${EMACS_LISPPREFIX}/eldev/eldev-util.el
+${EMACS_LISPPREFIX}/eldev/eldev-util.elc
+${EMACS_LISPPREFIX}/eldev/eldev-vc.el
+${EMACS_LISPPREFIX}/eldev/eldev-vc.elc
+${EMACS_LISPPREFIX}/eldev/eldev.el
+${EMACS_LISPPREFIX}/eldev/eldev.elc

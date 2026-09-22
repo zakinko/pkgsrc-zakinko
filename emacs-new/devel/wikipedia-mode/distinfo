@@ -1,0 +1,6 @@
+$NetBSD$
+
+BLAKE2s (wikipedia-mode-0.5.el.bz2) = 1c9077929987d25e29eeaa5bdd7f37c0afeb90228d061ee49de8d844b85c6461
+SHA512 (wikipedia-mode-0.5.el.bz2) = d10ddfb13e45fae347fe286df919bd9840ea0c2b38e903b451a9c3b6b6ab768566021d12b898bdc7236d034a89ba582dc8d22827bd3b4d80a0363ab323bd045d
+Size (wikipedia-mode-0.5.el.bz2) = 14243 bytes
+SHA1 (patch-wikipedia-mode.el) = 47f11700c7857d0599385fada4f91a213830cd25

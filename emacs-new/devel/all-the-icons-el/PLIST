@@ -1,0 +1,17 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/all-the-icons/all-the-icons-faces.el
+${EMACS_LISPPREFIX}/all-the-icons/all-the-icons-faces.elc
+${EMACS_LISPPREFIX}/all-the-icons/all-the-icons.el
+${EMACS_LISPPREFIX}/all-the-icons/all-the-icons.elc
+${EMACS_LISPPREFIX}/all-the-icons/data/data-alltheicons.el
+${EMACS_LISPPREFIX}/all-the-icons/data/data-alltheicons.elc
+${EMACS_LISPPREFIX}/all-the-icons/data/data-faicons.el
+${EMACS_LISPPREFIX}/all-the-icons/data/data-faicons.elc
+${EMACS_LISPPREFIX}/all-the-icons/data/data-fileicons.el
+${EMACS_LISPPREFIX}/all-the-icons/data/data-fileicons.elc
+${EMACS_LISPPREFIX}/all-the-icons/data/data-material.el
+${EMACS_LISPPREFIX}/all-the-icons/data/data-material.elc
+${EMACS_LISPPREFIX}/all-the-icons/data/data-octicons.el
+${EMACS_LISPPREFIX}/all-the-icons/data/data-octicons.elc
+${EMACS_LISPPREFIX}/all-the-icons/data/data-weathericons.el
+${EMACS_LISPPREFIX}/all-the-icons/data/data-weathericons.elc

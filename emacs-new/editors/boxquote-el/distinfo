@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (boxquote-2.4.1.tar.gz) = f007e6838fad2839db2c890bc9c32dc2caaf712f2d9bb80b94a9d95c7833bfd0
+SHA512 (boxquote-2.4.1.tar.gz) = b3d637065593707d0a2323fb257513ec3f83d37b58b6de5b51293a46c67f02f203b5f1613b950be3b679bb7c4da662b86543855981f8a59bb5a68c8bb4b0cdde
+Size (boxquote-2.4.1.tar.gz) = 17696 bytes

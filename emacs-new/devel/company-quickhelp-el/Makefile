@@ -1,0 +1,33 @@
+# $NetBSD$
+
+DISTNAME=	company-quickhelp-2.3.0
+PKGNAME=	${EMACS_PKGNAME_PREFIX}company-quickhelp-el-2.3.0
+CATEGORIES=	devel
+MASTER_SITES=	${MASTER_SITE_GITHUB:=company-mode/}
+GITHUB_PROJECT=	company-quickhelp
+GITHUB_TAG=	${PKGVERSION_NOREV}
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/company-mode/company-quickhelp/
+COMMENT=	Company documentation popups for completion candidates
+LICENSE=	gnu-gpl-v3
+
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}company-mode-[0-9]*:../../devel/company-mode
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}pos-tip-el-[0-9]*:../../devel/pos-tip-el
+
+INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/company-quickhelp
+
+post-extract:
+	cd ${WRKSRC} && ${RM} -f *-test.el *-tests.el *-subtest.el test-*.el tests-*.el *-testsuite.el
+
+do-build:
+	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \
+		-L . -L ${EMACS_LISPPREFIX}/company-mode -L ${EMACS_LISPPREFIX}/posframe -L ${EMACS_LISPPREFIX}/pos-tip -f batch-byte-compile *.el
+
+do-install:
+	cd ${WRKSRC} && ${INSTALL_DATA} *.el *.elc \
+		${DESTDIR}${EMACS_LISPPREFIX}/company-quickhelp
+
+.include "../../editors/emacs/modules.mk"
+.include "../../mk/bsd.pkg.mk"
