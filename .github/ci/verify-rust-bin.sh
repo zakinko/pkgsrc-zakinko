@@ -32,7 +32,19 @@ W=/var/tmp/rust-bin-check
 rc=0
 mkdir -p "$W"
 
-sv() { ( cd "$D" && $PKGMAKE show-var VARNAME="$1" ) 2>/dev/null | tail -1; }
+# show-var が落ちると bmake は stderr にだけ文句を言い、stdout は空になる。
+# 2>/dev/null で捨てると「値が bmake: stopped making ...」という形で
+# 失敗が値の顔をして出てくる (run 35741763877 で実際にそうなった)。
+# 落ちたら空を返し、下で一度だけ理由を出す。
+SV_ERR=
+sv() {
+	_o=$( cd "$D" && $PKGMAKE show-var VARNAME="$1" 2>"$W/sv.err" ) || {
+		[ -n "$SV_ERR" ] || SV_ERR=$(cat "$W/sv.err")
+		echo "(取れない)"
+		return 0
+	}
+	printf '%s\n' "$_o" | tail -1
+}
 
 echo "########## この箱を pkgsrc がどう綴るか ##########"
 PLAT=$(sv MACHINE_PLATFORM)
@@ -42,6 +54,11 @@ printf '  %-22s %s\n' MACHINE_ARCH  "$(sv MACHINE_ARCH)"
 printf '  %-22s %s\n' OS_VARIANT    "$(sv OS_VARIANT)"
 printf '  %-22s %s\n' MACHINE_PLATFORM "$PLAT"
 printf '  %-22s %s\n' PKGNAME       "$(sv PKGNAME)"
+if [ -n "$SV_ERR" ]; then
+	echo "  !! show-var が落ちている。Makefile が読めていない:"
+	printf '%s\n' "$SV_ERR" | sed 's/^/     /' | head -20
+	rc=1
+fi
 
 echo "########## 取られる配布物 ##########"
 DF=$(sv DISTFILES)
