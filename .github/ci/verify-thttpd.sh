@@ -298,7 +298,8 @@ asan_try() { # $1=compiler
 asan_works() {
 	echo "  ASan を持つ compiler を探す"
 	for c in "$CC" cc clang gcc /opt/gcc-14/bin/gcc /opt/gcc-13/bin/gcc \
-	         "$PREFIX/bin/clang" "$PREFIX/bin/gcc" egcc clang19 clang18 gcc14 gcc13; do
+	         /usr/local/bin/gcc14 /usr/local/bin/gcc13 gcc14 gcc13 \
+	         "$PREFIX/bin/clang" "$PREFIX/bin/gcc" egcc clang19 clang18; do
 		[ -n "$c" ] || continue
 		asan_try "$c" && { echo "  使う: $ASANCC"; CC=$ASANCC; return 0; }
 	done
