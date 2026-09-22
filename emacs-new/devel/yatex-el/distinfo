@@ -1,0 +1,7 @@
+$NetBSD$
+
+BLAKE2s (yatex1.84.tar.gz) = 5838b444d231517a75e37cd3659236ef0fca13838bdbb9070ddcfa72f2e37987
+SHA512 (yatex1.84.tar.gz) = a32eb5865fcd7be49bad7b081acf62cb73564f44118fc7871859e973cc07f162d03cc8c1ac2c93a6d09ec346d52f6f0dabe9a4c98aa06ef63df4c641e696f72b
+Size (yatex1.84.tar.gz) = 389985 bytes
+SHA1 (patch-yahtml.el) = b2ad3554b544cf01b072ad900cb58715cf7beb9c
+SHA1 (patch-yatexlib.el) = ce57afcae9f7db271805023bad7f21ade5df234f

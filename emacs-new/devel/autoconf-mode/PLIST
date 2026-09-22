@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/autoconf-mode/autoconf-mode.el
+${EMACS_LISPPREFIX}/autoconf-mode/autoconf-mode.elc
+${EMACS_LISPPREFIX}/autoconf-mode/autotest-mode.el
+${EMACS_LISPPREFIX}/autoconf-mode/autotest-mode.elc

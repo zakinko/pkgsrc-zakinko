@@ -1,0 +1,7 @@
+$NetBSD$
+
+BLAKE2s (mldonkey-el-0.0.4b.tar.gz) = e0fcf809b294a8f30c546ad11ed1003d570f0e8f15de18851d954d34eb45d729
+SHA512 (mldonkey-el-0.0.4b.tar.gz) = 3c6a16292968e0f40d319614bfd2a53c9612ec4121c5720f51498d8983f6b944c38fc1d664f1c7ebe1d68653ba62d828fa00092b1a1d278547c225b33f4e740b
+Size (mldonkey-el-0.0.4b.tar.gz) = 17442 bytes
+SHA1 (patch-mldonkey-vd.el) = d21ea5fa1b97093da5d5fe5c72f87353750089ea
+SHA1 (patch-mldonkey-vd.el-1) = b2c27a6b10fcbeba87b53b87c6276d02bbaa2a48

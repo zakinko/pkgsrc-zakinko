@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (ninja-mode-1.12.1.tar.gz) = 089334f5bf22900dbe44fd5a691d4e88dcc504e8d4d9d15ec980901ee1b7a6c8
+SHA512 (ninja-mode-1.12.1.tar.gz) = d6e6f0e89a4844a69069ff0c7cefc07704a41c7b0c062a57534de87decdde63e27928147b321111b806aa7efa1061f031a1319b074391db61b0cbdccf096954c
+Size (ninja-mode-1.12.1.tar.gz) = 240483 bytes

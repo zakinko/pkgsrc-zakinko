@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (emacs-wget-0.5.0.tar.gz) = 3a502ecdc824d775554fd745f9e184c576fcded84b45cbf41bbfddebf7697cbf
+SHA512 (emacs-wget-0.5.0.tar.gz) = 32d322cda7435b901115cdc01ef6b6e84f2af7f686f7d6a89cc486523d9d8b9807903c4ee0fb945a4ff457720033523beb34037e29ef7c9cdf2a10c62b725d54
+Size (emacs-wget-0.5.0.tar.gz) = 37074 bytes

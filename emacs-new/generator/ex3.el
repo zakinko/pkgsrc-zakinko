@@ -1,0 +1,5 @@
+(let ((sl (expand-file-name "share/emacs/site-lisp" (getenv "PREFIX"))))
+  (dolist (d (directory-files sl t "^[^.]")) (when (file-directory-p d) (add-to-list 'load-path d))))
+(dolist (x '((yatex . yatex-mode) (yahtml . yahtml-mode) (navi2ch . navi2ch) (session . session-initialize) (template . template-new-file) (mu-cite . mu-cite-original) (scala-mode . scala-mode) (vhdl-mode . vhdl-mode) (scheme-complete . scheme-smart-complete) (cycle-buffer . cycle-buffer) (autoconf-mode . autoconf-mode) (ninja-mode . ninja-mode) (dwarf-mode . dwarf-browse) (desktop-entry-mode . desktop-entry-mode) (nagios-mode . nagios-mode) (sumibi . sumibi-mode) (secil-mode . secil-mode) (emacs-wget . wget) (mldonkey . mldonkey) (scala-ts-mode . scala-ts-mode)))
+  (message "%-20s %S" (car x) (condition-case e (progn (require (car x)) (fboundp (cdr x))) (error (format "ERR %S" e)))))
+(with-temp-buffer (insert "\\documentclass{article}\n\\begin{document}\nhello\n\\end{document}\n") (yatex-mode) (message "yatex-mode in buffer: %S" major-mode))

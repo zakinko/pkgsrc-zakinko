@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/emacs-wget/w3-wget.el
+${EMACS_LISPPREFIX}/emacs-wget/w3-wget.elc
+${EMACS_LISPPREFIX}/emacs-wget/w3m-wget.el
+${EMACS_LISPPREFIX}/emacs-wget/w3m-wget.elc
+${EMACS_LISPPREFIX}/emacs-wget/wget-sysdep.el
+${EMACS_LISPPREFIX}/emacs-wget/wget-sysdep.elc
+${EMACS_LISPPREFIX}/emacs-wget/wget.el
+${EMACS_LISPPREFIX}/emacs-wget/wget.elc

@@ -1,0 +1,11 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/mu-cite/latex-math-symbol.el
+${EMACS_LISPPREFIX}/mu-cite/latex-math-symbol.elc
+${EMACS_LISPPREFIX}/mu-cite/mu-bbdb.el
+${EMACS_LISPPREFIX}/mu-cite/mu-bbdb.elc
+${EMACS_LISPPREFIX}/mu-cite/mu-cite-pkg.el
+${EMACS_LISPPREFIX}/mu-cite/mu-cite-pkg.elc
+${EMACS_LISPPREFIX}/mu-cite/mu-cite.el
+${EMACS_LISPPREFIX}/mu-cite/mu-cite.elc
+${EMACS_LISPPREFIX}/mu-cite/mu-register.el
+${EMACS_LISPPREFIX}/mu-cite/mu-register.elc

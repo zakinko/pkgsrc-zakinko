@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/template/template.el
+${EMACS_LISPPREFIX}/template/template.elc

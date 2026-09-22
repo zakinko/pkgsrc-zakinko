@@ -1,0 +1,5 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/scala-ts-mode/scala-ts-mode-autoloads.el
+${EMACS_LISPPREFIX}/scala-ts-mode/scala-ts-mode-pkg.el
+${EMACS_LISPPREFIX}/scala-ts-mode/scala-ts-mode.el
+${EMACS_LISPPREFIX}/scala-ts-mode/scala-ts-mode.elc

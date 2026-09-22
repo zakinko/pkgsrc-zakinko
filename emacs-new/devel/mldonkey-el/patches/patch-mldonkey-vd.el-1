@@ -1,0 +1,16 @@
+$NetBSD$
+
+A lambda list with two &optional markers, which the byte-compiler
+rejects since Emacs 26.  From Gentoo.
+
+--- mldonkey-vd.el.orig
++++ mldonkey-vd.el
+@@ -801,7 +801,7 @@
+     (insert "\n")))
+ 
+ 
+-(defun mldonkey-vd-insert (&optional ignore-1 &optional ignore-2)
++(defun mldonkey-vd-insert (&optional ignore-1 ignore-2)
+ 
+   "Insert the table with the downloads in the MlDonkey buffer."
+ 

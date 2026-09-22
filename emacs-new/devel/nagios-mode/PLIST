@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/nagios-mode/nagios-mode.el
+${EMACS_LISPPREFIX}/nagios-mode/nagios-mode.elc

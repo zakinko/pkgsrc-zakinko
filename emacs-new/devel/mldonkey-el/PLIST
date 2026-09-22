@@ -1,0 +1,16 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-auth.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-auth.elc
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-commands.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-commands.elc
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-console.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-console.elc
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-header-line.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-header-line.elc
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-vd-sort.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-vd-sort.elc
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-vd.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey-vd.elc
+${EMACS_LISPPREFIX}/mldonkey/mldonkey.el
+${EMACS_LISPPREFIX}/mldonkey/mldonkey.elc
+${EMACS_LISPPREFIX}/mldonkey/sample-config.el

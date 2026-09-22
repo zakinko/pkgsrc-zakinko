@@ -28,7 +28,7 @@ What every package has in common:
 - data next to the lisp (icons, banners, emoji tables, directive lists)
   is installed next to it, where `load-file-name` relative code expects it
 
-## Built and installed (389)
+## Built and installed (408)
 
 | package | version | source | notes |
 |---|---|---|---|
@@ -55,6 +55,7 @@ What every package has in common:
 | devel/async-el | 1.9.9 | GitHub |  |
 | editors/atomic-chrome-el | 2.0.0 | GitHub | save binding C-c C-s, upstream commit ae2a6158 via Debian; exercised: C-c C-s is atomic-chrome-send-buffer-text; needs websocket |
 | editors/auto-complete-el | 1.5.1 | GitHub | needs popup |
+| devel/autoconf-mode | 2.72 | url | autoconf-mode.el and autotest-mode.el from the autoconf 2.72 tarball (devel/autoconf does not install them) |
 | devel/autocrypt-el | 0.4.2pre20260126 | Codeberg |  |
 | editors/autothemer-el | 0.2.18 | GitHub | needs dash |
 | editors/avy-el | 0.5.0 | GitHub |  |
@@ -109,6 +110,7 @@ What every package has in common:
 | devel/css-sort-buffer-el | 0.2 | dev.gentoo.org |  |
 | devel/csv-mode | 1.27 | GNU ELPA |  |
 | devel/ctable-el | 0.1.3 | GitHub |  |
+| devel/cycle-buffer-el | 2.16 | url | the copy Gentoo's ebuild points at (github.com/gavv/distfiles); upstream is gone |
 | devel/d-mode | 2.0.12 | GitHub |  |
 | editors/dape-el | 0.27.1 | GitHub |  |
 | editors/dashboard-el | 1.8.0 | GitHub | banners/ installed next to dashboard.el |
@@ -117,6 +119,7 @@ What every package has in common:
 | devel/demap-el | 1.4.0 | GitLab |  |
 | devel/denote-el | 4.2.3 | GitHub |  |
 | devel/desktop+-el | 0.2 | GitHub | needs dash, f |
+| devel/desktop-entry-mode | 0.28 | url | misc/desktop-entry-mode.el from desktop-file-utils 0.28 |
 | editors/develock-el | 0.47 | jpl.org |  |
 | devel/devil-el | 0.6.0 | GitHub |  |
 | devel/df-mode | 20050509 | Gentoo mirror |  |
@@ -133,6 +136,7 @@ What every package has in common:
 | devel/dropdown-list-el | 20120329 | dev.gentoo.org | selection face inherits dropdown-list-face, not the group (Gentoo) |
 | devel/dts-mode | 1.0 | GNU ELPA |  |
 | devel/dune-format-el | 0.1 | GitHub | needs reformatter |
+| devel/dwarf-mode | 2.40 | url | binutils/dwarf-mode.el from binutils 2.40 |
 | devel/earthfile-mode | 0.1.0.20230810 | GitHub |  |
 | devel/ebib-el | 2.51.1 | GitHub | needs compat, parsebib |
 | devel/ecukes-el | 0.6.18 | GitHub | needs ansi, commander, dash, espuds, f, s |
@@ -159,7 +163,9 @@ What every package has in common:
 | editors/emacs-eat-el | 0.9.4 | Codeberg | needs compat |
 | devel/emacs-el-fetch-el | 3.3.0 | GitLab |  |
 | devel/emacs-ipython-notebook-el | 0.17.1pre20251212 | GitHub | needs anaphora, dash, deferred, polymode, request, websocket, with-editor |
+| devel/emacs-secil-mode | 1.2 | url | salsa.debian.org tarball |
 | devel/emacs-websearch-el | 2.1.0 | GitLab |  |
+| devel/emacs-wget-el | 0.5.0 | Gentoo mirror | upstream (infoseek) is gone; Gentoo's distfiles mirror; lpath.el (a build helper) not installed |
 | devel/emacs-wttrin-el | 0.3.2 | GitHub | needs xterm-color |
 | devel/emacsql-el | 4.4.1 | GitHub |  |
 | devel/embark-el | 1.2 | GitHub | needs compat |
@@ -263,16 +269,21 @@ What every package has in common:
 | devel/mediawiki-el | 2.3.1 | GitHub |  |
 | devel/meson-mode | 0.4 | GitHub |  |
 | devel/metamath-mode | 0.20221005 | GitHub |  |
+| devel/mldonkey-el | 0.0.4b | Gentoo mirror | upstream (fu-berlin.de) is gone; Gentoo's distfiles mirror and its two patches (the second fixes a lambda list with two &optional, which the byte-compiler rejects) |
 | devel/mmm-mode | 0.5.11 | GitHub |  |
 | devel/moccur-edit-el | 2.16 | dev.gentoo.org | needs color-moccur |
 | devel/mocker-el | 0.5.0 | GitHub |  |
 | devel/modus-themes | 5.3.0 | GitHub |  |
 | devel/mpg123-el-el | 1.65 | dev.gentoo.org |  |
+| devel/mu-cite-el | 8.1.202011031127 | url | jpl.org snapshot 2020-11-03 (Gentoo's 8.1_p...); needs apel, flim, bbdb; needs apel, bbdb, flim |
 | devel/multi-term-el | 1.4 | dev.gentoo.org |  |
 | devel/multiple-cursors-el | 1.5.0 | GitHub |  |
+| devel/nagios-mode | 0.4 | url | 0.4 from orlitzky.com |
+| devel/navi2ch-el | 1.8.4 | url | SourceForge; the *.el compile without its configure |
 | devel/nerd-icons-el | 0.1.0 | GitHub | data/*.el compiled and installed under data/, where nerd-icons-data requires them |
 | devel/nginx-mode | 1.1.10 | GitHub |  |
 | devel/nim-mode | 0.4.2.20231101 | GitHub | needs commenter, epc |
+| devel/ninja-mode | 1.12.1 | GitHub | misc/ninja-mode.el from the ninja 1.12.1 tarball |
 | devel/nix-mode | 1.5.0 | GitHub | needs company-mode, magit, mmm-mode, transient |
 | editors/no-littering-el | 1.9.1 | GitHub | needs compat |
 | devel/noflet-el | 0.0.15.20141102 | GitHub | needs dash |
@@ -340,9 +351,13 @@ What every package has in common:
 | editors/rust-mode | 1.0.6 | GitHub |  |
 | devel/s-el | 1.13.1 | GitHub |  |
 | devel/scad-mode | 99.0 | GitHub | needs compat |
+| devel/scala-mode | 2.10.7 | url | scala-tool-support 2.10.7 from scala-lang.org, the scala-emacs-mode/ subtree |
+| devel/scala-ts-mode | 1.0.0.20250418 | GitHub | GitHub commit Gentoo pins |
+| devel/scheme-complete-el | 0.9.9 | url | single .el.gz from synthcode.com |
 | devel/scss-mode | 0.5.0.20180123 | GitHub |  |
 | devel/servant-el | 0.3.0 | GitHub | needs ansi, commander, dash, epl, f, s, shut-up, web-server |
 | devel/sesman-el | 0.3.4 | GitHub |  |
+| editors/session-el | 2.4b | url | SourceForge; a flat tarball (WRKSRC=${WRKDIR}) |
 | devel/setnu-el | 1.06 | Gentoo mirror |  |
 | devel/setup-el | 1.5.0 | dev.gentoo.org |  |
 | devel/sharper-el | 1.0.20230129 | GitHub | needs transient |
@@ -360,6 +375,7 @@ What every package has in common:
 | devel/ssh-el | 20120709 | dev.gentoo.org |  |
 | devel/string-inflection-el | 1.0.16 | GitHub |  |
 | devel/stripes-el | 0.3.1.1 | GitLab |  |
+| devel/sumibi-el | 0.7.4 | url | 0.7.4 from OSDN, client/elisp; the server side is a separate program |
 | devel/sunrise-commander-el | 6.20210927 | GitHub |  |
 | devel/svg-lib-el | 0.3 | dev.gentoo.org |  |
 | devel/swift-mode | 10.0.0 | GitHub |  |
@@ -371,6 +387,7 @@ What every package has in common:
 | devel/teco-el | 7 | dev.gentoo.org | Gentoo's three patches in Gentoo's order: display-table for ESC in the command minibuffer, interactive-p/last-command-char, old backquotes |
 | devel/telega-el | 0.8.660.20260806 | GitHub | needs all-the-icons, company-mode, dashboard, transient, visual-fill-column |
 | devel/tempel-el | 1.14 | GitHub | needs compat |
+| devel/template-el | 3.3b | url | SourceForge; a flat tarball |
 | devel/tempo-snippets-el | 0.1.5 | dev.gentoo.org |  |
 | devel/thinks-el | 1.13 | GitHub |  |
 | devel/timu-caribbean-theme-el | 1.5 | GitLab |  |
@@ -392,6 +409,7 @@ What every package has in common:
 | devel/uptimes-el | 3.8 | GitHub |  |
 | devel/uxntal-mode | 0.3 | GitHub |  |
 | devel/vertico-el | 2.14 | GitHub | needs compat |
+| devel/vhdl-mode | 3.39.3 | url | 3.39.3 from ETH; its site-start.el (an installation hook) is not installed, it would shadow the real one |
 | devel/visual-basic-mode | 1.5 | dev.gentoo.org |  |
 | devel/visual-fill-column-el | 2.7.1 | Codeberg |  |
 | editors/volume-el | 1.0 | GitHub |  |
@@ -420,6 +438,7 @@ What every package has in common:
 | editors/yaml-mode | 0.0.16 | GitHub |  |
 | devel/yasnippet-el | 0.14.3.20250604 | GitHub |  |
 | devel/yasnippet-snippets-el | 1.1 | GitHub | needs yasnippet |
+| devel/yatex-el | 1.84 | url | 1.84 from yatex.org. Two fixes: yatexlib's XEmacs colour probe tested device-class, which Emacs 30 now has (frame.el) without selected-device, so the library died without a display; yahtml-define-instag-key passed a void env and a fourth argument its callee did not take (both as in upstream git 2026). yatex19.el/yatex23.el refuse batch compilation and stay source. Exercised: yatex-mode and yahtml-mode set up in a buffer |
 | editors/zenburn-el | 20110907 | GitHub | needs color-theme |
 | devel/zenburn-theme-el | 2.11.0 | NonGNU ELPA | NonGNU ELPA; the theme file is no-byte-compile |
 
@@ -434,35 +453,25 @@ These are left out of the branch.
   never appeared); the elisp itself was not reached
 - editors/rg-el: needs textproc/ripgrep, which needs lang/rust; not built here
 
-## Skipped before building (52)
+## Skipped before building (33)
 
-The `src:` lines are sources the generator does not handle (SourceForge,
-plain http, mirror://gnu, a project's own tarball inside a larger one);
-those packages are the ones still to be done by hand.
-
-- autoconf-mode: src: mirror://gnu/autoconf/autoconf-2.72.tar.xz
 - bison-mode: dev.gentoo.org/~nicolasbock/bison-mode-0.3.tar.bz2 is gone (404)
 - cask: a package.el-driven CLI tool; cask-cli needs the ELPA packages at compile time
-- company-ebuild: src: https://gitweb.gentoo.org/proj/company-ebuild.git/snapshot/company-ebuild-0.1.4.tar.gz
-- cycle-buffer: src: https://github.com/gavv/distfiles/raw/master/cycle-buffer-2.16.el.xz
+- company-ebuild: Gentoo-specific
 - dap-mode: needs lsp-mode
-- desktop-entry-mode: src: https://www.freedesktop.org/software/desktop-file-utils/releases/desktop-file-utils-0.28.t
-- doctest-mode: src: http://python-mode.svn.sourceforge.net/viewvc/*checkout*/python-mode/trunk/python-mode/doc
-- dwarf-mode: src: mirror://gnu/binutils/binutils-2.40.tar.xz
-- ebuild-mode: src: https://distfiles.gentoo.org/pub/proj/emacs/ebuild-mode-1.85.tar.xz
+- doctest-mode: a single file checked out of a SourceForge svn viewer that no longer exists
+- ebuild-mode: Gentoo-specific
 - ebuild-run-mode: the mode is tangled out of an org file with umake; nothing to byte-compile as shipped
-- edb: src: https://www.gnuvola.org/software/edb/edb-1.34.tar.gz
+- edb: built by its own configure/make, which generates edbcore.el; gnuvola.org is behind a cookie check besides
 - emacs-ccls: needs lsp-mode
 - emacs-common: Gentoo-specific helper (circular with emacs-daemon)
 - emacs-daemon: Gentoo-specific helper
-- emacs-ebuild-snippets: src: https://gitweb.gentoo.org/proj/emacs-ebuild-snippets.git/snapshot/emacs-ebuild-snippets-2.
-- emacs-eix: src: https://gitweb.gentoo.org/proj/emacs-eix.git/snapshot/emacs-eix-0.0.0.tar.gz
-- emacs-openrc: src: https://gitweb.gentoo.org/proj/emacs-openrc.git/snapshot/emacs-openrc-1.0.0.tar.gz
-- emacs-secil-mode: src: https://salsa.debian.org/dgrift/emacs-secil-mode/-/archive/1.2/emacs-secil-mode-1.2.tar.bz
-- emacs-wget: src: http://pop-club.hp.infoseek.co.jp/emacs/emacs-wget/emacs-wget-0.5.0.tar.gz
+- emacs-ebuild-snippets: Gentoo-specific
+- emacs-eix: Gentoo-specific
+- emacs-openrc: Gentoo-specific
 - emms: needs threads (make-mutex, reached from emms-setup); emacs30-nox11 is --without-all
 - eselect-mode: mode for Gentoo's eselect, shipped inside eselect
-- exheres-mode: src: https://dev.exherbo.org/distfiles/exheres-mode/exheres-mode-1.10.tar.xz
+- exheres-mode: dev.exherbo.org answers 403; Exherbo-specific
 - external-completion: bundled with Emacs since 29, the oldest version accepted here, at the same 0.1
 - keymap-popup: upstream account gone from codeberg (user redirect does not exist)
 - lsp-docker: needs lsp-mode
@@ -471,26 +480,11 @@ those packages are the ones still to be done by hand.
 - lsp-treemacs: needs lsp-mode
 - lsp-ui: needs lsp-mode
 - lyskom-elisp-client: built by its own Makefile into one lyskom.elc; src/ also carries copies of custom.el and cus-edit.el that would shadow the bundled ones
-- mldonkey: src: http://www.physik.fu-berlin.de/%7Edhansen/mldonkey/files/mldonkey-el-0.0.4b.tar.gz
-- mu-cite: src: https://www.jpl.org/elips/mu/snapshots/mu-cite-${PV#*_p}.tar.gz
-- nagios-mode: src: https://michael.orlitzky.com/code/releases/nagios-mode-0.4.tar.xz
-- navi2ch: src: https://downloads.sourceforge.net/navi2ch/navi2ch-1.8.4.tar.gz
-- ninja-mode: src: https://github.com/ninja-build/${PN/-mode}/archive/v1.12.1.tar.gz
-		-> ${P/-mode}.tar.gz
-- nxml-docbook5-schemas: src: https://docbook.org/xml/5.1/rng/docbookxi.rnc -> docbookxi-5.1.rnc
-- nxml-gentoo-schemas: src: https://distfiles.gentoo.org/pub/proj/emacs/nxml-gentoo-schemas-20260901.tar.xz
-- nxml-libvirt-schemas: src: https://download.libvirt.org/libvirt-12.6.0.tar.xz
-- nxml-svg-schemas: src: https://www.flameeyes.com/gentoo-distfiles/w3c-svg-rng-1.1.20081123.zip
-- pariemacs: src: http://iml.univ-mrs.fr/~ramare/ServeurPerso/GP-PARI/latest-pari-distrib/pariemacs-3.14.tar
+- nxml-docbook5-schemas: schema files that belong with the DocBook packages
+- nxml-gentoo-schemas: Gentoo-specific
+- nxml-libvirt-schemas: schema files out of the libvirt tarball; they belong with sysutils/libvirt
+- nxml-svg-schemas: a W3C schema zip; not elisp
+- pariemacs: needs PARI/GP installed and its Makefile to generate pari-conf.el; upstream site is gone
 - pymacs: needs python to build and run (setup.py); outside an elisp-only set
-- scala-mode: src: https://www.scala-lang.org/files/archive/scala-tool-support-2.10.7.tgz
-- scala-ts-mode: src: 
-	https://codeload.github.com/KaranAhlawat/scala-ts-mode/tar.gz/c7671e10419261ef70b1820d3b
-- scheme-complete: src: http://synthcode.com/emacs/scheme-complete-0.9.9.el.gz
-- scim-bridge-el: src: https://launchpad.net/${PN/-el/.el}/$(ver_cut/0.8.2/+download/scim-bridge-el-0.8.2.tar.gz
-- session: src: https://downloads.sourceforge.net/emacs-session/session-2.4b.tar.gz
-- sumibi: src: mirror://sourceforge.jp/sumibi/26504/sumibi-0.7.4.tar.gz
-- template: src: https://downloads.sourceforge.net/emacs-template/template-3.3b.tar.gz
-- vhdl-mode: src: https://iis-people.ee.ethz.ch/~zimmi/emacs/vhdl-mode-3.39.3.tar.gz
+- scim-bridge-el: needs SCIM, which pkgsrc does not have
 - vterm: a C module built with cmake against libvterm, not an elisp-only package
-- yatex: src: http://www.yatex.org/${P/-}.tar.gz

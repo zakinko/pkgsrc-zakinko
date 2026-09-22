@@ -1,0 +1,3 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/dwarf-mode/dwarf-mode.el
+${EMACS_LISPPREFIX}/dwarf-mode/dwarf-mode.elc

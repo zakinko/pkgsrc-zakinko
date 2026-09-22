@@ -1,0 +1,5 @@
+$NetBSD$
+
+BLAKE2s (session-2.4b.tar.gz) = 39da4bfd321f84ad88fe94db346985f759ff3dddd284fec2d8cc27b19667531a
+SHA512 (session-2.4b.tar.gz) = 2474c063b07463c09d621d095c46f87256799046a0b5a4e8dba49382e9d7da74579dce725d376b8c32fd0935a519088ec5a401d6ea8062c3fead4e53efa7c5ed
+Size (session-2.4b.tar.gz) = 21227 bytes

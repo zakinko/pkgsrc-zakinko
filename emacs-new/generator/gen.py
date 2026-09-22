@@ -118,6 +118,34 @@ OVR={
  'cider': dict(subdir='lisp',notests=True), # icicles-cmd1.el calls hexrgb at top level, so hexrgb has to be there at compile time
  'icicles': dict(deps=['hexrgb']),
  'queue': dict(src='elpa',elpaname='queue-0.2'),
+ # the 32 whose SRC_URI the parser did not follow, done by hand; Gentoo's
+ # distfiles mirror is the second MASTER_SITE, since several upstreams are gone
+ 'autoconf-mode': dict(src='url',site='${MASTER_SITE_GNU:=autoconf/}',file='autoconf-2.72.tar.xz',subdir='lib/emacs',comment='autoconf-mode.el and autotest-mode.el from the autoconf tarball; devel/autoconf does not install them'),
+ 'cycle-buffer': dict(src='url',site='https://github.com/gavv/distfiles/raw/master/',file='cycle-buffer-2.16.el.xz',comment="upstream is gone; this is the copy Gentoo's ebuild points at"),
+ 'desktop-entry-mode': dict(src='url',site='https://www.freedesktop.org/software/desktop-file-utils/releases/',file='desktop-file-utils-0.28.tar.xz',subdir='misc',compile='desktop-entry-mode.el',install='desktop-entry-mode.el',comment='misc/desktop-entry-mode.el from desktop-file-utils; sysutils/desktop-file-utils does not install it'),
+ 'dwarf-mode': dict(src='url',site='${MASTER_SITE_GNU:=binutils/}',file='binutils-2.40.tar.xz',subdir='binutils',compile='dwarf-mode.el',install='dwarf-mode.el',comment='binutils/dwarf-mode.el from the binutils tarball'),
+ 'edb': dict(skip='built by its own configure/make, which generates edbcore.el; gnuvola.org is behind a cookie check besides'),
+ 'emacs-wget': dict(src='gentoo',file='emacs-wget-0.5.0.tar.gz',rmfiles='lpath.el',comment='upstream (pop-club.hp.infoseek.co.jp) is gone'),
+ 'mldonkey': dict(src='gentoo',file='mldonkey-el-0.0.4b.tar.gz',compile='ml*.el',comment='upstream (fu-berlin.de) is gone'),
+ 'mu-cite': dict(src='url',site='https://www.jpl.org/elips/mu/snapshots/',file='mu-cite-202011031127.tar.gz',ver='8.1.202011031127'),
+ 'nagios-mode': dict(src='url',site='https://michael.orlitzky.com/code/releases/',file='nagios-mode-0.4.tar.xz'),
+ 'navi2ch': dict(src='url',site='${MASTER_SITE_SOURCEFORGE:=navi2ch/}',file='navi2ch-1.8.4.tar.gz'),
+ 'ninja-mode': dict(src='github',owner='ninja-build',repo='ninja',tag='v1.12.1',wrksrc='',subdir='misc',compile='ninja-mode.el',install='ninja-mode.el'),
+ 'pariemacs': dict(skip='needs PARI/GP installed and its Makefile to generate pari-conf.el; upstream site is gone'),
+ 'scala-mode': dict(src='url',site='https://www.scala-lang.org/files/archive/',file='scala-tool-support-2.10.7.tgz',subdir='scala-emacs-mode'),
+ 'scala-ts-mode': dict(src='github',owner='KaranAhlawat',repo='scala-ts-mode',tag='c7671e10419261ef70b1820d3b970ad39f6fcfe2',ver='1.0.0.20250418',wrksrc=''),
+ 'scheme-complete': dict(src='url',site='http://synthcode.com/emacs/',file='scheme-complete-0.9.9.el.gz'),
+ 'session': dict(src='url',site='${MASTER_SITE_SOURCEFORGE:=emacs-session/}',file='session-2.4b.tar.gz',top=''),
+ 'template': dict(src='url',site='${MASTER_SITE_SOURCEFORGE:=emacs-template/}',file='template-3.3b.tar.gz',top=''),
+ 'vhdl-mode': dict(src='url',site='https://iis-people.ee.ethz.ch/~zimmi/emacs/',file='vhdl-mode-3.39.3.tar.gz',rmfiles='site-start.el'),
+ 'yatex': dict(src='url',site='http://www.yatex.org/',file='yatex1.84.tar.gz',ver='1.84',preload='yatex',compile='$$(ls *.el | grep -v "^yatex19.el$$" | grep -v "^yatex23.el$$")',note='# yahtml.el reads yatex variables at compile time, so yatex is loaded first;\n# yatex19.el and yatex23.el (menus for windowed Emacs 19/23) refuse to\n# compile in batch and stay source'),
+ 'emacs-secil-mode': dict(src='url',site='https://salsa.debian.org/dgrift/emacs-secil-mode/-/archive/1.2/',file='emacs-secil-mode-1.2.tar.bz2'),
+ 'sumibi': dict(src='url',site='${MASTER_SITE_OSDN:=sumibi/26504/}',file='sumibi-0.7.4.tar.gz',subdir='client/elisp'),
+ 'doctest-mode': dict(skip='a single file checked out of a SourceForge svn viewer that no longer exists'),
+ 'exheres-mode': dict(skip='dev.exherbo.org answers 403; Exherbo-specific'),
+ 'ebuild-mode': dict(skip='Gentoo-specific'), 'company-ebuild': dict(skip='Gentoo-specific'), 'emacs-ebuild-snippets': dict(skip='Gentoo-specific'), 'emacs-eix': dict(skip='Gentoo-specific'), 'emacs-openrc': dict(skip='Gentoo-specific'), 'nxml-gentoo-schemas': dict(skip='Gentoo-specific'),
+ 'nxml-docbook5-schemas': dict(skip='schema files that belong with the DocBook packages'), 'nxml-libvirt-schemas': dict(skip='schema files out of the libvirt tarball; they belong with sysutils/libvirt'), 'nxml-svg-schemas': dict(skip='a W3C schema zip; not elisp'),
+ 'scim-bridge-el': dict(skip='needs SCIM, which pkgsrc does not have'),
  'external-completion': dict(skip='bundled with Emacs since 29, the oldest version accepted here, at the same 0.1'),
  # the tarball is use-package's; only bind-chord.el is this package (use-package
  # itself is in Emacs 29)
@@ -166,6 +194,8 @@ PATCHES={
  'dropdown-list':[(PG+'/gentoo-gen/dropdown-list--dropdown-list-20090814-selection-face.patch','The selection face inherits from dropdown-list-face, the face the file\ndefines; dropdown-list is the group, not a face.  From Gentoo.')],
  'erobot':[(PG+'/gentoo-gen/erobot--erobot-2.1.0-fix-interactive.patch','The interactive spec began with "i\\n\\n", which hands two ignored\narguments to a function that takes two; the candidates were never read.\nFrom Gentoo.')],
  'icicles':[(PG+'/gentoo-gen/icicles--icicles-2018.10.15.23738-emacs-28.patch','make-obsolete requires its WHEN argument since Emacs 29; icicles-fn.el\nfails to load without it.  From Gentoo.')],
+ 'yatex':[(PG+'/own/yatex-1.84-instag-key.diff','yahtml-define-instag-key passed env, a variable it does not have, for\nits argument tag, and a fourth argument that\nyahtml-define-begend-region-key did not take; with the default\nYaTeX-inhibit-prefix-letter nil, loading yahtml.el stopped at the first.\nBoth as fixed in upstream git (hiroseyuuji/yatex master, 2026).'),(PG+'/own/yatex-1.84-device-class.diff','The XEmacs colour probe tested only for device-class; Emacs 30 has a\ndevice-class of its own (frame.el) but no selected-device, so loading\nyatexlib.el without a display died with a void selected-device.')],
+ 'mldonkey':[(PG+'/gentoo-gen/mldonkey--mldonkey-0.0.4b-vd.patch','Options to show release status and comment count in the vd listing;\nthe Emacs 26 fix below carries this context.  From Gentoo.'),(PG+'/gentoo-gen/mldonkey--mldonkey-0.0.4b-emacs-26.patch','A lambda list with two &optional markers, which the byte-compiler\nrejects since Emacs 26.  From Gentoo.')],
  'regress':[(PG+'/gentoo-gen/regress--1.5.1-regress.el-gentoo.patch','The loop macro comes from cl, which the file never loads; without it\nbyte-compilation stops at "for" being an unbound variable.  From Gentoo.')],
  'remember':[(PG+'/gentoo-gen/remember--remember-2.0-emacs-28.patch','define-obsolete-function-alias requires its WHEN argument since Emacs 29.\nFrom Gentoo.')],
  'rnc-mode':[(PG+'/gentoo-gen/rnc-mode--rnc-mode-1.0.6-flymake.patch','Emacs 26 moved the legacy flymake backend to flymake-proc-*; the old\nnames are gone, so the flymake integration errored out.  From Gentoo.')],
@@ -204,6 +234,7 @@ for n,r in recs.items():
         # GitHub names the archive's top directory <repo>-<tag>, with a leading v dropped and / turned into -
         top=f"{r['repo']}-{r['tag'].lstrip('v').replace('/','-')}"
         if r.get('subdir'): L.append(f"WRKSRC=\t\t${{WRKDIR}}/{top}/{r['subdir']}")
+        elif r.get('wrksrc')=='' and top!=f"{n}-{r['ver']}": pass
         elif top!=f"{n}-{r['ver']}": L.append(f"WRKSRC=\t\t${{WRKDIR}}/{top}")
     elif r['src']=='nongnu':
         L+=[f"DISTNAME=\t{r['elpaname']}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}","MASTER_SITES=\thttps://elpa.nongnu.org/nongnu/","EXTRACT_SUFX=\t.tar"]
@@ -218,7 +249,9 @@ for n,r in recs.items():
         L+=[f"DISTNAME=\t{r['repo']}-{t}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}",f"MASTER_SITES=\thttps://git.sr.ht/~{r['owner']}/{r['repo']}/archive/",f"DISTFILES=\t{tagexpr}${{EXTRACT_SUFX}}",f"DIST_SUBDIR=\t${{DISTNAME}}"]
     elif r['src']=='gentoo':
         f=r['file']; base=re.sub(r'\.(tar\.(gz|bz2|xz)|el\.(gz|bz2)|tgz)$','',f); sfx=f[len(base):]
-        L+=[f"DISTNAME=\t{base}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}",f"MASTER_SITES=\thttps://distfiles.gentoo.org/distfiles/{r['hash2']}/",f"EXTRACT_SUFX=\t{sfx}","# an old library that Gentoo keeps on its own mirror; upstream is gone"]
+        if 'hash2' not in r: import hashlib; r['hash2']=hashlib.blake2b(f.encode()).hexdigest()[:2]
+        L+=[f"DISTNAME=\t{base}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}",f"MASTER_SITES=\thttps://distfiles.gentoo.org/distfiles/{r['hash2']}/",f"EXTRACT_SUFX=\t{sfx}","# "+r.get('comment',"an old library that Gentoo keeps on its own mirror; upstream is gone")]
+        if r.get('top')=='': L.append("WRKSRC=\t\t${WRKDIR}")
         if sfx.startswith('.el'):
             tool={'.el.xz':'xz','.el.bz2':'bzip2','.el.gz':'gzip'}[sfx]
             L+=["WRKSRC=\t\t${WRKDIR}",f"USE_TOOLS+=\t{tool}"]; r['extract']=["# a single compressed file; pkgsrc's extract would leave it as "+base+".el","do-extract:",f"\t{tool} -dc ${{DISTDIR}}/${{DISTFILES}} > ${{WRKSRC}}/{n}.el",""]
@@ -228,12 +261,22 @@ for n,r in recs.items():
         if sfx.startswith('.el'):
             tool={'.el.xz':'xz','.el.bz2':'bzip2','.el.gz':'gzip'}[sfx]
             L+=["WRKSRC=\t\t${WRKDIR}",f"USE_TOOLS+=\t{tool}"]; r['extract']=["# a single compressed file, which pkgsrc's extract does not unpack","do-extract:",f"\t{tool} -dc ${{DISTDIR}}/${{DISTFILES}} > ${{WRKSRC}}/{n}.el",""]
+    elif r['src']=='url':
+        f=r['file']; base=re.sub(r'\.(tar\.(gz|bz2|xz)|el\.(gz|bz2|xz)|tgz|tar)$','',f); sfx=f[len(base):]
+        import hashlib; h=hashlib.blake2b(f.encode()).hexdigest()[:2]
+        L+=[f"DISTNAME=\t{base}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}",f"MASTER_SITES=\t{r['site']}",f"MASTER_SITES+=\thttps://distfiles.gentoo.org/distfiles/{h}/",f"EXTRACT_SUFX=\t{sfx}"]
+        if r.get('comment'): L.append('# '+r['comment'])
+        if sfx.startswith('.el'):
+            tool={'.el.xz':'xz','.el.bz2':'bzip2','.el.gz':'gzip'}[sfx]
+            L+=["WRKSRC=\t\t${WRKDIR}",f"USE_TOOLS+=\t{tool}"]; r['extract']=["# a single compressed file, which pkgsrc's extract does not unpack","do-extract:",f"\t{tool} -dc ${{DISTDIR}}/${{DISTFILES}} > ${{WRKSRC}}/{n}.el",""]
+        elif r.get('top')=='' : L.append("WRKSRC=\t\t${WRKDIR}"+(f"/{r['subdir']}" if r.get('subdir') else ''))
     elif r['src']=='jpl':
         L+=[f"DISTNAME=\t{n}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}","MASTER_SITES=\thttps://www.jpl.org/ftp/pub/elisp/",f"DIST_SUBDIR=\t{n}-{r['ver']}","EXTRACT_SUFX=\t.el.gz","WRKSRC=\t\t${WRKDIR}"]
     else:
         L+=[f"DISTNAME=\t{r['elpaname']}",f"PKGNAME=\t${{EMACS_PKGNAME_PREFIX}}{r['pkg']}-{r['ver']}",f"CATEGORIES=\t{r['cat']}","MASTER_SITES=\thttps://elpa.gnu.org/packages/","EXTRACT_SUFX=\t.tar"]
     if not any(x.startswith('WRKSRC=') for x in L):
         top=r.get('top'); sub=r.get('subdir')
+        if top=='': top=None
         if r['src']=='codeberg': pass
         elif top or sub: L.append("WRKSRC=\t\t${WRKDIR}/"+'/'.join(x for x in [top or '${DISTNAME}',sub] if x))
     elif r.get('subdir') and r['src'] in ('codeberg',):
