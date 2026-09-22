@@ -494,35 +494,34 @@ PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS
 # Dependencies and conflicts
 #
 
-# One binary package serves both builds of an Emacs, so the dependency is
-# written so that either satisfies it.  The nox package is <name>-nox11
-# for both flavours, so the pair comes out of the one version.mk we read.
+# One binary package serves both builds of an Emacs, so _EMACS_REQD is
+# widened here to name either.  The nox package is <name>-nox11 for both
+# flavours, so the pair comes out of the one version.mk that set it, and
+# every reader -- the DEPENDS below and the BUILDLINK_API_DEPENDS line in
+# each Emacs's buildlink3.mk -- gets the wider value without being told.
 #
-# A package that genuinely needs one of the two -- cad/dinotrace-mode
-# says it wants athena widgets -- refuses the other in
-# EMACS_VERSIONS_INCOMPATIBLE.  Then there is nothing to be tolerant
-# about and the dependency names the build it was made for, so that a
+# A package whose dependency is already satisfied by the nox11 build must
+# not be told to build the X11 one: on a small i386 box that means building
+# a compiler for an Emacs that is already there.
+#
+# A package that genuinely needs one of the two -- cad/dinotrace-mode says
+# it wants athena widgets -- refuses the other in
+# EMACS_VERSIONS_INCOMPATIBLE.  Then there is nothing to be tolerant about
+# and _EMACS_REQD is left naming the build the package was made for, so a
 # binary package cannot be installed against an Emacs that cannot run it.
-_EMACS_REQD_NAME=	${_EMACS_REQD:C/[<>=].*//}
-_EMACS_REQD_BOUND=	${_EMACS_REQD:C/^[^<>=]*//}
 .if !empty(_EMACS_TYPE:M*nox)
 _EMACS_TYPE_OTHER=	${_EMACS_TYPE:C/nox$//}
-_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME:C/-nox11$//}
+_EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//:C/-nox11$//}
 .else
 _EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
-_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME}-nox11
+_EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
 .endif
 
 .if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
-# Accept either twin.  A package whose dependency is already satisfied by
-# the nox11 build must not be told to build the X11 one -- on a small i386
-# box that means building a compiler for an Emacs that is already there.
-_EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
-.else
-_EMACS_REQD_ANY=	${_EMACS_REQD}
+_EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
 .endif
 
-DEPENDS+=	${_EMACS_REQD_ANY}:${_EMACS_PKGDIR}
+DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
 
 EMACS_MODULES?=
 .for _mod_ in ${EMACS_MODULES}

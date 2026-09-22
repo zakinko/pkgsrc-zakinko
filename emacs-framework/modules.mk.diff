@@ -1,5 +1,5 @@
---- modules.mk.orig	2026-09-23 02:07:40
-+++ modules.mk	2026-09-23 02:07:40
+--- modules.mk.orig	2026-09-22 20:01:40.033724291 +0000
++++ modules.mk	2026-09-22 20:01:40.035289853 +0000
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
@@ -17,6 +17,12 @@
  #	EMACS_VERSIONS_ACCEPTED
  #		Description:
  #			Versions the ELP accepts (supports).
+-#		Possible values:
+-#			emacs31 emacs31nox
+-#			emacs30 emacs30nox
+-#			emacs29 emacs29nox
+-#			emacs20 xemacs215 xemacs215nox
+-#			xemacs214 xemacs214nox
 +#
 +#			Naming emacs30 accepts emacs30nox as well: they are
 +#			one Emacs built two ways, and no package in the tree
@@ -24,12 +30,7 @@
 +#			both halves if you like; it makes no difference.  A
 +#			package that really does need one of them says so in
 +#			EMACS_VERSIONS_INCOMPATIBLE.
- #		Possible values:
--#			emacs31 emacs31nox
--#			emacs30 emacs30nox
--#			emacs29 emacs29nox
--#			emacs20 xemacs215 xemacs215nox
--#			xemacs214 xemacs214nox
++#		Possible values:
 +#			emacs31 emacs30 emacs29 emacs20
 +#			xemacs215 xemacs214
 +#			(each also accepting its nox build; append nox to
@@ -52,6 +53,8 @@
  #		Description:
  #			The prefix of PKGNAME and DEPENDS lines.  All ELPs
  #			must honour this!
+-#		Possible values:
+-#			"", "xemacs-"
 +#
 +#			It carries the version, not the flavour, so that one
 +#			bulk build can make the same package for every Emacs
@@ -62,8 +65,7 @@
 +#			serves either.  A package that refuses one of the two
 +#			(EMACS_VERSIONS_INCOMPATIBLE) is a different thing and
 +#			gets the longer name.
- #		Possible values:
--#			"", "xemacs-"
++#		Possible values:
 +#			"emacs20-", "emacs29-", "emacs30-", "emacs31-",
 +#			"xemacs214-", "xemacs215-"
 +#			and, for a package that takes only the nox build,
@@ -133,7 +135,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,24 +338,192 @@
+@@ -276,22 +338,189 @@
  #		abort;
  #
  
@@ -216,8 +218,8 @@
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
 +.else
 +_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
- .endif
- 
++.endif
++
 +# When pkgsrc resolves a dependency it passes the pattern it is looking
 +# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
 +# part of the name, that pattern says which Emacs the package asking for
@@ -269,8 +271,8 @@
 +PKG_FAIL_REASON+=	"No Emacs that pkgsrc still has is accepted here"
 +PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
 +PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
-+.endif
-+
+ .endif
+ 
  _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
  
  .include "${_EMACS_PKGDIR}/version.mk"
@@ -282,7 +284,7 @@
 +# lang/bigloo, whose Emacs support is an option -- has one info file
 +# and keeps it where the user's PKGINFODIR says.  The test is deferred
 +# (= not :=) because PKGNAME is not known here.
- #
++#
 +# Unlike the lisp, Emacs does not find info under its version directory
 +# by itself: Info-default-directory-list is built from the Emacs's own
 +# --infodir at configure time, and the only runtime lever is INFOPATH.
@@ -294,45 +296,41 @@
 +PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
 +.endif
 +
-+#
+ #
  # Dependencies and conflicts
  #
  
--DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
-+# One binary package serves both builds of an Emacs, so the dependency is
-+# written so that either satisfies it.  The nox package is <name>-nox11
-+# for both flavours, so the pair comes out of the one version.mk we read.
++# One binary package serves both builds of an Emacs, so _EMACS_REQD is
++# widened here to name either.  The nox package is <name>-nox11 for both
++# flavours, so the pair comes out of the one version.mk that set it, and
++# every reader -- the DEPENDS below and the BUILDLINK_API_DEPENDS line in
++# each Emacs's buildlink3.mk -- gets the wider value without being told.
 +#
-+# A package that genuinely needs one of the two -- cad/dinotrace-mode
-+# says it wants athena widgets -- refuses the other in
-+# EMACS_VERSIONS_INCOMPATIBLE.  Then there is nothing to be tolerant
-+# about and the dependency names the build it was made for, so that a
++# A package whose dependency is already satisfied by the nox11 build must
++# not be told to build the X11 one: on a small i386 box that means building
++# a compiler for an Emacs that is already there.
++#
++# A package that genuinely needs one of the two -- cad/dinotrace-mode says
++# it wants athena widgets -- refuses the other in
++# EMACS_VERSIONS_INCOMPATIBLE.  Then there is nothing to be tolerant about
++# and _EMACS_REQD is left naming the build the package was made for, so a
 +# binary package cannot be installed against an Emacs that cannot run it.
-+_EMACS_REQD_NAME=	${_EMACS_REQD:C/[<>=].*//}
-+_EMACS_REQD_BOUND=	${_EMACS_REQD:C/^[^<>=]*//}
 +.if !empty(_EMACS_TYPE:M*nox)
 +_EMACS_TYPE_OTHER=	${_EMACS_TYPE:C/nox$//}
-+_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME:C/-nox11$//}
++_EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//:C/-nox11$//}
 +.else
 +_EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
-+_EMACS_REQD_OTHER=	${_EMACS_REQD_NAME}-nox11
++_EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
 +.endif
- 
++
 +.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
-+# Accept either twin.  A package whose dependency is already satisfied by
-+# the nox11 build must not be told to build the X11 one -- on a small i386
-+# box that means building a compiler for an Emacs that is already there.
-+_EMACS_REQD_ANY=	{${_EMACS_REQD_NAME},${_EMACS_REQD_OTHER}}${_EMACS_REQD_BOUND}
-+.else
-+_EMACS_REQD_ANY=	${_EMACS_REQD}
++_EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
 +.endif
 +
-+DEPENDS+=	${_EMACS_REQD_ANY}:${_EMACS_PKGDIR}
-+
+ DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
+ 
  EMACS_MODULES?=
- .for _mod_ in ${EMACS_MODULES}
- .  if !empty(_EMACS_PKGDEP.${_mod_})
-@@ -306,17 +536,48 @@
+@@ -306,16 +535,47 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -360,6 +358,8 @@
  EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
  EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
 -EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.${_EMACS_FLAVOR}}
+-
+-GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
 +# Which Emacs a package was built for belongs in its name, the way
 +# PYPKGPREFIX carries the Python version, so the set can be built and
 +# told apart.
@@ -380,12 +380,9 @@
 +EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
 +.endif
  
--GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
--
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
- .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
-@@ -354,7 +615,12 @@
+@@ -354,8 +614,14 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
@@ -399,3 +396,5 @@
  .include	"${_EMACS_PKGDIR}/buildlink3.mk"
  .endif
  
+ .endif	# EMACS_MK
++
