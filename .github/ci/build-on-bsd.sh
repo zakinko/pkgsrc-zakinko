@@ -44,6 +44,24 @@ export PREFIX
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin:/usr/local/bin
 export PATH
 
+# Solaris と illumos は gcc を /usr/gcc/<版>/bin に置き、/usr/bin/gcc は
+# mediator が張られたときだけ現れる。張られていない箱では bootstrap の
+# bmake の configure が "no acceptable C compiler found in $PATH" で止まり、
+# 「この platform は unported」に見えてしまう。cc も gcc も見えないときだけ
+# 足すので、箱が既に持っているものは動かさない。
+if [ "$(uname -s)" = SunOS ] && ! command -v cc >/dev/null 2>&1 &&
+   ! command -v gcc >/dev/null 2>&1; then
+	for _d in /usr/gcc/*/bin /opt/gcc-*/bin /opt/csw/bin; do
+		if [ -x "$_d/gcc" ]; then
+			PATH=$_d:$PATH; export PATH
+			echo "  cc が無いので $_d を PATH に足した: $(gcc --version 2>&1 | head -1)"
+			break
+		fi
+	done
+	command -v gcc >/dev/null 2>&1 ||
+		echo "  !! gcc が見付からない。/usr/gcc と /opt にも無い" >&2
+fi
+
 # どこまで進んだかを、転けたときに一行で言う。configure が unported で
 # 止まったのか、依存の途中で転けたのか、ダンプが落ちたのかで次にやる
 # ことが違う。

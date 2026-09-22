@@ -125,24 +125,20 @@ jobs:
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
             sh .github/ci/build-on-bsd.sh
+      # OpenIndiana と Solaris の素の image には cc が無く、bootstrap の
+      # bmake の configure が "no acceptable C compiler found in $PATH" で
+      # 止まる。入れた gcc が /usr/bin に現れるかは mediator 次第なので、
+      # /usr/gcc/<版>/bin を拾うのは build-on-bsd.sh にやらせる。
       - uses: vmactions/openindiana-vm@v1
         if: matrix.action == 'openindiana-vm'
         with:
           envs: 'PKGS'
-          # 素の image には cc が無く、bootstrap の configure が
-          # "no acceptable C compiler found in $PATH" で止まる。gcc は
-          # /usr/gcc/<版>/bin にも入るので、mediator が張られていない場合に
-          # 備えて PATH にも足す。
           prepare: pkg install developer/gcc-14 developer/build/gnu-make web/curl || true
-          run: |
-            for d in /usr/gcc/*/bin; do
-              test -x "$d/gcc" && PATH=$d:$PATH
-            done
-            export PATH
-            sh .github/ci/build-on-bsd.sh
+          run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/solaris-vm@v1
         if: matrix.action == 'solaris-vm'
         with:
           release: ${{ matrix.release }}
           envs: 'PKGS'
+          prepare: pkg install --accept developer/gcc developer/build/gnu-make || true
           run: sh .github/ci/build-on-bsd.sh
