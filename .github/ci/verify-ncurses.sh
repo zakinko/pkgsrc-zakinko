@@ -47,7 +47,11 @@ sd() {	# 今の hints の探索 directory を一行で
 		sed -n 's/^[[:space:]]*search directories:[[:space:]]*//p'
 }
 answer() {	# configure が辿り着いた探索 path
-	grep -h 'cf_cv_ld_searchpath=' "$D"/work/*/config.log 2>/dev/null |
+	# config.log の cache 変数では測れない。当て物ありのときは環境から
+	# 渡っているので cache に載らず、両方とも空で出てきてしまう
+	# (run 35708242316 で実際にそうなった)。configure 自身が印字する
+	# "checking for linker search path... " を読む。
+	sed -n 's/.*checking for linker search path\.*[[:space:]]*//p' "$1" |
 		tail -1
 }
 
@@ -67,7 +71,7 @@ repair					# 既知の状態から始める
 	echo "!! 当て物ありで configure が落ちた"; tail -20 "$W/with.log"; rc=1; }
 WITH=$(sd)
 echo "  search directories: $WITH"
-echo "  configure の答え  : $(answer)"
+echo "  configure の答え  : $(answer "$W/with.log")"
 
 # ------------------------------------------------------------------
 echo "########## 二段目: 当て物を剥がして configure (bug の再現) ##########"
@@ -82,7 +86,7 @@ echo "  configure の前: $BEFORE"
 	echo "  (当て物なしの configure が落ちた。hints は下で見る)"
 WITHOUT=$(sd)
 echo "  configure の後: $WITHOUT"
-echo "  configure の答え  : $(answer)"
+echo "  configure の答え  : $(answer "$W/without.log")"
 cp "$W/Makefile.patched" "$M"		# すぐ戻す
 
 # ------------------------------------------------------------------
@@ -93,6 +97,7 @@ repair
 	echo "!! 戻した後の configure が落ちた"; tail -20 "$W/again.log"; rc=1; }
 AGAIN=$(sd)
 echo "  search directories: $AGAIN"
+echo "  configure の答え  : $(answer "$W/again.log")"
 
 # ------------------------------------------------------------------
 echo

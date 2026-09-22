@@ -24,7 +24,8 @@ jobs:
   hints:
     name: OpenBSD ${{ matrix.release }} ${{ matrix.arch || 'amd64' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # aarch64 は TCG。180 分では bootstrap の途中で切れた (run 35708242316)。
+    timeout-minutes: ${{ matrix.arch == '' && 180 || 350 }}
     strategy:
       fail-fast: false
       matrix:
