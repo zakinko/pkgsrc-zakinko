@@ -1,0 +1,138 @@
+name: go-bin platforms
+
+# zakinko/go-bin を、上流が binary を出している platform のうち箱を用意
+# できるところ全部で建てて動かす。狙いは二つ。
+#   pkgsrc がその箱をどう綴るかを実測し、ONLY_FOR_PLATFORM の当て先を確かめる
+#   入った go が version を答えるだけでなく、実際に program を建てて走らせる
+#
+# 公開 repo なので標準 runner は無制限。vmactions は重いのでこの branch の
+# push に限る。
+
+on:
+  push:
+    branches: [thttpd, go-bin]
+    paths: [go-bin/**, .github/workflows/go-bin.yml, .github/ci/verify-go-bin.sh, .github/ci/build-on-bsd.sh]
+  workflow_dispatch:
+
+concurrency:
+  group: go-bin-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PKGS: go-bin
+
+jobs:
+  linux:
+    name: Linux ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'glibc x86_64',  runner: ubuntu-latest,    image: 'debian:13' }
+          - { name: 'glibc aarch64', runner: ubuntu-24.04-arm, image: 'debian:13' }
+          - { name: 'musl x86_64',   runner: ubuntu-latest,    image: 'alpine:latest' }
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具
+        run: |
+          if command -v apk >/dev/null; then
+            apk add --no-cache build-base curl git tar gzip perl bash coreutils procps patch gawk
+          else
+            apt-get update -qq && apt-get install -y -qq build-essential curl git tar gzip perl bash patch
+          fi
+      - run: PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  bsd:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'NetBSD amd64',    action: netbsd-vm,       release: '10.1',    arch: '' }
+          - { name: 'NetBSD aarch64',  action: netbsd-vm,       release: '10.1',    arch: 'aarch64' }
+          - { name: 'FreeBSD amd64',   action: freebsd-vm,      release: '14.4',    arch: '' }
+          - { name: 'FreeBSD aarch64', action: freebsd-vm,      release: '14.4',    arch: 'aarch64' }
+          - { name: 'OpenBSD amd64',   action: openbsd-vm,      release: '7.9',     arch: '' }
+          - { name: 'OpenBSD aarch64', action: openbsd-vm,      release: '7.9',     arch: 'aarch64' }
+          - { name: 'OpenBSD riscv64', action: openbsd-vm,      release: '7.9',     arch: 'riscv64' }
+          - { name: 'DragonFly amd64', action: dragonflybsd-vm, release: '',        arch: '' }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: gobin-${{ matrix.action }}-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: gobin-${{ matrix.action }}-${{ matrix.arch }}-
+      - uses: vmactions/netbsd-vm@v1
+        if: matrix.action == 'netbsd-vm'
+        with:
+          release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+      - uses: vmactions/freebsd-vm@v1
+        if: matrix.action == 'freebsd-vm'
+        with:
+          release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+      - uses: vmactions/openbsd-vm@v1
+        if: matrix.action == 'openbsd-vm'
+        with:
+          release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+      - uses: vmactions/dragonflybsd-vm@v1
+        if: matrix.action == 'dragonflybsd-vm'
+        with:
+          envs: 'PKGS'
+          prepare: pkg install -y curl
+          run: sh .github/ci/build-on-bsd.sh
+
+  illumos:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'OmniOS',      action: omnios-vm,      release: 'r151058' }
+          - { name: 'OpenIndiana', action: openindiana-vm, release: '' }
+          - { name: 'Solaris 11.4', action: solaris-vm,    release: '11.4' }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: gobin-${{ matrix.action }}-${{ github.run_id }}
+          restore-keys: gobin-${{ matrix.action }}-
+      - uses: vmactions/omnios-vm@v1
+        if: matrix.action == 'omnios-vm'
+        with:
+          release: ${{ matrix.release }}
+          envs: 'PKGS'
+          prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true
+          run: |
+            PATH=/opt/gcc-14/bin:$PATH; export PATH
+            sh .github/ci/build-on-bsd.sh
+      - uses: vmactions/openindiana-vm@v1
+        if: matrix.action == 'openindiana-vm'
+        with:
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh
+      - uses: vmactions/solaris-vm@v1
+        if: matrix.action == 'solaris-vm'
+        with:
+          release: ${{ matrix.release }}
+          envs: 'PKGS'
+          run: sh .github/ci/build-on-bsd.sh

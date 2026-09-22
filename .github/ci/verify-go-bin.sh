@@ -1,61 +1,89 @@
 #!/bin/sh
-# lang/go-bin が、この OS 向けの公式 binary を選んで入るか。
+# zakinko/go-bin を建てて入れ、その箱の go が本当に動くところまで見る。
 #
-#   sh verify-go-bin.sh lang/go-bin
-#
-# 三つ見る。
-#   1. make distinfo を回しても distinfo が変わらない (手で足した行が、
-#      道具が作る物と一字一句同じか。全 platform の tarball を落とすので
-#      1GB ほど引く)
-#   2. install が通り、go-bin/bin/go version がこの OS と arch を言う
-#   3. make show-var VARNAME=DISTFILES がこの OS の tarball 一つだけを指す
-PKG=${1:-lang/go-bin}
+# 見るもの:
+#   この箱を pkgsrc がどう綴るか (ONLY_FOR_PLATFORM の当て先)
+#   上流の binary がこの箱の分だけ取られるか
+#   入った go が version を答え、実際に program を建てるか
+set -e
+LC_ALL=C; export LC_ALL
+OS=$(uname -s)
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
-PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin; export PATH
-T=${TMPDIR:-/tmp}
-BMAKE=$PREFIX/bin/bmake
-[ -x "$BMAKE" ] || BMAKE=make
-cd "$TREE/$PKG" || { echo "FAIL: $TREE/$PKG が無い"; exit 1; }
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin:/usr/local/bin
+export PATH
+unset PKG_PATH
+if [ -x "$PREFIX/bin/bmake" ]; then PKGMAKE="$PREFIX/bin/bmake"
+elif [ "$OS" = NetBSD ]; then PKGMAKE=make
+else PKGMAKE=bmake; fi
 rc=0
-OS=$(uname -s); ARCH=$(uname -m)
-echo "--- $PKG ($OS $(uname -r) / $ARCH) ---"
+DIR=$TREE/zakinko/go-bin
+T=${TMPDIR:-/tmp}/go-bin-v.$$; mkdir -p "$T"
 
-echo "########## 1. make distinfo で変わらないか ##########"
-cp distinfo "$T/distinfo.before"
-if $BMAKE distinfo > "$T/go-bin-distinfo.log" 2>&1; then
-	if diff -u "$T/distinfo.before" distinfo > "$T/distinfo.diff"; then
-		echo "  ok distinfo は make distinfo と同じ"
-	else
-		echo "!! make distinfo が distinfo を変えた:"; cat "$T/distinfo.diff"; rc=1
-		cp "$T/distinfo.before" distinfo
-	fi
+sv() { ( cd "$DIR" && $PKGMAKE show-var VARNAME="$1" ) 2>/dev/null | tail -1; }
+
+echo "########## この箱の名乗り ##########"
+printf '  uname          : %s %s %s\n' "$(uname -s)" "$(uname -r)" "$(uname -m)"
+for v in OPSYS MACHINE_ARCH MACHINE_PLATFORM; do
+	printf '  %-15s: %s\n' "$v" "$(sv $v)"
+done
+
+echo "########## go-bin から見て ##########"
+PLAT=$(sv MACHINE_PLATFORM)
+SUP=$(sv GO_BIN_SUPPORTED)
+DF=$(sv DISTFILES)
+printf '  GO_BIN_SUPPORTED: %s\n' "$SUP"
+printf '  PKGNAME         : %s\n' "$(sv PKGNAME)"
+printf '  DISTFILES       : %s\n' "$DF"
+n=$(echo "$DF" | tr ' ' '\n' | grep -c . || true)
+if [ "$SUP" = yes ]; then
+	[ "$n" = 1 ] || { echo "  !! 対応と言いながら DISTFILES が $n 本 (1 本であるべき)"; rc=1; }
 else
-	echo "!! make distinfo が落ちた"; tail -15 "$T/go-bin-distinfo.log"; rc=1
+	echo "  この箱は go-bin の対象外。建てずに終わる"
+	rm -rf "$T"; echo; echo "== go-bin: 対象外 ($PLAT)"; exit 0
 fi
 
-echo "########## 2. install と go version ##########"
-_df=$($BMAKE show-var VARNAME=DISTFILES)
-echo "  DISTFILES: $_df"
-case "$_df" in
-*" "*) echo "!! tarball が二つ以上"; rc=1 ;;
-esac
-if $BMAKE install > "$T/go-bin-install.log" 2>&1; then
-	echo "  ok install"
+echo "########## 建てて入れる ##########"
+if ( cd "$DIR" && $PKGMAKE install ); then
+	echo "  install できた"
 else
-	echo "!! install が落ちた"; tail -20 "$T/go-bin-install.log"; rc=1
+	echo "  !! install できない"; rc=1
+	rm -rf "$T"; echo; echo "== go-bin: FAILURES on $PLAT"; exit 1
 fi
-if [ -x "$PREFIX/go-bin/bin/go" ]; then
-	_v=$("$PREFIX/go-bin/bin/go" version 2>&1)
-	echo "  $_v"
-	_os=$(echo "$OS" | tr 'A-Z' 'a-z')
-	case "$_v" in
-	"go version go1.24.11 $_os/"*) echo "  ok $_os の binary が動く" ;;
-	*) echo "!! version の出力が違う"; rc=1 ;;
+
+echo "########## 入った go を動かす ##########"
+GO=$PREFIX/go-bin/bin/go
+if [ ! -x "$GO" ]; then echo "  !! $GO が無い"; rc=1
+else
+	v=$("$GO" version 2>&1 || true)
+	echo "  go version: $v"
+	case $v in
+	*"go1.27.1"*) : ;;
+	*) echo "  !! 1.27.1 と名乗らない"; rc=1 ;;
 	esac
-else
-	echo "!! go-bin/bin/go が無い"; rc=1
+	# 上流の binary は GOOS/GOARCH を自分で知っている。箱と食い違えば
+	# ここで出る。
+	echo "  go env GOOS/GOARCH: $("$GO" env GOOS 2>/dev/null)/$("$GO" env GOARCH 2>/dev/null)"
+	# 実際に建てて走らせる。version を答えるだけでは動いたと言えない。
+	mkdir -p "$T/h" && cd "$T/h"
+	cat > main.go <<'GOF'
+package main
+import ("fmt"; "runtime")
+func main(){ fmt.Printf("ok %s/%s %s\n", runtime.GOOS, runtime.GOARCH, runtime.Version()) }
+GOF
+	( echo 'module h'; echo 'go 1.21' ) > go.mod
+	if env HOME="$T/h" GOCACHE="$T/gocache" GOFLAGS=-mod=mod "$GO" build -o hello . 2>"$T/build.err"; then
+		out=$(./hello 2>&1 || true)
+		echo "  建てた program: $out"
+		case $out in ok\ *) : ;; *) echo "  !! 走らない"; rc=1 ;; esac
+	else
+		echo "  !! go build が通らない"; rc=1
+		sed 's/^/    /' "$T/build.err" | head -6
+	fi
+	cd /
 fi
 
-[ $rc -eq 0 ] && echo "RESULT: go-bin はこの OS の binary を選んで入り、動く" || echo "RESULT: 通らなかったものがある (上を読む)"
+rm -rf "$T"
+echo
+[ $rc = 0 ] && echo "== go-bin: 建って動いた ($PLAT)" || echo "== go-bin: FAILURES on $PLAT"
 exit $rc

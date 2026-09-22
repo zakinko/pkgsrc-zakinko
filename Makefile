@@ -33,6 +33,7 @@ SUBDIR+=	emacs28
 SUBDIR+=	emacs28-nox11
 SUBDIR+=	fail2ban
 SUBDIR+=	fcitx5-mozc
+SUBDIR+=	go-bin
 SUBDIR+=	ibus-mozc
 SUBDIR+=	iiimecf
 SUBDIR+=	jde
