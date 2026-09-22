@@ -1,0 +1,33 @@
+name: plan9 probe
+
+# Plan 9 で pkgsrc の bootstrap がどこまで行くかを測るだけ。直すのはその後。
+# 2013 年の移植の試み (9p.io の contrib/staal1978) は bmake を建てる所で
+# 止まったと README に書いてあるが、今も同じかは誰も測っていない。
+# 結果が欲しいだけなので、転んでも job は落とさない。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [thttpd, go-bin]
+    paths: [.github/workflows/plan9-probe.yml, .github/ci/probe-plan9.sh]
+
+concurrency:
+  group: plan9-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    name: Plan 9 (9front ${{ matrix.release }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ['11952']
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: vmactions/plan9-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          run: sh .github/ci/probe-plan9.sh
