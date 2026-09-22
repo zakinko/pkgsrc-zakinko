@@ -95,6 +95,25 @@ done
 printf '  %-12s %s\n' "pkg_info" "$(pkg_info -e pkgconf 2>/dev/null || echo '(pkgconf は入っていない)')"
 
 # ------------------------------------------------------------------
+step "0.5 pkglint"
+# 手元では掛けられない。pkglint は完全な木を要り、mk だけ symlink した偽の木は
+#   FATAL: ../../editors/emacs/modules.mk: Cannot be read.
+# で止まる。木が在るのはここなので、ここで掛ける。
+#
+# 落ちても先へは進む。pkglint の指摘は「送る前に直す」ためのもので、建つか
+# どうかとは別の検査である。数だけでなく中身を出す。
+if command -v pkglint > /dev/null 2>&1; then
+	for p in libndp NetworkManager; do
+		d=$TREE/zakinko/$p
+		[ -d "$d" ] || { echo "  $p: 木に無い"; continue; }
+		echo "--- $p ---"
+		( cd "$d" && pkglint . 2>&1 | tail -20 ) || true
+	done
+else
+	echo "  pkglint が入っていない (pkgtools/pkglint)"
+fi
+
+# ------------------------------------------------------------------
 step "1. 建てて入れる"
 cd "$DIR"
 pkg_delete -f "$PKG" >/dev/null 2>&1 || true
