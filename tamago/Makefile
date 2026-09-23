@@ -14,7 +14,13 @@ LICENSE=	gnu-gpl-v2
 GNU_CONFIGURE=	yes
 MAKE_FLAGS+=	prefix=${DESTDIR}${PREFIX}
 # XXX please someone adjust paths and PLIST for XEmacs...
+# 2026-09-23 に手元の Emacs 31.1 で測った。当て物二本で載り、入力メソッドも
+# 11 個登録される (japanese-egg-anthy ほか)。変換までは見ていない。server が
+# 要るため。古い版はそのまま受ける — 当て物はどちらも fboundp で分けてある。
 EMACS_VERSIONS_ACCEPTED=	emacs21 emacs21nox emacs20
+EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
+EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
+EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 EMACS_MODULES+=	leim
 
 .include "../../editors/emacs/modules.mk"
