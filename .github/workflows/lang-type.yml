@@ -32,7 +32,7 @@ env:
   PKGS: ''
   VERIFY: lang-type
   MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
-  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-go-type.sh .github/ci/tree-patch-rust-type.sh'
+  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-go-type.sh .github/ci/tree-patch-rust-type.sh .github/ci/tree-patch-rust-bin-riscv64-atomic.sh'
 
 jobs:
   linux:
@@ -54,17 +54,25 @@ jobs:
   bsd:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # riscv64 は TCG。ただし建てるのは bootstrap だけで、あとは show-var を
+    # 引くだけなので、package を建てる job より軽い。
+    timeout-minutes: ${{ matrix.arch == '' && 180 || 350 }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # 対応する側
-          - { name: 'NetBSD amd64',    action: netbsd-vm,       release: '10.1' }
-          - { name: 'FreeBSD amd64',   action: freebsd-vm,      release: '14.4' }
-          # 対応しない側 (src に落ちることを測る)
-          - { name: 'OpenBSD amd64',   action: openbsd-vm,      release: '7.9' }
-          - { name: 'DragonFly amd64', action: dragonflybsd-vm, release: '' }
+          # GO も RUST も bin を選ぶ側
+          - { name: 'NetBSD amd64',    action: netbsd-vm,       release: '10.1', arch: '' }
+          - { name: 'FreeBSD amd64',   action: freebsd-vm,      release: '14.4', arch: '' }
+          # GO は bin、RUST は src に落ちる側
+          - { name: 'OpenBSD amd64',   action: openbsd-vm,      release: '7.9',  arch: '' }
+          - { name: 'DragonFly amd64', action: dragonflybsd-vm, release: '',     arch: '' }
+          # GO が src に落ちる側。go-bin の対応表に NetBSD-*-riscv64 は無く
+          # (上流が netbsd-riscv64 の binary を出していない)、rust-bin は
+          # riscv64 を謳うので、一箱で両方の向きが逆に出る。ここが無いと
+          # 「GO_TYPE=bin が binary の無い箱で src に落ちる」を一度も測って
+          # いないことになる。
+          - { name: 'NetBSD riscv64',  action: netbsd-vm,       release: '11.0', arch: 'riscv64' }
     steps:
       - uses: actions/checkout@v4
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
@@ -77,6 +85,7 @@ jobs:
         if: matrix.action == 'netbsd-vm'
         with:
           release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
           envs: 'PKGS VERIFY MKCONF_EXTRA TREE_PATCH'
           run: sh .github/ci/build-on-bsd.sh && sh .github/ci/verify-lang-type.sh
       - uses: vmactions/freebsd-vm@v1
