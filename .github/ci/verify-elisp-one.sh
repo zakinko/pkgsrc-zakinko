@@ -62,4 +62,25 @@ sh "$(dirname "$0")/check-plist-vars.sh" "$TREE" "$PKG" || exit 1
 sh "$(dirname "$0")/show-build-entry.sh" "$TREE" "$PKG" || true
 
 echo "=== $PKG を建てる ==="
-sh "$(dirname "$0")/verify-pkg.sh" "$PKG"
+sh "$(dirname "$0")/verify-pkg.sh" "$PKG" || exit 1
+
+# ここまでで「建って入って外せる」までが済んでいる。それでも使えないことが
+# ある。2026-09-23 に四つのうち三つがそうだった (run-elisp.sh の頭に列挙)。
+# verify-pkg.sh は外して終わるので、入れ直してから走らせ、また外す。木は
+# 建ててあるので入れ直しは速い。verify-pkg.sh は共有なので触らない。
+echo "=== $PKG を実際に走らせる ==="
+( cd "$TREE/$PKG" && make $MKARGS install ) > "$LOGDIR/reinstall.log" 2>&1 || {
+	tail -20 "$LOGDIR/reinstall.log"
+	echo "FAIL: $PKG を入れ直せない"; exit 1; }
+
+EMACS_BIN=$(cd "$TREE/$PKG" && make show-var VARNAME=EMACS_BIN 2>/dev/null)
+LISPDIR=$(cd "$TREE/$PKG" && make show-var VARNAME=EMACS_LISPPREFIX 2>/dev/null)
+rc=0
+sh "$(dirname "$0")/run-elisp.sh" "$PKG" "$EMACS_BIN" \
+	"${LISPDIR:+$LISPDIR/${PKG##*/}}" || rc=1
+
+( cd "$TREE/$PKG" && make deinstall ) > /dev/null 2>&1 ||
+	pkg_delete "${PKG##*/}" > /dev/null 2>&1 || true
+
+[ $rc -eq 0 ] || { echo "FAIL: $PKG は入るが動かない"; exit 1; }
+echo "=== 動いた: $PKG ($TYPE) ==="
