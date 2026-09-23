@@ -183,9 +183,13 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 			got=$(grep -c '^SHA1 (patch-' "$pkdir/distinfo" || true)
 			bad=$(grep '^SHA1 (patch-' "$pkdir/distinfo" |
 			      grep -cv '= [0-9a-f][0-9a-f]*$' || true)
+			# cat -v を通す。行が繋がって見えるのが file の中身なのか
+			# log の見え方なのかは、CR が ^M で出るかどうかで分かれる。
+			# 前に一度、log だけを見て中身が壊れていると読みかけた。
+			echo "  distinfo: $(wc -lc < "$pkdir/distinfo" | tr -s ' ') (行 byte)"
 			if [ "$want" = "$got" ] && [ "$bad" = 0 ]; then
 				echo "  差し替えて makepatchsum で数え直した ($got 本)"
-				grep 'polkitagenthelper-pam' "$pkdir/distinfo" | sed 's/^/    /'
+				grep '^SHA1 (patch-' "$pkdir/distinfo" | cat -v | sed 's/^/    /'
 			else
 				echo "  ★ distinfo が壊れた (当て物 $want 本 / SHA1 行 $got 本 / 値が変な行 $bad 本)"
 				echo "    digest: $(command -v digest || echo 'PATH に無い')"
