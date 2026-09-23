@@ -5,7 +5,12 @@ name: arm runner に KVM が在るか
 # 「在るはず」で matrix を書き換えると、効いていないのに速くなった顔で
 # 通ることがあるので、先に host 側を見る。
 
+# workflow_dispatch は既定 branch に在る workflow しか呼べないので、
+# この枝の push で起こす。自分の file だけを見るので他の作業では走らない。
 on:
+  push:
+    branches: [thttpd]
+    paths: ['.github/workflows/probe-arm-runner.yml']
   workflow_dispatch:
 
 concurrency:
