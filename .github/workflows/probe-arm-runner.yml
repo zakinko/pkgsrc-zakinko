@@ -20,11 +20,18 @@ jobs:
   probe:
     name: ${{ matrix.runner }}
     runs-on: ${{ matrix.runner }}
+    # 存在しない label は「永久に queued」という、混雑と同じ顔で出る。
+    # 短く切って、落ちたこと自体を「その label は無い」の観測にする。
     timeout-minutes: 10
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04-arm, ubuntu-24.04]
+        # riscv は在るかどうかから測る。runner-images の release tag にも
+        # issue にも見当たらないが、一つの観測で「無い」とは書かない。
+        # label が存在しなければ job は runner 待ちのまま進まないので、
+        # continue-on-error と短い timeout で切って、それ自体を答にする。
+        runner: [ubuntu-24.04-arm, ubuntu-24.04, ubuntu-24.04-riscv]
     steps:
       - name: host を見る
         run: |
