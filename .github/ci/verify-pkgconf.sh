@@ -22,9 +22,22 @@ BMAKE=$PREFIX/bin/bmake; [ -x "$BMAKE" ] || BMAKE=make
 T=${TMPDIR:-/tmp}
 rc=0
 
-echo "  入れ替える: $TREE/$PKG"
-( cd "$TREE/$PKG" && $BMAKE replace ) > "$T/pkgconf-build.log" 2>&1 || {
-	echo "!! pkgconf が建たない"; tail -25 "$T/pkgconf-build.log"; exit 1; }
+# 入っていない箱では replace は使えない (pkg_delete する相手が無い)。
+# macOS の job がここで無言の Error code 1 を出して落ちた。install と
+# replace を、入っているかで選ぶ。
+if $PREFIX/sbin/pkg_info -e 'pkgconf*' > /dev/null 2>&1; then
+	target=replace
+else
+	target=install
+fi
+echo "  $target する: $TREE/$PKG"
+( cd "$TREE/$PKG" && $BMAKE $target ) > "$T/pkgconf-build.log" 2>&1 || {
+	echo "!! pkgconf の $target が落ちた"
+	# 無言で落ちることが在るので、末尾だけでなく error らしき行も出す
+	grep -nE 'Error code|error:|cannot|refus|conflict' "$T/pkgconf-build.log" \
+		| tail -8 | sed 's/^/     /'
+	tail -20 "$T/pkgconf-build.log" | sed 's/^/     /'
+	exit 1; }
 PC=$PREFIX/bin/pkg-config
 echo "  版: $($PC --version 2>&1)"
 
