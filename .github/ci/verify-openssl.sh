@@ -45,6 +45,14 @@ grep -n 'dasync\.so' "$WRK/.work.log" 2>/dev/null | head -2 | cut -c1-500 | sed 
 grep -n -i 'dasync' "$T/openssl-install.log" | grep -v '^.*\.o' | head -3 | cut -c1-200 | sed 's/^/     /'
 # ld.so.hints を壊すのは OpenBSD の ldconfig だけ。他の OS では見ない。
 if [ "$(uname -s)" = OpenBSD ]; then
+	# 上流 (ncurses の CF_LD_SEARCHPATH) へ「ldconfig -v ではなく -r を
+	# 使えばよい」と言えるか。-r は hints を読むだけで書き直さない。
+	echo "  ldconfig -r から取れる path: $(ldconfig -r | sed -n 's/.*search directories: //p')"
+	_before=$(ldconfig -r | sed -n 's/.*search directories: //p')
+	ldconfig -r > /dev/null 2>&1
+	_after=$(ldconfig -r | sed -n 's/.*search directories: //p')
+	[ "$_before" = "$_after" ] && echo "  ok ldconfig -r は hints を書き換えない" ||
+		{ echo "!! ldconfig -r でも hints が変わった"; rc=1; }
 	_hints=$(ldconfig -r 2>/dev/null | sed -n 's/.*search directories: //p')
 	echo "  ld.so.hints: $_hints"
 	case "$_hints" in */usr/local/lib*) : ;; *) echo "!! ld.so.hints から /usr/local/lib が消えた"; rc=1 ;; esac
