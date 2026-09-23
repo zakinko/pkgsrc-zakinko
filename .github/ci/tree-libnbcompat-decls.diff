@@ -1,3 +1,81 @@
+--- pkgtools/libnbcompat/files/configure.ac.orig
++++ pkgtools/libnbcompat/files/configure.ac
+@@ -295,6 +295,20 @@
+              #include <stdio.h>])
+ AC_CHECK_DECLS([strdup(const char *)],
+             [], [AC_LIBOBJ(strdup)], [#include <string.h>])
++
++# lutimes and lchflags are in AC_REPLACE_FUNCS below, so on a host without
++# them a caller links against the replacement here -- and that caller's own
++# configure then finds the symbol and defines ITS HAVE_LUTIMES.  What no
++# header supplies on such a host is the declaration, which is a different
++# question from whether the function exists, and the one AC_CHECK_DECLS asks.
++# archivers/pax hits exactly this on Solaris: its file_subs.c guards the call
++# with #if HAVE_LUTIMES, that is true, and the call is then an implicit
++# declaration, which is an error with the compilers that now default to
++# -Werror=implicit-function-declaration.
++AC_CHECK_DECLS([lutimes(const char *, const struct timeval *)],
++            [], [], [#include <sys/time.h>])
++AC_CHECK_DECLS([lchflags(const char *, unsigned long)],
++            [], [], [#include <sys/stat.h>])
+ 
+ case $host_os in
+ darwin*)
+--- pkgtools/libnbcompat/files/configure.orig
++++ pkgtools/libnbcompat/files/configure
+@@ -6984,6 +6984,35 @@
+ fi
+ 
+ 
++# lutimes and lchflags are in AC_REPLACE_FUNCS below, so on a host without
++# them a caller links against the replacement here, and that caller's own
++# configure then defines ITS HAVE_LUTIMES.  The missing thing is the
++# declaration, which AC_CHECK_DECLS is what asks about.
++as_ac_Symbol=`printf "%s\n" "ac_cv_have_decl_lutimes(const char *, const struct timeval *)" | sed "$as_sed_sh"`
++ac_fn_check_decl "$LINENO" "lutimes(const char *, const struct timeval *)" "$as_ac_Symbol" "#include <sys/time.h>
++" "$ac_c_undeclared_builtin_options" "CFLAGS"
++if eval test \"x\$"$as_ac_Symbol"\" = x"yes"
++then :
++  ac_have_decl=1
++else case e in #(
++  e) ac_have_decl=0 ;;
++esac
++fi
++printf "%s\n" "#define HAVE_DECL_LUTIMES $ac_have_decl" >>confdefs.h
++
++as_ac_Symbol=`printf "%s\n" "ac_cv_have_decl_lchflags(const char *, unsigned long)" | sed "$as_sed_sh"`
++ac_fn_check_decl "$LINENO" "lchflags(const char *, unsigned long)" "$as_ac_Symbol" "#include <sys/stat.h>
++" "$ac_c_undeclared_builtin_options" "CFLAGS"
++if eval test \"x\$"$as_ac_Symbol"\" = x"yes"
++then :
++  ac_have_decl=1
++else case e in #(
++  e) ac_have_decl=0 ;;
++esac
++fi
++printf "%s\n" "#define HAVE_DECL_LCHFLAGS $ac_have_decl" >>confdefs.h
++
++
+ case $host_os in
+ darwin*)
+ 	# NetBSD PR 38488: warnx(3) escapes certain characters like \n
+--- pkgtools/libnbcompat/files/nbcompat/config.h.in.orig
++++ pkgtools/libnbcompat/files/nbcompat/config.h.in
+@@ -39,6 +39,14 @@
+ /* Define to 1 if you have the declaration of 'isblank(int)', and to 0 if you
+    don't. */
+ #undef HAVE_DECL_ISBLANK
++
++/* Define to 1 if you have the declaration of 'lchflags(const char *, unsigned
++   long)', and to 0 if you don't. */
++#undef HAVE_DECL_LCHFLAGS
++
++/* Define to 1 if you have the declaration of 'lutimes(const char *, const
++   struct timeval *)', and to 0 if you don't. */
++#undef HAVE_DECL_LUTIMES
+ 
+ /* Define to 1 if you have the declaration of 'optarg', and to 0 if you don't.
+    */
 --- pkgtools/libnbcompat/files/nbcompat/time.h.orig
 +++ pkgtools/libnbcompat/files/nbcompat/time.h
 @@ -64,6 +64,17 @@
@@ -5,13 +83,13 @@
  #endif
  
 +/*
-+ * lutimes.c is built whenever the host lacks lutimes(2), but nothing
-+ * declared it, so every caller got an implicit declaration -- an error
-+ * with the compilers that now default to -Werror=implicit-function-declaration.
-+ * archivers/pax calls it from set_ftime(), which is how the pkgsrc
-+ * bootstrap stopped on Solaris 11.4.
++ * lutimes.c is built whenever the host lacks lutimes(2), but nothing declared
++ * it.  The guard has to be HAVE_DECL_LUTIMES, not HAVE_LUTIMES: a caller that
++ * links against the replacement gets HAVE_LUTIMES=1 from its own configure,
++ * so keying on that suppresses the declaration in exactly the case that needs
++ * it.  archivers/pax on Solaris is where this shows up.
 + */
-+#if !HAVE_LUTIMES
++#if !HAVE_DECL_LUTIMES
 +int lutimes(const char *, const struct timeval *);
 +#endif
 +
@@ -20,13 +98,14 @@
  #endif
 --- pkgtools/libnbcompat/files/nbcompat/stat.h.orig
 +++ pkgtools/libnbcompat/files/nbcompat/stat.h
-@@ -44,6 +44,12 @@
+@@ -44,6 +44,13 @@
  int	lchmod(const char *, mode_t);
  #endif
  
-+/* Same omission as lutimes: lchflags.c is built and nothing declared it.
-+ * pkgtools/mtree calls lchflags() from compare.c and verify.c. */
-+#if !HAVE_LCHFLAGS
++/* Same omission as lutimes, and the same reason for keying on the
++ * declaration rather than the function.  pkgtools/mtree calls lchflags()
++ * from compare.c and verify.c. */
++#if !HAVE_DECL_LCHFLAGS
 +int	lchflags(const char *, unsigned long);
 +#endif
 +
