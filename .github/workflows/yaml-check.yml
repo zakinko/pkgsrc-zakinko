@@ -1,0 +1,45 @@
+name: workflow の yaml を検査する
+
+# 同じ mapping に同じ key が二度在ると、GitHub は workflow ごと拒否する。
+# しかも拒否の出方が分かりにくい。run は作られるが jobs が 0 件で即座に
+# failure になり、workflow が一覧からも消え、log には何も残らない。実際に
+# 二度、起動すらしていない run を「走っている」と読んでいた。
+#
+# ruby も python も後勝ちで黙って通すので、目でも既存の道具でも出ない。
+# 自前で数える。
+
+on:
+  push:
+    paths:
+      - '.github/workflows/*.yml'
+      - '.github/ci/yaml-dupkey.rb'
+  pull_request:
+    paths:
+      - '.github/workflows/*.yml'
+      - '.github/ci/yaml-dupkey.rb'
+  workflow_dispatch:
+
+concurrency:
+  group: yaml-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dupkey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: 検査そのものを先に試す
+        run: |
+          # 既知の不良品を通して、拾えることを確かめてから本番に使う。
+          # 最初に書いた検査は Document node を素通りしていて、壊れた file を
+          # 「重複なし」と答えた。自己試験が無ければ気付かない。
+          d="$RUNNER_TEMP/dupkey"; mkdir -p "$d"
+          printf 'a:\n  b: 1\n  b: 2\n' > "$d/bad.yml"
+          if ruby .github/ci/yaml-dupkey.rb "$d/bad.yml"; then
+            echo "!! 検査が既知の不良品を通した。検査のほうが壊れている"
+            exit 1
+          fi
+          echo "検査は不良品を拾える"
+      - name: 全 workflow を検査する
+        run: ruby .github/ci/yaml-dupkey.rb .github/workflows/*.yml

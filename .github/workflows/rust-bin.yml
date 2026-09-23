@@ -173,7 +173,6 @@ jobs:
             pkg search -H -o pkg.name 'path:usr/lib/amd64/libgcc_s.so.1' || true
             echo "=== 既定の path に在るか"
             ls -l /usr/lib/amd64/libgcc_s.so.1 /lib/amd64/libgcc_s.so.1 2>&1 || true
-          prepare: pkg install developer/gcc-14 developer/build/gnu-make web/curl || true
           run: sh .github/ci/build-on-bsd.sh
 
   darwin:
