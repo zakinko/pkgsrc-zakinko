@@ -1,0 +1,27 @@
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/mail/etach/Makefile mail/etach/Makefile
+--- /usr/pkgsrc/mail/etach/Makefile	2022-05-14 22:25:38.000000000 +0000
++++ mail/etach/Makefile	2026-09-22 23:58:37.631764544 +0000
+@@ -16,9 +16,9 @@
+ do-install:
+ 	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/etach
+ 	${INSTALL_DATA} ${WRKSRC}/etach.el ${DESTDIR}${EMACS_LISPPREFIX}/etach
+-	${INSTALL_DATA_DIR} ${DESTDIR}${PREFIX}/share/doc/etach
++	${INSTALL_DATA_DIR} ${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}etach
+ 	cd ${WRKSRC} && ${INSTALL_DATA} README.txt FAQ.txt LICENSE.txt	\
+-		${DESTDIR}${PREFIX}/share/doc/etach/
++		${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}etach/
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/mail/etach/PLIST mail/etach/PLIST
+--- /usr/pkgsrc/mail/etach/PLIST	2009-06-14 18:04:32.000000000 +0000
++++ mail/etach/PLIST	2026-09-22 23:58:37.635982678 +0000
+@@ -1,5 +1,5 @@
+ @comment $NetBSD: PLIST,v 1.5 2009/06/14 18:04:32 joerg Exp $
+ ${EMACS_LISPPREFIX}/etach/etach.el
+-share/doc/etach/FAQ.txt
+-share/doc/etach/LICENSE.txt
+-share/doc/etach/README.txt
++share/doc/${EMACS_PKGNAME_PREFIX}etach/FAQ.txt
++share/doc/${EMACS_PKGNAME_PREFIX}etach/LICENSE.txt
++share/doc/${EMACS_PKGNAME_PREFIX}etach/README.txt

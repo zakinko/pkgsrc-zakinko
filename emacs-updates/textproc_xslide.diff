@@ -1,0 +1,30 @@
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/textproc/xslide/Makefile textproc/xslide/Makefile
+--- /usr/pkgsrc/textproc/xslide/Makefile	2025-11-17 11:01:35.000000000 +0000
++++ textproc/xslide/Makefile	2026-09-22 23:58:38.060559824 +0000
+@@ -32,10 +32,10 @@
+ 	done
+ 
+ do-install:
+-	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
+-	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE}
+-	${INSTALL_DATA_DIR} ${DESTDIR}${PREFIX}/share/doc/xslide
+-	${INSTALL_DATA} ${WRKSRC}/README.TXT ${DESTDIR}${PREFIX}/share/doc/xslide
+-	${INSTALL_DATA} ${WRKSRC}/dot_emacs ${DESTDIR}${PREFIX}/share/doc/xslide
++	${INSTALL_DATA_DIR} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
++	cd ${WRKSRC} && ${INSTALL_DATA} ${SRCS} ${SRCS:.el=.elc} ${DESTDIR}${EMACS_LISPPREFIX}/${PKGBASE:C|^${EMACS_PKGNAME_PREFIX}||}
++	${INSTALL_DATA_DIR} ${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}xslide
++	${INSTALL_DATA} ${WRKSRC}/README.TXT ${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}xslide
++	${INSTALL_DATA} ${WRKSRC}/dot_emacs ${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}xslide
+ 
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/textproc/xslide/PLIST textproc/xslide/PLIST
+--- /usr/pkgsrc/textproc/xslide/PLIST	2009-06-14 18:17:35.000000000 +0000
++++ textproc/xslide/PLIST	2026-09-22 23:58:38.064143240 +0000
+@@ -9,5 +9,5 @@
+ ${EMACS_LISPPREFIX}/xslide/xslide-process.elc
+ ${EMACS_LISPPREFIX}/xslide/xslide.el
+ ${EMACS_LISPPREFIX}/xslide/xslide.elc
+-share/doc/xslide/README.TXT
+-share/doc/xslide/dot_emacs
++share/doc/${EMACS_PKGNAME_PREFIX}xslide/README.TXT
++share/doc/${EMACS_PKGNAME_PREFIX}xslide/dot_emacs
