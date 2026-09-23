@@ -88,16 +88,32 @@ SunOS)
 		rc=1 ;;
 	esac
 	;;
+Darwin)
+	# Darwin は Makefile の別の腕を通る。RUST_RPATH はそちらでは定義されて
+	# いないので、空が正しい。ここを *) にまとめて「$PREFIX/lib と一致」を
+	# 求めたら、緑だった macOS の二箱が落ちた。値が無いのを「変わった」と
+	# 読んだ私の検査の誤りで、install そのものは通っていた。
+	#
+	# platform ごとに答が違う検査は、platform ごとに期待値を書く。手元の
+	# 自己試験を case Linux 決め打ちで書いたので、この枝は一度も走って
+	# いなかった。
+	if [ -z "$RP" ]; then
+		echo "  Darwin では定義されない (正しい)"
+	else
+		echo "  !! Darwin で RUST_RPATH が定義されている: $RP" >&2
+		rc=1
+	fi
+	;;
 *)
-	# 非 SunOS では当て物の前と**同じ値**でなければならない。当て物は
-	# Darwin 以外の全部を通るので、image が無くて動かせない arch
+	# 非 SunOS・非 Darwin では当て物の前と**同じ値**でなければならない。
+	# 当て物は Darwin 以外の全部を通るので、image が無くて動かせない arch
 	# (NetBSD の powerpc / mipsel / earmv6hf / earmv7hf / aarch64eb) の
 	# ぶんは「読んで no-op」しか言えない。代わりに、動かせる箱の全部で
 	# 値が一致することを機械で確かめる。読んで安心する代わりに数える。
 	if [ "$RP" = "$PREFIX/lib" ]; then
 		echo "  当て物の前と同じ値 ($PREFIX/lib)"
 	else
-		echo "  !! 非 SunOS で値が変わっている。期待 $PREFIX/lib、実際 $RP" >&2
+		echo "  !! 非 SunOS で値が変わっている。期待 $PREFIX/lib、実際 '$RP'" >&2
 		rc=1
 	fi
 	;;
