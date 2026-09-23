@@ -79,10 +79,14 @@ echo "=== $PKG を実際に走らせる ==="
 	echo "FAIL: $PKG を入れ直せない"; exit 1; }
 
 EMACS_BIN=$(cd "$TREE/$PKG" && make show-var VARNAME=EMACS_BIN 2>/dev/null)
-LISPDIR=$(cd "$TREE/$PKG" && make show-var VARNAME=EMACS_LISPPREFIX 2>/dev/null)
+[ -n "$EMACS_BIN" ] || { echo "FAIL: EMACS_BIN が引けない"; exit 1; }
+
+# lisp の置き場は渡さない。run-elisp.sh が pkg_info に訊いて、el を持つ
+# directory を全部 load-path へ入れる。**ここで組み立ててはいけない。**
+# ${EMACS_LISPPREFIX}/<package 名> は当たらない: emacs-ilisp は ilisp/、
+# tamago は egg/ で、tamago はさらに egg/its/ と egg/egg/ に分かれている。
 rc=0
-sh "$(dirname "$0")/run-elisp.sh" "$PKG" "$EMACS_BIN" \
-	"${LISPDIR:+$LISPDIR/${PKG##*/}}" || rc=1
+sh "$(dirname "$0")/run-elisp.sh" "$PKG" "$EMACS_BIN" || rc=1
 
 ( cd "$TREE/$PKG" && make deinstall ) > /dev/null 2>&1 ||
 	pkg_delete "${PKG##*/}" > /dev/null 2>&1 || true
