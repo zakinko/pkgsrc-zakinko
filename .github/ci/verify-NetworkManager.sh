@@ -168,7 +168,12 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 	if grep -q 'SO_PEERPIDFD' "$pkdst"; then
 		echo "  既に SO_PEERPIDFD を見ている。そのまま"
 	else
+		# distinfo だけでなく当て物そのものも控える。戻すときに git は
+		# 使えない — CI の木は tarball で展開したもので、git 管理下に無い。
+		# distinfo だけ戻すと、差し替えた当て物が checksum 不一致になって
+		# 結局飛ぶ。壊れた状態が別の顔で残るだけになる。
 		cp "$pkdir/distinfo" "$W/polkit-distinfo.orig"
+		cp "$pkdst" "$W/polkit-patch.orig"
 		cp "$pksrc" "$pkdst"
 		if ( cd "$pkdir" && $BM makepatchsum ) > /dev/null 2>&1; then
 			# rc は信じない。makepatchsum は digest が無くても 0 を返し、
@@ -195,15 +200,13 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 				echo "    digest: $(command -v digest || echo 'PATH に無い')"
 				sed -n '1,12p' "$pkdir/distinfo" | sed 's/^/    /'
 				cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
-				( cd "$pkdir" && git checkout -- patches ) 2>/dev/null ||
-					echo "    patches を戻せない (git 管理下ではない)"
+				cp "$W/polkit-patch.orig" "$pkdst"
 				echo "    元に戻した。polkit は木のままで建てる"
 			fi
 		else
 			echo "  makepatchsum が通らない。元に戻す"
 			cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
-			( cd "$pkdir" && git checkout -- patches ) 2>/dev/null ||
-				echo "    戻せない (git 管理下ではない)"
+			cp "$W/polkit-patch.orig" "$pkdst"
 		fi
 	fi
 else
