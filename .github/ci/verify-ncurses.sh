@@ -64,6 +64,16 @@ grep -q 'cf_cv_ld_searchpath' "$M" || {
 cp "$M" "$W/Makefile.patched"
 
 # ------------------------------------------------------------------
+# 何より先に、触っていない状態を読む。以前はここが無く、一段目の頭で
+# repair を走らせてから読んでいたので、四行とも「こちらが並べた順」に
+# なっていた。rc が起動時に作る順とは違う (peer の 7.9/arm64 の箱では
+# 素が /usr/lib:/usr/X11R6/lib:/usr/local/lib で、X11R6 が先)。素を
+# 読まないと、報告に書いた並びが箱の性質ではなくこちらの repair の
+# 引数の順になる。
+STOCK=$(sd)
+echo "########## 零段目: 触っていない状態 ##########"
+echo "  search directories: $STOCK"
+
 echo "########## 一段目: 当て物ありで configure ##########"
 repair					# 既知の状態から始める
 ( cd "$D" && $PKGMAKE clean > /dev/null 2>&1 || true )
@@ -102,6 +112,7 @@ echo "  configure の答え  : $(answer "$W/again.log")"
 # ------------------------------------------------------------------
 echo
 echo "########## まとめ ##########"
+printf '  %-14s %s\n' "素の状態:"   "$STOCK"
 printf '  %-14s %s\n' "当て物あり:" "$WITH"
 printf '  %-14s %s\n' "剥がす前:"   "$BEFORE"
 printf '  %-14s %s\n' "剥がした後:" "$WITHOUT"
@@ -109,6 +120,8 @@ printf '  %-14s %s\n' "戻した後:"   "$AGAIN"
 
 ok() { case $1 in */usr/local/lib*) return 0 ;; *) return 1 ;; esac; }
 
+ok "$STOCK" || { echo "  !! 素の状態で既に /usr/local/lib が無い。この箱では"
+                 echo "     測れない (壊れる前と後が同じ顔になる)"; rc=1; }
 ok "$WITH"  || { echo "  !! 当て物ありなのに /usr/local/lib が消えた"; rc=1; }
 ok "$AGAIN" || { echo "  !! 戻した後に /usr/local/lib が消えた"; rc=1; }
 if ok "$WITHOUT"; then
