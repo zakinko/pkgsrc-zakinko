@@ -50,9 +50,36 @@ jobs:
         run: |
           set -x
           sudo apt-get update -qq
-          sudo apt-get install -y -qq qemu-system-aarch64 qemu-system-x86 >/dev/null
-          qemu-system-aarch64 --version | head -1
-          # 名前ではなく、その binary が本当に kvm を持っているかを訊く
-          qemu-system-aarch64 -accel help
-          echo "--- x86_64 側"
-          qemu-system-x86_64 -accel help
+          # host と同じ arch の qemu を必ず入れる。KVM が効くのは host と
+          # 同じ arch の guest だけなので、そこを入れずに -accel help を
+          # 打っても tcg しか出ない。一度これで測り損ねた: riscv の箱で
+          # /dev/kvm は在ったのに、入れたのが aarch64 と x86 の qemu だけ
+          # だったため「tcg のみ」と読める log を作ってしまった。
+          # riscv64 の qemu は Debian/Ubuntu では qemu-system-misc に入る。
+          sudo apt-get install -y -qq qemu-system-arm qemu-system-x86 \
+            qemu-system-misc >/dev/null || true
+          echo "=== host と同じ arch の qemu"
+          case "$(uname -m)" in
+          x86_64)  self=qemu-system-x86_64 ;;
+          aarch64) self=qemu-system-aarch64 ;;
+          riscv64) self=qemu-system-riscv64 ;;
+          *)       self= ;;
+          esac
+          if [ -n "$self" ] && command -v "$self" > /dev/null; then
+            "$self" --version | head -1
+            # これが本命。/dev/kvm が在っても binary が kvm を持たなければ
+            # 使えず、binary が挙げても device が無ければ使えない。両方見る。
+            "$self" -accel help
+            echo "--- 実際に kvm で起動できるか (機械の答を取る)"
+            "$self" -machine accel=kvm -nographic -m 128 \
+              -kernel /dev/null -no-reboot 2>&1 | head -5 || true
+          else
+            echo "!! $self が入らなかった"
+          fi
+          echo "=== よその arch (KVM が出ないのが正しい)"
+          for q in qemu-system-aarch64 qemu-system-x86_64 qemu-system-riscv64; do
+            command -v "$q" > /dev/null || continue
+            [ "$q" = "$self" ] && continue
+            echo "--- $q"
+            "$q" -accel help
+          done
