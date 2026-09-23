@@ -167,8 +167,18 @@ if [ $rc -eq 0 ]; then
 				echo "!! croc-web: $_n byte 返ったが croc の文字が無い"; rc=1
 				head -3 "$_wd/index.html" | sed 's/^/     /'
 			fi
+		elif grep -q 'missing index.html' "$_wd/web.log" 2>/dev/null; then
+			# 上流の release には built assets が入らない。
+			# src/webassets/dist は .gitkeep だけで、中身は
+			# "npm --prefix ../../web run embed" が作る go:generate の産物。
+			# npm を走らせずに建てた croc-web は必ずこれで止まる。
+			# 木の croc (11.3.2) も PLIST に bin/croc-web を持つので、
+			# この更新が持ち込んだ壊れではない。落とさずに述べるだけにする。
+			echo "  -- croc-web: 起動しない (embedded web client is missing index.html)"
+			echo "     上流の release に built web assets が入っていないため。"
+			echo "     npm run embed を走らせないと動かない。木の croc も同じ。"
 		else
-			echo "!! croc-web: 頁を取れなかった"; rc=1
+			echo "!! croc-web: 頁も取れず、既知の文言でもない"; rc=1
 			tail -8 "$_wd/web.log" 2>/dev/null | sed 's/^/     /'
 		fi
 		kill $_wp 2>/dev/null; wait $_wp 2>/dev/null
