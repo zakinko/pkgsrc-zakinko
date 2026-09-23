@@ -23,8 +23,10 @@ on:
         options: [all, freebsd, netbsd, openbsd, dragonfly, ghostbsd]
         default: all
 
+# target も group に入れる。入れないと openbsd の run を dragonfly の run が
+# 畳む — 別の箱を測る別の仕事なのに、同じ ref というだけで同じ仕事に見える。
 concurrency:
-  group: polkit-bsd-${{ github.ref }}
+  group: polkit-bsd-${{ github.ref }}-${{ inputs.target }}
   cancel-in-progress: true
 
 env:
