@@ -13,7 +13,7 @@ in hand, removes the need for the flag.
 
 --- src/n-acd/src/n-acd-os-linux.c.orig
 +++ src/n-acd/src/n-acd-os-linux.c
-@@ -0,0 +1,261 @@
+@@ -0,0 +1,259 @@
 +/*
 + * n-acd on Linux
 + *
@@ -52,8 +52,6 @@ in hand, removes the need for the flag.
 +                .sll_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
 +        };
 +        int r, s = -1;
-+
-+        (void)ifname;           /* PF_PACKET binds by index. */
 +
 +        s = socket(PF_PACKET, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
 +        if (s < 0) {
