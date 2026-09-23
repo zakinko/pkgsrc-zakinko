@@ -4,7 +4,7 @@ PKGNAME=	${DISTNAME:S/mozc-/mozc-tool-/}
 
 INSTALLATION_DIRS+=	libexec
 
-DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server334
+DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server334
 
 # gui.gyp defines mozc_tool outside any conditional, so under GYP it builds
 # once Qt can be found (patch-gui_qt__libraries.gypi and
@@ -37,7 +37,7 @@ MAKE_ENV+=	BAZEL_CXXOPTS=-std=gnu++17:-I${PREFIX}/include:-I${X11BASE}/include
 # the toolchain from there.
 MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:${COMPILER_RPATH_FLAG}${PREFIX}/qt6/lib:-L${PREFIX}/lib:${COMPILER_RPATH_FLAG}${PREFIX}/lib:-L${X11BASE}/lib:${COMPILER_RPATH_FLAG}${X11BASE}/lib
 
-.include "../../zakinko/mozc-server334/options.mk"
+.include "../../inputmethod/mozc-server334/options.mk"
 
 .if ${MOZC_BUILDER} == "bazel"
 do-build:
@@ -70,5 +70,5 @@ do-install:
 		${DESTDIR}${PREFIX}/libexec
 .endif
 
-.include "../../zakinko/mozc-server334/Makefile.common"
+.include "../../inputmethod/mozc-server334/Makefile.common"
 .include "../../mk/bsd.pkg.mk"

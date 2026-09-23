@@ -30,7 +30,7 @@ PKG_SUGGESTED_OPTIONS=	gyp
 #
 # Note that only x86_64 has been measured.  aarch64 is included because the
 # JDK and the 64-bit requirement are both satisfied, not because anyone has
-# built it: devel/bazel9 carries no aarch64 branch and was built on amd64.
+# built it: zakinko/bazel9 carries no aarch64 branch and was built on amd64.
 #
 # gyp is the default on every platform, including the two where bazel works.
 # It needs only python and ninja, it builds the same four programs, and both
@@ -58,7 +58,7 @@ MOZC_BUILDER=	bazel
 # Asking for bazel where bazel cannot be built is not a reason to stop: gyp
 # builds the same programs there.  Fall back to it and say so.  Stopping
 # instead fails while resolving TOOL_DEPENDS, and the message names
-# devel/bazel9 rather than mozc, which reads as a missing package rather than
+# zakinko/bazel9 rather than mozc, which reads as a missing package rather than
 # as a platform that has no bazel.
 .if ${MOZC_BUILDER} == "bazel" && (${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))

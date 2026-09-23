@@ -6,9 +6,9 @@ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/mozc-/mozc-elisp-/}
 # client refuses a server whose version string differs
 # (CheckVersionOrRestartServer in client.cc).  So the dependency is pinned by
 # version, not by package.
-DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server334
+DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server334
 
-.include "../../zakinko/mozc-server334/options.mk"
+.include "../../inputmethod/mozc-server334/options.mk"
 
 MOZC_GYP_ARGS=	--noqt
 
@@ -66,7 +66,7 @@ do-install:
 		${DESTDIR}${EMACS_LISPPREFIX}
 .endif
 
-.include "../../zakinko/mozc-server334/Makefile.common"
+.include "../../inputmethod/mozc-server334/Makefile.common"
 
 # Makefile.common assigns CATEGORIES, so this has to come after the include.
 # Put it before and editors is silently dropped.
