@@ -16,4 +16,11 @@ grep -q 'OS_VARIANT:U} != "Solaris"' "$M" || {
 	echo "!! rust-bin: OS_VARIANT の分岐が入っていない" >&2; exit 1; }
 grep -q 'x86_64-unknown-illumos' "$TREE/lang/rust-bin/distinfo" || {
 	echo "!! rust-bin: distinfo に illumos が入っていない" >&2; exit 1; }
+# rpath の塊は当たっても踏まれたとは限らないので、少なくとも当たったことは
+# 数える。踏んだかどうかは verify-rust-bin.sh が SunOS で RUST_RPATH を
+# 印字して見る。
+grep -q 'RUST_RPATH' "$M" || {
+	echo "!! rust-bin: RUST_RPATH の塊が入っていない" >&2; exit 1; }
+test "$(grep -c 'set-rpath ${PREFIX}/lib' "$M")" = 0 || {
+	echo '!! rust-bin: ${PREFIX}/lib を直に書く set-rpath が残っている' >&2; exit 1; }
 echo "  rust-bin: illumos の配布物を上流から取るようにした"
