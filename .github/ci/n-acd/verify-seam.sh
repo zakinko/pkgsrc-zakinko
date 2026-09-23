@@ -165,6 +165,28 @@ echo "  七本とも警告なしで建った"
 
 cc $CF -o "$W/t-probe" "$CI/t-probe.c" $OBJ || exit 1
 
+# n-dhcp4 も同じ木に居る。n-acd より後に移したもので、Linux が出てくる場所は
+# socket と poller と timer の三つに固まっていた。ここでは建つかだけを見る。
+# 線に出すところまでは NetBSD の実機で別に測ってある (tap を立てて捕まえた)。
+echo
+echo "=== n-dhcp4 を丸ごと建てる"
+DS="$NM/src/n-dhcp4/src"
+DF="-std=c11 -Wall -Wextra -Wno-unused-parameter -I$DS -I$S/c-list/src -I$S/c-siphash/src -I$S/c-stdaux/src"
+dfail=0
+for f in "$DS"/n-dhcp4-socket.c "$DS"/n-dhcp4-socket-bsd.c "$DS"/util/packet.c \
+         "$DS"/util/packet-bsd.c "$DS"/util/socket-bsd.c "$DS"/n-dhcp4-client.c \
+         "$DS"/n-dhcp4-c-connection.c "$DS"/n-dhcp4-c-probe.c "$DS"/n-dhcp4-c-lease.c \
+         "$DS"/n-dhcp4-incoming.c "$DS"/n-dhcp4-outgoing.c; do
+	b=`basename "$f" .c`
+	if ! cc $DF -c "$f" -o "$W/dh_$b.o" 2> "$W/dh_$b.log"; then
+		echo "★ $b が建たない"; head -25 "$W/dh_$b.log"; dfail=1
+	elif [ -s "$W/dh_$b.log" ]; then
+		echo "★ $b で警告が出た"; cat "$W/dh_$b.log"; dfail=1
+	fi
+done
+[ $dfail = 0 ] || exit 1
+echo "  十一本とも警告なしで建った"
+
 GW=`netstat -rn -f inet 2>/dev/null | awk '$1=="default"{print $2; exit}'`
 if [ -z "$GW" ]; then
 	echo "=== default route が無いので撃たない"
