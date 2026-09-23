@@ -70,9 +70,21 @@ jobs:
             # これが本命。/dev/kvm が在っても binary が kvm を持たなければ
             # 使えず、binary が挙げても device が無ければ使えない。両方見る。
             "$self" -accel help
-            echo "--- 実際に kvm で起動できるか (機械の答を取る)"
+            echo "--- 素のまま kvm で起動できるか"
             "$self" -machine accel=kvm -nographic -m 128 \
-              -kernel /dev/null -no-reboot 2>&1 | head -5 || true
+              -kernel /dev/null -no-reboot 2>&1 | head -3 || true
+            # device が在っても group から外れていれば Permission denied に
+            # なる。RISE の riscv では /dev/kvm が root:sgx で、runner の
+            # user がその group に居ない。vmactions が x86 の runner で
+            # やっているのと同じ chmod で通るかを見る。通るなら「KVM が
+            # 使えない箱」ではなく「一手要る箱」。
+            if [ -e /dev/kvm ]; then
+              echo "--- chmod 666 /dev/kvm のあと"
+              id
+              sudo chmod 666 /dev/kvm && ls -l /dev/kvm
+              "$self" -machine accel=kvm -nographic -m 128 \
+                -kernel /dev/null -no-reboot 2>&1 | head -3 || true
+            fi
           else
             echo "!! $self が入らなかった"
           fi
