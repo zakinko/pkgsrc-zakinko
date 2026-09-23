@@ -590,6 +590,22 @@ EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
 EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
 .endif
 
+# A CONFLICTS pattern written before the prefix existed spells the
+# flavour out: devel/elib says emacs20-elib-[0-9]*.  With the prefix
+# empty the package was always plain elib-1.0nb9, so that line matched
+# nothing and sat there for years doing nothing.  Once PKGNAME carries
+# the prefix it names this very package, and pkg_add refuses to install
+# it -- against itself, and against any other flavour already there.
+# Drop the patterns our own name answers to.  A package that conflicts
+# with itself is saying nothing, whichever way it got written.
+_EMACS_CONFLICTS=
+.for _c_ in ${CONFLICTS}
+.  if empty(PKGNAME:M${_c_})
+_EMACS_CONFLICTS+=	${_c_}
+.  endif
+.endfor
+CONFLICTS=	${_EMACS_CONFLICTS}
+
 _EMACS_PLIST_SUBST=
 .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
 .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
