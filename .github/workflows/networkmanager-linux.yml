@@ -25,9 +25,21 @@ name: NetworkManager (Linux distros)
 # polkit も素から建つので長い。一回で終わらなくても .bsdcache が作りかけを
 # 持ち越すので、同じ相手をもう一度押せば続きから進む。
 #
-# 手で起動する。押すまで何もしない。
+# 手で起動する。押すまで何もしない ... ただし当て物が動いたときだけは別で、
+# そこは自動で回す。NetworkManager の当て物には n-acd の移植が入っていて、
+# あれは Linux 側の code も動かしている (poll の登録を畳み、AT_RANDOM を
+# 継ぎ目の向こうへ移した)。BSD で動くようにした拍子に Linux を壊していない
+# ことは、誰かが思い出して押すのではなく、機械が止めるべきである。
+#
+# 押し忘れは comment では防げない。paths: を workflow の側に置いてあるので、
+# 当て物が動いたときにしか runner は起きない。
 
 on:
+  push:
+    paths:
+      - 'NetworkManager/patches/**'
+      - 'NetworkManager/distinfo'
+      - 'NetworkManager/Makefile'
   workflow_dispatch:
     inputs:
       pkgs:
@@ -43,6 +55,12 @@ on:
         type: choice
         options: [current, stable]
         default: current
+
+# cancel-in-progress は付けない。cache の鍵が run_id なので、途中で切ると
+# その回の作りかけが保存されないまま消え、次が素から建て直す。押しすぎを
+# 防ぐより、積み上がった物を守るほうが安い。
+concurrency:
+  group: networkmanager-linux-${{ github.ref }}
 
 env:
   # NetworkManager は libndp を buildlink で引く。CARRY は「木へ写すが
