@@ -35,10 +35,14 @@ CONFIGURE_ARGS+=	--without-x
 .endif
 
 # Xft is optional, as configure says, but the tree as shipped does not
-# compile without it: we_debug.c and we_xterm.c reach into
-# WpeXInfo.backbuf, which WeXterm.h declares only inside #ifdef HAVE_XFT,
-# at four sites no #ifdef covers.  patch-we__debug.c and patch-we__xterm.c
-# guard those, so both ways build.  Reported upstream.
+# compile without it: WeXterm.h declares WpeXInfo.backbuf only inside
+# #ifdef HAVE_XFT, and twelve uses in three files (we_debug.c,
+# we_xterm.c, we_render_cairo.c) sit outside that guard.  backbuf is not
+# an Xft object -- the Cairo backend creates it in cr_resize() and draws
+# into it -- so patch-WeXterm.h moves the declaration out, and
+# patch-we__debug.c and patch-we__xterm.c handle the two Expose paths
+# that have nothing to copy from when neither backend is in.  Reported
+# upstream.
 #
 # Xft needs X: configure only looks for it when have_x11 is yes, so
 # without x11 this option cannot do anything.
