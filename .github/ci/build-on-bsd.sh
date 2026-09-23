@@ -145,6 +145,38 @@ echo "=== $OS $(uname -r) / $(uname -m) / PKG_OPTIONS.mule=\"$OPTS\" ==="
 cc --version 2>/dev/null | head -1
 
 # ------------------------------------------------------------------
+# この箱の grep が BRE の何を解すかを印字する。信念ではなく数字で残す。
+#
+# peer (netbsd-zfs-4c) が techne で実測して、そこでは \| は解されるが \s は
+# 解されないと報せてきた。つまり「BSD だから \| が駄目」は箱によって外れる。
+# どの箱で何が生きているかを言えるようにしておく。
+#
+# 直し方は箱に依らず -E なので、この数字で分岐はしない。読むためだけに出す。
+stage "この箱の grep が解す escape"
+# 版も出す。手元の macOS は "BSD grep, GNU compatible 2.6.0-FreeBSD" で
+# \d まで全部解し、techne の NetBSD は \| は解すが \s は解さない。
+# 「BSD だから」では括れないので、記録が自分で説明できるようにしておく。
+echo "    grep: $(command -v grep)"
+echo "    $(grep --version 2>&1 | head -1)"
+for _e in '\|' '\s' '\+' '\?' '\d' '\w'; do
+	# a と b を繋いだ pattern が両方に当たるかで見る。解さなければ
+	# literal として扱われ、どちらにも当たらない。
+	case $_e in
+	'\|')	_p='a\|b'; _in='a' ;;
+	'\s')	_p='a\sb'; _in='a b' ;;
+	'\+')	_p='ab\+'; _in='abb' ;;
+	'\?')	_p='ab\?c'; _in='ac' ;;
+	'\d')	_p='a\db'; _in='a1b' ;;
+	'\w')	_p='a\wb'; _in='axb' ;;
+	esac
+	if printf '%s\n' "$_in" | grep -q "$_p" 2>/dev/null; then
+		echo "    $_e  解す"
+	else
+		echo "    $_e  解さない  (この箱では grep -q '$_p' が常に偽)"
+	fi
+done
+echo "    -> 直し方は箱に依らず grep -E と | / [[:space:]]"
+
 stage "置き場所を決める"
 # OpenBSD は既定で /usr や /home を別区画に切って入る。pkgsrc のツリー
 # だけで 1.3GB、それに WRKOBJDIR が乗るので、/usr に置くと途中で

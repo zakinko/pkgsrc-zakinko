@@ -209,7 +209,7 @@ if build plain "$OFF"; then
 	echo 'RESULT 素のまま: 通った'; echo '!! 読みが外れている。'; rc=1
 elif grep -q 'subst.mk:xim' /tmp/xim-plain.log; then
 	echo 'RESULT 素のまま: subst.mk のエラーで止まった (報告のとおり)'
-	grep -n 'Substituting "xim"\|subst.mk:xim' /tmp/xim-plain.log | head -4
+	grep -nE 'Substituting "xim"|subst\.mk:xim' /tmp/xim-plain.log | head -4
 else
 	echo 'RESULT 素のまま: 別の理由で落ちた (再現になっていない)'
 	tail -25 /tmp/xim-plain.log; rc=1

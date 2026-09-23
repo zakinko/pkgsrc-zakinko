@@ -12,11 +12,15 @@ on:
   push:
     paths:
       - '.github/workflows/*.yml'
+      - '.github/ci/*.sh'
       - '.github/ci/yaml-dupkey.rb'
+      - '.github/ci/check-grep-portability.sh'
   pull_request:
     paths:
       - '.github/workflows/*.yml'
+      - '.github/ci/*.sh'
       - '.github/ci/yaml-dupkey.rb'
+      - '.github/ci/check-grep-portability.sh'
   workflow_dispatch:
 
 concurrency:
@@ -43,3 +47,22 @@ jobs:
           echo "検査は不良品を拾える"
       - name: 全 workflow を検査する
         run: ruby .github/ci/yaml-dupkey.rb .github/workflows/*.yml
+
+  grep-portability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      # POSIX BRE が定めない escape (\| \s \d \w \+ \?) を -E 無しの grep で
+      # 使うと、解さない箱では grep -q が常に偽、grep -c が常に 0 になる。
+      # error は出ないので、判定に使っていると黙って反対の答が出る。
+      #
+      # この罠を注記したコメントは既に木の二箇所に在った。それでも他の八件は
+      # 残っていて、うち四件は判定に使っていた (verify-gdb7.sh の三つの if と
+      # verify-elisp17.sh の警告の数え上げ。後者は「警告 0 件」と答え続ける)。
+      # コメントは踏んだ場所にしか効かないので、機械に置く。
+      #
+      # script 自身が自己試験を先頭に持っている。既知の不良品 3 件を拾えて、
+      # 直した物で 0 件になることを確かめてから木を見る。
+      - name: -E 無しの grep に移植性の無い escape が無いか
+        run: sh .github/ci/check-grep-portability.sh

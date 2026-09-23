@@ -65,9 +65,9 @@ if build plain; then
 	echo "!! 建った。#187 の前提がこの箱では再現しない"
 	rc=1
 else
-	if grep -q 'zutil.h.*fdopen\|expanded from macro .fdopen' "$T/gdb7-plain.log"; then
+	if grep -qE 'zutil\.h.*fdopen|expanded from macro .fdopen' "$T/gdb7-plain.log"; then
 		echo "  ok 再現: 同梱 zlib の fdopen が SDK の宣言と衝突して止まる"
-		grep -n 'error: expected identifier\|zutil.h:.*fdopen' "$T/gdb7-plain.log" | head -3
+		grep -nE 'error: expected identifier|zutil\.h:.*fdopen' "$T/gdb7-plain.log" | head -3
 	else
 		echo "!! 落ちたが、報告と違う所で落ちている"
 		grep -n 'error:' "$T/gdb7-plain.log" | head -5
@@ -105,7 +105,7 @@ if build syszlib; then
 	_wrksrc=$($PKGMAKE show-var VARNAME=WRKSRC)
 	if [ -x "$_wrksrc/gdb/gdb" ]; then
 		echo "!! gdb の実行 file が出来ている。ならば直せる可能性が在る"; rc=1
-	elif grep -q 'Configuring in .*/gdb$\|Configuring in ./gdb' "$T/gdb7-syszlib.log"; then
+	elif grep -qE 'Configuring in .*/gdb$|Configuring in \./gdb' "$T/gdb7-syszlib.log"; then
 		echo "!! gdb の directory が configure されている"; rc=1
 	else
 		echo "  ok gdb の directory は configure されていない (toplevel が noconfigdirs に入れる)"
@@ -114,7 +114,7 @@ if build syszlib; then
 			if grep -q 'PLIST but not in.*' "$T/gdb7-syszlib-install.log" &&
 			   grep -q '/bin/gdb$' "$T/gdb7-syszlib-install.log"; then
 				echo "  ok install は PLIST の bin/gdb を「無い」と並べる (作者の見たもの)"
-				grep -n 'ERROR: *.*\(bin/gdb\|jit-reader\|\.info\|\.1\|\.5\)$' "$T/gdb7-syszlib-install.log" | head -8
+				grep -nE 'ERROR: *.*(bin/gdb|jit-reader|\.info|\.1|\.5)$' "$T/gdb7-syszlib-install.log" | head -8
 			else
 				echo "?? install が別の理由で落ちた"; grep -n ERROR "$T/gdb7-syszlib-install.log" | head; rc=1
 			fi
@@ -123,12 +123,12 @@ if build syszlib; then
 elif grep -q 'does not support native target' "$T/gdb7-syszlib.log"; then
 	echo "  ok gdb 自身の configure が host を支えていない:"
 	grep -n 'does not support native target' "$T/gdb7-syszlib.log" | head -2
-elif grep -q 'zutil.h.*fdopen\|expanded from macro .fdopen' "$T/gdb7-syszlib.log"; then
+elif grep -qE 'zutil\.h.*fdopen|expanded from macro .fdopen' "$T/gdb7-syszlib.log"; then
 	echo "!! system zlib にしても同梱 zlib が組まれている"
 	grep -n 'zutil.h' "$T/gdb7-syszlib.log" | head -3; rc=1
 else
 	echo "?? zlib は越えたが別の所で落ちた (これは記録する)"
-	grep -n 'error:\|Error [0-9]' "$T/gdb7-syszlib.log" | head -10
+	grep -nE 'error:|Error [0-9]' "$T/gdb7-syszlib.log" | head -10
 	tail -20 "$T/gdb7-syszlib.log"
 fi
 restore
