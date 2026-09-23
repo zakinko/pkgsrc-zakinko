@@ -17,6 +17,11 @@ MASTER_SITES=	${MASTER_SITE_GITHUB:=knu/}
 GITHUB_PROJECT=	elscreen
 GITHUB_TAG=	${PKGVERSION_NOREV}
 
+# 落ちてくる file の名前が elscreen-20180321-20180321.tar.gz になるのは、
+# mk/fetch/github.mk:60 が 7 桁以上の 16 進で綴られた tag を commit hash と
+# 見なして DISTNAME に足すため。20180321 は全部数字なのでこれに当たる。
+# 取りに行く先は .../archive/20180321.tar.gz で、中身は tag のものである。
+
 MAINTAINER=	uebayasi@NetBSD.org
 HOMEPAGE=	https://github.com/knu/elscreen
 COMMENT=	Window manager within Emacs
