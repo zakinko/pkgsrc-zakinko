@@ -1,25 +1,26 @@
 --- src/c-stdaux-generic.h
 +++ src/c-stdaux-generic.h
-@@ -31,6 +31,8 @@
-  *   Compiler.
-  * - ``C_COMPILER_MSVC``: The compiling software is compatible to Microsoft
+@@ -33,6 +33,8 @@
   *   Visual Studio (use ``_MSC_VER`` to check for specific version support).
-+ * - ``C_OS_BSD``: The target system is compatible to BSD (FreeBSD, NetBSD,
-+ *   OpenBSD, or DragonFly BSD).
   * - ``C_OS_LINUX``: The target system is compatible to Linux.
   * - ``C_OS_MACOS``: The target system is compatible to Apple MacOS.
++ * - ``C_OS_BSD``: The target system is compatible to BSD (FreeBSD, NetBSD,
++ *   OpenBSD, or DragonFly BSD).
   * - ``C_OS_WINDOWS``: The target system is compatible to Microsoft Windows.
-@@ -58,6 +60,10 @@
- 
- #if defined(_MSC_VER)
- #  define C_COMPILER_MSVC 1
-+#endif
-+
-+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-+#  define C_OS_BSD 1
+  * - ``C_MODULE_GENERIC``: The `*-generic.h` module was included.
+  * - ``C_MODULE_GNUC``: The `*-gnuc.h` module was included.
+@@ -68,6 +70,11 @@
+ #  define C_OS_MACOS 1
  #endif
  
- #if defined(__linux__)
++#if defined(__FreeBSD__) || defined(__NetBSD__) || \
++    defined(__OpenBSD__) || defined(__DragonFly__)
++#  define C_OS_BSD 1
++#endif
++
+ #if defined(_WIN32) || defined(_WIN64)
+ #  define C_OS_WINDOWS 1
+ #endif
 --- src/c-stdaux.h
 +++ src/c-stdaux.h
 @@ -46,7 +46,7 @@
@@ -27,19 +28,20 @@
  #endif
  
 -#if defined(C_OS_LINUX) || defined(C_OS_MACOS)
-+#if defined(C_OS_BSD) || defined(C_OS_LINUX) || defined(C_OS_MACOS)
++#if defined(C_OS_LINUX) || defined(C_OS_MACOS) || defined(C_OS_BSD)
  #  include <c-stdaux-unix.h>
  #endif
  
 --- src/test-api.c
 +++ src/test-api.c
-@@ -36,6 +36,9 @@
- 
-         /* C_OS_* */
-         {
-+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-+                c_assert(C_OS_BSD);
-+#endif
- #ifdef __linux__
-                 c_assert(C_OS_LINUX);
+@@ -41,6 +41,10 @@
  #endif
+ #ifdef __APPLE__
+                 c_assert(C_OS_MACOS);
++#endif
++#if defined(__FreeBSD__) || defined(__NetBSD__) || \
++    defined(__OpenBSD__) || defined(__DragonFly__)
++                c_assert(C_OS_BSD);
+ #endif
+ #ifdef _WIN32
+                 c_assert(C_OS_WINDOWS);

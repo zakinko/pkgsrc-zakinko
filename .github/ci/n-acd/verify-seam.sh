@@ -116,6 +116,11 @@ rm -rf full; mkdir full || exit 1
 NM=`echo "$W"/full/NetworkManager-*`
 [ -d "$NM/src/n-acd" ] || { echo "★ n-acd が見付からない ($NM)"; exit 1; }
 
+# c-stdaux の素の写しを、当て物を当てる前に取っておく。package は既に
+# C_OS_BSD を入れる当て物を二本持っているので、当てた後の木で測ると
+# 「当てる前から建つ」になる。実際そうなって守りが止めた (run 35826989580)。
+cp -R "$NM/src/c-stdaux" "$W/c-stdaux-pristine" || exit 1
+
 # 当て物は -i で渡す。`< "$p" < /dev/null` と書くと、後の redirect が勝つ
 # 側の shell では patch が /dev/null を読み、当たっていないのに rc=0 で
 # 返ってくる。zsh は MULTIOS で両方渡すので手元では再現しない。
@@ -214,12 +219,14 @@ fi
 # だからで、c_close() も c_closedir() も C_MODULE_UNIX も現れない。上流へ
 # 出す当て物をここで当て、当てる前は建たず当てた後は建つことを測る。
 #
-# 当たる先は NetworkManager 同梱の写しだが、触る三つの file は上流 main と
-# 一 byte も違わない。当てる前に建ってしまったら前提のほうが変わっているので、
-# そこで止める。
+# 当たる先は配布物の c-stdaux の素の写しで、当て物を当てる前に取ってある。
+# package 自身も同じ変更を二本の当て物で持っているので、当てた後の木で測ると
+# 何も測っていないことになる。触る三つの file は上流 main と一 byte も違わず、
+# 上流へ出す diff は package の当て物と同じ綴りにしてある。当てる前に建って
+# しまったら前提のほうが変わっているので、そこで止める。
 echo
 echo "=== c-stdaux の BSD 対応 (上流へ出す当て物)"
-CS="$S/c-stdaux"
+CS="$W/c-stdaux-pristine"
 CSP="$CI/../c-stdaux"
 if cc -I"$CS/src" -o "$W/cs-probe" "$CSP/probe.c" 2> "$W/cs0.log"; then
 	echo "★ 当てる前から probe が建った。前提が変わっている"

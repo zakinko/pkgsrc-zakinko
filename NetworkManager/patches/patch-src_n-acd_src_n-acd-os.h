@@ -9,7 +9,7 @@ implementation sees one system's idea of networking written plainly.
 
 --- src/n-acd/src/n-acd-os.h.orig
 +++ src/n-acd/src/n-acd-os.h
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,149 @@
 +#pragma once
 +
 +/*
@@ -33,6 +33,20 @@ implementation sees one system's idea of networking written plainly.
 + * nothing - a filtered packet on the BSDs, a spurious readiness on Linux.
 + */
 +
++/*
++ * <netinet/if_ether.h> declares struct arphdr with struct sockaddr and struct
++ * in_addr members, and on FreeBSD, GhostBSD and OpenBSD it does not pull in
++ * the headers that define them.  NetBSD's does, which is why this was not
++ * seen there:
++ *
++ *	/usr/include/net/if_arp.h:89:18: error: field has incomplete type
++ *	'struct sockaddr'
++ *
++ * So the two are included first, in the order POSIX gives them.
++ */
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
 +#include <netinet/if_ether.h>
 +#include <stddef.h>
 +#include <stdint.h>
