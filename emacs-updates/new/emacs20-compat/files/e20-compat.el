@@ -216,6 +216,39 @@ original group number or nil for a shy group."
 	      (cons 'if (cons (car v) (cons then else)))))))
 (provide 'subr-x)
 
+;;; cl and obsolescence, so that a package need not pull in APEL
+;; devel/apel is marked incompatible with emacs20, so the poe it used to
+;; supply is out of reach here.  These are the three things poe was wanted
+;; for: dolist, cl's remove, and the WHEN argument make-obsolete-variable
+;; grew in Emacs 23.
+(or (fboundp 'dolist)
+    (defmacro dolist (spec &rest body)
+      (let ((var (car spec)) (lst (make-symbol "lst")))
+	(list 'let (list (list lst (car (cdr spec))) (list var nil))
+	      (list 'while lst
+		    (list 'setq var (list 'car lst))
+		    (cons 'progn body)
+		    (list 'setq lst (list 'cdr lst)))
+	      (car (cdr (cdr spec)))))))
+(or (fboundp 'remove)
+    (defun remove (item seq)
+      "Return a copy of SEQ with all `equal' occurrences of ITEM removed."
+      (delete item (copy-sequence seq))))
+;; Emacs 20 takes two arguments and errors on a third.
+(or (condition-case nil
+	(progn (make-obsolete-variable 'e20-compat--probe nil "1.0") t)
+      (error nil))
+    (progn
+      ;; Emacs 20 has no lexical binding, so the original has to be kept
+      ;; under a name rather than closed over.
+      (defalias 'e20-make-obsolete-variable
+	(symbol-function 'make-obsolete-variable))
+      (defun make-obsolete-variable (obsolete-name current-name
+				     &optional when access-type)
+	"Make the byte compiler warn that OBSOLETE-NAME is obsolete.
+WHEN and ACCESS-TYPE are accepted for Emacs 23 compatibility and ignored."
+	(e20-make-obsolete-variable obsolete-name current-name))))
+
 ;;; assorted functions from 22 to 26
 (or (fboundp 'file-local-name)
     (defun file-local-name (file)
