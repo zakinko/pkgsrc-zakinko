@@ -33,5 +33,9 @@ do-install:
 
 .include "../../editors/emacs/modules.mk"
 
+# 当て物で (require 'un-define nil t) にしたので、新しい Emacs では
+# 無くても建つ。ここを残すのは emacs20/21 のため。mule-ucs の
+# buildlink3.mk は EMACS_VERSION_MAJOR < 22 で自分を囲っているので、
+# emacs22 以降ではこの行は空になる。
 .include "../../editors/mule-ucs/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"
