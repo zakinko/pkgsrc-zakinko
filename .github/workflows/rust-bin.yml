@@ -35,7 +35,7 @@ env:
   # bison の nls が gettext-tools と python313 を連れてくる。測っているのは
   # rustc が入って動くかなので外す。go-bin.yml と同じ理由。
   MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
-  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-rust-bin-illumos.sh'
+  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-rust-bin-illumos.sh .github/ci/tree-patch-rust-bin-riscv64-atomic.sh'
 
 jobs:
   linux:
