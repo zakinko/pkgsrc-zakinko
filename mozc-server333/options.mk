@@ -1,7 +1,8 @@
 # $NetBSD$
 
 PKG_OPTIONS_VAR=	PKG_OPTIONS.mozc
-PKG_SUPPORTED_OPTIONS=	gyp
+PKG_SUPPORTED_OPTIONS=	bazel gyp
+PKG_SUGGESTED_OPTIONS=	gyp
 
 .include "../../mk/bsd.prefs.mk"
 
@@ -30,23 +31,40 @@ PKG_SUPPORTED_OPTIONS=	gyp
 # Note that only x86_64 has been measured.  aarch64 is included because the
 # JDK and the 64-bit requirement are both satisfied, not because anyone has
 # built it: devel/bazel9 carries no aarch64 branch and was built on amd64.
-.if ${OPSYS} != "NetBSD" || \
-    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
-PKG_SUGGESTED_OPTIONS+=	gyp
-.endif
+#
+# gyp is the default on every platform, including the two where bazel works.
+# It needs only python and ninja, it builds the same four programs, and both
+# paths emit the same version string, so a package built either way is
+# interchangeable at run time.  Defaulting to the one that runs everywhere
+# keeps the package uniform across the platforms pkgsrc covers; ask for bazel
+# where you want it.
 
 .include "../../mk/bsd.options.mk"
 
-# The default above only chooses; it does not stop anyone from asking for the
-# bazel build on a platform where bazel cannot exist.  Without this the build
-# fails while resolving TOOL_DEPENDS, and the message names devel/bazel9
-# rather than mozc, which reads as a missing package rather than as a wrong
-# choice.
-.if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
+# Which builder to use.  The Makefiles test MOZC_BUILDER rather than
+# PKG_OPTIONS, so that the fallback below is decided in one place.
+MOZC_BUILDER=	gyp
+.if !empty(PKG_OPTIONS:Mbazel)
+MOZC_BUILDER=	bazel
+.endif
+
+# Before the bazel option existed, turning gyp off was how you asked for
+# bazel.  PKG_OPTIONS.mozc=-gyp still means that; keep it working rather than
+# quietly building the other way than the one that was asked for.
+.if empty(PKG_OPTIONS:Mgyp) && empty(PKG_OPTIONS:Mbazel)
+MOZC_BUILDER=	bazel
+.endif
+
+# Asking for bazel where bazel cannot be built is not a reason to stop: gyp
+# builds the same programs there.  Fall back to it and say so.  Stopping
+# instead fails while resolving TOOL_DEPENDS, and the message names
+# devel/bazel9 rather than mozc, which reads as a missing package rather than
+# as a platform that has no bazel.
+.if ${MOZC_BUILDER} == "bazel" && (${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
-PKG_FAIL_REASON+=	"The bazel build needs devel/bazel9, which builds"	\
-			"only on NetBSD x86_64 and aarch64."			\
-			"Set PKG_OPTIONS.mozc=gyp to build mozc here."
+MOZC_BUILDER=	gyp
+WARNINGS+=	"[options.mk] bazel builds only on NetBSD x86_64 and aarch64;"
+WARNINGS+=	"[options.mk] building mozc with gyp instead."
 .endif
 
 # Both builds produce the same version string, so packages built either way

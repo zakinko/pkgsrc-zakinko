@@ -71,7 +71,16 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
 .include "../../mk/bsd.prefs.mk"
 
-.if empty(PKG_OPTIONS:Mgyp)
+# options.mk sets MOZC_BUILDER and every package here includes it before this
+# file.  Say so rather than letting an unset variable pick gyp quietly: a
+# package added later that forgets the include would build the other way
+# without anything to show for it.
+.if !defined(MOZC_BUILDER)
+PKG_FAIL_REASON+=	"MOZC_BUILDER is unset: include"
+PKG_FAIL_REASON+=	"inputmethod/mozc-server333/options.mk before this file."
+.endif
+
+.if ${MOZC_BUILDER} == "bazel"
 # 3.33's .bazeliskrc pins USE_BAZEL_VERSION=8.4.1, but carrying a second
 # bazel just for this package costs more than moving the dependencies
 # forward.  devel/bazel9 is the 9.2.0 that mozc 3.34 needs anyway, so
@@ -124,7 +133,7 @@ SUBST_VARS.prefix+=	PREFIX
 SUBST_VARS.prefix+=	X11BASE
 
 OPSYSVARS+=	OSDEST
-.if empty(PKG_OPTIONS:Mgyp)
+.if ${MOZC_BUILDER} == "bazel"
 OSDEST.Linux=	linux-opt
 OSDEST.NetBSD=	netbsd-opt
 .else

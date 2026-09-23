@@ -39,7 +39,7 @@ MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:${COMPILER_RPATH_FLAG}${PREFIX}/qt
 
 .include "../../zakinko/mozc-server334/options.mk"
 
-.if empty(PKG_OPTIONS:Mgyp)
+.if ${MOZC_BUILDER} == "bazel"
 do-build:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PREFIX}/bin/bazel \

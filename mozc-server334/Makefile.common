@@ -100,7 +100,16 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
 .include "../../mk/bsd.prefs.mk"
 
-.if empty(PKG_OPTIONS:Mgyp)
+# options.mk sets MOZC_BUILDER and every package here includes it before this
+# file.  Say so rather than letting an unset variable pick gyp quietly: a
+# package added later that forgets the include would build the other way
+# without anything to show for it.
+.if !defined(MOZC_BUILDER)
+PKG_FAIL_REASON+=	"MOZC_BUILDER is unset: include"
+PKG_FAIL_REASON+=	"zakinko/mozc-server334/options.mk before this file."
+.endif
+
+.if ${MOZC_BUILDER} == "bazel"
 # The .bazeliskrc in 3.34 asks for Bazel 9.  devel/bazel in pkgsrc is 6.4.0 and
 # cannot satisfy it; zakinko/bazel9 is 9.2.0 taught to build on NetBSD.
 TOOL_DEPENDS+=	bazel>=9.0:../../zakinko/bazel9
@@ -150,7 +159,7 @@ post-extract:
 	${RM} -f ${WRKDIR}/.mozc-gyp-files
 
 OPSYSVARS+=	OSDEST
-.if empty(PKG_OPTIONS:Mgyp)
+.if ${MOZC_BUILDER} == "bazel"
 OSDEST.Linux=	linux-opt
 OSDEST.NetBSD=	netbsd-opt
 .else

@@ -18,7 +18,7 @@ EMACS_MODULES=	base leim
 
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX} bin
 
-.if empty(PKG_OPTIONS:Mgyp)
+.if ${MOZC_BUILDER} == "bazel"
 do-build:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PREFIX}/bin/bazel \

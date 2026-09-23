@@ -23,7 +23,7 @@ post-configure:
 		unzip -o -d ../dictionary jigyosyo.zip && \
 		unzip -o -d ../dictionary ken_all.zip
 
-.if empty(PKG_OPTIONS:Mgyp)
+.if ${MOZC_BUILDER} == "bazel"
 do-build:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PREFIX}/bin/bazel \

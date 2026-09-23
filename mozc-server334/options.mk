@@ -1,7 +1,8 @@
 # $NetBSD$
 
 PKG_OPTIONS_VAR=	PKG_OPTIONS.mozc
-PKG_SUPPORTED_OPTIONS=	gyp
+PKG_SUPPORTED_OPTIONS=	bazel gyp
+PKG_SUGGESTED_OPTIONS=	gyp
 
 .include "../../mk/bsd.prefs.mk"
 
@@ -18,27 +19,43 @@ PKG_SUPPORTED_OPTIONS=	gyp
 #	src/tools/singlejar/mapped_file_posix.inc
 #	#error This code for 64 bit Unix.	(wants __SIZEOF_POINTER__ == 8)
 #
-# That leaves x86_64 and aarch64.  Everywhere else Bazel will not build, so
-# gyp is the default there.
+# That leaves x86_64 and aarch64.  Everywhere else Bazel will not build.
 #
 # Only NetBSD/x86_64 has actually been measured.  aarch64 is counted because
 # both conditions -- a JDK and 64 bits -- hold, not because anyone built it.
-.if ${OPSYS} != "NetBSD" || \
-    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
-PKG_SUGGESTED_OPTIONS+=	gyp
-.endif
+#
+# gyp is the default on every platform, including the two where Bazel works.
+# It needs only python and ninja, it is the same code, and both paths emit the
+# same version string, so a package built either way is interchangeable at run
+# time.  Defaulting to the one that runs everywhere keeps the package uniform
+# across the platforms pkgsrc covers; ask for bazel where you want it.
 
 .include "../../mk/bsd.options.mk"
 
-# How it stops when the default is overridden and Bazel is asked for anyway.
-# Without this the build walks into the ONLY_FOR_PLATFORM of zakinko/bazel9
-# and stops with "bazel-9.2.0 is not available for this platform", which reads
-# as a missing package rather than as the wrong choice of option.
-.if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
+# Which builder to use.  The Makefiles test MOZC_BUILDER rather than
+# PKG_OPTIONS, so that the fallback below is decided in one place.
+MOZC_BUILDER=	gyp
+.if !empty(PKG_OPTIONS:Mbazel)
+MOZC_BUILDER=	bazel
+.endif
+
+# Before the bazel option existed, turning gyp off was how you asked for
+# bazel.  PKG_OPTIONS.mozc=-gyp still means that; keep it working rather than
+# quietly building the other way than the one that was asked for.
+.if empty(PKG_OPTIONS:Mgyp) && empty(PKG_OPTIONS:Mbazel)
+MOZC_BUILDER=	bazel
+.endif
+
+# Asking for bazel where bazel cannot be built is not a reason to stop: gyp
+# builds the same programs there.  Fall back to it and say so.  Stopping
+# instead walks into the ONLY_FOR_PLATFORM of zakinko/bazel9 and reports
+# "bazel-9.2.0 is not available for this platform", which reads as a missing
+# package rather than as a platform that has no bazel.
+.if ${MOZC_BUILDER} == "bazel" && (${OPSYS} != "NetBSD" || \
     (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
-PKG_FAIL_REASON+=	"The bazel build needs zakinko/bazel9, which builds"
-PKG_FAIL_REASON+=	"only on NetBSD x86_64 and aarch64."
-PKG_FAIL_REASON+=	"Set PKG_OPTIONS.mozc=gyp to build mozc here."
+MOZC_BUILDER=	gyp
+WARNINGS+=	"[options.mk] bazel builds only on NetBSD x86_64 and aarch64;"
+WARNINGS+=	"[options.mk] building mozc with gyp instead."
 .endif
 
 # How far the gyp path reaches is build_mozc.py's decision.  A patch adds

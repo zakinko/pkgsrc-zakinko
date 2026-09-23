@@ -18,7 +18,7 @@ DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server333
 # its place, so the same treatment is needed here.
 .include "../../inputmethod/mozc-server333/options.mk"
 
-.if empty(PKG_OPTIONS:Mgyp)
+.if ${MOZC_BUILDER} == "bazel"
 do-build:
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PREFIX}/bin/bazel \
