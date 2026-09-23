@@ -44,6 +44,23 @@ done
 
 . "$WS/.github/ci/patch-sha1.sh"
 
+# 落ちた log から、最初の error とその周りを出す。tail だけだと一番下に
+# 見えるのは bmake が積み上げた "stopped making" の列で、本当の理由は
+# その何十行も上に在る。実際 DragonFly と OpenBSD の run (35848725177) は
+# どちらも tail -25 が停止の列で埋まり、原因の行が切れていた。
+show_fail() {
+	_sf_log=$1
+	echo "--- 最初の error / fatal ---"
+	grep -nE 'error:|fatal error|\*\*\* Error' "$_sf_log" | head -3
+	_sf_n=$(grep -nE 'error:|fatal error' "$_sf_log" | head -1 | cut -d: -f1)
+	if [ -n "$_sf_n" ]; then
+		echo "--- その周り ---"
+		awk -v n="$_sf_n" 'NR>=n-20 && NR<=n+10' "$_sf_log"
+	fi
+	echo "--- どの package で止まったか ---"
+	grep 'stopped making' "$_sf_log" | tail -3
+}
+
 d=$TREE/$P
 [ -d "$d" ] || { echo "★ $P が pkgsrc に無い"; exit 1; }
 
@@ -88,7 +105,9 @@ fi
 echo
 echo "=== 当てて、当たった跡を見る"
 "$BMAKE" -C "$d" patch > "$WS/.polkit-patch.log" 2>&1 || {
-	echo "★ patch 段で落ちた"; tail -25 "$WS/.polkit-patch.log"; exit 1
+	echo "★ patch 段で落ちた (polkit の依存を建てている途中)"
+	show_fail "$WS/.polkit-patch.log"
+	exit 1
 }
 grep -i 'invalid checksum\|Ignoring patch' "$WS/.polkit-patch.log" && {
 	echo "★ 当て物が飛ばされた"; exit 1
@@ -110,11 +129,8 @@ echo "=== 建てて入れる"
 if "$BMAKE" -C "$d" install > "$WS/.polkit-build.log" 2>&1; then
 	echo "  建って入った"
 else
-	echo "★ 建たない。最初の error の周り:"
-	grep -n -m1 -iE 'error:|\*\*\* Error' "$WS/.polkit-build.log" |
-		while IFS=: read -r ln _; do
-			sed -n "$((ln>12?ln-12:1)),$((ln+8))p" "$WS/.polkit-build.log"
-		done
+	echo "★ 建たない"
+	show_fail "$WS/.polkit-build.log"
 	exit 1
 fi
 
