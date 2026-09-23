@@ -307,6 +307,25 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 		;;
 	esac
 
+	# ツリーそのものへ当てる物。build-on-bsd.sh の TREE_PATCH と同じ物を
+	# 同じ名前で受ける。.github/ci はもう /tmp に置いてあるので、ゲストの
+	# 中でその script を /usr/pkgsrc に対して走らせるだけでよい。
+	#
+	# これが無いと、送る diff のうち「この箱でしか踏まない塊」を一度も
+	# 当てないまま緑になる。NetBSD/i386 は vmactions に image が無いので
+	# この道でしか測れず、rust-bin の rpath の塊は Darwin 以外の全部に
+	# 効くため、i386 を測らないと効き目の範囲を言えない。
+	if [ -n "${TREE_PATCH:-}" ]; then
+		echo "=== ツリーに当て物を入れる ==="
+		# build-on-bsd.sh 側の TREE_PATCH は '.github/ci/foo.sh' と
+		# 前置きを付けて書く。同じ文字列をそのまま渡せるように、
+		# 前置きは落として名前だけを見る。二つの綴りを持つと、片方に
+		# 足した当て物がもう片方で黙って抜ける。
+		for _s in $TREE_PATCH; do
+			$SSH "sh /tmp/.github/ci/${_s##*/} /usr/pkgsrc" || exit 1
+		done
+	fi
+
 	echo "=== 検査を走らせる ==="
 	# 検査はゲストの中で走るので、ホスト側の環境変数は自分では見えない。
 	# 渡すものだけを明示して持っていく。BINPKG_SITES を渡し忘れていて、
