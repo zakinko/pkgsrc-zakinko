@@ -156,6 +156,14 @@ ok=0; ng=0; skip=0; rot=0; lpng=0; lpseen=0; bad=0
 # 建てても出ないので、ここで字面を見る。
 #
 # 出力を sed へ直に流すと rc が sed のものになる。先に受けてから流す。
+# PLIST の中の ${...} が本当に定義されるか。定義されないものは展開されず
+# literal で残り、build は通って install の段で落ちる。一覧ぜんぶ見る。
+echo "--- PLIST の変数が定義されているか ---"
+pv=$(sh "$(dirname "$0")/check-plist-vars.sh" "$TREE" $LIST 2>&1)
+pv_rc=$?
+printf '%s\n' "$pv" | sed 's/^/  /'
+[ "$pv_rc" = 0 ] || ng=$((ng+1))
+
 echo "--- 素の名前で elisp package を要求していないか ---"
 out=$(sh "$(dirname "$0")/check-elisp-prefix.sh" "$TREE" 2>&1)
 prefix_rc=$?
