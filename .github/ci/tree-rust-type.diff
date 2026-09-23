@@ -1,6 +1,6 @@
 --- lang/rust/platform.mk.orig
 +++ lang/rust/platform.mk
-@@ -22,6 +22,34 @@
+@@ -22,6 +22,43 @@
  RUST_TYPE?=	bin
  .endif
  
@@ -24,6 +24,15 @@
 +RUST_BIN_PLATFORMS+=	${rust_bin_platform}
 +.  endif
 +.endfor
++
++# Upstream's SunOS binary is built for illumos and does not run on Solaris,
++# so lang/rust-bin leaves SunOS out of its ONLY_FOR_PLATFORM there.  This
++# list has to agree with it: answering "yes" on Solaris would send
++# RUST_TYPE=bin to a package that then refuses the platform, which is the
++# breakage this whole thing exists to avoid.
++.if ${OS_VARIANT:U} == "Solaris"
++RUST_BIN_PLATFORMS:=	${RUST_BIN_PLATFORMS:NSunOS-*-x86_64}
++.endif
 +
 +.for rust_bin_platform in ${RUST_BIN_PLATFORMS}
 +.  if !empty(MACHINE_PLATFORM:M${rust_bin_platform})
