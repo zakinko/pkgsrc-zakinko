@@ -10,6 +10,13 @@
 # 版を上げた package を一つ確かめたいときに、この口を使う。
 set -u
 
+# NetBSD の素の箱は PATH に /usr/sbin を持たない。pkg_info がそこに在る
+# ので、入れないと「入っていない」と読んで毎回 emacs を入れ直しにいく。
+# 2026-09-23 の run 35823870886 の log に pkg_info: not found が二度出て
+# いる。verify-pkg.sh は自分で通しているのでそちらは効いていた。
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/pkg/bin:/usr/pkg/sbin
+export PATH
+
 # run-in-qemu.sh は package を位置引数で、それ以外を VERIFY_OPTS という
 # 環境変数で渡す。$2 を見ていると型の指定が黙って無視される。
 PKG=$1
