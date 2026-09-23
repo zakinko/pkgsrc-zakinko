@@ -60,6 +60,12 @@ jobs:
   # 中で exec できず "exec /__e/node24/bin/node: no such file or directory" に
   # なる (run 35760404446)。node は host 側で走らせ、i386 の userland は
   # docker run の中だけにする。
+  #
+  # さらに linux32 を噛ませる。--platform linux/386 が替えるのは userland
+  # だけで、kernel は x86_64 のままなので uname -m が x86_64 を返す。pkgsrc は
+  # それを見て x86_64 として bootstrap し、32bit の compiler と食い違って
+  # "C compiler cannot create executables" で止まる (run 35795914872)。
+  # linux32 は personality を替えて uname に i686 と答えさせる。
   linux-i386:
     name: Linux glibc i386
     runs-on: ubuntu-latest
@@ -74,8 +80,8 @@ jobs:
             -e PKGSRC_BASE=/tmp \
             i386/debian:13 sh -c '
               apt-get update -qq &&
-              apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch &&
-              sh .github/ci/build-on-bsd.sh'
+              apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch util-linux &&
+              exec linux32 sh .github/ci/build-on-bsd.sh'
 
   bsd:
     name: ${{ matrix.name }}
