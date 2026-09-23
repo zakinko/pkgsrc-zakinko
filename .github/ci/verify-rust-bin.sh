@@ -88,6 +88,19 @@ SunOS)
 		rc=1 ;;
 	esac
 	;;
+*)
+	# 非 SunOS では当て物の前と**同じ値**でなければならない。当て物は
+	# Darwin 以外の全部を通るので、image が無くて動かせない arch
+	# (NetBSD の powerpc / mipsel / earmv6hf / earmv7hf / aarch64eb) の
+	# ぶんは「読んで no-op」しか言えない。代わりに、動かせる箱の全部で
+	# 値が一致することを機械で確かめる。読んで安心する代わりに数える。
+	if [ "$RP" = "$PREFIX/lib" ]; then
+		echo "  当て物の前と同じ値 ($PREFIX/lib)"
+	else
+		echo "  !! 非 SunOS で値が変わっている。期待 $PREFIX/lib、実際 $RP" >&2
+		rc=1
+	fi
+	;;
 esac
 
 echo "########## 建てて入れる ##########"
