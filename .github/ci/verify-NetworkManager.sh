@@ -168,13 +168,37 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 	if grep -q 'SO_PEERPIDFD' "$pkdst"; then
 		echo "  既に SO_PEERPIDFD を見ている。そのまま"
 	else
+		cp "$pkdir/distinfo" "$W/polkit-distinfo.orig"
 		cp "$pksrc" "$pkdst"
 		if ( cd "$pkdir" && $BM makepatchsum ) > /dev/null 2>&1; then
-			echo "  差し替えて makepatchsum で数え直した"
-			grep 'polkitagenthelper-pam' "$pkdir/distinfo" | sed 's/^/    /'
+			# rc は信じない。makepatchsum は digest が無くても 0 を返し、
+			# 値が空の distinfo を書く。そうなると pkgsrc は当て物を
+			# invalid checksum として黙って飛ばし、polkit が素で建って
+			# ucred と SO_PEERCRED の error になる。当て物を入れたのに
+			# 当て物が直すはずの error が出る、という読みにくい形で出る。
+			#
+			# 跡で測る。当て物の数と SHA1 行の数が合い、どの行も 40 桁の
+			# 16 進で終わっているか。
+			want=$(ls "$pkdir/patches" | grep -c '^patch-' || true)
+			got=$(grep -c '^SHA1 (patch-' "$pkdir/distinfo" || true)
+			bad=$(grep '^SHA1 (patch-' "$pkdir/distinfo" |
+			      grep -cv '= [0-9a-f][0-9a-f]*$' || true)
+			if [ "$want" = "$got" ] && [ "$bad" = 0 ]; then
+				echo "  差し替えて makepatchsum で数え直した ($got 本)"
+				grep 'polkitagenthelper-pam' "$pkdir/distinfo" | sed 's/^/    /'
+			else
+				echo "  ★ distinfo が壊れた (当て物 $want 本 / SHA1 行 $got 本 / 値が変な行 $bad 本)"
+				echo "    digest: $(command -v digest || echo 'PATH に無い')"
+				sed -n '1,12p' "$pkdir/distinfo" | sed 's/^/    /'
+				cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
+				( cd "$pkdir" && git checkout -- patches ) 2>/dev/null ||
+					echo "    patches を戻せない (git 管理下ではない)"
+				echo "    元に戻した。polkit は木のままで建てる"
+			fi
 		else
 			echo "  makepatchsum が通らない。元に戻す"
-			( cd "$pkdir" && git checkout -- patches distinfo ) 2>/dev/null ||
+			cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
+			( cd "$pkdir" && git checkout -- patches ) 2>/dev/null ||
 				echo "    戻せない (git 管理下ではない)"
 		fi
 	fi
