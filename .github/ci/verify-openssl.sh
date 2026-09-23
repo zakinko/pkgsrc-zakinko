@@ -12,12 +12,26 @@ PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin; export PATH
 T=${TMPDIR:-/tmp}
-BMAKE=$PREFIX/bin/bmake
+# NetBSD は base の make が bmake なので、/usr/pkg に bootstrap が無い箱でも
+# 建てられる。決め打ちにしていたせいで、qemu の NetBSD 11.0 が
+# "/usr/pkg/bin/bmake: not found" だけで落ち、pkgsrc の本拠地が openssl に
+# ついて一度も測れていなかった。zlib も pkgconf も croc も fallback を持つ。
+BMAKE=$PREFIX/bin/bmake; [ -x "$BMAKE" ] || BMAKE=make
 cd "$TREE/$PKG" || { echo "FAIL: $TREE/$PKG が無い"; exit 1; }
 rc=0
 echo "--- $PKG ($(uname -s) $(uname -r) / $(uname -m)) ---"
 cc -v 2>&1 | grep -E 'version|Target' | sed 's/^/  /'
-ld.lld --version 2>&1 | head -1 | sed 's/^/  /'
+# linker は cc に訊く。ld.lld 決め打ちだと NetBSD で "not found" が出て、
+# 何か壊れているように見える (実際は GNU ld が使われている)。版の訊き方も
+# 揃っていない — GNU と lld は --version、Apple の ld は -v。
+_ld=$(cc -print-prog-name=ld 2>/dev/null)
+if [ -x "${_ld:-}" ]; then
+	_lv=$("$_ld" --version 2>/dev/null | head -1)
+	[ -n "$_lv" ] || _lv=$("$_ld" -v 2>&1 | head -1)
+	echo "  ld: ${_ld}${_lv:+  $_lv}"
+else
+	echo "  ld: (cc から引けず)"
+fi
 
 echo "########## 1. -shared -z defs の素の挙動 ##########"
 printf '#include <string.h>\n#include <unistd.h>\nint f(char*a,char*b){ write(1,a,1); return strcmp(a,b);}\n' > "$T/zdefs.c"
