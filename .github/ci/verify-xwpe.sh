@@ -225,6 +225,26 @@ if [ -x "$PREFIX/bin/we" ]; then
 	echo "  --version の終了状態: $?"
 	"$PREFIX/bin/we" --help < /dev/null 2>&1 | head -3
 
+	# この package は we だけでなく wpe を、x11 を頼めば xwe と xwpe も
+	# 入れる。入れる物は全部走らせる。croc で croc-web を入れただけで
+	# 済ませていたら、起動すらしない binary を配っていたのが分かった。
+	echo "--- 入れた binary を全部撃つ ---"
+	for _b in we wpe xwe xwpe; do
+		[ -x "$PREFIX/bin/$_b" ] || continue
+		# X 版は DISPLAY が無いと画面を開けないが、--help は返る。
+		_o=$("$PREFIX/bin/$_b" --help < /dev/null 2>&1 | head -1)
+		_r=$?
+		case "$_o" in
+		"")	echo "  !! $_b は何も言わずに終わった (rc=$_r)"; rc=1 ;;
+		*)	echo "  ok $_b: $(printf '%s' "$_o" | cut -c1-60)" ;;
+		esac
+		if ldd "$PREFIX/bin/$_b" 2>/dev/null | grep -q 'not found'; then
+			echo "  !! $_b に解決していない library が在る"
+			ldd "$PREFIX/bin/$_b" | grep 'not found' | sed 's/^/     /'
+			rc=1
+		fi
+	done
+
 	echo "--- 繋がっている library ---"
 	if ldd "$PREFIX/bin/we" 2>/dev/null | grep -q 'not found'; then
 		echo "  !! 解決していないものが在る"

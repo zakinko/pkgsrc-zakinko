@@ -66,8 +66,36 @@ OpenBSD-BSD-nodef-*)	;;
 OpenBSD-*)		echo "!! OpenBSD で nodef でない target を選んだ"; rc=1 ;;
 *-BSD-nodef-aarch64)	echo "!! OpenBSD 以外で BSD-nodef-aarch64 を選んだ"; rc=1 ;;
 esac
+# 建っただけでは動く証拠にならない。入れた binary を走らせる。
+# croc で croc-web を入れただけにしていたら、起動すらしない物を配って
+# いたのが分かった。
+echo "########## 入れた openssl を走らせる ##########"
+if [ -x "$PREFIX/bin/openssl" ]; then
+	_v=$("$PREFIX/bin/openssl" version 2>&1 | head -1)
+	case "$_v" in
+	OpenSSL*)	echo "  ok $_v" ;;
+	*)		echo "!! openssl version が名乗らない: $_v"; rc=1 ;;
+	esac
+	# 実際に暗号を回す。名乗るだけなら version の table を読んだだけで通る。
+	# 値は手元で shasum -a 256 と openssl dgst の両方から取った。
+	_want=e04ac068955c93d64bcfe27eaa409d43ff8242e0ae8c4613292cfe282764627f
+	_got=$(printf 'pkgsrc' | "$PREFIX/bin/openssl" dgst -sha256 2>&1 | sed 's/.*= *//')
+	if [ "$_got" = "$_want" ]; then
+		echo "  ok sha256('pkgsrc') が既知の値と合う"
+	else
+		echo "!! sha256('pkgsrc') が合わない: $_got"; rc=1
+	fi
+	# 共有 library が全部解決しているか (nodef の当て物は link を変える)
+	if ldd "$PREFIX/bin/openssl" 2>/dev/null | grep -q 'not found'; then
+		echo "!! 解決していない library が在る"
+		ldd "$PREFIX/bin/openssl" | grep 'not found' | sed 's/^/     /'; rc=1
+	fi
+else
+	echo "  ($PREFIX/bin/openssl が無い。入れていない回)"
+fi
+
 echo "########## pkglint ##########"
 sh "$(dirname "$0")/pkglint-check.sh" "$PKG" || rc=1
 
-[ $rc -eq 0 ] && echo "RESULT: openssl は建つ" || echo "RESULT: 通らなかったものがある (上を読む)"
+[ $rc -eq 0 ] && echo "RESULT: openssl は建って動く" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc
