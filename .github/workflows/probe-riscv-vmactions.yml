@@ -1,0 +1,61 @@
+name: riscv runner で vmactions が動くか
+
+# KVM が在ることと、vmactions がその箱で動くことは別。
+#
+# 測れていること (run 35911227510):
+#   /dev/kvm は在る (root:sgx)。runner は uid=1001(runner) で sgx に居ないので
+#   素のままでは "failed to initialize kvm: Permission denied"。
+#   sudo chmod 666 /dev/kvm のあとは初期化が通る (残るのは mvendorid が
+#   読めないという警告だけ)。
+#
+# 測れていないこと。ここで測る:
+#   JS の action (actions/checkout) が riscv64 の runner で走るか。node が要る。
+#   vmactions/netbsd-vm があの箱で image と qemu を揃えられるか。あちらの
+#   qemu の asset は Linux x86_64 host 向けで、他の host は stock QEMU に
+#   落ちる作りになっている (netbsd-builder の sparc64 conf の注記)。
+#   そして guest が本当に KVM で走るか。TCG でも同じ顔で緑になるので、
+#   所要時間と host 側の accel を別に見る。
+
+on:
+  push:
+    branches: [thttpd]
+    paths: ['.github/workflows/probe-riscv-vmactions.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: probe-riscv-vm-${{ github.run_id }}
+
+jobs:
+  vm:
+    name: netbsd-vm riscv64 on ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        # 対照に x86_64 を置く。あちらは riscv64 の guest が TCG になるので、
+        # 所要時間の差がそのまま KVM の効き目になる。
+        runner: [ubuntu-24.04-riscv, ubuntu-24.04]
+    steps:
+      - name: host を記録する
+        run: |
+          set -x
+          uname -m
+          ls -l /dev/kvm || echo "!! /dev/kvm が無い"
+          sudo chmod 666 /dev/kvm 2>/dev/null && ls -l /dev/kvm || true
+          date -u +%H:%M:%SZ
+      # JS の action が走るかはここで出る。走らなければ以降は意味が無い。
+      - uses: actions/checkout@v4
+      - name: guest を起こす
+        uses: vmactions/netbsd-vm@v1
+        with:
+          release: '11.0'
+          arch: riscv64
+          run: |
+            uname -a
+            sysctl -n hw.model 2>/dev/null || true
+            date -u +%H:%M:%SZ
+      - name: 終わった時刻
+        if: always()
+        run: date -u +%H:%M:%SZ
