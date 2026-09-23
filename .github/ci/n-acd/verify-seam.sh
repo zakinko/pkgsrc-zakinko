@@ -11,11 +11,22 @@
 # 一 byte まで突き合わせる。配布物が置いてあれば、そのあと n-acd を丸ごと
 # 建てて実際に ARP を撃つ。
 
-TOP=`pwd`
+# 自分の位置から辿る。pwd に頼ると、呼ぶ側の cwd で意味が変わる。
+# run-in-qemu.sh はゲストの /tmp へ置いて root の home から呼ぶので、
+# pwd では NetworkManager/patches に届かなかった。
+CI=$(cd "$(dirname "$0")" && pwd)
+TOP=$(cd "$CI/../../.." && pwd)
 P="$TOP/NetworkManager/patches"
-CI="$TOP/.github/ci/n-acd"
 W="$TOP/nacdseam"
-rm -rf "$W"; mkdir -p "$W" || exit 1
+
+if [ ! -d "$P" ]; then
+	echo "★ 当て物が見付からない ($P)"
+	exit 1
+fi
+# 消せなければ止める。mkdir -p は既に在れば成功するので、前の回の残骸が
+# 消えていないことに気付かないまま進み、古い物を測ってしまう。
+rm -rf "$W" || { echo "★ $W を消せない"; exit 1; }
+mkdir -p "$W" || exit 1
 
 # 当て物から中身を取り出す。@@ の次の行から、行頭の + を一つ剥ぐ。
 unpatch() {
@@ -75,6 +86,21 @@ cc $CFLAGS -o t-framing t-framing.c || exit 1
 # が起動のたびにやっているのと同じものなので、segment に影響しない。
 
 DIST=${DIST:-$TOP/NetworkManager.tar.bz2}
+
+# 置いてなければ取りにいく。runner で cache する経路では既に在るので通らない。
+# qemu のゲストのように自分で取るしかない場所のためのもの。
+if [ ! -f "$DIST" ] && [ -n "${DIST_URL:-}" ]; then
+	echo
+	echo "=== 配布物を取る"
+	if command -v ftp > /dev/null 2>&1; then
+		ftp -o "$DIST" "$DIST_URL" || rm -f "$DIST"
+	elif command -v curl > /dev/null 2>&1; then
+		curl -sSfL -o "$DIST" "$DIST_URL" || rm -f "$DIST"
+	elif command -v fetch > /dev/null 2>&1; then
+		fetch -o "$DIST" "$DIST_URL" || rm -f "$DIST"
+	fi
+fi
+
 if [ ! -f "$DIST" ]; then
 	echo
 	echo "=== 実機の ARP は測らない (配布物が無い)"

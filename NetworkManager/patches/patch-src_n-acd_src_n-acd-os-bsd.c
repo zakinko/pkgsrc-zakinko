@@ -24,7 +24,7 @@ system's net/bpf.h and agree, but reading a header is not building the file.
 
 --- src/n-acd/src/n-acd-os-bsd.c.orig
 +++ src/n-acd/src/n-acd-os-bsd.c
-@@ -0,0 +1,563 @@
+@@ -0,0 +1,574 @@
 +/*
 + * n-acd on the BSDs
 + *
@@ -109,15 +109,26 @@ system's net/bpf.h and agree, but reading a header is not building the file.
 +        u_int on = 1;
 +        int fd = -1, r;
 +
++        /*
++         * FreeBSD, NetBSD and OpenBSD clone /dev/bpf, so one open is enough.
++         * DragonFly numbers them - bpf(4) there lists /dev/bpf0, /dev/bpf1 and
++         * so on - and a numbered device is held by whoever opened it, so the
++         * first free one has to be found by trying.
++         *
++         * Both failures that mean "try the next one" are walked past: ENOENT
++         * for a node that was never made, EBUSY for one already in use.
++         * Anything else - EACCES above all, which is what a non-root caller
++         * gets - is the answer, and repeating it 256 times would only bury it.
++         */
 +        fd = open("/dev/bpf", O_RDWR | O_CLOEXEC);
-+        if (fd < 0 && errno == ENOENT) {
++        if (fd < 0 && (errno == ENOENT || errno == EBUSY)) {
 +                char path[sizeof("/dev/bpf4294967295")];
 +                unsigned int i;
 +
 +                for (i = 0; i < 256; ++i) {
 +                        snprintf(path, sizeof(path), "/dev/bpf%u", i);
 +                        fd = open(path, O_RDWR | O_CLOEXEC);
-+                        if (fd >= 0 || errno != EBUSY)
++                        if (fd >= 0 || (errno != EBUSY && errno != ENOENT))
 +                                break;
 +                }
 +        }

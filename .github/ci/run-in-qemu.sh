@@ -327,6 +327,7 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 	XWPE_OPTIONS='${XWPE_OPTIONS:-}' \
 		VERIFY_OPTS='${VERIFY_OPTS:-}' \
 		EMACS_COEXIST_CHECK='${EMACS_COEXIST_CHECK:-}' \
+		DIST_URL='${DIST_URL:-}' \
 		sh /tmp/.github/ci/$VERIFY_SCRIPT '$UPSTREAM_PKG'"
 	exit $?
 fi

@@ -26,7 +26,7 @@ on:
       target:
         description: 'どれを回すか (VM は boot だけで 8-12 分かかる)'
         type: choice
-        options: [all, freebsd, netbsd, openbsd, dragonfly, ghostbsd]
+        options: [all, freebsd, netbsd, netbsd-i386, openbsd, dragonfly, ghostbsd]
         default: all
   push:
     # 継ぎ目と、それを測る物が動いたときだけ。README の誤字で VM を五つ
@@ -175,3 +175,47 @@ jobs:
       - uses: vmactions/ghostbsd-vm@v1
         with:
           run: sh .github/ci/n-acd/verify-seam.sh
+
+  netbsd-i386:
+    if: inputs.target == null || inputs.target == 'all' || inputs.target == 'netbsd-i386'
+    name: NetBSD i386
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # vmactions に NetBSD/i386 の image は無い (builder の conf にも
+      # release の asset にも一つも無い) ので、ここだけ自前の image を
+      # qemu で起こす。i386 のゲストも x86_64 のホストなら KVM で走る。
+      #
+      # 32 bit を測る値打ちはある。BPF の framing は bpf_hdr の大きさと
+      # BPF_WORDALIGN の効き方で位置が決まるので、語長が変われば変わりうる。
+      # NetBSD 10.1/i386 の実機では通っているが、実機一台は CI ではない。
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
+          else
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
+          fi
+
+      - name: 組んで確かめる
+        run: sh .github/ci/run-in-qemu.sh i386-11.0
+        env:
+          UPSTREAM_PKG: 'zakinko/NetworkManager'
+          VERIFY_SCRIPT: n-acd/verify-seam.sh
+          DIST_URL: 'https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2'
+
+      - name: 転んだら console を出す
+        if: failure()
+        run: tail -80 .vm/i386-11.0.console.log 2>/dev/null || true
