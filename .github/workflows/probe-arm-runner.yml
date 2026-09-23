@@ -1,0 +1,41 @@
+name: arm runner に KVM が在るか
+
+# 使い捨ての測定。aarch64 の guest が TCG になっていたのは host が x86_64
+# だからで、arm64 の runner なら KVM が効くはず、という筋を確かめる。
+# 「在るはず」で matrix を書き換えると、効いていないのに速くなった顔で
+# 通ることがあるので、先に host 側を見る。
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: probe-arm-${{ github.run_id }}
+
+jobs:
+  probe:
+    name: ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04-arm, ubuntu-24.04]
+    steps:
+      - name: host を見る
+        run: |
+          set -x
+          uname -m
+          ls -l /dev/kvm || echo "!! /dev/kvm が無い"
+          grep -c . /proc/cpuinfo >/dev/null && nproc
+          free -g | head -2
+          df -h / | tail -1
+      - name: qemu を入れて accel を訊く
+        run: |
+          set -x
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-aarch64 qemu-system-x86 >/dev/null
+          qemu-system-aarch64 --version | head -1
+          # 名前ではなく、その binary が本当に kvm を持っているかを訊く
+          qemu-system-aarch64 -accel help
+          echo "--- x86_64 側"
+          qemu-system-x86_64 -accel help
