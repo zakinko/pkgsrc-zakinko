@@ -11,8 +11,14 @@ name: n-acd の継ぎ目 (BSD)
 # 戻している。当て物を直せばここが測る物も一緒に変わるので、写しが古くなって
 # 緑のまま意味を失うことがない。
 #
-# /dev/bpf を開く所は root が要るので、ここでは測らない。NetBSD 11.0 の実機で
-# 別に測ってある (ARP を撃って USED と READY が返るところまで)。
+# 建つだけで終わらせない。vmactions の VM は root で走り、本物の interface を
+# 持っているので、n-acd を丸ごと建てて実際に ARP を撃つ。default route の先を
+# 探らせて USED が返れば、送信・filter・framing・timer・state machine が一本に
+# 繋がっている。撃つのは spa が 0 の ARP request で、DHCP client が起動のたびに
+# やっているのと同じものである。
+#
+# そのために配布物が要る。runner の側で一度だけ取って cache し、VM へは
+# workspace ごと渡る。
 
 on:
   workflow_dispatch:
@@ -43,6 +49,21 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      # VM の中から取りにいくと五つ分の転送になる。runner で一度取って cache
+      # する。MASTER_SITES は package の Makefile と同じ所。
+      - name: 配布物 (cache)
+        id: dist
+        uses: actions/cache@v4
+        with:
+          path: NetworkManager.tar.bz2
+          key: nm-dist-1.50.0
+      - name: 配布物を取る
+        if: steps.dist.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL -o NetworkManager.tar.bz2 \
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+          ls -l NetworkManager.tar.bz2
       - uses: vmactions/freebsd-vm@v1
         with:
           release: '14.4'
@@ -55,6 +76,21 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      # VM の中から取りにいくと五つ分の転送になる。runner で一度取って cache
+      # する。MASTER_SITES は package の Makefile と同じ所。
+      - name: 配布物 (cache)
+        id: dist
+        uses: actions/cache@v4
+        with:
+          path: NetworkManager.tar.bz2
+          key: nm-dist-1.50.0
+      - name: 配布物を取る
+        if: steps.dist.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL -o NetworkManager.tar.bz2 \
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+          ls -l NetworkManager.tar.bz2
       - uses: vmactions/netbsd-vm@v1
         with:
           release: '11.0'
@@ -67,6 +103,21 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      # VM の中から取りにいくと五つ分の転送になる。runner で一度取って cache
+      # する。MASTER_SITES は package の Makefile と同じ所。
+      - name: 配布物 (cache)
+        id: dist
+        uses: actions/cache@v4
+        with:
+          path: NetworkManager.tar.bz2
+          key: nm-dist-1.50.0
+      - name: 配布物を取る
+        if: steps.dist.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL -o NetworkManager.tar.bz2 \
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+          ls -l NetworkManager.tar.bz2
       - uses: vmactions/openbsd-vm@v1
         with:
           release: '7.9'
@@ -79,6 +130,21 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      # VM の中から取りにいくと五つ分の転送になる。runner で一度取って cache
+      # する。MASTER_SITES は package の Makefile と同じ所。
+      - name: 配布物 (cache)
+        id: dist
+        uses: actions/cache@v4
+        with:
+          path: NetworkManager.tar.bz2
+          key: nm-dist-1.50.0
+      - name: 配布物を取る
+        if: steps.dist.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL -o NetworkManager.tar.bz2 \
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+          ls -l NetworkManager.tar.bz2
       - uses: vmactions/dragonflybsd-vm@v1
         with:
           release: '6.4.2'
@@ -91,6 +157,21 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      # VM の中から取りにいくと五つ分の転送になる。runner で一度取って cache
+      # する。MASTER_SITES は package の Makefile と同じ所。
+      - name: 配布物 (cache)
+        id: dist
+        uses: actions/cache@v4
+        with:
+          path: NetworkManager.tar.bz2
+          key: nm-dist-1.50.0
+      - name: 配布物を取る
+        if: steps.dist.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL -o NetworkManager.tar.bz2 \
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+          ls -l NetworkManager.tar.bz2
       - uses: vmactions/ghostbsd-vm@v1
         with:
           run: sh .github/ci/n-acd/verify-seam.sh

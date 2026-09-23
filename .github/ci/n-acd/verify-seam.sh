@@ -8,13 +8,14 @@
 #
 # 建つことと動くことは別なので、建てるだけで終わらせない。timer は実際に
 # 焼かせて時刻を測り、framing は kernel が返すのと同じ形の buffer を作って
-# 一 byte まで突き合わせる。/dev/bpf を開く所は root が要るのでここでは
-# 測らない (NetBSD 実機で別に測ってある)。
-set -e
+# 一 byte まで突き合わせる。配布物が置いてあれば、そのあと n-acd を丸ごと
+# 建てて実際に ARP を撃つ。
 
-P=NetworkManager/patches
-W=${W:-./nacdseam}
-rm -rf "$W"; mkdir -p "$W"
+TOP=`pwd`
+P="$TOP/NetworkManager/patches"
+CI="$TOP/.github/ci/n-acd"
+W="$TOP/nacdseam"
+rm -rf "$W"; mkdir -p "$W" || exit 1
 
 # 当て物から中身を取り出す。@@ の次の行から、行頭の + を一つ剥ぐ。
 unpatch() {
@@ -27,7 +28,7 @@ unpatch() {
 
 unpatch "$P/patch-src_n-acd_src_n-acd-os.h"     "$W/n-acd-os.h"
 unpatch "$P/patch-src_n-acd_src_n-acd-os-bsd.c" "$W/n-acd-os-bsd.c"
-cp .github/ci/n-acd/t-timer.c .github/ci/n-acd/t-framing.c "$W/"
+cp "$CI/t-timer.c" "$CI/t-framing.c" "$W/"
 
 echo "=== 何で建てるか"
 uname -a
@@ -37,33 +38,133 @@ CFLAGS="-std=c11 -Wall -Wextra -I$W"
 
 echo
 echo "=== 継ぎ目を建てる (警告が一つでも出たら落とす)"
-cd "$W"
+cd "$W" || exit 1
 if ! cc $CFLAGS -c n-acd-os-bsd.c -o seam.o 2> cc.log; then
-	echo "★ 建たない"
-	cat cc.log
-	exit 1
+	echo "★ 建たない"; cat cc.log; exit 1
 fi
 if [ -s cc.log ]; then
 	echo "★ 警告が出た。NetBSD では零だったので、この OS で何かが違う"
-	cat cc.log
-	exit 1
+	cat cc.log; exit 1
 fi
 echo "  建った。警告なし"
 
 echo
 echo "=== 継ぎ目が出す名前"
-nm -g seam.o 2>/dev/null | grep ' T n_acd_os' | awk '{print "  " $3}' || \
-	nm seam.o | grep 'n_acd_os' | awk '{print "  " $3}'
+nm -g seam.o 2>/dev/null | grep ' T n_acd_os' | awk '{print "  " $3}'
 
 echo
 echo "=== timer を測る (焼ける時刻を実際に見る)"
-cc $CFLAGS -o t-timer t-timer.c seam.o
-./t-timer
+cc $CFLAGS -o t-timer t-timer.c seam.o || exit 1
+./t-timer || exit 1
 
 echo
 echo "=== framing を測る (本物を取り込んだ test)"
-cc $CFLAGS -o t-framing t-framing.c
-./t-framing
+cc $CFLAGS -o t-framing t-framing.c || exit 1
+./t-framing || exit 1
+
+# ---- ここから先は配布物が置いてあるときだけ ----
+#
+# 継ぎ目が建つことと、n-acd が実際に ARP を撃って答えを読めることは別なので、
+# 撃てる場所では撃つ。vmactions の VM は root で走り、本物の interface を
+# 持っているので撃てる。default route の先には必ず誰かが居るので、そこを
+# 探らせて N_ACD_EVENT_USED が返るかを見る。返るということは送信・filter・
+# framing・timer・state machine が一本に繋がっているということで、どれか
+# 一つ切れていれば返らない。
+#
+# 撃つのは ARP request で、spa は 0、誰の address も主張しない。DHCP client
+# が起動のたびにやっているのと同じものなので、segment に影響しない。
+
+DIST=${DIST:-$TOP/NetworkManager.tar.bz2}
+if [ ! -f "$DIST" ]; then
+	echo
+	echo "=== 実機の ARP は測らない (配布物が無い)"
+	echo "=== ここまで全部通った"
+	exit 0
+fi
+
+echo
+echo "=== 配布物を展開して n-acd を丸ごと建てる"
+cd "$W" || exit 1
+rm -rf full; mkdir full || exit 1
+( cd full && bzcat "$DIST" | tar xf - ) || exit 1
+NM=`echo "$W"/full/NetworkManager-*`
+[ -d "$NM/src/n-acd" ] || { echo "★ n-acd が見付からない ($NM)"; exit 1; }
+
+# 当て物は -i で渡す。`< "$p" < /dev/null` と書くと、後の redirect が勝つ
+# 側の shell では patch が /dev/null を読み、当たっていないのに rc=0 で
+# 返ってくる。zsh は MULTIOS で両方渡すので手元では再現しない。
+#
+# その rc も信じない。NetBSD の patch は中身を見付けられなくても 0 を返し、
+# "I can't seem to find a patch in there anywhere." と言うだけだった。
+# 当たったかどうかは、当たった跡で測る。
+echo "=== 当て物を当てる (package が配る物そのもの)"
+cd "$NM" || exit 1
+n=0
+for p in "$P"/patch-*; do
+	patch -p0 -s -f -i "$p" < /dev/null
+	n=`expr $n + 1`
+done
+if [ ! -f src/n-acd/src/n-acd-os-bsd.c ]; then
+	echo "★ 当て物が当たっていない (n-acd-os-bsd.c が出来ていない)"
+	exit 1
+fi
+if grep -q 'linux/if_packet.h' src/n-acd/src/n-acd.c; then
+	echo "★ 当て物が当たっていない (n-acd.c がまだ linux/if_packet.h を読む)"
+	exit 1
+fi
+if ls src/n-acd/src/*.rej src/*.rej > /dev/null 2>&1; then
+	echo "★ .rej が残っている"; ls src/n-acd/src/*.rej src/*.rej 2>/dev/null; exit 1
+fi
+echo "  $n 本当てて、跡を確かめた"
+
+echo "=== n-acd を丸ごと建てる"
+S="$NM/src"
+INC="-I$S/n-acd/src -I$S/c-list/src -I$S/c-rbtree/src -I$S/c-siphash/src -I$S/c-stdaux/src"
+CF="-std=c11 -Wall -Wextra -Wno-unused-parameter $INC"
+OBJ=""
+for f in "$S"/n-acd/src/n-acd.c "$S"/n-acd/src/n-acd-probe.c \
+         "$S"/n-acd/src/util/timer.c "$S"/n-acd/src/n-acd-bpf-fallback.c \
+         "$S"/n-acd/src/n-acd-os-bsd.c "$S"/c-rbtree/src/c-rbtree.c \
+         "$S"/c-siphash/src/c-siphash.c; do
+	b=`basename "$f" .c`
+	if ! cc $CF -c "$f" -o "$W/o_$b.o" 2> "$W/cc_$b.log"; then
+		echo "★ $b が建たない"; head -25 "$W/cc_$b.log"; exit 1
+	fi
+	if [ -s "$W/cc_$b.log" ]; then
+		echo "★ $b で警告が出た"; cat "$W/cc_$b.log"; exit 1
+	fi
+	OBJ="$OBJ $W/o_$b.o"
+done
+echo "  七本とも警告なしで建った"
+
+cc $CF -o "$W/t-probe" "$CI/t-probe.c" $OBJ || exit 1
+
+GW=`netstat -rn -f inet 2>/dev/null | awk '$1=="default"{print $2; exit}'`
+if [ -z "$GW" ]; then
+	echo "=== default route が無いので撃たない"
+	echo "=== ここまで全部通った"
+	exit 0
+fi
+
+# 空いている address は決め打ちできない。gateway と同じ /24 の末尾寄りを
+# 使う。誰か居れば USED が返って test は「期待と違う」と言うが、それは
+# 間違いではなく、その箱の segment が混んでいるという事実である。
+FREE=`echo "$GW" | awk -F. '{printf "%s.%s.%s.231", $1, $2, $3}'`
+
+echo
+echo "=== 実機で ARP を撃つ (gateway $GW を USED、$FREE を READY と期待)"
+"$W/t-probe" "$GW" "$FREE"
+r=$?
+# 77 は /dev/bpf を開けなかった側。権限が無いのは「測れなかった」であって
+# 「落ちた」ではない。CI の VM は root なので出ないが、手で走らせたときに
+# 赤にしても意味が無い。
+if [ $r = 77 ]; then
+	echo "  root でないので撃てなかった (継ぎ目の手前までは通っている)"
+	echo
+	echo "=== ここまで全部通った"
+	exit 0
+fi
+[ $r = 0 ] || exit $r
 
 echo
 echo "=== 全部通った"
