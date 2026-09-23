@@ -85,6 +85,19 @@ fi
 
 cd "$TREE/$PKG" || { echo "FAIL: $TREE/$PKG が無い"; exit 1; }
 rc=0
+
+# 頁を取る道具は箱によって違う。OpenBSD と NetBSD は base の ftp、
+# Linux と macOS は curl。無い方を呼ぶと「取れなかった」に見えるので、
+# 在る方を選ぶ。
+fetch_url() {
+	if command -v curl > /dev/null 2>&1; then
+		curl -sf --max-time 5 "$1"
+	elif command -v ftp > /dev/null 2>&1; then
+		ftp -V -o - "$1" 2>/dev/null
+	else
+		return 1
+	fi
+}
 echo "--- $PKG ($OS $(uname -r) / $(uname -m)) ---"
 grep -nE 'DISTNAME|GO_VERSION_REQD|GO_BUILD_PATTERN' Makefile | sed 's/^/  /'
 
@@ -129,6 +142,37 @@ if [ $rc -eq 0 ]; then
 	for b in croc croc-web; do
 		[ -x "$PREFIX/bin/$b" ] && echo "  ok bin/$b" || { echo "!! bin/$b が無い"; rc=1; }
 	done
+	# croc-web は「入っている」だけ見ていた。入れる binary は動かすところまで
+	# 見ないと、送る本文に「未検証」と書く羽目になる。web を出させて取りに行く。
+	if [ -x "$PREFIX/bin/croc-web" ]; then
+		_wd=$T/crocweb; rm -rf "$_wd"; mkdir -p "$_wd"
+		HOME=$_wd "$PREFIX/bin/croc-web" --bind 127.0.0.1:19014 \
+			--relays 127.0.0.1:19009 --ports 19009 \
+			> "$_wd/web.log" 2>&1 &
+		_wp=$!
+		_ok=0
+		_i=0
+		while [ $_i -lt 20 ]; do
+			kill -0 $_wp 2>/dev/null || break
+			if fetch_url http://127.0.0.1:19014/ > "$_wd/index.html" 2>/dev/null; then
+				_ok=1; break
+			fi
+			_i=$((_i+1)); sleep 1
+		done
+		if [ $_ok = 1 ]; then
+			_n=$(wc -c < "$_wd/index.html" | tr -d ' ')
+			if grep -qi 'croc' "$_wd/index.html"; then
+				echo "  ok croc-web: 127.0.0.1:19014 が $_n byte の頁を返し、croc と書いてある"
+			else
+				echo "!! croc-web: $_n byte 返ったが croc の文字が無い"; rc=1
+				head -3 "$_wd/index.html" | sed 's/^/     /'
+			fi
+		else
+			echo "!! croc-web: 頁を取れなかった"; rc=1
+			tail -8 "$_wd/web.log" 2>/dev/null | sed 's/^/     /'
+		fi
+		kill $_wp 2>/dev/null; wait $_wp 2>/dev/null
+	fi
 	[ -e "$PREFIX/bin/install" ] && { echo "!! bin/install が入っている (./... の名残)"; rc=1; }
 	_v=$("$PREFIX/bin/croc" --version 2>&1 | head -1)
 	echo "  $_v"
