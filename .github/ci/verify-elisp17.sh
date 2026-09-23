@@ -144,6 +144,24 @@ LIST_21="zakinko/leim21 zakinko/mule-ucs zakinko/tamago zakinko/iiimecf
 eval "LIST=\$LIST_$EMACS_V"
 
 ok=0; ng=0; skip=0; rot=0; lpng=0; lpseen=0; bad=0
+
+# 素の名前で elisp package を要求している行を止める。
+#
+# package 名の前に付く ${EMACS_PKGNAME_PREFIX} は、いま flavour しか見て
+# いない (GNU Emacs は空、XEmacs は "xemacs-")。版まで入れる話が進んでいて、
+# 入ると emacs30-apel と xemacs214-apel に分かれる。名乗る側は全部この変数を
+# 使っているので一緒に動くが、頼む側が素の名前を書いていると取り残される。
+#
+# いまは prefix が空なので両方が同じ名前に落ちて通り、壊れているのが見えない。
+# 建てても出ないので、ここで字面を見る。
+#
+# 出力を sed へ直に流すと rc が sed のものになる。先に受けてから流す。
+echo "--- 素の名前で elisp package を要求していないか ---"
+out=$(sh "$(dirname "$0")/check-elisp-prefix.sh" "$TREE" 2>&1)
+prefix_rc=$?
+printf '%s\n' "$out" | sed 's/^/  /'
+[ "$prefix_rc" = 0 ] || ng=$((ng+1))
+
 calc_d=
 for p in $LIST; do
 	d=$TREE/$p
