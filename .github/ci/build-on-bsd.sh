@@ -270,6 +270,16 @@ WRKOBJDIR=	$REAL/obj
 # runner に IPv6 の経路が無い。AAAA を先に引きに行くと一つ 75 秒待たされる。
 # mk/fetch/fetch.mk が ftp に -4 を、curl に --ipv4 を渡す。
 FETCH_USE_IPV4_ONLY=	yes
+# 依存も package にする。PACKAGES を指しているだけでは All/ は空のままで、
+# 素の bmake install だと mk/depends/bsd.depends.mk の
+#     .else
+#     DEPENDS_TARGET=	reinstall
+#     .endif
+# に落ちるので、依存は入るだけで .tgz が残らない。TCG の箱では 61 package
+# まで建てた所で job の timeout に当たっており、その分が毎回まるごと
+# 捨てられていた。package-install にすれば建てた端から All/ に積まれ、
+# 次の run が続きから始められる。
+DEPENDS_TARGET=	package-install
 EOF
 # job ごとの追記。改行区切りでそのまま足す。OpenBSD の croc が
 # GOROOT_BOOTSTRAP をここから渡す。
@@ -362,18 +372,50 @@ done
 # 検査は名前で引く。verify-<パッケージ名>.sh があればそれを、無ければ
 # verify-pkg.sh は使えない (あちらは zakinko/ 配下を見る) ので、組めた
 # かどうかだけを見て終わる。
+# 走る時間に上限を持たせる。job の timeout は「cancel」なので
+# actions/cache の save が走らない。実際 FreeBSD aarch64 の log には
+# restore の "Cache not found for input keys: gobin-..." は在るのに
+# "Cache saved: gobin-..." が一度も無く、post step は checkout の分しか
+# 走っていなかった。自分から降りれば job は「失敗」で終わり、失敗なら
+# post step は走るので、建てた分が次の run に渡る。
+#
+# BUILD_DEADLINE は timeout(1) に渡す値 (例 300m)。timeout(1) が無い箱では
+# 上限なしで走る。そこは今までと同じ。
+DEADLINE_HIT=0
+run_bounded() {
+	if [ -n "${BUILD_DEADLINE:-}" ] && command -v timeout > /dev/null 2>&1; then
+		timeout "$BUILD_DEADLINE" "$@"
+		_r=$?
+		# GNU/BSD の timeout はどちらも期限切れを 124 で返す。
+		if [ "$_r" -eq 124 ]; then
+			echo "  !! 期限 $BUILD_DEADLINE に達した。ここまでを cache に残して降りる" >&2
+			DEADLINE_HIT=1
+		fi
+		return "$_r"
+	fi
+	"$@"
+}
+
 for p in ${TREE_PKGS:-}; do
+	# 一つが期限を使い切ったら残りは始めない。始めると次の run で
+	# 何が済んでいるのかが読めなくなる。
+	[ "$DEADLINE_HIT" = 1 ] && { echo "  (期限切れのため $p は始めない)"; rc=1; continue; }
 	echo
 	echo "########## $p (上流ツリー) ##########"
 	n=${p##*/}
 	if [ -f "$WS/.github/ci/verify-$n.sh" ]; then
-		sh "$WS/.github/ci/verify-$n.sh" "$p" || rc=1
+		run_bounded sh "$WS/.github/ci/verify-$n.sh" "$p" || rc=1
 	elif [ -d "$TREE/$p" ]; then
-		( cd "$TREE/$p" && "$PREFIX/bin/bmake" install ) || rc=1
+		run_bounded sh -c 'cd "$1" && "$2" install' _ "$TREE/$p" "$PREFIX/bin/bmake" || rc=1
 	else
 		echo "!! $p が pkgsrc に無い" >&2
 		rc=1
 	fi
 done
 
+if [ "$DEADLINE_HIT" = 1 ]; then
+	echo "=== 期限で降りた。緑ではない。cache は残したので次の run が続きから ==="
+	ls "$CACHE"/packages/All/*.tgz 2>/dev/null | wc -l | sed 's/^/    All\/ の .tgz: /'
+	exit 1
+fi
 [ $rc -eq 0 ] || { echo "=== 通らなかったものがある ==="; exit 1; }

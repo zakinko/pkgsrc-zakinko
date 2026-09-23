@@ -88,6 +88,18 @@ jobs:
     runs-on: ubuntu-latest
     # 非 x86 の guest は TCG。go-bin.yml で 180 分では足りないことが出ている。
     timeout-minutes: ${{ matrix.arch == '' && 180 || 350 }}
+    env:
+      # job の timeout は「cancel」なので actions/cache の save が走らない。
+      # 実際 FreeBSD aarch64 は 61 package まで建てた所で 350 分に当たり、
+      # log には restore の "Cache not found for input keys: gobin-..." は
+      # 在るのに "Cache saved: gobin-..." が一度も無い。post step は
+      # checkout の分しか走っていなかった。だから毎回ゼロからやり直しで、
+      # 何度回しても届かない。
+      #
+      # script 側が先に降りれば job は「失敗」で終わり、失敗なら post step は
+      # 走るので、建てた分が次の run に渡る。350 - 320 = 30 分を copyback と
+      # cache の保存に残す。x86 の箱は 180 分で足りているので期限を置かない。
+      BUILD_DEADLINE: ${{ matrix.arch == '' && '' || '320m' }}
     strategy:
       fail-fast: false
       matrix:
@@ -118,14 +130,14 @@ jobs:
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH'
+          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
           run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/freebsd-vm@v1
         if: matrix.action == 'freebsd-vm'
         with:
           release: ${{ matrix.release }}
           arch: ${{ matrix.arch }}
-          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH'
+          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
           run: sh .github/ci/build-on-bsd.sh
 
   netbsd-i386:
@@ -175,7 +187,7 @@ jobs:
         if: matrix.action == 'omnios-vm'
         with:
           release: ${{ matrix.release }}
-          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH'
+          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
           prepare: pkg install developer/gcc14 developer/build/gnu-make archiver/gnu-tar web/curl || true
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
@@ -183,7 +195,7 @@ jobs:
       - uses: vmactions/openindiana-vm@v1
         if: matrix.action == 'openindiana-vm'
         with:
-          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH'
+          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
           # 入った rustc が libgcc_s.so.1 を見付けられず起動しなかった
           # (run 35806082502)。箱には在るが /usr/gcc/<版>/lib の下だけで、
           # ld.so の既定の path に無い。OmniOS では同じ rust-bin が動くので、
