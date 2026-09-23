@@ -184,7 +184,11 @@ jobs:
       matrix:
         include:
           - { arch: aarch64, runner: macos-14 }
-          - { arch: x86_64,  runner: macos-13 }
+          # macos-13 は退役した。actions/runner-images #13046 が「9/22 に
+          # 非推奨、12/4 で完全に非対応」と告知したとおりで、指しても job は
+          # 起動せず queued のまま残る (20 時間待って一度も start しなかった)。
+          # Intel の後継は macos-15-intel (同 #13045)。
+          - { arch: x86_64,  runner: macos-15-intel }
     steps:
       - uses: actions/checkout@v4
       # 二つ渡す必要がある。/ が読み取り専用なので /pkgsrc-ci が掘れず
