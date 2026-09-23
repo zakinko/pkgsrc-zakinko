@@ -156,8 +156,9 @@ step "0.7 security/polkit を FreeBSD 系でも通す"
 #   polkitagenthelper-pam.c:156:48: error: use of undeclared identifier 'ENODATA'
 #
 # になる。NetBSD には ENODATA が在るので落ちない。pkgsrc の既存の当て物は
-# SO_PEERCRED の半分だけで、FreeBSD 側は FreeBSD ports の sysutils/polkit が
-# 持っている。両方を素の 127 に当てて diff を取り直した合成版がここに在る。
+# SO_PEERCRED の半分 (上流 72c28782b17e) だけで、FreeBSD 側の 066b55bf2e2b が
+# 欠けている。どちらも上流が 127 の後に入れたもので、二つを素の 127 に当てて
+# diff を取り直した物がここに在る。
 #
 # 最初これを tree-patch でやって Linux を壊した。あちらは bootstrap より前に
 # 走るので、当時は数え方が合わず Ignoring patch file ... invalid checksum で

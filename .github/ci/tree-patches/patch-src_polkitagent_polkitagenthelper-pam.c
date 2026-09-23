@@ -1,23 +1,27 @@
 $NetBSD$
 
-Fix build on NetBSD (SO_PEERCRED) and on FreeBSD/DragonFly (SO_PEERPIDFD).
-https://github.com/polkit-org/polkit/pull/624
+Fix build on FreeBSD, GhostBSD and DragonFly, and keep the NetBSD fix.
 
-This replaces the pkgsrc patch of the same name, which carries only the
-SO_PEERCRED half.  That is enough for NetBSD but not for FreeBSD, where
+Two upstream commits, both after polkit 127:
+
+  066b55bf2e2b  polkitagenthelper-pam.c: ifdef out the socket activation
+                functionality
+  72c28782b17e  Fix build on systems without SO_PEERCRED.
+
+The tree's patch of this name is 72c28782b17e, hunk for hunk.  What is
+missing is the other one.  polkit defines SO_PEERPIDFD itself when the
+system does not, with no platform test, so the socket-activation block is
+compiled everywhere; inside it errno is compared against ENODATA, which
+FreeBSD does not have:
 
   polkitagenthelper-pam.c:156:48: error: use of undeclared identifier 'ENODATA'
 
-The file defines SO_PEERPIDFD itself when the system does not, with no
-platform test at all, so the pidfd block is compiled everywhere.  Inside
-it, errno is compared against ENODATA, which FreeBSD does not have (and
-NetBSD does, which is why only FreeBSD fails).  FreeBSD ports solves it
-in sysutils/polkit by making that define Linux-only and wrapping the
-block, and that half is taken from there.
+NetBSD has ENODATA, which is why only the FreeBSD side fails.  066b55bf2e2b
+makes the fallback define Linux-only and wraps the block in
+#ifdef SO_PEERPIDFD.
 
-Regenerated mechanically: the two sets of changes were applied to the
-pristine 127 source and diffed, rather than the hunks being merged by
-hand.
+Both were applied to the pristine 127 source with patch(1) and the result
+diffed, rather than the hunks being merged by hand.
 
 --- src/polkitagent/polkitagenthelper-pam.c.orig
 +++ src/polkitagent/polkitagenthelper-pam.c

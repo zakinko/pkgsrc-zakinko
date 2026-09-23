@@ -16,8 +16,17 @@
 #
 #	polkitagenthelper-pam.c:156:48: error: use of undeclared identifier 'ENODATA'
 #
-# で落ちる。NetBSD には ENODATA が在るので落ちない。FreeBSD ports 側の半分を
-# 足した合成版が tree-patches/ に在るので、それに差し替えて建てる。
+# で落ちる。NetBSD には ENODATA が在るので落ちない。
+#
+# 上流は 127 の後に二つの commit で両方とも直している。
+#
+#	066b55bf2e2b  socket activation の区画を #ifdef SO_PEERPIDFD で囲み、
+#	              SO_PEERPIDFD の自前 define を __linux__ だけにする
+#	72c28782b17e  SO_PEERCRED を持たない系で建つようにする
+#
+# 木の当て物は後者と hunk ごと同一で、欠けているのは前者だけである。
+# tree-patches/ に在るのは、その二つを素の 127 に patch(1) で当てて diff を
+# 取り直したもの。手で hunk を混ぜてはいない。
 #
 # distinfo は当該の一行だけ数え直す。全体を makepatchsum で書き直すと、
 # digest が黙ったときに pkgsrc 本体の distinfo.awk の bug を踏んで
@@ -66,7 +75,7 @@ d=$TREE/$P
 
 src=$WS/.github/ci/tree-patches/patch-src_polkitagent_polkitagenthelper-pam.c
 dst=$d/patches/patch-src_polkitagent_polkitagenthelper-pam.c
-[ -f "$src" ] || { echo "★ 合成版が repo に無い"; exit 1; }
+[ -f "$src" ] || { echo "★ 上流 backport の当て物が repo に無い"; exit 1; }
 [ -f "$dst" ] || { echo "★ 木に当て物が無い ($dst)"; exit 1; }
 
 echo "=== 何で建てるか"
@@ -75,7 +84,7 @@ cc --version 2>/dev/null | head -1 || cc -v 2>&1 | head -1
 echo "  polkit: $("$BMAKE" -C "$d" show-var VARNAME=PKGNAME 2>/dev/null)"
 
 echo
-echo "=== 当て物を合成版に差し替える"
+echo "=== 当て物を上流 backport (066b55bf + 72c28782) に差し替える"
 if grep -q 'SO_PEERPIDFD' "$dst"; then
 	echo "  既に SO_PEERPIDFD を見ている。そのまま"
 else
@@ -115,10 +124,10 @@ grep -i 'invalid checksum\|Ignoring patch' "$WS/.polkit-patch.log" && {
 ws=$("$BMAKE" -C "$d" show-var VARNAME=WRKSRC 2>/dev/null)
 f=$ws/src/polkitagent/polkitagenthelper-pam.c
 [ -f "$f" ] || { echo "★ WRKSRC に file が無い ($f)"; exit 1; }
-# 合成版が入れる守りが本当に source に在るか。当て物が在ることと、
+# 066b55bf が入れる守りが本当に source に在るか。当て物が在ることと、
 # 当たっていることは別である。
 if grep -q '#ifdef SO_PEERPIDFD' "$f"; then
-	echo "  source に #ifdef SO_PEERPIDFD が在る (合成版が当たっている)"
+	echo "  source に #ifdef SO_PEERPIDFD が在る (066b55bf が当たっている)"
 else
 	echo "★ source に守りが無い。当て物は素通りしている"
 	exit 1
