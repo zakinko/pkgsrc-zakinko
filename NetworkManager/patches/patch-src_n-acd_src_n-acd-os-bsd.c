@@ -24,7 +24,7 @@ system's net/bpf.h and agree, but reading a header is not building the file.
 
 --- src/n-acd/src/n-acd-os-bsd.c.orig
 +++ src/n-acd/src/n-acd-os-bsd.c
-@@ -0,0 +1,574 @@
+@@ -0,0 +1,573 @@
 +/*
 + * n-acd on the BSDs
 + *
@@ -61,7 +61,6 @@ system's net/bpf.h and agree, but reading a header is not building the file.
 +#include <net/if.h>
 +#include <net/if_dl.h>
 +#include <netinet/in.h>
-+#include <netinet/if_ether.h>
 +#include <errno.h>
 +#include <fcntl.h>
 +#include <stddef.h>

@@ -27,12 +27,12 @@ that check silently.
 
 --- src/n-acd/src/n-acd.c.orig
 +++ src/n-acd/src/n-acd.c
-@@ -55,48 +55,40 @@
+@@ -55,48 +55,39 @@
  #include <errno.h>
  #include <inttypes.h>
  #include <limits.h>
 -#include <linux/if_packet.h>
- #include <netinet/if_ether.h>
+-#include <netinet/if_ether.h>
  #include <netinet/in.h>
  #include <stdlib.h>
  #include <string.h>
@@ -84,13 +84,10 @@ that check silently.
  
          r = clock_gettime(CLOCK_MONOTONIC, &ts);
          if (r < 0)
-@@ -106,47 +98,7 @@
-         c_siphash_append(&hash, (const uint8_t *)&ts.tv_nsec, sizeof(ts.tv_nsec));
+@@ -109,46 +100,6 @@
+         return 0;
+ }
  
-         *random = c_siphash_finalize(&hash);
--        return 0;
--}
--
 -static int n_acd_socket_new(int *fdp, int fd_bpf_prog, NAcdConfig *config) {
 -        const struct sockaddr_ll address = {
 -                .sll_family = AF_PACKET,
@@ -123,16 +120,18 @@ that check silently.
 -
 -        *fdp = s;
 -        s = -1;
-         return 0;
+-        return 0;
 -
 -error:
 -        if (s >= 0)
 -                close(s);
 -        return r;
- }
- 
+-}
+-
  /**
-@@ -298,11 +250,9 @@
+  * n_acd_config_new() - create configuration object
+  * @configp:                    output argument for new configuration
+@@ -298,11 +249,9 @@
          if (r)
                  return r;
  
@@ -147,7 +146,7 @@ that check silently.
  
          if (acd->fd_bpf_map >= 0)
                  close(acd->fd_bpf_map);
-@@ -328,7 +278,6 @@
+@@ -328,7 +277,6 @@
  _c_public_ int n_acd_new(NAcd **acdp, NAcdConfig *config) {
          _c_cleanup_(n_acd_unrefp) NAcd *acd = NULL;
          _c_cleanup_(c_closep) int fd_bpf_prog = -1;
@@ -155,7 +154,7 @@ that check silently.
          int r;
  
          if (config->ifindex <= 0 ||
-@@ -349,10 +298,6 @@
+@@ -349,10 +297,6 @@
          if (r)
                  return r;
  
@@ -166,7 +165,7 @@ that check silently.
          r = timer_init(&acd->timer);
          if (r < 0)
                  return r;
-@@ -367,25 +312,18 @@
+@@ -367,25 +311,18 @@
          if (r)
                  return r;
  
@@ -201,7 +200,7 @@ that check silently.
  
          *acdp = acd;
          acd = NULL;
-@@ -403,9 +341,16 @@
+@@ -403,9 +340,16 @@
  
          c_assert(c_rbtree_is_empty(&acd->ip_tree));
  
@@ -220,7 +219,7 @@ that check silently.
                  close(acd->fd_socket);
                  acd->fd_socket = -1;
          }
-@@ -415,15 +360,12 @@
+@@ -415,15 +359,12 @@
                  acd->fd_bpf_map = -1;
          }
  
@@ -240,7 +239,7 @@ that check silently.
          }
  
          free(acd);
-@@ -476,13 +418,6 @@
+@@ -476,13 +417,6 @@
  }
  
  int n_acd_send(NAcd *acd, const struct in_addr *tpa, const struct in_addr *spa) {
@@ -254,7 +253,7 @@ that check silently.
          struct ether_arp arp = {
                  .ea_hdr = {
                          .ar_hrd = htobe16(ARPHRD_ETHER),
-@@ -492,7 +427,6 @@
+@@ -492,7 +426,6 @@
                          .ar_op = htobe16(ARPOP_REQUEST),
                  },
          };
@@ -262,7 +261,7 @@ that check silently.
          int r;
  
          memcpy(arp.arp_sha, acd->mac, sizeof(acd->mac));
-@@ -501,51 +435,42 @@
+@@ -501,51 +434,42 @@
          if (spa)
                  memcpy(arp.arp_spa, &spa->s_addr, sizeof(spa->s_addr));
  
@@ -320,13 +319,13 @@ that check silently.
 -                        r = n_acd_raise(acd, NULL, N_ACD_EVENT_DOWN);
 -                        if (r)
 -                                return r;
+-
+-                        return N_ACD_E_DROPPED;
+-                }
 +                r = n_acd_raise(acd, NULL, N_ACD_EVENT_DOWN);
 +                if (r)
 +                        return r;
  
--                        return N_ACD_E_DROPPED;
--                }
--
 +                return N_ACD_E_DROPPED;
 +        } else if (r) {
                  /*
@@ -344,7 +343,7 @@ that check silently.
          }
  
          return 0;
-@@ -566,10 +491,11 @@
+@@ -566,10 +490,11 @@
   * it. Whenever the file-descriptor polls readable, n_acd_dispatch() should be
   * called.
   *
@@ -358,7 +357,7 @@ that check silently.
  }
  
  static int n_acd_handle_timeout(NAcd *acd) {
-@@ -702,37 +628,27 @@
+@@ -702,37 +627,27 @@
          return 0;
  }
  
@@ -413,7 +412,7 @@ that check silently.
  }
  
  static bool n_acd_packet_is_valid(NAcd *acd, void *packet, size_t n_packet) {
-@@ -776,65 +692,39 @@
+@@ -776,65 +691,39 @@
          return true;
  }
  
@@ -506,7 +505,7 @@ that check silently.
                  /*
                   * If all buffers were filled with data, we cannot be sure that
                   * there is nothing left to read. But to avoid starvation, we
-@@ -847,16 +737,16 @@
+@@ -847,16 +736,16 @@
                   * On the other hand, there are several conditions where the
                   * kernel might return less batches than requested, but was
                   * still preempted. However, all of those cases require the
@@ -529,7 +528,7 @@ that check silently.
                          continue;
                  /*
                   * Handle the packet. Bail out if something went wrong. Note
-@@ -893,24 +783,23 @@
+@@ -893,24 +782,23 @@
   *         on failure.
   */
  _c_public_ int n_acd_dispatch(NAcd *acd) {
@@ -565,7 +564,7 @@ that check silently.
                          break;
                  default:
                          c_assert(0);
-@@ -941,7 +830,7 @@
+@@ -941,7 +829,7 @@
   * context.
   *
   * Users must call this function repeatedly until either an error is returned,

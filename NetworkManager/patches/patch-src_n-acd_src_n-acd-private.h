@@ -9,7 +9,11 @@ so the include belongs here rather than there.
 
 --- src/n-acd/src/n-acd-private.h.orig
 +++ src/n-acd/src/n-acd-private.h
-@@ -9,6 +9,7 @@
+@@ -5,10 +5,10 @@
+ #include <c-stdaux.h>
+ #include <errno.h>
+ #include <inttypes.h>
+-#include <netinet/if_ether.h>
  #include <netinet/in.h>
  #include <stdbool.h>
  #include <stdlib.h>
@@ -17,7 +21,7 @@ so the include belongs here rather than there.
  #include "util/timer.h"
  #include "n-acd.h"
  
-@@ -64,7 +65,7 @@
+@@ -64,7 +64,7 @@
  struct NAcd {
          unsigned long n_refs;
          unsigned int seed;
@@ -26,7 +30,7 @@ so the include belongs here rather than there.
          int fd_socket;
          CRBTree ip_tree;
          CList event_list;
-@@ -85,7 +86,7 @@
+@@ -85,7 +85,7 @@
  
  #define N_ACD_NULL(_x) {                                                        \
                  .n_refs = 1,                                                    \

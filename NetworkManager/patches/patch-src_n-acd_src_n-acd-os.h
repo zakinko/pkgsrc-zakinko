@@ -9,7 +9,7 @@ implementation sees one system's idea of networking written plainly.
 
 --- src/n-acd/src/n-acd-os.h.orig
 +++ src/n-acd/src/n-acd-os.h
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,159 @@
 +#pragma once
 +
 +/*
@@ -42,10 +42,20 @@ implementation sees one system's idea of networking written plainly.
 + *	/usr/include/net/if_arp.h:89:18: error: field has incomplete type
 + *	'struct sockaddr'
 + *
-+ * So the two are included first, in the order POSIX gives them.
++ * OpenBSD needs one more.  Its <netinet/if_ether.h> declares struct ether_arp
++ * with a struct arphdr member and does not define that either; on OpenBSD
++ * struct arphdr lives in <net/if_arp.h>, which the header does not pull in:
++ *
++ *	/usr/include/netinet/if_ether.h:154:17: error: field has incomplete type
++ *	'struct arphdr'
++ *
++ * So the prelude is included first, in the order the headers need.  Every
++ * other file in n-acd reaches <netinet/if_ether.h> through this header rather
++ * than including it itself, so the order is stated once.
 + */
 +#include <sys/types.h>
 +#include <sys/socket.h>
++#include <net/if_arp.h>
 +#include <netinet/in.h>
 +#include <netinet/if_ether.h>
 +#include <stddef.h>

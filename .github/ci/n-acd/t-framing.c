@@ -11,6 +11,8 @@
 #include <sys/socket.h>
 #include <net/bpf.h>
 #include <net/if.h>
+/* OpenBSD の <netinet/if_ether.h> は struct arphdr を定義しない。 */
+#include <net/if_arp.h>
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
 #include <assert.h>
