@@ -35,6 +35,7 @@ on:
     paths:
       - 'NetworkManager/patches/patch-src_n-acd_src_n-acd-os*'
       - '.github/ci/n-acd/**'
+      - '.github/ci/c-stdaux/**'
       - '.github/workflows/n-acd-seam.yml'
 
 concurrency:

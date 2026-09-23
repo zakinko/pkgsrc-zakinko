@@ -187,6 +187,42 @@ done
 [ $dfail = 0 ] || exit 1
 echo "  十一本とも警告なしで建った"
 
+# c-stdaux は BSD では unix module を読まない。c-stdaux.h が
+# c-stdaux-unix.h を include する条件が C_OS_LINUX と C_OS_MACOS の二つだけ
+# だからで、c_close() も c_closedir() も C_MODULE_UNIX も現れない。上流へ
+# 出す当て物をここで当て、当てる前は建たず当てた後は建つことを測る。
+#
+# 当たる先は NetworkManager 同梱の写しだが、触る三つの file は上流 main と
+# 一 byte も違わない。当てる前に建ってしまったら前提のほうが変わっているので、
+# そこで止める。
+echo
+echo "=== c-stdaux の BSD 対応 (上流へ出す当て物)"
+CS="$S/c-stdaux"
+CSP="$CI/../c-stdaux"
+if cc -I"$CS/src" -o "$W/cs-probe" "$CSP/probe.c" 2> "$W/cs0.log"; then
+	echo "★ 当てる前から probe が建った。前提が変わっている"
+	exit 1
+fi
+echo "  当てる前: 建たない — `sed -n 's/.*error: *//p' "$W/cs0.log" | head -1`"
+( cd "$CS" && patch -p0 -s -f -F0 -i "$CSP/c-stdaux-bsd.diff" < /dev/null )
+if ! grep -q C_OS_BSD "$CS/src/c-stdaux.h"; then
+	echo "★ 当て物が当たっていない"; exit 1
+fi
+if ls "$CS"/src/*.rej > /dev/null 2>&1; then
+	echo "★ .rej が残っている"; ls "$CS"/src/*.rej; exit 1
+fi
+if ! cc -I"$CS/src" -o "$W/cs-probe" "$CSP/probe.c" 2> "$W/cs1.log"; then
+	echo "★ 当てた後も建たない"; cat "$W/cs1.log"; exit 1
+fi
+"$W/cs-probe" || { echo "★ probe が落ちた"; exit 1; }
+for t in test-api test-basic; do
+	if ! cc -I"$CS/src" -o "$W/cs-$t" "$CS/src/$t.c" 2> "$W/cs-$t.log"; then
+		echo "★ $t が建たない"; head -20 "$W/cs-$t.log"; exit 1
+	fi
+	"$W/cs-$t" || { echo "★ $t が落ちた"; exit 1; }
+done
+echo "  当てた後: C_OS_BSD と C_MODULE_UNIX が立ち、test-api と test-basic が通った"
+
 # filter の offset を移す変更は、間違えても静かに壊れる。行き過ぎれば何も
 # 来ず、足りなければ何でも来る。root が要るので BPF device では測れないが、
 # libpcap の bpf_filter() は kernel と同じ interpreter なので、当て物が置く
