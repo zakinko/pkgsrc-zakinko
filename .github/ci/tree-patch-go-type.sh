@@ -10,9 +10,16 @@ if grep -q 'GO_BIN_SUPPORTED' "$TREE/lang/go/version.mk"; then
 	exit 0
 fi
 
-# go-bin を fork の中身に入れ替える (PR 一本目ぶん)
+# go-bin を fork の中身に入れ替える (PR 一本目ぶん)。
+#
+# 取り元は repo の go-bin であって $TREE/zakinko/go-bin ではない。
+# build-on-bsd.sh は TREE_PATCH を bootstrap の前に当て、zakinko カテゴリを
+# 重ねるのはその後なので、当てる時点では $TREE/zakinko はまだ空。
+# repo の根は この script の在処から辿る (.github/ci の二つ上)。
+SRC=$(cd "$D/../.." && pwd)/go-bin
+[ -d "$SRC" ] || { echo "!! go-bin が repo に無い: $SRC" >&2; exit 1; }
 for f in Makefile distinfo platforms.mk; do
-	cp "$TREE/zakinko/go-bin/$f" "$TREE/lang/go-bin/$f"
+	cp "$SRC/$f" "$TREE/lang/go-bin/$f"
 done
 grep -q 'GO_BIN_PLATFORMS' "$TREE/lang/go-bin/platforms.mk" || {
 	echo "!! go-bin: platforms.mk が入っていない" >&2; exit 1; }
