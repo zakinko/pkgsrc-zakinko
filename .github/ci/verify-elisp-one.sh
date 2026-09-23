@@ -49,5 +49,10 @@ pkg_info -e "$EMACS_GLOB"
 echo "=== PLIST の変数を見る ==="
 sh "$(dirname "$0")/check-plist-vars.sh" "$TREE" "$PKG" || exit 1
 
+# 建てる前に、実際に何が呼ばれるかを出しておく。手元で el を直接
+# byte-compile して「通った」と言っても、上流が駆動 file を挟んで
+# いれば別物を測っている。log に残しておけば次から同じ形で測れる。
+sh "$(dirname "$0")/show-build-entry.sh" "$TREE" "$PKG" || true
+
 echo "=== $PKG を建てる ==="
 sh "$(dirname "$0")/verify-pkg.sh" "$PKG"
