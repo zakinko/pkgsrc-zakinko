@@ -57,7 +57,7 @@
      (${OPSYS} == "Darwin" && ${OPSYS_VERSION} >= 120000) || \
      (${OPSYS} == "FreeBSD" && ${OPSYS_VERSION} >= 140000) || \
 +    (${OPSYS} == "OpenBSD" && (${MACHINE_ARCH} == "x86_64" || \
-+			       ${MACHINE_ARCH} == "riscv64")) || \
++                               ${MACHINE_ARCH} == "riscv64")) || \
      (${OPSYS} == "SunOS" && ${OS_VARIANT} != "Solaris")
  TOOL_DEPENDS+=		go-bin-[0-9]*:../../lang/go-bin
  GOROOT_BOOTSTRAP=	${TOOLBASE}/go-bin
