@@ -20,6 +20,33 @@ line, and an `ALTERNATIVES` file for `bin/python`.  Emacs has no
     PLIST_SUBST+=		EMACS_VERSION=${EMACS_VERSION}
     PRINT_PLIST_AWK+=	{ gsub(/${EMACS_VERSION}/, "$${EMACS_VERSION}"); }
 
+`s/$$/` is right and `s/$$$$/` silently does nothing.  The value passes
+three expansions before sed sees it:
+
+    pkgsrc Makefile   s/$$/-VER/    bmake turns $$ into $
+    configure gets    s/$/-VER/     autoconf doubles $ for make
+    generated Makefile s/$$/-VER/   make turns $$ into $
+    sed gets          s/$/-VER/     appends -VER
+
+Write `$$$$` and the generated Makefile ends up with `s/$$$$/`, make
+leaves `s/$$/`, and in a BRE only the trailing `$` anchors -- so it looks
+for a literal dollar at end of line and matches nothing.  configure
+returns 0, the build returns 0, and the package installs `bin/emacs` with
+no version anywhere.  The doubled form reads as the more careful one,
+which is exactly why it gets "fixed" back.
+
+`show-var VARNAME=CONFIGURE_ARGS` only shows the first of the three, so
+it cannot tell you which you have.  Measure at the far end:
+
+    make configure && grep TRANSFORM $(make show-var VARNAME=WRKSRC)/Makefile
+
+    good  TRANSFORM = s/$$/-22.3/
+    bad   TRANSFORM = s/$$$$/-23.4/
+
+Or check the built package rather than the source: `bin/emacs-VER-VER`
+is the binary and `bin/emacs-VER` the link to it, so a package without
+the doubled name never had the transform applied.
+
 plus a five-line `ALTERNATIVES`.  Upstream is not touched.
 
 Emacs honours `program_transform_name` in `Makefile.in` for the emacs
