@@ -1,0 +1,14 @@
+--- devel/libuuid/Makefile.orig
++++ devel/libuuid/Makefile
+@@ -10,6 +10,11 @@
+ CONFIGURE_ARGS+=	--enable-libuuid
+ CONFIGURE_ARGS+=	--enable-uuidgen
+ 
++# configure probes the C++ compiler (libtool's CXX test); without this
++# the probe runs with no c++ and libtool stops with "problem compiling CXX
++# test program".
++USE_LANGUAGES=		c c++
++
+ PKGCONFIG_OVERRIDE+=	libuuid/uuid.pc.in
+ 
+ .include "../../mk/bsd.pkg.mk"
