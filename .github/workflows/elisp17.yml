@@ -136,6 +136,9 @@ jobs:
             zakinko/emacs-ilisp zakinko/jde zakinko/w3 zakinko/rsltc
           VERIFY_SCRIPT: verify-elisp17.sh
           VERIFY_OPTS: ${{ matrix.version }}${{ inputs.lispdir == 'yes' && ':lispdir' || '' }}
+          # ツリーは current。共有の run-in-qemu.sh の既定は四半期枝だが、
+          # そこを動かすと他の口にも及ぶので、この workflow の側で指定する。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh '${{ needs.plan.outputs.image }}'
 
       - name: 転けたらコンソールを出す
@@ -200,6 +203,9 @@ jobs:
           # buildlink3.mk と version.mk を互いに読まないので単体で足りる。
           UPSTREAM_PKG: zakinko/${{ matrix.pkg }}
           VERIFY_SCRIPT: verify-pkg.sh
+          # ツリーは current。共有の run-in-qemu.sh の既定は四半期枝だが、
+          # そこを動かすと他の口にも及ぶので、この workflow の側で指定する。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
         run: sh .github/ci/run-in-qemu.sh '${{ needs.plan.outputs.image }}'
 
       - name: 転けたらコンソールを出す
