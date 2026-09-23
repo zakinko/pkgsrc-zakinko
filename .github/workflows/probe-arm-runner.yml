@@ -5,6 +5,11 @@ name: arm runner に KVM が在るか
 # 「在るはず」で matrix を書き換えると、効いていないのに速くなった顔で
 # 通ることがあるので、先に host 側を見る。
 
+# 起こし直し (2026-09-23 19:35Z)。RISE の GitHub App は
+# workflow_job.queued の webhook で job を拾う作りなので、App を入れる前に
+# queue へ入った job は向こうから見えていない可能性がある。29 分 queued の
+# まま動かなかったので、App 導入後に新しく webhook を飛ばす。
+#
 # workflow_dispatch は既定 branch に在る workflow しか呼べないので、
 # この枝の push で起こす。自分の file だけを見るので他の作業では走らない。
 on:
