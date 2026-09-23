@@ -1,0 +1,99 @@
+name: GO_TYPE と RUST_TYPE の落ち方
+
+# mk.conf に GO_TYPE=bin / RUST_TYPE=bin と書いたとき、binary の在る箱では
+# bin を選び、無い箱では黙って src に落ちることを測る。
+#
+# 対応する箱だけ見ても足りない。「落ちる側」が壊れたときに気付けないので、
+# 対応する箱と対応しない箱の両方を並べる。
+#
+#   対応する    Linux x86_64 / NetBSD amd64 / FreeBSD amd64 / illumos
+#   対応しない  OpenBSD amd64 / DragonFly amd64
+#
+# go-bin と rust-bin を実際に建てはしない。show-var で選ばれる依存を見る
+# だけなので、bootstrap さえ通れば速い。
+
+on:
+  push:
+    branches: [thttpd, lang-type]
+    paths:
+      - '.github/workflows/lang-type.yml'
+      - '.github/ci/verify-lang-type.sh'
+      - '.github/ci/tree-go-type.diff'
+      - '.github/ci/tree-rust-type.diff'
+      - '.github/ci/tree-patch-go-type.sh'
+      - '.github/ci/tree-patch-rust-type.sh'
+  workflow_dispatch:
+
+concurrency:
+  group: lang-type-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PKGS: ''
+  VERIFY: lang-type
+  MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
+  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-go-type.sh .github/ci/tree-patch-rust-type.sh'
+
+jobs:
+  linux:
+    name: Linux ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'glibc x86_64', runner: ubuntu-latest, image: 'debian:13' }
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update -qq && apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch
+      - run: PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+      - run: TREE=/usr/pkgsrc PREFIX=/usr/pkg sh .github/ci/verify-lang-type.sh
+
+  bsd:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 対応する側
+          - { name: 'NetBSD amd64',    action: netbsd-vm,       release: '10.1' }
+          - { name: 'FreeBSD amd64',   action: freebsd-vm,      release: '14.4' }
+          # 対応しない側 (src に落ちることを測る)
+          - { name: 'OpenBSD amd64',   action: openbsd-vm,      release: '7.9' }
+          - { name: 'DragonFly amd64', action: dragonflybsd-vm, release: '' }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: langtype-${{ matrix.action }}-${{ github.run_id }}
+          restore-keys: langtype-${{ matrix.action }}-
+      - uses: vmactions/netbsd-vm@v1
+        if: matrix.action == 'netbsd-vm'
+        with:
+          release: ${{ matrix.release }}
+          envs: 'PKGS VERIFY MKCONF_EXTRA TREE_PATCH'
+          run: sh .github/ci/build-on-bsd.sh && sh .github/ci/verify-lang-type.sh
+      - uses: vmactions/freebsd-vm@v1
+        if: matrix.action == 'freebsd-vm'
+        with:
+          release: ${{ matrix.release }}
+          envs: 'PKGS VERIFY MKCONF_EXTRA TREE_PATCH'
+          run: sh .github/ci/build-on-bsd.sh && sh .github/ci/verify-lang-type.sh
+      - uses: vmactions/openbsd-vm@v1
+        if: matrix.action == 'openbsd-vm'
+        with:
+          release: ${{ matrix.release }}
+          envs: 'PKGS VERIFY MKCONF_EXTRA TREE_PATCH'
+          run: sh .github/ci/build-on-bsd.sh && sh .github/ci/verify-lang-type.sh
+      - uses: vmactions/dragonflybsd-vm@v1
+        if: matrix.action == 'dragonflybsd-vm'
+        with:
+          envs: 'PKGS VERIFY MKCONF_EXTRA TREE_PATCH'
+          prepare: pkg install -y curl
+          run: sh .github/ci/build-on-bsd.sh && sh .github/ci/verify-lang-type.sh
