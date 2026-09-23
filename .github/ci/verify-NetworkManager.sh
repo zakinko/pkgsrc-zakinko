@@ -157,10 +157,23 @@ step "0.7 security/polkit を FreeBSD 系でも通す"
 # 持っている。両方を素の 127 に当てて diff を取り直した合成版がここに在る。
 #
 # 最初これを tree-patch でやって Linux を壊した。あちらは bootstrap より前に
-# 走るので bmake がまだ無く、distinfo の SHA1 を自分で計算していた。pkgsrc は
-# digest -p という patch 専用の数え方をするので合わず、Ignoring patch file ...
-# invalid checksum で patch 段ごと転ぶ。ここなら bmake が在るので
-# makepatchsum に数えさせられる。自分で数えない。
+# 走るので、当時は数え方が合わず Ignoring patch file ... invalid checksum で
+# patch 段ごと転んだ。「自分で数えるな、makepatchsum に数えさせろ」と書いた
+# のはそのときで、**半分だけ正しかった。**
+#
+# 数え方そのものは合う。$NetBSD$ の行を落とした SHA1 が pkgsrc の値である
+# ことは、NetworkManager の当て物二十四本で確かめてあり、CI の distinfo の
+# 段も通っている。当時外したのは、その一行を落としていなかった側だと思う。
+#
+# 一方で makepatchsum は distinfo 全体を書き直すので、CI では
+#
+#   SHA1 (A) = SHA1 (B) = <B の hash>
+#
+# と二件が一行に繋がることがあった。行数も行末も合うので検査をすり抜け、
+# pkgsrc は invalid checksum として当て物を黙って飛ばす。なぜ繋がるかは
+# 分かっていない。techne では同じ操作が正しく動く。
+#
+# **書き換えるのは一行だけで済む。**全体を書き直さなければ繋がる余地が無い。
 pkdir=$TREE/security/polkit
 pksrc=$(dirname "$0")/tree-patches/patch-src_polkitagent_polkitagenthelper-pam.c
 pkdst=$pkdir/patches/patch-src_polkitagent_polkitagenthelper-pam.c
@@ -172,48 +185,61 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 		# 使えない — CI の木は tarball で展開したもので、git 管理下に無い。
 		# distinfo だけ戻すと、差し替えた当て物が checksum 不一致になって
 		# 結局飛ぶ。壊れた状態が別の顔で残るだけになる。
+		# distinfo だけでなく当て物そのものも控える。戻すときに git は
+		# 使えない — CI の木は tarball で展開したもので、git 管理下に無い。
 		cp "$pkdir/distinfo" "$W/polkit-distinfo.orig"
 		cp "$pkdst" "$W/polkit-patch.orig"
 		cp "$pksrc" "$pkdst"
-		if ( cd "$pkdir" && $BM makepatchsum ) > /dev/null 2>&1; then
-			# rc は信じない。makepatchsum は digest が無くても 0 を返し、
-			# 値が空の distinfo を書く。そうなると pkgsrc は当て物を
-			# invalid checksum として黙って飛ばし、polkit が素で建って
-			# ucred と SO_PEERCRED の error になる。当て物を入れたのに
-			# 当て物が直すはずの error が出る、という読みにくい形で出る。
-			#
-			# 跡で測る。当て物の数と SHA1 行の数が合い、どの行も 40 桁の
-			# 16 進で終わっているか。
+
+		# makepatchsum は呼ばない。CI では distinfo 全体を書き直した結果
+		#
+		#   SHA1 (A) = SHA1 (B) = <B の hash>
+		#
+		# という形で二件が一行に繋がることがあった。行数も行末も合うので
+		# 検査をすり抜け、pkgsrc は invalid checksum として当て物を黙って
+		# 飛ばす。polkit が素で建ち、当て物が直すはずの error が出る。
+		#
+		# 書き換えるのは一行だけで済む。数え方は pkgsrc と同じ — $NetBSD$
+		# の行を落とした SHA1 で、NetBSD の実機で makepatchsum と同じ値
+		# (b216799b…) が出ることを確かめてある。全体を書き直さなければ、
+		# 行が繋がる余地が無い。
+		h=$(sed -e '/\$NetBSD.*\$/d' "$pkdst" | digest sha1 2>/dev/null |
+		    awk '{print $NF}')
+		case "$h" in
+		????????????????????????????????????????)
+			awk -v n="$(basename "$pkdst")" -v h="$h" '
+				$0 ~ "^SHA1 \\(" n "\\) = " { print "SHA1 (" n ") = " h; next }
+				{ print }
+			' "$pkdir/distinfo" > "$pkdir/distinfo.new" &&
+				mv "$pkdir/distinfo.new" "$pkdir/distinfo"
+			;;
+		*)
+			echo "  ★ SHA1 が 40 桁で出ない (digest: $(command -v digest || echo 'PATH に無い'))"
+			cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
+			cp "$W/polkit-patch.orig" "$pkdst"
+			h=
+			;;
+		esac
+
+		if [ -n "$h" ]; then
+			# 書けたかは跡で測る。行数、当て物の数、SHA1 の出現数、値の形。
+			# 出現数まで見るのは、二件が一行に繋がっても行数は合うため。
 			want=$(ls "$pkdir/patches" | grep -c '^patch-' || true)
 			got=$(grep -c '^SHA1 (patch-' "$pkdir/distinfo" || true)
+			ent=$(grep -o 'SHA1 (patch-' "$pkdir/distinfo" | wc -l | tr -d ' ')
 			bad=$(grep '^SHA1 (patch-' "$pkdir/distinfo" |
 			      grep -cv '= [0-9a-f][0-9a-f]*$' || true)
-			# 行の数だけでは足りない。二件が一行に繋がると
-			#
-			#   SHA1 (A) = SHA1 (B) = <B の hash>
-			#
-			# になり、行は 1 本、行末は 16 進なので上の二つを素通りする。
-			# 実際にこれで通した。出現数と行数が合うことまで見る。
-			ent=$(grep -o 'SHA1 (patch-' "$pkdir/distinfo" | wc -l | tr -d ' ')
-			# cat -v を通す。行が繋がって見えるのが file の中身なのか
-			# log の見え方なのかは、CR が ^M で出るかどうかで分かれる。
-			# 前に一度、log だけを見て中身が壊れていると読みかけた。
 			echo "  distinfo: $(wc -lc < "$pkdir/distinfo" | tr -s ' ') (行 byte)"
 			if [ "$want" = "$got" ] && [ "$got" = "$ent" ] && [ "$bad" = 0 ]; then
-				echo "  差し替えて makepatchsum で数え直した ($got 本)"
-				grep '^SHA1 (patch-' "$pkdir/distinfo" | cat -v | sed 's/^/    /'
+				echo "  差し替えて一行だけ数え直した ($got 本)"
+				grep 'polkitagenthelper-pam' "$pkdir/distinfo" | cat -v | sed 's/^/    /'
 			else
-				echo "  ★ distinfo が壊れた (当て物 $want 本 / SHA1 行 $got 本 / SHA1 の出現 $ent 回 / 値が変な行 $bad 本)"
-				echo "    digest: $(command -v digest || echo 'PATH に無い')"
-				sed -n '1,12p' "$pkdir/distinfo" | sed 's/^/    /'
+				echo "  ★ distinfo が壊れた (当て物 $want / 行 $got / 出現 $ent / 変な行 $bad)"
+				sed -n '1,12p' "$pkdir/distinfo" | cat -v | sed 's/^/    /'
 				cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
 				cp "$W/polkit-patch.orig" "$pkdst"
 				echo "    元に戻した。polkit は木のままで建てる"
 			fi
-		else
-			echo "  makepatchsum が通らない。元に戻す"
-			cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
-			cp "$W/polkit-patch.orig" "$pkdst"
 		fi
 	fi
 else
