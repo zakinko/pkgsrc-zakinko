@@ -1,11 +1,22 @@
 # $NetBSD$
 #
 
-DISTNAME=	ilisp-20021222
+# SourceForge の 20021222 は互換層が ilfsf18 から ilfsf21 までしか無く、
+# Emacs 22 以降に届かない。維持されているのは Debian の barak/ilisp で、
+# そちらは ilfsf22 から ilfsf25 と ilxemacs を持つ。release は切られて
+# いないので HEAD を指す。
+#
+# GITHUB_TAG が 7 桁以上の 16 進だと mk/fetch/github.mk:60 が commit hash と
+# 見なして distfile 名に足すので、落ちてくるのは
+# ilisp-20230703-14eae2c0....tar.gz になる。展開先は tag のままなので
+# WRKSRC を書く。
+DISTNAME=	ilisp-20230703
 PKGNAME=	${EMACS_PKGNAME_PREFIX}emacs-${DISTNAME}
-PKGREVISION=	8
 CATEGORIES=	devel
-MASTER_SITES=	${MASTER_SITE_SOURCEFORGE:=ilisp/}
+MASTER_SITES=	${MASTER_SITE_GITHUB:=barak/}
+GITHUB_PROJECT=	ilisp
+GITHUB_TAG=	14eae2c05618b798c35e44fe3783a4e3b135ad10
+WRKSRC=		${WRKDIR}/${GITHUB_PROJECT}-${GITHUB_TAG}
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	https://sourceforge.net/projects/ilisp/
@@ -18,7 +29,13 @@ COMMENT=	Emacs interface to embedded Lisp process
 # builds; the two go together.
 #LICENSE=	ilisp-license
 
+# 2026-09-23 に手元の Emacs 31.1 で測った。当て物四本で上流の compile 目標が
+# rc=0 になり、load が通って run-ilisp が command になる。Lisp を実際に
+# 動かしてはいない。
 EMACS_VERSIONS_ACCEPTED=	emacs20 emacs21 emacs21nox
+EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
+EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
+EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 
 MAKE_ENV+=	EMACS=${EMACS_BIN}
 BUILD_TARGET=	compile
@@ -27,12 +44,6 @@ SITELISP=	${EMACS_LISPPREFIX}/ilisp
 
 INSTALLATION_DIRS+=	share/doc/emacs-ilisp
 INSTALLATION_DIRS+=	share/examples/emacs-ilisp
-
-SUBST_CLASSES+=			string-to-int
-SUBST_STAGE.string-to-int=	pre-configure
-SUBST_MESSAGE.string-to-int=	obsolete function (as of 22.1); use `string-to-number' instead
-SUBST_FILES.string-to-int+=	ilisp-acl.el
-SUBST_SED.string-to-int=	-e 's/string-to-int/string-to-number/'
 
 do-install:
 	${INSTALL_DATA} ${WRKSRC}/INSTALLATION \

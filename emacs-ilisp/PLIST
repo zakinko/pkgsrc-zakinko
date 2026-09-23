@@ -1,6 +1,7 @@
-@comment $NetBSD: PLIST,v 1.14 2017/09/29 12:40:26 wiz Exp $
+@comment $NetBSD$
 share/doc/emacs-ilisp/INSTALLATION
 share/doc/emacs-ilisp/README
+share/examples/emacs-ilisp/ilisp.emacs
 ${EMACS_LISPPREFIX}/ilisp/allegro.lisp
 ${EMACS_LISPPREFIX}/ilisp/bridge.el
 ${EMACS_LISPPREFIX}/ilisp/bridge.elc
@@ -14,10 +15,7 @@ ${EMACS_LISPPREFIX}/ilisp/completer.el
 ${EMACS_LISPPREFIX}/ilisp/completer.elc
 ${EMACS_LISPPREFIX}/ilisp/cormanlisp.lisp
 ${EMACS_LISPPREFIX}/ilisp/custom-ilisp.el
-${EMACS_LISPPREFIX}/ilisp/extra/cltl2.el
-${EMACS_LISPPREFIX}/ilisp/extra/cltl2.elc
-${EMACS_LISPPREFIX}/ilisp/extra/hyperspec.el
-${EMACS_LISPPREFIX}/ilisp/extra/hyperspec.elc
+${EMACS_LISPPREFIX}/ilisp/find-src.lisp
 ${EMACS_LISPPREFIX}/ilisp/guile-ilisp.scm
 ${EMACS_LISPPREFIX}/ilisp/ilcompat.el
 ${EMACS_LISPPREFIX}/ilisp/ilcompat.elc
@@ -26,10 +24,12 @@ ${EMACS_LISPPREFIX}/ilisp/ild.elc
 ${EMACS_LISPPREFIX}/ilisp/ilfsf18.el
 ${EMACS_LISPPREFIX}/ilisp/ilfsf19.el
 ${EMACS_LISPPREFIX}/ilisp/ilfsf20.el
-${FOR_emacs20}${EMACS_LISPPREFIX}/ilisp/ilfsf20.elc
 ${EMACS_LISPPREFIX}/ilisp/ilfsf21.el
-${FOR_emacs21}${EMACS_LISPPREFIX}/ilisp/ilfsf21.elc
-${FOR_emacs21nox}${EMACS_LISPPREFIX}/ilisp/ilfsf21.elc
+${EMACS_LISPPREFIX}/ilisp/ilfsf22.el
+${EMACS_LISPPREFIX}/ilisp/ilfsf23.el
+${EMACS_LISPPREFIX}/ilisp/ilfsf24.el
+${EMACS_LISPPREFIX}/ilisp/ilfsf25.el
+${EMACS_LISPPREFIX}/ilisp/ilfsf25.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-acl.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp-acl.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-aut.el
@@ -86,6 +86,8 @@ ${EMACS_LISPPREFIX}/ilisp/ilisp-mnb.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp-mnb.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-mod.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp-mod.elc
+${EMACS_LISPPREFIX}/ilisp/ilisp-mouse.el
+${EMACS_LISPPREFIX}/ilisp/ilisp-mouse.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-mov.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp-mov.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-openmcl.el
@@ -109,6 +111,7 @@ ${EMACS_LISPPREFIX}/ilisp/ilisp-scheme-easy-menu.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-snd.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp-snd.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-src.el
+${EMACS_LISPPREFIX}/ilisp/ilisp-src.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-sym.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp-sym.elc
 ${EMACS_LISPPREFIX}/ilisp/ilisp-utl.el
@@ -123,13 +126,12 @@ ${EMACS_LISPPREFIX}/ilisp/ilisp.el
 ${EMACS_LISPPREFIX}/ilisp/ilisp.elc
 ${EMACS_LISPPREFIX}/ilisp/illuc19.el
 ${EMACS_LISPPREFIX}/ilisp/ilxemacs.el
-${EMACS_LISPPREFIX}/ilisp/openmcl.lisp
-${EMACS_LISPPREFIX}/ilisp/sbcl.lisp
-${FOR_xemacs214}${EMACS_LISPPREFIX}/ilisp/ilxemacs.el
-${FOR_xemacs214nox}${EMACS_LISPPREFIX}/ilisp/ilxemacs.el
-${FOR_xemacs215}${EMACS_LISPPREFIX}/ilisp/ilxemacs.el
-${FOR_xemacs215nox}${EMACS_LISPPREFIX}/ilisp/ilxemacs.el
 ${EMACS_LISPPREFIX}/ilisp/lispworks.lisp
 ${EMACS_LISPPREFIX}/ilisp/lucid.lisp
 ${EMACS_LISPPREFIX}/ilisp/mzscheme-ilisp.scm
-share/examples/emacs-ilisp/ilisp.emacs
+${EMACS_LISPPREFIX}/ilisp/openmcl.lisp
+${EMACS_LISPPREFIX}/ilisp/sbcl.lisp
+${EMACS_LISPPREFIX}/ilisp/extra/cltl2.el
+${EMACS_LISPPREFIX}/ilisp/extra/cltl2.elc
+${EMACS_LISPPREFIX}/ilisp/extra/hyperspec.el
+${EMACS_LISPPREFIX}/ilisp/extra/hyperspec.elc

@@ -1,12 +1,11 @@
-$NetBSD: distinfo,v 1.11 2021/10/26 10:14:36 nia Exp $
+$NetBSD$
 
-BLAKE2s (ilisp-20021222.tar.gz) = ffdc43c6941d701853a1379a548ae275915cff477ae074c4e3c733e8cb931fd2
-SHA512 (ilisp-20021222.tar.gz) = 501cb67181739c4e2ef537425e1dc67d82c653af534fe751bf52a4b22a01839ca0aecf8c3c7c5155541513c857f4e85b59c917b0e8d238c02ccd7e0ac3e7eee1
-Size (ilisp-20021222.tar.gz) = 261641 bytes
+BLAKE2s (ilisp-20230703-14eae2c05618b798c35e44fe3783a4e3b135ad10.tar.gz) = 9aa88ea67b42d17e310067d0d41642e07dae311d7789bdbd35bb3735527a85c1
+SHA512 (ilisp-20230703-14eae2c05618b798c35e44fe3783a4e3b135ad10.tar.gz) = 801c60890691892150889ad3b1c951ba9cfbfee64290e541e5c5742da8a2205faf81b35ccfcdad1a3ebcb2dfe788ead63b0e09f98397e13c001625788587f872
+Size (ilisp-20230703-14eae2c05618b798c35e44fe3783a4e3b135ad10.tar.gz) = 308562 bytes
 SHA1 (patch-Makefile) = 9a86da6fbe3ff9e66d613b08523302601c29364c
-SHA1 (patch-cl-chs-init.lisp) = 1d1971a467261be0c7e523a3ac69f4ab774f6fda
-SHA1 (patch-ilcompat.el) = f2599a9906cc94ceaac090c51ce38e7cf63dfc81
+SHA1 (patch-cl-chs-init.lisp) = 9c56429e1138f836a3f10ac9ba7aaa2b413a8830
+SHA1 (patch-ilcompat.el) = 299ee64b8e0b0a7125e5a1e76fc8b9f1848b3a06
 SHA1 (patch-ilisp-chs.el) = 5f5eb0dc07ae68c555abfa20977e9a14464254c5
-SHA1 (patch-ilisp-dia_el) = 955ce5164fb1347d09b62dd905476ff7881f4aaf
-SHA1 (patch-ilisp-mak.el) = d3fdc4ed46844b316ef8271e2690044fd1727047
-SHA1 (patch-ilisp-xfr.el) = f10ca23fd99a06f75f91897522df534cfa6340dd
+SHA1 (patch-ilisp-mod.el) = 13382d3f50b819c9c5bdc91c0dbc90e887bf2199
+SHA1 (patch-ilisp-xfr.el) = 3f6e147ad2d6b5dd3a79972d7bb2dfbe51580904
