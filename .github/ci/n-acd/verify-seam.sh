@@ -187,6 +187,36 @@ done
 [ $dfail = 0 ] || exit 1
 echo "  十一本とも警告なしで建った"
 
+# filter の offset を移す変更は、間違えても静かに壊れる。行き過ぎれば何も
+# 来ず、足りなければ何でも来る。root が要るので BPF device では測れないが、
+# libpcap の bpf_filter() は kernel と同じ interpreter なので、当て物が置く
+# 実物の filter と上流の Linux 版を同じ packet に通して比べられる。
+#
+# 取り込むのは実物である。写しを置くと、本物を直した日に緑のまま意味を失う。
+echo
+echo "=== packet の送受信を測る"
+if cc $DF -I"$DS"/util -o "$W/t-packet" "$CI/../n-dhcp4/t-packet.c" \
+        "$DS"/util/packet.c 2> "$W/tp.log"; then
+	"$W/t-packet"
+	r=$?
+	# 77 は Ethernet の interface が無い場合。測れないのは落ちたのとは違う。
+	[ $r = 0 ] || [ $r = 77 ] || exit $r
+else
+	echo "  建たない:"; head -10 "$W/tp.log"; exit 1
+fi
+
+echo
+echo "=== filter を上流の Linux 版と突き合わせる"
+if cc $DF -I"$DS"/util -o "$W/t-filter" "$CI/../n-dhcp4/t-filter.c" \
+        "$DS"/n-dhcp4-incoming.c "$DS"/util/socket-bsd.c \
+        "$DS"/util/packet.c "$DS"/util/packet-bsd.c -lpcap 2> "$W/tf.log"; then
+	"$W/t-filter" || exit 1
+else
+	# libpcap が無い BSD があれば、そこは測らない。落とすほどではない。
+	echo "  建たないので測らない:"
+	head -6 "$W/tf.log"
+fi
+
 GW=`netstat -rn -f inet 2>/dev/null | awk '$1=="default"{print $2; exit}'`
 if [ -z "$GW" ]; then
 	echo "=== default route が無いので撃たない"

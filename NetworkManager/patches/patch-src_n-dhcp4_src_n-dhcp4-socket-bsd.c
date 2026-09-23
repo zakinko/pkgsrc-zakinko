@@ -17,7 +17,10 @@ that much, and short in the permissive direction.
 
 That was measured rather than reasoned about.  NetBSD's libpcap exports
 bpf_filter(), which is the same interpreter the kernel runs, so both filters
-were put through it against the same packets: a valid reply, a wrong port, a
+were put through it against the same packets.  The filter sits at file scope
+rather than inside the constructor so that a test can reach it: a test that
+kept its own copy would still pass after this one was changed.  The cases
+were a valid reply, a wrong port, a
 BOOTREQUEST, a bad magic cookie, a non-UDP packet, a fragment, a short packet
 and one with options.  They agree on all eight, and the BSD one additionally
 drops a frame whose ethertype is not IPv4.
@@ -34,7 +37,7 @@ server, so this is here to keep the file whole rather than because it runs.
 
 --- src/n-dhcp4/src/n-dhcp4-socket-bsd.c.orig
 +++ src/n-dhcp4/src/n-dhcp4-socket-bsd.c
-@@ -0,0 +1,591 @@
+@@ -0,0 +1,602 @@
 +/*
 + * DHCP specific low-level socket helpers - the BSDs
 + *
@@ -187,6 +190,87 @@ server, so this is here to keep the file whole rather than because it runs.
 +        return r;
 +}
 +
++/*
++ * The client's packet filter, at file scope so that it can be measured.
++ *
++ * Moving offsets past the Ethernet header is the kind of change that fails
++ * quietly - too far and nothing arrives, not far enough and everything does -
++ * and a test cannot open a BPF device without root.  libpcap's bpf_filter() is
++ * the same interpreter the kernel runs, so a test can put this array and the
++ * Linux one through it and compare.  It has to be the array itself, not a
++ * copy: a copy would still pass after this one was changed.
++ */
++static struct bpf_insn n_dhcp4_bsd_client_filter[] = {
++        /*
++         * Ethernet
++         *
++         * AF_PACKET was bound to ETH_P_IP and let the kernel choose;
++         * a BPF device hands over everything on the wire.
++         */
++        BPF_STMT(BPF_LD + BPF_H + BPF_ABS, 12),                                                         /* A <- ethertype */
++        BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, ETHERTYPE_IP, 1, 0),                                        /* IPv4 ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        /*
++         * IP
++         *
++         * Check
++         *  - UDP
++         *  - Unfragmented
++         *  - Large enough to fit the DHCP header
++         *
++         *  Leave X the size of the IP header, for future indirect reads.
++         */
++        BPF_STMT(BPF_LD + BPF_B + BPF_ABS, E + offsetof(struct ip, ip_p)),                              /* A <- IP protocol */
++        BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, IPPROTO_UDP, 1, 0),                                         /* IP protocol == UDP ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        BPF_STMT(BPF_LD + BPF_H + BPF_ABS, E + offsetof(struct ip, ip_off)),                            /* A <- Flags + Fragment offset */
++        BPF_STMT(BPF_ALU + BPF_AND + BPF_K, IP_MF | IP_OFFMASK),                                        /* A <- A & (IP_MF | IP_OFFMASK) */
++        BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, 0, 1, 0),                                                   /* fragmented packet ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        BPF_STMT(BPF_LDX + BPF_B + BPF_MSH, E),                                                         /* X <- IP header length */
++        BPF_STMT(BPF_LD + BPF_W + BPF_LEN, 0),                                                          /* A <- frame length */
++        BPF_STMT(BPF_ALU + BPF_SUB + BPF_X, 0),                                                         /* A -= X */
++        BPF_JUMP(BPF_JMP + BPF_JGE + BPF_K,
++                 E + sizeof(struct udphdr) + sizeof(NDhcp4Message), 1, 0),                              /* packet >= DHCPPacket ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        /*
++         * UDP
++         *
++         * Check
++         *  - DHCP client port
++         *
++         * Leave X the size of IP and UDP headers, for future indirect reads.
++         */
++        BPF_STMT(BPF_LD + BPF_H + BPF_IND, E + offsetof(struct udphdr, uh_dport)),                      /* A <- UDP destination port */
++        BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_NETWORK_CLIENT_PORT, 1, 0),                         /* UDP destination port == DHCP client port ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        BPF_STMT(BPF_LD + BPF_W + BPF_K, sizeof(struct udphdr)),                                        /* A <- size of UDP header */
++        BPF_STMT(BPF_ALU + BPF_ADD + BPF_X, 0),                                                         /* A += X */
++        BPF_STMT(BPF_MISC + BPF_TAX, 0),                                                                /* X <- A */
++
++        /*
++         * DHCP
++         *
++         * Check
++         *  - BOOTREPLY (from server to client)
++         *  - DHCP magic cookie
++         */
++        BPF_STMT(BPF_LD + BPF_B + BPF_IND, E + offsetof(NDhcp4Header, op)),                             /* A <- DHCP op */
++        BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_OP_BOOTREPLY, 1, 0),                                /* op == BOOTREPLY ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        BPF_STMT(BPF_LD + BPF_W + BPF_IND, E + offsetof(NDhcp4Message, magic)),                         /* A <- DHCP magic cookie */
++        BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_MESSAGE_MAGIC, 1, 0),                               /* cookie == DHCP magic cookie ? */
++        BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
++
++        BPF_STMT(BPF_RET + BPF_K, 65535),                                                               /* return all */
++};
++
 +/**
 + * n_dhcp4_c_socket_packet_new() - create a new DHCP4 client packet socket
 + * @sockfdp:            return argument for the new socket
@@ -200,79 +284,9 @@ server, so this is here to keep the file whole rather than because it runs.
 + * Return: 0 on success, or a negative error code on failure.
 + */
 +int n_dhcp4_c_socket_packet_new(int *sockfdp, int ifindex) {
-+        struct bpf_insn filter[] = {
-+                /*
-+                 * Ethernet
-+                 *
-+                 * AF_PACKET was bound to ETH_P_IP and let the kernel choose;
-+                 * a BPF device hands over everything on the wire.
-+                 */
-+                BPF_STMT(BPF_LD + BPF_H + BPF_ABS, 12),                                                         /* A <- ethertype */
-+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, ETHERTYPE_IP, 1, 0),                                        /* IPv4 ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                /*
-+                 * IP
-+                 *
-+                 * Check
-+                 *  - UDP
-+                 *  - Unfragmented
-+                 *  - Large enough to fit the DHCP header
-+                 *
-+                 *  Leave X the size of the IP header, for future indirect reads.
-+                 */
-+                BPF_STMT(BPF_LD + BPF_B + BPF_ABS, E + offsetof(struct ip, ip_p)),                              /* A <- IP protocol */
-+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, IPPROTO_UDP, 1, 0),                                         /* IP protocol == UDP ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                BPF_STMT(BPF_LD + BPF_H + BPF_ABS, E + offsetof(struct ip, ip_off)),                            /* A <- Flags + Fragment offset */
-+                BPF_STMT(BPF_ALU + BPF_AND + BPF_K, IP_MF | IP_OFFMASK),                                        /* A <- A & (IP_MF | IP_OFFMASK) */
-+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, 0, 1, 0),                                                   /* fragmented packet ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                BPF_STMT(BPF_LDX + BPF_B + BPF_MSH, E),                                                         /* X <- IP header length */
-+                BPF_STMT(BPF_LD + BPF_W + BPF_LEN, 0),                                                          /* A <- frame length */
-+                BPF_STMT(BPF_ALU + BPF_SUB + BPF_X, 0),                                                         /* A -= X */
-+                BPF_JUMP(BPF_JMP + BPF_JGE + BPF_K,
-+                         E + sizeof(struct udphdr) + sizeof(NDhcp4Message), 1, 0),                              /* packet >= DHCPPacket ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                /*
-+                 * UDP
-+                 *
-+                 * Check
-+                 *  - DHCP client port
-+                 *
-+                 * Leave X the size of IP and UDP headers, for future indirect reads.
-+                 */
-+                BPF_STMT(BPF_LD + BPF_H + BPF_IND, E + offsetof(struct udphdr, uh_dport)),                      /* A <- UDP destination port */
-+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_NETWORK_CLIENT_PORT, 1, 0),                         /* UDP destination port == DHCP client port ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                BPF_STMT(BPF_LD + BPF_W + BPF_K, sizeof(struct udphdr)),                                        /* A <- size of UDP header */
-+                BPF_STMT(BPF_ALU + BPF_ADD + BPF_X, 0),                                                         /* A += X */
-+                BPF_STMT(BPF_MISC + BPF_TAX, 0),                                                                /* X <- A */
-+
-+                /*
-+                 * DHCP
-+                 *
-+                 * Check
-+                 *  - BOOTREPLY (from server to client)
-+                 *  - DHCP magic cookie
-+                 */
-+                BPF_STMT(BPF_LD + BPF_B + BPF_IND, E + offsetof(NDhcp4Header, op)),                             /* A <- DHCP op */
-+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_OP_BOOTREPLY, 1, 0),                                /* op == BOOTREPLY ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                BPF_STMT(BPF_LD + BPF_W + BPF_IND, E + offsetof(NDhcp4Message, magic)),                         /* A <- DHCP magic cookie */
-+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_MESSAGE_MAGIC, 1, 0),                               /* cookie == DHCP magic cookie ? */
-+                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
-+
-+                BPF_STMT(BPF_RET + BPF_K, 65535),                                                               /* return all */
-+        };
-+
-+        return n_dhcp4_bsd_open_bpf(sockfdp, ifindex, filter,
-+                                    sizeof(filter) / sizeof(filter[0]));
++        return n_dhcp4_bsd_open_bpf(sockfdp, ifindex, n_dhcp4_bsd_client_filter,
++                                    sizeof(n_dhcp4_bsd_client_filter) /
++                                    sizeof(n_dhcp4_bsd_client_filter[0]));
 +}
 +
 +/**
