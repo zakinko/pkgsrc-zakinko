@@ -598,7 +598,7 @@ _EMACS_PLIST_SUBST+=	FOR_${e}="" NOTFOR_${e}="@comment "
 _EMACS_PLIST_SUBST+=	FOR_${e}="@comment " NOTFOR_${e}=""
 .  endif
 .endfor
-.if empty(EMACS_TYPE:M*nox)
+.if empty(_EMACS_TYPE:M*nox)
 _EMACS_PLIST_SUBST+=	FOR_emacs_x="" NOTFOR_emacs_x="@comment "
 _EMACS_PLIST_SUBST+=	FOR_emacs_nox="@comment " NOTFOR_emacs_nox=""
 .else

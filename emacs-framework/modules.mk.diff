@@ -395,6 +395,15 @@
  
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
+@@ -325,7 +598,7 @@
+ _EMACS_PLIST_SUBST+=	FOR_${e}="@comment " NOTFOR_${e}=""
+ .  endif
+ .endfor
+-.if empty(EMACS_TYPE:M*nox)
++.if empty(_EMACS_TYPE:M*nox)
+ _EMACS_PLIST_SUBST+=	FOR_emacs_x="" NOTFOR_emacs_x="@comment "
+ _EMACS_PLIST_SUBST+=	FOR_emacs_nox="@comment " NOTFOR_emacs_nox=""
+ .else
 @@ -338,6 +611,12 @@
  _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
