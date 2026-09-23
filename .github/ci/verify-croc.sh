@@ -193,6 +193,9 @@ fi
 $PKGMAKE clean > /dev/null 2>&1
 
 echo
+echo "########## pkglint ##########"
+sh "$(dirname "$0")/pkglint-check.sh" "$PKG" || rc=1
+
 [ $rc -eq 0 ] && echo "RESULT: croc 11.5.3 は建って入って、relay 越しに送受信できる" \
 	|| echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc

@@ -71,5 +71,8 @@ else
 	echo "  (zlib の make test は回せなかった。build は上で見ている)"
 fi
 
+echo "########## pkglint ##########"
+sh "$(dirname "$0")/pkglint-check.sh" "$PKG" || rc=1
+
 [ $rc -eq 0 ] && echo "RESULT: zlib は建ち、負の長さで戻る" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc

@@ -66,5 +66,8 @@ OpenBSD-BSD-nodef-*)	;;
 OpenBSD-*)		echo "!! OpenBSD で nodef でない target を選んだ"; rc=1 ;;
 *-BSD-nodef-aarch64)	echo "!! OpenBSD 以外で BSD-nodef-aarch64 を選んだ"; rc=1 ;;
 esac
+echo "########## pkglint ##########"
+sh "$(dirname "$0")/pkglint-check.sh" "$PKG" || rc=1
+
 [ $rc -eq 0 ] && echo "RESULT: openssl は建つ" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc
