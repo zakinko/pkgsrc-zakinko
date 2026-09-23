@@ -20,7 +20,8 @@ if [ -f "$TREE/devel/pkgconf/patches/patch-cli_main.c" ]; then
 	echo "  pkgconf: 既に当て物が在る。何もしない"
 	exit 0
 fi
-patch -C -f -p0 -d "$TREE" -i "$D/tree-pkgconf-openbsd.diff" < /dev/null > /dev/null \
+# -F0 が要る。patch -C は既定で fuzz を許し、文脈が変わっていても通る。
+patch -C -f -F0 -p0 -d "$TREE" -i "$D/tree-pkgconf-openbsd.diff" < /dev/null > /dev/null \
 	|| { echo "!! pkgconf: 空当てが通らない" >&2; exit 1; }
 patch -f -p0 -d "$TREE" -i "$D/tree-pkgconf-openbsd.diff" < /dev/null > /dev/null
 grep -q 'unveil' "$TREE/devel/pkgconf/patches/patch-cli_main.c" \
