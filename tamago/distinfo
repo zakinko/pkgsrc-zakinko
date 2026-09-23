@@ -5,4 +5,4 @@ SHA512 (tamago-4.0.6.tar.gz) = eadd4164e37499a8b383959325d65e98c33f4306ccda57b6d
 Size (tamago-4.0.6.tar.gz) = 260021 bytes
 SHA1 (patch-cvs-20020909) = 56831b3dcd3490b5bfc354d873ac19b65d1eae3d
 SHA1 (patch-egg-com.el) = d58e0b9eb8901e48dfe79a752aee0c161fcd9525
-SHA1 (patch-its.el) = d5ede41f5994ae02372538bab5d35f87fe50f707
+SHA1 (patch-its.el) = 68b1bad48ab5f153aedcd28df534c02d66195360
