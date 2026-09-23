@@ -44,6 +44,9 @@ PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin
 export PATH
+
+# 当て物の SHA1 を出す patch_sha1 を持ってくる。
+. "$(dirname "$0")/patch-sha1.sh"
 unset PKG_PATH
 
 PKG=NetworkManager
@@ -203,8 +206,12 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 		# の行を落とした SHA1 で、NetBSD の実機で makepatchsum と同じ値
 		# (b216799b…) が出ることを確かめてある。全体を書き直さなければ、
 		# 行が繋がる余地が無い。
-		h=$(sed -e '/\$NetBSD.*\$/d' "$pkdst" | digest sha1 2>/dev/null |
-		    awk '{print $NF}')
+		# digest 一つに頼らない。pkgtools/digest は NetBSD の image に
+		# 入っていないことがあり、実際この段は run 35821290626 で
+		#   ★ SHA1 が 40 桁で出ない (digest: PATH に無い)
+		# と引き返していた。patch_sha1 は digest/cksum -a sha1/sha1/
+		# sha1sum/openssl を順に試し、16 進 40 桁が出た物を採る。
+		h=$(patch_sha1 "$pkdst" 2>/dev/null)
 		case "$h" in
 		????????????????????????????????????????)
 			awk -v n="$(basename "$pkdst")" -v h="$h" '
@@ -214,7 +221,7 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 				mv "$pkdir/distinfo.new" "$pkdir/distinfo"
 			;;
 		*)
-			echo "  ★ SHA1 が 40 桁で出ない (digest: $(command -v digest || echo 'PATH に無い'))"
+			echo "  ★ SHA1 が 40 桁で出ない (digest/cksum/sha1/sha1sum/openssl のどれでも)"
 			cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
 			cp "$W/polkit-patch.orig" "$pkdst"
 			h=
