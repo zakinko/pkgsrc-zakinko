@@ -13,6 +13,7 @@ SUBDIR+=	augeas
 SUBDIR+=	autogen
 SUBDIR+=	bazel9
 SUBDIR+=	calc
+SUBDIR+=	elscreen
 SUBDIR+=	emacs-compat
 SUBDIR+=	emacs-ilisp
 SUBDIR+=	emacs20
