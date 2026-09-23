@@ -1,0 +1,34 @@
+$NetBSD$
+
+Build with /bin/sh instead of bash; see patch-compile.sh.
+
+bazel runs this during the build to stamp the binary, so it has to work
+wherever the package builds.  Two [[ ]] around a $? comparison, which [
+does as well.
+
+--- tools/buildstamp/get_workspace_status.orig
++++ tools/buildstamp/get_workspace_status
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # This script will be run bazel when building process starts to
+ # generate key-value information that represents the status of the
+@@ -12,7 +12,7 @@
+ 
+ # The code below presents an implementation that works for git repository
+ git_rev=$(git rev-parse HEAD)
+-if [[ $? != 0 ]];
++if [ $? != 0 ];
+ then
+     exit 1
+ fi
+@@ -20,7 +20,7 @@
+ 
+ # Check whether there are any uncommitted changes
+ git diff-index --quiet HEAD --
+-if [[ $? == 0 ]];
++if [ $? == 0 ];
+ then
+     tree_status="Clean"
+ else

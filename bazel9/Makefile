@@ -80,6 +80,12 @@ BROKEN_ON_PLATFORM=	NetBSD-11.99.*-*
 WRKSRC=		${WRKDIR}
 NO_CONFIGURE=	yes
 USE_LANGUAGES=	c c++
+# bash stays, but only as a run-time dependency.  Nothing in the build runs
+# it any more; what needs it is the bazel that comes out, because a genrule
+# cmd is bash on every platform bazel supports -- see
+# patch-src_main_java_..._BazelRuleClassProvider.java, where every entry in
+# the table names a bash.  Pointing NetBSD at /bin/sh there would quietly
+# change what a genrule means on this platform and nowhere else.
 USE_TOOLS+=	bash:run pkg-config unzip zip
 
 USE_JAVA=		yes
@@ -116,29 +122,24 @@ NOT_FOR_PLATFORM+=	${LP32PLATFORMS}
 #
 # lang/go/version.mk happens to set this too, but relying on that would make
 # the build depend on an include that is here for GOROOT.
-# The scripts in the distribution archive start with #!/bin/bash, which the
-# git tree does not (it uses /usr/bin/env bash), and NetBSD has no /bin/bash.
-# Only the ones a build actually runs are listed; the rest are for the test
-# suite.
+
+# The build no longer runs bash.  The seven scripts it does run are patched
+# to /bin/sh instead -- see patch-compile.sh for what that involves.  NetBSD
+# has no bash in the base system, so requiring one meant this package could
+# not be built until another package had been built first, on every
+# platform, for a handful of constructs that all have plain sh spellings.
 #
-# REPLACE_BASH cannot be used here.  It hangs off do-configure-pre-hook, and
-# mk/configure/bsd.configure.mk wraps the configure machinery in
-# .if !defined(NO_CONFIGURE), so with NO_CONFIGURE=yes the replacement is
-# never reached and the variable is silently ignored.  The shebangs survive
-# into the build and the first genrule that runs one dies with
+# scripts/packages/bazel.sh is left alone.  It is the self-extracting
+# installer's own script; pkgsrc installs output/bazel directly and never
+# runs it.
 #
-#	/usr/pkg/bin/bash: src/main/cpp/generate_jvm_module_options.sh:
-#	    /bin/bash: bad interpreter: No such file or directory
-#
-# 5,132 actions in.  Do the replacement at pre-build instead, where the other
-# two SUBST classes here already run.
-SUBST_CLASSES+=		bash
-SUBST_STAGE.bash=	pre-build
-SUBST_MESSAGE.bash=	Pointing the scripts at ${TOOLS_PATH.bash}
-SUBST_FILES.bash+=	src/main/cpp/generate_jvm_module_options.sh
-SUBST_FILES.bash+=	tools/buildstamp/get_workspace_status
-SUBST_FILES.bash+=	scripts/packages/bazel.sh
-SUBST_SED.bash=		-e '1s,/bin/bash,${TOOLS_PATH.bash},'
+# What was here before was a SUBST class rewriting #!/bin/bash to bash's
+# path.  Worth recording why it was a SUBST and not REPLACE_BASH, in case
+# anyone reaches for the latter again: REPLACE_BASH hangs off
+# do-configure-pre-hook, and mk/configure/bsd.configure.mk wraps the
+# configure machinery in .if !defined(NO_CONFIGURE).  This package sets
+# NO_CONFIGURE=yes, so the replacement is never reached and the variable is
+# silently ignored.
 
 CHECK_PIE_SUPPORTED=		no
 CHECK_PORTABILITY_SKIP+=	*
@@ -175,7 +176,10 @@ SUBST_MESSAGE.python=	Pointing the python toolchain at ${PYTHONBIN}
 SUBST_FILES.python+=	toolchain_local/BUILD
 SUBST_VARS.python+=	PYTHONBIN
 
-MAKE_ENV+=	BAZEL_SH=${TOOLS_PATH.bash}
+# bazel reads BAZEL_SH to find the shell it runs genrules and the bootstrap
+# scripts with.  It is only required on Windows, but the bootstrap passes it
+# through, so name the shell the scripts are now written for.
+MAKE_ENV+=	BAZEL_SH=${SH}
 MAKE_ENV+=	JAVA_HOME=${PKG_JAVA_HOME}
 MAKE_ENV+=	JAVA_VERSION=21
 MAKE_ENV+=	EMBED_LABEL=${PKGVERSION_NOREV}
@@ -247,7 +251,7 @@ MAKE_ENV+=		EXTRA_BAZEL_ARGS=${EXTRA_BAZEL_ARGS:Q}
 
 do-build:
 	${MKDIR} ${WRKDIR}/bazel_tmp
-	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${TOOLS_PATH.bash} ./compile.sh
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${SH} ./compile.sh
 
 do-install:
 	# The bazel binary is an ELF with a zip appended, so do not strip it.
