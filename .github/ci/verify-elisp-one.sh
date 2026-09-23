@@ -40,6 +40,11 @@ case $TYPE in
 emacs30nox) EMACS_PKG=editors/emacs30-nox11; EMACS_GLOB='emacs30-nox11-*' ;;
 emacs31nox) EMACS_PKG=editors/emacs31-nox11; EMACS_GLOB='emacs31-nox11-*' ;;
 emacs29nox) EMACS_PKG=editors/emacs29-nox11; EMACS_GLOB='emacs29-nox11-*' ;;
+# 古い二つは木に無く、zakinko/ の fork から入れる。verify-elisp17.sh が
+# 同じ二つを使っている。ACCEPTED に emacs20/emacs21 を残している package
+# は、その版で本当に建つかをここで見る。
+emacs20)    EMACS_PKG=zakinko/emacs20;       EMACS_GLOB='emacs20-*' ;;
+emacs21nox) EMACS_PKG=zakinko/emacs21-nox11; EMACS_GLOB='emacs21-nox11-*' ;;
 *) echo "FAIL: $TYPE の入れ方を知らない"; exit 1 ;;
 esac
 

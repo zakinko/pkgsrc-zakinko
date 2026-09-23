@@ -18,7 +18,7 @@ on:
         required: false
         default: amd64-11.0
       emacs:
-        description: 'Emacs の型 (emacs29nox / emacs30nox / emacs31nox)'
+        description: 'Emacs の型 (emacs20 / emacs21nox / emacs29nox / emacs30nox / emacs31nox)'
         required: false
         default: emacs30nox
       pkgsrc:
