@@ -1,6 +1,7 @@
 $NetBSD$
 
-Three things in the install rules, the same three as editors/emacs22.
+Three things in the install rules, the same three as editors/emacs22, and
+one more for the versioned names.
 
 Drop "info" from INFO_FILES: info/info is the Info reader's own manual, which
 this package does not install.  Drop the loop that registers the installed
@@ -13,8 +14,11 @@ Also guard MV_DIRS with "test -e".  It is used to move the built subdirectories
 into place, and with a DESTDIR install some of them are not there, so the
 unguarded "mv" failed the whole target.
 
---- Makefile.in.orig	2010-04-04 07:26:08.000000000 +0900
-+++ Makefile.in	2010-05-14 21:51:03.000000000 +0900
+Also install the man pages under the name program_transform_name asks
+for, so that more than one Emacs can share a prefix.
+
+--- Makefile.in.orig
++++ Makefile.in
 @@ -141,7 +141,7 @@
  infodir=@infodir@
  INFO_FILES=ada-mode auth autotype calc ccmode cl dbus dired-x ebrowse	\
@@ -33,7 +37,7 @@ unguarded "mv" failed the whole target.
  
  ### Install the executables that were compiled specifically for this machine.
  ### It would be nice to do something for a parallel make
-@@ -574,21 +574,11 @@
+@@ -574,27 +574,18 @@
  	      test "$(MAKEINFO)" = "off" && ! test -e $$elt && continue; \
  	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
  	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
@@ -56,3 +60,12 @@ unguarded "mv" failed the whole target.
  	thisdir=`/bin/pwd`; \
  	cd ${mansrcdir}; \
  	for page in ${MAN_PAGES}; do \
+ 	  (cd $${thisdir}; \
+-	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
+-	   chmod a+r $(DESTDIR)${man1dir}/$${page}); \
++	   name=`echo $${page} | sed 's/\.1$$//' | sed '$(TRANSFORM)'`.1; \
++	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${name}; \
++	   chmod a+r $(DESTDIR)${man1dir}/$${name}); \
+ 	done
+ 
+ ## Install those items from etc/ that need to end up elsewhere.
