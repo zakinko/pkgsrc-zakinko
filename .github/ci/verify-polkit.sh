@@ -59,12 +59,28 @@ done
 # どちらも tail -25 が停止の列で埋まり、原因の行が切れていた。
 show_fail() {
 	_sf_log=$1
-	echo "--- 最初の error / fatal ---"
-	grep -nE 'error:|fatal error|\*\*\* Error' "$_sf_log" | head -3
-	_sf_n=$(grep -nE 'error:|fatal error' "$_sf_log" | head -1 | cut -d: -f1)
+	# libtool.m4 の "problem compiling CXX test program" は、C++ を
+	# USE_LANGUAGES に入れていない package で必ず出る雑音で、error という語を
+	# 持つので素朴に grep すると必ずこれが先頭に来る。実際 run 35875545851 と
+	# 35875466928 はどちらもこれを拾い、本当の理由 (configure: error:
+	# pkg-config not found と glib-unix.c の undeclared identifier) が
+	# 出なかった。雑音を名指しで外す。
+	_sf_real='grep -nE "error:|fatal error|No such file or directory" '"$_sf_log"' |
+		grep -v "libtool.m4: error: problem compiling CXX test program" |
+		grep -v "rm: conftest"'
+	echo "--- 最初の error (雑音を除いて) ---"
+	eval "$_sf_real" | head -3
+	_sf_n=$(eval "$_sf_real" | head -1 | cut -d: -f1)
 	if [ -n "$_sf_n" ]; then
 		echo "--- その周り ---"
 		awk -v n="$_sf_n" 'NR>=n-20 && NR<=n+10' "$_sf_log"
+	fi
+	# 止まった所そのもの。最初の "*** Error code" の手前を見れば、
+	# どの package の何が転んだかが判る。
+	_sf_e=$(grep -n '\*\*\* Error code' "$_sf_log" | head -1 | cut -d: -f1)
+	if [ -n "$_sf_e" ]; then
+		echo "--- 止まった所の手前 ---"
+		awk -v n="$_sf_e" 'NR>=n-30 && NR<n' "$_sf_log"
 	fi
 	echo "--- どの package で止まったか ---"
 	grep 'stopped making' "$_sf_log" | tail -3
