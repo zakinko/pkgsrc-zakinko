@@ -31,6 +31,6 @@ if [ -n "$BASE" ] && [ -d "$TREE/$BASE" ]; then
 else
 	grep -vE '^$' "$T/pkglint.after" | head -20 | sed 's/^/     /'
 fi
-_err=$(grep -c '^ERROR:' "$T/pkglint.after" 2>/dev/null || echo 0)
+_err=$(grep -c '^ERROR:' "$T/pkglint.after" 2>/dev/null || true)
 [ "$_err" = 0 ] || { echo "!! pkglint が ERROR を $_err 件出した"; exit 1; }
 exit 0

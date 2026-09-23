@@ -119,7 +119,7 @@ while read -r p f feat extra <&3; do
 		( cd "$d" && make $MKARGS clean ) > /dev/null 2>&1; continue
 	fi
 	( cd "$d" && make $MKARGS clean ) > /dev/null 2>&1
-	w=$(grep -c '^Warning:\|^In .*:$' $LOG/$n.log 2>/dev/null || echo 0)
+	w=$(grep -c '^Warning:\|^In .*:$' $LOG/$n.log 2>/dev/null || true)
 	l=$($EMACS -batch -q --no-site-file -eval "(progn (require (quote $feat)) (princ (format \"load-ok %s\" (featurep (quote $feat)))))" < /dev/null 2>&1 | tr -c '[:print:]\n' '?' | tail -3 | tr '\n' ' ')
 	case "$l" in
 	*"load-ok t"*) echo "ok (byte-compile の警告 $w)"; ok=$((ok+1)) ;;
