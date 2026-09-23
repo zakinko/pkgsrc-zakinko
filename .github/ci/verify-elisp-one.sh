@@ -44,5 +44,10 @@ if ! pkg_info -qe "$EMACS_GLOB"; then
 fi
 pkg_info -e "$EMACS_GLOB"
 
+# PLIST の中の ${...} が本当に定義されるかを先に見る。定義されないものは
+# 展開されず literal で残り、build は通って install の段で落ちる。
+echo "=== PLIST の変数を見る ==="
+sh "$(dirname "$0")/check-plist-vars.sh" "$TREE" "$PKG" || exit 1
+
 echo "=== $PKG を建てる ==="
 sh "$(dirname "$0")/verify-pkg.sh" "$PKG"
