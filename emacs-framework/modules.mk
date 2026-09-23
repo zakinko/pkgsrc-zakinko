@@ -654,18 +654,7 @@ _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
 # alone finds nothing and the byte-compile fails with "Cannot open load
 # file".  The shared directory stays last for anything still installed
 # there.
-# Only for GNU Emacs.  _EMACS_DIR names the GNU Emacs layout, and XEmacs
-# keeps its lisp somewhere else entirely -- lib/xemacs/site-packages/lisp,
-# as _EMACS_LISPDIR.xemacs says.  Setting EMACSLOADPATH does not add to
-# the path, it replaces it, so under XEmacs these three non-existent
-# directories became the whole of load-path and the lisp XEmacs ships
-# with itself went out of reach.  devel/flim then cannot find apel's
-# install.el, which is in xemacs-packages where devel/apel's
-# buildlink3.mk says to leave it, and the build dies with "Cannot open
-# load file".  XEmacs finds its own lisp when nobody tells it otherwise.
-.  if ${EMACS_FLAVOR} == "emacs"
 ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp:${_EMACS_DIR}/site-lisp
-.  endif
 .include	"${_EMACS_PKGDIR}/buildlink3.mk"
 .endif
 
