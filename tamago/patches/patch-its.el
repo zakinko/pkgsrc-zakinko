@@ -2,10 +2,11 @@ $NetBSD$
 
 Emacs 30 turned obarray into a type of its own, so a plain vector made with
 make-vector is no longer accepted by intern.  its.el builds several of them
-and uses four as obarrays, and the failure is at load time, not at compile
-time: every file byte-compiles and then egg.el stops with
+and uses four as obarrays.  The tables under its/ are built at compile time
+(they set its-compaction-enable inside an (eval-when (compile) ...)), so this
+is where it shows: ten of them stop with
 
-	(wrong-type-argument obarrayp [nil nil ...])
+	Wrong type argument: obarrayp, [nil nil ...]
 
 its-compaction-integer-table is NOT one of them.  It is read and written with
 aref and aset, so it has to stay a vector; turning it into an obarray makes
