@@ -12,7 +12,13 @@ MAINTAINER=	uebayasi@NetBSD.org
 COMMENT=	Emacs Lisp library for IIIM Protocol
 LICENSE=	gnu-gpl-v2
 
+# 2026-09-23 に手元の Emacs 31.1 で測った。当て物四本で 6/6 compile し、
+# iiimcf-sc の load も通る。IIIM の server そのものは pkgsrc に無いので、
+# 載っても話す相手が居ない点は変わらない。
 EMACS_VERSIONS_ACCEPTED=	emacs21 emacs21nox emacs20
+EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
+EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
+EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 EMACS_BUILDLINK=		# yes
 
 do-build:
