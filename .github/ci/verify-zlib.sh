@@ -40,14 +40,24 @@ int main(void) {
 	return 0;
 }
 CEOF
-if cc -I"$PREFIX/include" -o "$T/zt" "$T/zt.c" -L"$PREFIX/lib" -lz > "$T/zt.log" 2>&1; then
-	if ( ulimit -t 10; "$T/zt" ) > "$T/zt.out" 2>&1; then
-		sed 's/^/  /' "$T/zt.out"
+# 静的に link する。共有 library だと rpath が無くて起動せず、それを
+# 「戻らなかった」と読み違えた (run 35797030159 の三箱)。
+if [ -f "$PREFIX/lib/libz.a" ]; then
+	_link="$PREFIX/lib/libz.a"
+else
+	_link="-L$PREFIX/lib -lz -Wl,-rpath,$PREFIX/lib"
+fi
+if cc -I"$PREFIX/include" -o "$T/zt" "$T/zt.c" $_link > "$T/zt.log" 2>&1; then
+	( ulimit -t 10; "$T/zt" ) > "$T/zt.out" 2>&1; _rc=$?
+	sed 's/^/  /' "$T/zt.out"
+	if [ $_rc -eq 0 ]; then
 		grep -q 'combine64(1,2,-1)=0' "$T/zt.out" || { echo "!! 負の長さで 0 が返らない"; rc=1; }
 		grep -q 'combine_gen64(-1)=0' "$T/zt.out" || { echo "!! gen の方が 0 を返さない"; rc=1; }
 		grep -qE 'combine64\(1,2,16\)=[1-9]' "$T/zt.out" || { echo "!! 正の長さの答えが変わった"; rc=1; }
+	elif grep -qiE 'shared object|not found|cannot open' "$T/zt.out"; then
+		echo "!! test が起動できなかった (library を見つけられない)"; rc=1
 	else
-		echo "!! 10 秒の CPU 上限で戻らなかった"; rc=1; cat "$T/zt.out" | sed 's/^/     /'
+		echo "!! 10 秒の CPU 上限で戻らなかった (rc=$_rc)"; rc=1
 	fi
 else
 	echo "!! test の build が落ちた"; tail -5 "$T/zt.log" | sed 's/^/     /'; rc=1
