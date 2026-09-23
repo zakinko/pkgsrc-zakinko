@@ -95,7 +95,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/distinfo cad/v
 +BLAKE2s (verilog-mode-2026.08.31/verilog-mode.el) = 180e8217f297470743b01d1815f69d279295fbdcf3fd91b726066c727d183186
 +SHA512 (verilog-mode-2026.08.31/verilog-mode.el) = 0ffc654f37c6e452f17c034a541bd03d8d771abd029972700aa29e065a3010376ffd293e86fea2e2f63bc3bcb34d246fa5b57313d8927fa4a7fbd7fe7e7e4ca8
 +Size (verilog-mode-2026.08.31/verilog-mode.el) = 635766 bytes
-+SHA1 (patch-verilog-mode.el) = de10045eb35c33eeb284b9e96d1043fd81af2883
++SHA1 (patch-verilog-mode.el) = f13b1c41bd9070343c6c13691bb2897d68fa48a1
 diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/files/verilog-e20.el cad/verilog-mode/files/verilog-e20.el
 --- /usr/pkgsrc/cad/verilog-mode/files/verilog-e20.el	1970-01-01 00:00:00.000000000 +0000
 +++ cad/verilog-mode/files/verilog-e20.el	2026-09-22 16:24:29.341605042 +0000
