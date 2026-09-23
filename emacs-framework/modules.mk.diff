@@ -135,7 +135,7 @@
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,22 +338,189 @@
+@@ -276,22 +338,202 @@
  #		abort;
  #
  
@@ -236,6 +236,19 @@
 +EMACS_VERSION_REQD?=	${_ev_}
 +.    endif
 +.  endfor
++#
++# EMACS_PKGNAME_PREFIX is the same for emacs30 and emacs30nox, so the
++# pattern cannot say which of the two the other end chose.  Read
++# literally it always picks the X11 one, because that is what comes
++# first in _EMACS_VERSIONS_ALL, and an elisp package built as a
++# dependency then pulls in gtk3 while EMACS_TYPE still says nox.
++# The version is what the pattern really carries; where that agrees,
++# keep the type this build was asked for.
++_EMACS_TYPE_WANTED=	${EMACS_TYPE:U${EMACS_VERSION_DEFAULT}}
++.  if defined(EMACS_VERSION_REQD) && \
++      ${EMACS_VERSION_REQD:C/nox$//} == ${_EMACS_TYPE_WANTED:C/nox$//}
++EMACS_VERSION_REQD=	${_EMACS_TYPE_WANTED}
++.  endif
 +.endif
 +
 +.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
@@ -330,7 +343,7 @@
  DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
  
  EMACS_MODULES?=
-@@ -306,16 +535,47 @@
+@@ -306,16 +548,47 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -382,7 +395,7 @@
  
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
-@@ -338,6 +598,12 @@
+@@ -338,6 +611,12 @@
  _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
@@ -395,7 +408,7 @@
  
  _EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
  
-@@ -354,8 +620,14 @@
+@@ -354,8 +633,14 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

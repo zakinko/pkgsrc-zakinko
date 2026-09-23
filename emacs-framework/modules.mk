@@ -430,6 +430,19 @@ _EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
 EMACS_VERSION_REQD?=	${_ev_}
 .    endif
 .  endfor
+#
+# EMACS_PKGNAME_PREFIX is the same for emacs30 and emacs30nox, so the
+# pattern cannot say which of the two the other end chose.  Read
+# literally it always picks the X11 one, because that is what comes
+# first in _EMACS_VERSIONS_ALL, and an elisp package built as a
+# dependency then pulls in gtk3 while EMACS_TYPE still says nox.
+# The version is what the pattern really carries; where that agrees,
+# keep the type this build was asked for.
+_EMACS_TYPE_WANTED=	${EMACS_TYPE:U${EMACS_VERSION_DEFAULT}}
+.  if defined(EMACS_VERSION_REQD) && \
+      ${EMACS_VERSION_REQD:C/nox$//} == ${_EMACS_TYPE_WANTED:C/nox$//}
+EMACS_VERSION_REQD=	${_EMACS_TYPE_WANTED}
+.  endif
 .endif
 
 .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
