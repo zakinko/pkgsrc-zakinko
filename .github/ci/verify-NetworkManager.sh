@@ -188,15 +188,22 @@ if [ -f "$pkdst" ] && [ -f "$pksrc" ]; then
 			got=$(grep -c '^SHA1 (patch-' "$pkdir/distinfo" || true)
 			bad=$(grep '^SHA1 (patch-' "$pkdir/distinfo" |
 			      grep -cv '= [0-9a-f][0-9a-f]*$' || true)
+			# 行の数だけでは足りない。二件が一行に繋がると
+			#
+			#   SHA1 (A) = SHA1 (B) = <B の hash>
+			#
+			# になり、行は 1 本、行末は 16 進なので上の二つを素通りする。
+			# 実際にこれで通した。出現数と行数が合うことまで見る。
+			ent=$(grep -o 'SHA1 (patch-' "$pkdir/distinfo" | wc -l | tr -d ' ')
 			# cat -v を通す。行が繋がって見えるのが file の中身なのか
 			# log の見え方なのかは、CR が ^M で出るかどうかで分かれる。
 			# 前に一度、log だけを見て中身が壊れていると読みかけた。
 			echo "  distinfo: $(wc -lc < "$pkdir/distinfo" | tr -s ' ') (行 byte)"
-			if [ "$want" = "$got" ] && [ "$bad" = 0 ]; then
+			if [ "$want" = "$got" ] && [ "$got" = "$ent" ] && [ "$bad" = 0 ]; then
 				echo "  差し替えて makepatchsum で数え直した ($got 本)"
 				grep '^SHA1 (patch-' "$pkdir/distinfo" | cat -v | sed 's/^/    /'
 			else
-				echo "  ★ distinfo が壊れた (当て物 $want 本 / SHA1 行 $got 本 / 値が変な行 $bad 本)"
+				echo "  ★ distinfo が壊れた (当て物 $want 本 / SHA1 行 $got 本 / SHA1 の出現 $ent 回 / 値が変な行 $bad 本)"
 				echo "    digest: $(command -v digest || echo 'PATH に無い')"
 				sed -n '1,12p' "$pkdir/distinfo" | sed 's/^/    /'
 				cp "$W/polkit-distinfo.orig" "$pkdir/distinfo"
