@@ -159,6 +159,20 @@ jobs:
         if: matrix.action == 'openindiana-vm'
         with:
           envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH'
+          # 入った rustc が libgcc_s.so.1 を見付けられず起動しなかった
+          # (run 35806082502)。箱には在るが /usr/gcc/<版>/lib の下だけで、
+          # ld.so の既定の path に無い。OmniOS では同じ rust-bin が動くので、
+          # illumos 一般の話ではなく、この箱の置き方の話。
+          #
+          # どの package が既定の path に置くのかを当てずっぽうで並べず、
+          # 箱に訊いて log に残す。答が出たらそれを入れる。
+          prepare: |
+            pkg install developer/gcc-14 developer/build/gnu-make web/curl || true
+            echo "=== libgcc_s.so.1 を提供する package"
+            pkg search -H -l -o pkg.name 'path:usr/lib/amd64/libgcc_s.so.1' || true
+            pkg search -H -o pkg.name 'path:usr/lib/amd64/libgcc_s.so.1' || true
+            echo "=== 既定の path に在るか"
+            ls -l /usr/lib/amd64/libgcc_s.so.1 /lib/amd64/libgcc_s.so.1 2>&1 || true
           prepare: pkg install developer/gcc-14 developer/build/gnu-make web/curl || true
           run: sh .github/ci/build-on-bsd.sh
 
