@@ -1,0 +1,96 @@
+name: n-acd の継ぎ目 (BSD)
+
+# NetworkManager が同梱する n-acd を BSD で動かすための継ぎ目だけを建てて測る。
+#
+# 本体を待たない理由。NetworkManager は BSD では継ぎ目よりずっと手前 —
+# platform backend が nm-linux-platform.c ひとつしか無い所 — で止まるので、
+# 本体の build が緑になるのを待っていると継ぎ目は一生測られない。継ぎ目は
+# 継ぎ目として測れるし、そのほうが落ちたときに何が壊れたか判る。
+#
+# 測る対象は package が配る当て物そのもので、patch から + を剥いで file に
+# 戻している。当て物を直せばここが測る物も一緒に変わるので、写しが古くなって
+# 緑のまま意味を失うことがない。
+#
+# /dev/bpf を開く所は root が要るので、ここでは測らない。NetBSD 11.0 の実機で
+# 別に測ってある (ARP を撃って USED と READY が返るところまで)。
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'どれを回すか (VM は boot だけで 8-12 分かかる)'
+        type: choice
+        options: [all, freebsd, netbsd, openbsd, dragonfly, ghostbsd]
+        default: all
+  push:
+    # 継ぎ目と、それを測る物が動いたときだけ。README の誤字で VM を五つ
+    # 起こさない。job の if: では runner が起動した分を払うので、workflow
+    # の側で切る。
+    paths:
+      - 'NetworkManager/patches/patch-src_n-acd_src_n-acd-os*'
+      - '.github/ci/n-acd/**'
+      - '.github/workflows/n-acd-seam.yml'
+
+concurrency:
+  group: n-acd-seam-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  freebsd:
+    if: inputs.target == null || inputs.target == 'all' || inputs.target == 'freebsd'
+    name: FreeBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          run: sh .github/ci/n-acd/verify-seam.sh
+
+  netbsd:
+    if: inputs.target == null || inputs.target == 'all' || inputs.target == 'netbsd'
+    name: NetBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/netbsd-vm@v1
+        with:
+          release: '11.0'
+          run: sh .github/ci/n-acd/verify-seam.sh
+
+  openbsd:
+    if: inputs.target == null || inputs.target == 'all' || inputs.target == 'openbsd'
+    name: OpenBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          run: sh .github/ci/n-acd/verify-seam.sh
+
+  dragonfly:
+    if: inputs.target == null || inputs.target == 'all' || inputs.target == 'dragonfly'
+    name: DragonFly amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/dragonflybsd-vm@v1
+        with:
+          release: '6.4.2'
+          run: sh .github/ci/n-acd/verify-seam.sh
+
+  ghostbsd:
+    if: inputs.target == null || inputs.target == 'all' || inputs.target == 'ghostbsd'
+    name: GhostBSD amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/ghostbsd-vm@v1
+        with:
+          run: sh .github/ci/n-acd/verify-seam.sh
