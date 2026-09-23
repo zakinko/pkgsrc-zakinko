@@ -187,6 +187,28 @@ done
 [ $dfail = 0 ] || exit 1
 echo "  十一本とも警告なしで建った"
 
+# NetworkManager の meson.build は libdl を cc.find_library('dl') で探す。
+# 移植を考えた側の検査は三連引用符の中に入っていて走らないので、残るのは
+# required: false の付かないこの一行だけになる。meson の find_library は
+# -ldl の link 試験なので、ここではそれを直接撃つ。
+echo
+echo "=== libdl が在るか (NetworkManager の meson.build 370 行が撃つもの)"
+echo 'int main(void){return 0;}' > "$W/dl0.c"
+if cc -o "$W/dl0" "$W/dl0.c" -ldl 2> "$W/dl0.log"; then
+	echo "  -ldl は通る"
+else
+	echo "  -ldl は通らない — `head -1 "$W/dl0.log"`"
+fi
+cat > "$W/dl1.c" <<'DLEOF'
+#include <dlfcn.h>
+int main(void) { return dlopen(0, RTLD_LAZY) == 0; }
+DLEOF
+if cc -o "$W/dl1" "$W/dl1.c" 2> "$W/dl1.log"; then
+	echo "  dlopen() は -ldl 無しで link 出来る (libc に在る)"
+else
+	echo "★ dlopen() が -ldl 無しで link 出来ない"; cat "$W/dl1.log"
+fi
+
 # c-stdaux は BSD では unix module を読まない。c-stdaux.h が
 # c-stdaux-unix.h を include する条件が C_OS_LINUX と C_OS_MACOS の二つだけ
 # だからで、c_close() も c_closedir() も C_MODULE_UNIX も現れない。上流へ
