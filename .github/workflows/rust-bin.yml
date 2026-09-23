@@ -94,7 +94,15 @@ jobs:
         include:
           - { name: 'NetBSD amd64',    action: netbsd-vm,  release: '10.1', arch: '' }
           - { name: 'NetBSD aarch64',  action: netbsd-vm,  release: '10.1', arch: 'aarch64' }
-          - { name: 'NetBSD sparc64',  action: netbsd-vm,  release: '10.1', arch: 'sparc64' }
+          # NetBSD sparc64 は外してある。rust-bin は ONLY_FOR_PLATFORM で
+          # 謳っているが、vmactions の image では測れない。conf が
+          # VM_DISK_SIZE=4G に固定していて (OpenFirmware の FCode bootblock が
+          # 大きな root FFS で "Inode not directory" になる、NetBSD PR 56363)、
+          # guest から見える区画は root 1.9G の空き 781M だけ。pkgsrc の木が
+          # 1.3GB なので展開の途中で
+          #     Can't create '...': No space left on device
+          # になる。runner の作業領域も mount されていないので逃がす先が無い。
+          # 測るには disk の大きい sparc64 image を別に用意する必要がある。
           - { name: 'NetBSD riscv64',  action: netbsd-vm,  release: '11.0', arch: 'riscv64' }
           - { name: 'FreeBSD amd64',   action: freebsd-vm, release: '14.4', arch: '' }
     steps:
