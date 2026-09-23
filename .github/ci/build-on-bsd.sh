@@ -246,6 +246,27 @@ WRKOBJDIR=	$REAL/obj
 # mk/fetch/fetch.mk が ftp に -4 を、curl に --ipv4 を渡す。
 FETCH_USE_IPV4_ONLY=	yes
 EOF
+
+# OpenBSD の base の pkg-config は pkgconf 2.4.3 で、直に呼ぶ分には答えるが
+# configure の中から呼ばれると落ちる。
+#
+#   段 0 の素性採り:   --atleast-pkgconfig-version 0.9.0  通る
+#   libxml2 の configure: checking pkg-config is at least version 0.9.0...
+#                         Segmentation fault (core dumped)
+#
+# 落ちた結果 configure は「無い」と判断し、pkg-config not found で止まる。
+# 実際に止まったのは textproc/libxml2 で、その手前の bootstrap でも
+# libarchive が同じ検査に no と答えていた。
+#
+# TOOLS_PLATFORM.pkg-config を空にすると、pkgsrc は base の物を使わず
+# devel/pkgconf を建てて使う。base を直す話ではなく、使わない話である。
+if [ "$OS" = OpenBSD ]; then
+	cat >> "$MKCONF" <<'EOF'
+# base の pkg-config (pkgconf 2.4.3) が configure の中で落ちるので使わない。
+# devel/pkgconf を建てさせる。
+TOOLS_PLATFORM.pkg-config=
+EOF
+fi
 # job ごとの追記。改行区切りでそのまま足す。OpenBSD の croc が
 # GOROOT_BOOTSTRAP をここから渡す。
 if [ -n "${MKCONF_EXTRA:-}" ]; then
