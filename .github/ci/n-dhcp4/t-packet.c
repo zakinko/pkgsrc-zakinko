@@ -13,6 +13,12 @@
 #include <arpa/inet.h>
 #include <assert.h>
 #include <ifaddrs.h>
+/*
+ * OpenBSD の <net/bpf.h> は int32_t と u_int32_t を自分で連れてこない。
+ *
+ *	/usr/include/net/bpf.h:46:9: error: unknown type name 'int32_t'
+ */
+#include <sys/types.h>
 #include <net/bpf.h>
 #include <net/if.h>
 #include <net/if_dl.h>

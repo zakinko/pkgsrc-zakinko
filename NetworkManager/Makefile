@@ -48,6 +48,14 @@ CHECK_PORTABILITY_SKIP+=	contrib/scripts/code-style-git-post-commit-hook
 # になる。unitdir と同じく置かない。
 MESON_ARGS+=	-Dsystemdsystemunitdir=no
 MESON_ARGS+=	-Dsystemdsystemgeneratordir=no
+
+# 1.58.1 で増えた option。どちらも既定が true で、無い library を assert で
+# 要求する。
+#   clat  libbpf >= 1.3.0 と libndp >= 1.9 (meson.build 522, 524)
+#   nbft  libnvme (meson.build 983)
+# どれも Linux の物なので、BSD へ持っていく前にここで切る。
+MESON_ARGS+=	-Dclat=false
+MESON_ARGS+=	-Dnbft=false
 MESON_ARGS+=	-Dsystemd_journal=false
 MESON_ARGS+=	-Dsession_tracking=no
 MESON_ARGS+=	-Dselinux=false
