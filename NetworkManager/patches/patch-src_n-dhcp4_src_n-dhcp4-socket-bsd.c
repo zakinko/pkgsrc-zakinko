@@ -37,7 +37,7 @@ server, so this is here to keep the file whole rather than because it runs.
 
 --- src/n-dhcp4/src/n-dhcp4-socket-bsd.c.orig
 +++ src/n-dhcp4/src/n-dhcp4-socket-bsd.c
-@@ -0,0 +1,602 @@
+@@ -0,0 +1,609 @@
 +/*
 + * DHCP specific low-level socket helpers - the BSDs
 + *
@@ -83,11 +83,18 @@ server, so this is here to keep the file whole rather than because it runs.
 +#include "util/packet.h"
 +#include "util/socket.h"
 +
-+#ifdef __NetBSD__
-+#  include <net/if_ether.h>
-+#else
-+#  include <net/ethernet.h>
-+#endif
++/*
++ * struct ether_header, ETHER_ADDR_LEN and ETHERTYPE_IP.  <net/ethernet.h> is
++ * FreeBSD's and DragonFly's spelling and does not exist on NetBSD or OpenBSD;
++ * <netinet/if_ether.h> is on all four.  It needs the sockaddr and in_addr
++ * definitions first, and on OpenBSD struct arphdr from <net/if_arp.h>, none
++ * of which it pulls in itself.
++ */
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <net/if_arp.h>
++#include <netinet/in.h>
++#include <netinet/if_ether.h>
 +
 +/*
 + * A BPF device delivers whole frames, so every offset into the packet is

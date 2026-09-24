@@ -22,7 +22,26 @@ which only one of them has - does not appear in the interface.
 
 --- src/n-dhcp4/src/n-dhcp4-private.h.orig
 +++ src/n-dhcp4/src/n-dhcp4-private.h
-@@ -27,6 +27,40 @@
+@@ -7,6 +7,18 @@
+ #include <endian.h>
+ #include <inttypes.h>
+ #include <limits.h>
++/*
++ * <netinet/ip.h> is the one include here that is not alphabetical.  On the
++ * BSDs it needs <netinet/in.h> for struct in_addr and <netinet/in_systm.h>
++ * for n_short and n_long, and does not pull either in itself:
++ *
++ *	/usr/include/netinet/ip.h:67:19: error: field has incomplete type
++ *	'struct in_addr'
++ *
++ * Linux's does, which is why the order did not matter there.
++ */
++#include <netinet/in.h>
++#include <netinet/in_systm.h>
+ #include <netinet/ip.h>
+ #include <stdbool.h>
+ #include <stdlib.h>
+@@ -27,6 +39,54 @@
  typedef struct NDhcp4SEventNode NDhcp4SEventNode;
  typedef struct NDhcp4LogQueue NDhcp4LogQueue;
  
@@ -60,10 +79,24 @@ which only one of them has - does not appear in the interface.
 +#  define CLOCK_BOOTTIME CLOCK_MONOTONIC
 +#endif
 +
++/*
++ * Linux spells the DSCP class selectors IPTOS_CLASS_CSn; the BSDs spell the
++ * same values IPTOS_DSCP_CSn.  Both are (n << 5): CS0 is 0 and CS6 is 0xc0.
++ * NetBSD happens to have both, the other BSDs only the second, so the name
++ * the code uses is defined where it is missing rather than each use being
++ * written twice.
++ */
++#ifndef IPTOS_CLASS_CS0
++#  define IPTOS_CLASS_CS0 IPTOS_DSCP_CS0
++#endif
++#ifndef IPTOS_CLASS_CS6
++#  define IPTOS_CLASS_CS6 IPTOS_DSCP_CS6
++#endif
++
  /* specs */
  
  #define N_DHCP4_NETWORK_IP_MAXIMUM_HEADER_SIZE (60) /* See RFC791 */
-@@ -327,7 +361,7 @@
+@@ -327,7 +387,7 @@
          NDhcp4ClientProbeConfig *probe_config;
          NDhcp4LogQueue *log_queue;
  
@@ -72,7 +105,7 @@ which only one of them has - does not appear in the interface.
  
          unsigned int state;             /* current connection state */
          int fd_packet;                  /* packet socket */
-@@ -353,7 +387,7 @@
+@@ -353,7 +413,7 @@
  
          NDhcp4LogQueue log_queue;
  
@@ -81,7 +114,7 @@ which only one of them has - does not appear in the interface.
          int fd_timer;
  
          uint16_t mtu;
-@@ -366,7 +400,7 @@
+@@ -366,7 +426,7 @@
  #define N_DHCP4_CLIENT_NULL(_x) {                                               \
                  .n_refs = 1,                                                    \
                  .event_list = C_LIST_INIT((_x).event_list),                     \
@@ -90,7 +123,7 @@ which only one of them has - does not appear in the interface.
                  .fd_timer = -1,                                                 \
                  .log_queue = N_DHCP4_LOG_QUEUE_NULL_CLIENT(_x),                 \
          }
-@@ -537,6 +571,53 @@
+@@ -537,6 +597,53 @@
  /* sockets */
  
  int n_dhcp4_c_socket_packet_new(int *sockfdp, int ifindex);
@@ -144,7 +177,7 @@ which only one of them has - does not appear in the interface.
  int n_dhcp4_c_socket_udp_new(int *sockfdp,
                               int ifindex,
                               const struct in_addr *client_addr,
-@@ -605,7 +686,7 @@
+@@ -605,7 +712,7 @@
                                NDhcp4ClientConfig *client_config,
                                NDhcp4ClientProbeConfig *probe_config,
                                NDhcp4LogQueue *log_queue,
@@ -153,7 +186,7 @@ which only one of them has - does not appear in the interface.
  void n_dhcp4_c_connection_deinit(NDhcp4CConnection *connection);
  
  int n_dhcp4_c_connection_listen(NDhcp4CConnection *connection);
-@@ -662,7 +743,7 @@
+@@ -662,7 +769,7 @@
  int n_dhcp4_client_probe_raise(NDhcp4ClientProbe *probe, NDhcp4CEventNode **nodep, unsigned int event);
  void n_dhcp4_client_probe_get_timeout(NDhcp4ClientProbe *probe, uint64_t *timeoutp);
  int n_dhcp4_client_probe_dispatch_timer(NDhcp4ClientProbe *probe, uint64_t ns_now);

@@ -21,7 +21,7 @@ present.
 
 --- src/n-dhcp4/src/util/packet-bsd.c.orig
 +++ src/n-dhcp4/src/util/packet-bsd.c
-@@ -0,0 +1,400 @@
+@@ -0,0 +1,407 @@
 +/*
 + * Packet Sockets - the BSDs
 + *
@@ -64,11 +64,18 @@ present.
 +#include <unistd.h>
 +#include "packet.h"
 +
-+#ifdef __NetBSD__
-+#  include <net/if_ether.h>
-+#else
-+#  include <net/ethernet.h>
-+#endif
++/*
++ * struct ether_header, ETHER_ADDR_LEN and ETHERTYPE_IP.  <net/ethernet.h> is
++ * FreeBSD's and DragonFly's spelling and does not exist on NetBSD or OpenBSD;
++ * <netinet/if_ether.h> is on all four.  It needs the sockaddr and in_addr
++ * definitions first, and on OpenBSD struct arphdr from <net/if_arp.h>, none
++ * of which it pulls in itself.
++ */
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <net/if_arp.h>
++#include <netinet/in.h>
++#include <netinet/if_ether.h>
 +
 +/*
 + * ETHER_ADDR_LEN is the spelling everywhere but Linux, and ETHERTYPE_IP is in

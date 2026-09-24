@@ -49,7 +49,7 @@ packet_sendto_udp() sets them.
  #include "n-dhcp4-private.h"
  #include "util/packet.h"
  #include "util/socket.h"
- 
+-
 -/**
 - * n_dhcp4_c_socket_packet_new() - create a new DHCP4 client packet socket
 - * @sockfdp:            return argument for the new socket
@@ -79,18 +79,18 @@ packet_sendto_udp() sets them.
 -                BPF_STMT(BPF_LD + BPF_B + BPF_ABS, offsetof(struct iphdr, protocol)),                           /* A <- IP protocol */
 -                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, IPPROTO_UDP, 1, 0),                                         /* IP protocol == UDP ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
- 
+-
 -                BPF_STMT(BPF_LD + BPF_H + BPF_ABS, offsetof(struct iphdr, frag_off)),                           /* A <- Flags + Fragment offset */
 -                BPF_STMT(BPF_ALU + BPF_AND + BPF_K, IP_MF | IP_OFFMASK),                                        /* A <- A & (IP_MF | IP_OFFMASK) */
 -                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, 0, 1, 0),                                                   /* fragmented packet ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
- 
+-
 -                BPF_STMT(BPF_LDX + BPF_B + BPF_MSH, 0),                                                         /* X <- IP header length */
 -                BPF_STMT(BPF_LD + BPF_W + BPF_LEN, 0),                                                          /* A <- packet length */
 -                BPF_STMT(BPF_ALU + BPF_SUB + BPF_X, 0),                                                         /* A -= X */
 -                BPF_JUMP(BPF_JMP + BPF_JGE + BPF_K, sizeof(struct udphdr) + sizeof(NDhcp4Message), 1, 0),       /* packet >= DHCPPacket ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
- 
+-
 -                /*
 -                 * UDP
 -                 *
@@ -102,7 +102,7 @@ packet_sendto_udp() sets them.
 -                BPF_STMT(BPF_LD + BPF_H + BPF_IND, offsetof(struct udphdr, dest)),                              /* A <- UDP destination port */
 -                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_NETWORK_CLIENT_PORT, 1, 0),                         /* UDP destination port == DHCP client port ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
- 
+-
 -                BPF_STMT(BPF_LD + BPF_W + BPF_K, sizeof(struct udphdr)),                                        /* A <- size of UDP header */
 -                BPF_STMT(BPF_ALU + BPF_ADD + BPF_X, 0),                                                         /* A += X */
 -                BPF_STMT(BPF_MISC + BPF_TAX, 0),                                                                /* X <- A */
@@ -255,12 +255,12 @@ packet_sendto_udp() sets them.
 -        r = connect(sockfd, (struct sockaddr*)&daddr, sizeof(daddr));
 -        if (r < 0)
 -                return -errno;
--
+ 
 -        *sockfdp = sockfd;
 -        sockfd = -1;
 -        return 0;
 -}
--
+ 
 -/**
 - * n_dhcp4_s_socket_packet_new() - create a new DHCP4 server packet socket
 - * @sockfdp:            return argument for the new socket
@@ -272,16 +272,16 @@ packet_sendto_udp() sets them.
 - */
 -int n_dhcp4_s_socket_packet_new(int *sockfdp) {
 -        _c_cleanup_(c_closep) int sockfd = -1;
--
+ 
 -        sockfd = socket(AF_PACKET, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
 -        if (sockfd < 0)
 -                return -errno;
--
+ 
 -        *sockfdp = sockfd;
 -        sockfd = -1;
 -        return 0;
 -}
--
+ 
 -/**
 - * n_dhcp4_s_socket_udp_new() - create a new DHCP4 server UDP socket
 - * @sockfdp:            return argument for the new socket
@@ -388,7 +388,61 @@ packet_sendto_udp() sets them.
                  .sll_ifindex = ifindex,
                  .sll_halen = halen,
          };
-@@ -586,60 +283,8 @@
+@@ -509,33 +206,20 @@
+                 .sin_port = htons(N_DHCP4_NETWORK_CLIENT_PORT),
+                 .sin_addr = *inaddr_dest,
+         };
+-        struct iovec iov = {};
+-        union {
+-               struct cmsghdr align; /* ensure correct stack alignment */
+-               char buf[CMSG_SPACE(sizeof(struct in_pktinfo))];
+-        } control = {};
+-        struct in_pktinfo pktinfo = {
+-                .ipi_spec_dst = *inaddr_src,
+-        };
+-        struct msghdr msg = {
+-                .msg_name = (void*)&sockaddr_dest,
+-                .msg_namelen = sizeof(sockaddr_dest),
+-                .msg_iov = &iov,
+-                .msg_iovlen = 1,
+-                .msg_control = &control.buf,
+-                .msg_controllen = sizeof(control.buf),
+-        };
+-        struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
++        const void *raw;
++        size_t n_raw;
+         ssize_t len;
+ 
+-        cmsg->cmsg_level = IPPROTO_IP;
+-        cmsg->cmsg_type = IP_PKTINFO;
+-        cmsg->cmsg_len = CMSG_LEN(sizeof(struct in_pktinfo));
+-        memcpy(CMSG_DATA(cmsg), &pktinfo, sizeof(pktinfo));
++        /*
++         * The source address is not the one the socket is bound to, so it is
++         * chosen per datagram.  How that is said differs between Linux and
++         * the BSDs - struct in_pktinfo with IP_PKTINFO against a bare struct
++         * in_addr with IP_SENDSRCADDR - so it is asked for through
++         * socket_udp_send_from() and answered in each platform's own file.
++         */
++        n_raw = n_dhcp4_outgoing_get_raw(message, &raw);
+ 
+-        iov.iov_len = n_dhcp4_outgoing_get_raw(message, (const void **)&iov.iov_base);
+-
+-        len = sendmsg(sockfd, &msg, 0);
++        len = socket_udp_send_from(sockfd, inaddr_src, &sockaddr_dest, raw, n_raw);
+         if (len < 0) {
+                 if (errno == EAGAIN || errno == ENOBUFS)
+                         return N_DHCP4_E_DROPPED;
+@@ -543,7 +227,7 @@
+                         return N_DHCP4_E_DOWN;
+                 else
+                         return -errno;
+-        } else if ((size_t)len != iov.iov_len)
++        } else if ((size_t)len != n_raw)
+                 return N_DHCP4_E_DROPPED;
+ 
+         return 0;
+@@ -586,60 +270,8 @@
          message = NULL;
          return 0;
  }
@@ -449,7 +503,7 @@ packet_sendto_udp() sets them.
  int n_dhcp4_c_socket_udp_recv(int sockfd,
                                uint8_t *buf,
                                size_t n_buf,
-@@ -652,17 +297,23 @@
+@@ -652,17 +284,23 @@
                                size_t n_buf,
                                NDhcp4Incoming **messagep,
                                struct sockaddr_in *dest) {

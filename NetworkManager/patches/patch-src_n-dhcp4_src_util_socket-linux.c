@@ -10,7 +10,7 @@ util/socket.c is left in the tree; nothing lists it as a source any more.
 
 --- src/n-dhcp4/src/util/socket-linux.c.orig
 +++ src/n-dhcp4/src/util/socket-linux.c
-@@ -0,0 +1,121 @@
+@@ -0,0 +1,169 @@
 +/*
 + * Socket Utilities
 + */
@@ -131,4 +131,52 @@ util/socket.c is left in the tree; nothing lists it as a source any more.
 +                return -errno;
 +
 +        return 0;
++}
++
++/**
++ * socket_udp_send_from() - send one datagram with a chosen source address
++ * @socket:                     bound UDP socket
++ * @src:                        address to send from
++ * @dest:                       address to send to
++ * @data:                       payload
++ * @n_data:                     length of @data
++ *
++ * Linux carries the source address in a struct in_pktinfo attached with
++ * IP_PKTINFO.  ipi_spec_dst is the field that chooses it; ipi_addr is
++ * where a received datagram was addressed and is not used here.
++ *
++ * Return: bytes sent, or -1 with errno set.
++ */
++ssize_t socket_udp_send_from(int socket,
++                             const struct in_addr *src,
++                             const struct sockaddr_in *dest,
++                             const void *data,
++                             size_t n_data) {
++        struct iovec iov = {
++                .iov_base = (void *)data,
++                .iov_len = n_data,
++        };
++        union {
++                struct cmsghdr align; /* ensure correct stack alignment */
++                char buf[CMSG_SPACE(sizeof(struct in_pktinfo))];
++        } control = {};
++        struct msghdr msg = {
++                .msg_name = (void *)dest,
++                .msg_namelen = sizeof(*dest),
++                .msg_iov = &iov,
++                .msg_iovlen = 1,
++                .msg_control = control.buf,
++                .msg_controllen = sizeof(control.buf),
++        };
++        struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
++        struct in_pktinfo pktinfo = {
++                .ipi_spec_dst = *src,
++        };
++
++        cmsg->cmsg_level = IPPROTO_IP;
++        cmsg->cmsg_type = IP_PKTINFO;
++        cmsg->cmsg_len = CMSG_LEN(sizeof(struct in_pktinfo));
++        memcpy(CMSG_DATA(cmsg), &pktinfo, sizeof(pktinfo));
++
++        return sendmsg(socket, &msg, 0);
 +}
