@@ -12,7 +12,7 @@ PKG_SUGGESTED_OPTIONS=	gyp
 # brings that scaffolding across from the 3.33.6089 tarball (see post-extract
 # in Makefile.common).
 #
-# The Bazel path needs devel/bazel9.  Bazel needs a JVM to bootstrap, and
+# The Bazel path needs zakinko/bazel.  Bazel needs a JVM to bootstrap, and
 # mk/java-vm.mk offers openjdk21 on NetBSD only for x86_64, i386 and aarch64.
 # Of those, Bazel itself turns i386 away:
 #
@@ -48,7 +48,7 @@ MOZC_BUILDER=	bazel
 
 # Asking for bazel where bazel cannot be built is not a reason to stop: gyp
 # builds the same programs there.  Fall back to it and say so.  Stopping
-# instead walks into the ONLY_FOR_PLATFORM of devel/bazel9 and reports
+# instead walks into the ONLY_FOR_PLATFORM of zakinko/bazel and reports
 # "bazel-9.2.0 is not available for this platform", which reads as a missing
 # package rather than as a platform that has no bazel.
 .if ${MOZC_BUILDER} == "bazel" && (${OPSYS} != "NetBSD" || \

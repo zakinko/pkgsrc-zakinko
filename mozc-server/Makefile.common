@@ -1,9 +1,9 @@
 # $NetBSD$
 
-# used by inputmethod/mozc-elisp334/Makefile
-# used by inputmethod/mozc-renderer334/Makefile
-# used by inputmethod/mozc-server334/Makefile
-# used by inputmethod/mozc-tool334/Makefile
+# used by zakinko/mozc-elisp/Makefile
+# used by zakinko/mozc-renderer/Makefile
+# used by zakinko/mozc-server/Makefile
+# used by zakinko/mozc-tool/Makefile
 
 # 3.34.6239 carries no GYP at all: no src/build_mozc.py, no src/gyp/, not one
 # .gyp or .gypi file.  Bazel is the only way upstream builds it now.  GYP went
@@ -93,8 +93,8 @@ EXTRACT_ONLY=	${DISTFILES:${MOZC_DISTS:@d@N${d}@:ts:}}
 WRKSRC=		${WRKDIR}/${DISTNAME}/src
 MOZC_GYP_SRC=	${WRKDIR}/mozc-${MOZC_GYP_VERSION}/src
 
-DISTINFO_FILE=	${.CURDIR}/../../inputmethod/mozc-server334/distinfo
-PATCHDIR=	${.CURDIR}/../../inputmethod/mozc-server334/patches
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/mozc-server/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server/patches
 
 PYTHON_VERSIONS_INCOMPATIBLE+=	27
 
@@ -106,13 +106,13 @@ PYTHON_VERSIONS_INCOMPATIBLE+=	27
 # without anything to show for it.
 .if !defined(MOZC_BUILDER)
 PKG_FAIL_REASON+=	"MOZC_BUILDER is unset: include"
-PKG_FAIL_REASON+=	"inputmethod/mozc-server334/options.mk before this file."
+PKG_FAIL_REASON+=	"zakinko/mozc-server/options.mk before this file."
 .endif
 
 .if ${MOZC_BUILDER} == "bazel"
 # The .bazeliskrc in 3.34 asks for Bazel 9.  devel/bazel in pkgsrc is 6.4.0 and
-# cannot satisfy it; devel/bazel9 is 9.2.0 taught to build on NetBSD.
-TOOL_DEPENDS+=	bazel>=9.0:../../devel/bazel9
+# cannot satisfy it; zakinko/bazel is 9.2.0 taught to build on NetBSD.
+TOOL_DEPENDS+=	bazel>=9.0:../../zakinko/bazel
 # bzlmod fetches dependencies while the build runs.
 ALLOW_NETWORK_ACCESS=	yes
 .else
@@ -187,7 +187,7 @@ pre-configure:
 	${RM} -r ${WRKDIR}/.cwrapper
 
 # server and elisp touch neither Qt nor GL; only renderer and tool need them.
-.if !empty(PKGPATH:M*/mozc-renderer334) || !empty(PKGPATH:M*/mozc-tool334)
+.if !empty(PKGPATH:M*/mozc-renderer) || !empty(PKGPATH:M*/mozc-tool)
 .include "../../graphics/MesaLib/buildlink3.mk"
 .include "../../x11/qt6-qtbase/buildlink3.mk"
 .endif

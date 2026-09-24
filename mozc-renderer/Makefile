@@ -5,7 +5,7 @@ PKGNAME=	${DISTNAME:S/mozc-/mozc-renderer-/}
 INSTALLATION_DIRS+=	libexec share/icons
 
 DEPENDS+=	xdg-utils-[0-9]*:../../misc/xdg-utils
-DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server334
+DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../zakinko/mozc-server
 
 # Upstream's renderer/renderer.gyp defines mozc_renderer only inside the
 # OS=="win" and OS=="mac" conditionals.  The sources are all there under
@@ -39,7 +39,7 @@ MAKE_ENV+=	BAZEL_CXXOPTS=-std=gnu++17:-I${PREFIX}/include:-I${X11BASE}/include
 # the toolchain from there.
 MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:${COMPILER_RPATH_FLAG}${PREFIX}/qt6/lib:-L${PREFIX}/lib:${COMPILER_RPATH_FLAG}${PREFIX}/lib:-L${X11BASE}/lib:${COMPILER_RPATH_FLAG}${X11BASE}/lib
 
-.include "../../inputmethod/mozc-server334/options.mk"
+.include "../../zakinko/mozc-server/options.mk"
 
 .if ${MOZC_BUILDER} == "bazel"
 do-build:
@@ -86,5 +86,5 @@ do-install:
 		${DESTDIR}${PREFIX}/share/icons/mozc.png
 .endif
 
-.include "../../inputmethod/mozc-server334/Makefile.common"
+.include "../../zakinko/mozc-server/Makefile.common"
 .include "../../mk/bsd.pkg.mk"
