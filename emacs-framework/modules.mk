@@ -584,7 +584,25 @@ EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
 # thing as the ordinary one, so it is called emacs30-nox11-foo, after the
 # Emacs it needs.  A package that refuses the nox build keeps the plain
 # name, because there is no other emacs30-foo for it to be confused with.
-.if !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
+#
+# XEmacs keeps one name for both of its versions.  Its lisp goes to a
+# hierarchy that is not divided by version -- lib/xemacs/site-packages,
+# which is where XEmacs itself looks -- so xemacs214-foo and
+# xemacs215-foo would be two packages owning the same files, and pkg_add
+# would refuse the second.  Giving them the flavour's prefix instead
+# keeps one xemacs-foo that serves 21.4 and 21.5, which is what the tree
+# did before this framework and what XEmacs's own layout expects.
+#
+# The versions differ in what elisp written for GNU Emacs 24 and later
+# asks for -- 21.4 has no delete-dups, 21.5 does, measured -- and
+# devel/emacs-compat defines what is missing, so one build serves both.
+#
+# XEmacs itself is a different matter: editors/xemacs and
+# editors/xemacs-current do share names and files, and coexist/xemacs/
+# has the two packages that separate them.
+.if ${_EMACS_FLAVOR} == "xemacs"
+EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.xemacs}
+.elif !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
 EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
 .else
 EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-

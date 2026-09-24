@@ -343,7 +343,7 @@
  DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
  
  EMACS_MODULES?=
-@@ -306,16 +548,47 @@
+@@ -306,16 +548,81 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -371,8 +371,6 @@
  EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
  EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
 -EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.${_EMACS_FLAVOR}}
--
--GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
 +# Which Emacs a package was built for belongs in its name, the way
 +# PYPKGPREFIX carries the Python version, so the set can be built and
 +# told apart.
@@ -387,15 +385,50 @@
 +# thing as the ordinary one, so it is called emacs30-nox11-foo, after the
 +# Emacs it needs.  A package that refuses the nox build keeps the plain
 +# name, because there is no other emacs30-foo for it to be confused with.
-+.if !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
++#
++# XEmacs keeps one name for both of its versions.  Its lisp goes to a
++# hierarchy that is not divided by version -- lib/xemacs/site-packages,
++# which is where XEmacs itself looks -- so xemacs214-foo and
++# xemacs215-foo would be two packages owning the same files, and pkg_add
++# would refuse the second.  Giving them the flavour's prefix instead
++# keeps one xemacs-foo that serves 21.4 and 21.5, which is what the tree
++# did before this framework and what XEmacs's own layout expects.
++#
++# The versions differ in what elisp written for GNU Emacs 24 and later
++# asks for -- 21.4 has no delete-dups, 21.5 does, measured -- and
++# devel/emacs-compat defines what is missing, so one build serves both.
++#
++# XEmacs itself is a different matter: editors/xemacs and
++# editors/xemacs-current do share names and files, and coexist/xemacs/
++# has the two packages that separate them.
++.if ${_EMACS_FLAVOR} == "xemacs"
++EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.xemacs}
++.elif !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
 +EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
 +.else
 +EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
 +.endif
  
+-GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
++# A CONFLICTS pattern written before the prefix existed spells the
++# flavour out: devel/elib says emacs20-elib-[0-9]*.  With the prefix
++# empty the package was always plain elib-1.0nb9, so that line matched
++# nothing and sat there for years doing nothing.  Once PKGNAME carries
++# the prefix it names this very package, and pkg_add refuses to install
++# it -- against itself, and against any other flavour already there.
++# Drop the patterns our own name answers to.  A package that conflicts
++# with itself is saying nothing, whichever way it got written.
++_EMACS_CONFLICTS=
++.for _c_ in ${CONFLICTS}
++.  if empty(PKGNAME:M${_c_})
++_EMACS_CONFLICTS+=	${_c_}
++.  endif
++.endfor
++CONFLICTS=	${_EMACS_CONFLICTS}
+ 
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
-@@ -325,7 +598,7 @@
+@@ -325,7 +632,7 @@
  _EMACS_PLIST_SUBST+=	FOR_${e}="@comment " NOTFOR_${e}=""
  .  endif
  .endfor
@@ -404,7 +437,7 @@
  _EMACS_PLIST_SUBST+=	FOR_emacs_x="" NOTFOR_emacs_x="@comment "
  _EMACS_PLIST_SUBST+=	FOR_emacs_nox="@comment " NOTFOR_emacs_nox=""
  .else
-@@ -338,6 +611,12 @@
+@@ -338,6 +645,12 @@
  _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
@@ -417,7 +450,7 @@
  
  _EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
  
-@@ -354,8 +633,14 @@
+@@ -354,8 +667,14 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.
