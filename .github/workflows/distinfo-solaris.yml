@@ -21,8 +21,10 @@ name: Solaris の配布物の distinfo を測る
 on:
   push:
     branches: [thttpd]
+    # 自分自身は入れない。入れていたので、trigger を直す push そのもので
+    # 950MB を取り直す run が立った。測定は一度で済むもので、workflow の
+    # 体裁を直すたびに走らせる理由が無い。道具を触ったときだけ走る。
     paths:
-      - '.github/workflows/distinfo-solaris.yml'
       - '.github/ci/distinfo-lines.py'
   workflow_dispatch:
 
