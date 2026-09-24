@@ -11,6 +11,24 @@
 ;; already exists.  Emacs-20-only quirks that belong to one package (how
 ;; nxml-mode fontifies, say) stay with that package.
 
+;; The byte-compiler has to know this is a macro before it reaches the
+;; calls below.  It was defined inside the same conditional block that
+;; uses it, so a compiled file carried (e20-advise string-match) as a
+;; function call with string-match as a variable reference, and loading
+;; that .elc failed with void-variable string-match.  The .el was fine;
+;; only the compiled form broke, and only on the Emacs it was made for.
+(eval-and-compile
+  (defmacro e20-advise (fn)
+  `(defadvice ,fn (around e20 activate)
+  (if (and (not e20-translating) (stringp (ad-get-arg 0))
+  (let ((e20-translating t)) (e20-needs-translation-p (ad-get-arg 0))))
+  (let ((tr (let ((e20-translating t)) (e20-regexp (ad-get-arg 0)))))
+  (ad-set-arg 0 (car tr))
+  ad-do-it
+  (when ad-return-value (e20-fix-match-data (cdr tr))))
+  ad-do-it)))
+)
+
 (or (fboundp 'replace-regexp-in-string)
     (defun replace-regexp-in-string (regexp rep string &optional fixedcase literal subexp start)
       "Emacs 21's replace-regexp-in-string."
@@ -168,15 +186,6 @@ original group number or nil for a shy group."
 	(setq k (1+ k) groups (cdr groups)))
       (set-match-data (append out nil))))
   (defvar e20-translating nil)
-  (defmacro e20-advise (fn)
-    `(defadvice ,fn (around e20 activate)
-       (if (and (not e20-translating) (stringp (ad-get-arg 0))
-		(let ((e20-translating t)) (e20-needs-translation-p (ad-get-arg 0))))
-	   (let ((tr (let ((e20-translating t)) (e20-regexp (ad-get-arg 0)))))
-	     (ad-set-arg 0 (car tr))
-	     ad-do-it
-	     (when ad-return-value (e20-fix-match-data (cdr tr))))
-	 ad-do-it)))
   (e20-advise string-match)
   (e20-advise looking-at)
   (e20-advise re-search-forward)
