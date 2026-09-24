@@ -16,7 +16,12 @@ BMAKE=$PREFIX/bin/bmake
 cd "$TREE/$PKG" || { echo "FAIL: $TREE/$PKG が無い"; exit 1; }
 rc=0
 echo "--- $PKG ($(uname -s) $(uname -r) / $(uname -m)) ---"
-grep -n 'len2 < 0' files/crc32.c | sed 's/^/  /' || { echo "!! 当て物が入っていない"; rc=1; }
+grep -m1 'ZLIB_VERSION "' files/zlib.h | sed 's/^/  /' \
+	|| { echo "!! zlib.h から版が読めない"; rc=1; }
+grep -q 'ZLIB_VERSION "1.3.2"' files/zlib.h \
+	|| { echo "!! 木が 1.3.2 になっていない"; rc=1; }
+grep -n 'len2 < 0' files/crc32.c | sed 's/^/  /' \
+	|| { echo "!! 1.3.2 なのに負の長さの番人が無い"; rc=1; }
 
 echo "########## 1. 建てて入れる ##########"
 if $BMAKE install > "$T/zlib-install.log" 2>&1; then
@@ -33,7 +38,9 @@ cat > "$T/zt.c" <<'CEOF'
 #include <stdint.h>
 extern unsigned long crc32_combine64(unsigned long, unsigned long, int64_t);
 extern unsigned long crc32_combine_gen64(int64_t);
+extern const char *zlibVersion(void);
 int main(void) {
+	printf("zlibVersion=%s\n", zlibVersion());
 	printf("combine64(1,2,-1)=%lu\n", crc32_combine64(1, 2, (int64_t)-1));
 	printf("combine_gen64(-1)=%lu\n", crc32_combine_gen64((int64_t)-1));
 	printf("combine64(1,2,16)=%lu\n", crc32_combine64(1, 2, (int64_t)16));
@@ -51,6 +58,8 @@ if cc -I"$PREFIX/include" -o "$T/zt" "$T/zt.c" $_link > "$T/zt.log" 2>&1; then
 	( ulimit -t 10; "$T/zt" ) > "$T/zt.out" 2>&1; _rc=$?
 	sed 's/^/  /' "$T/zt.out"
 	if [ $_rc -eq 0 ]; then
+		grep -q 'zlibVersion=1.3.2' "$T/zt.out" \
+			|| { echo "!! 入った library が 1.3.2 と名乗らない"; rc=1; }
 		grep -q 'combine64(1,2,-1)=0' "$T/zt.out" || { echo "!! 負の長さで 0 が返らない"; rc=1; }
 		grep -q 'combine_gen64(-1)=0' "$T/zt.out" || { echo "!! gen の方が 0 を返さない"; rc=1; }
 		grep -qE 'combine64\(1,2,16\)=[1-9]' "$T/zt.out" || { echo "!! 正の長さの答えが変わった"; rc=1; }
@@ -74,5 +83,5 @@ fi
 echo "########## pkglint ##########"
 sh "$(dirname "$0")/pkglint-check.sh" "$PKG" || rc=1
 
-[ $rc -eq 0 ] && echo "RESULT: zlib は建ち、負の長さで戻る" || echo "RESULT: 通らなかったものがある (上を読む)"
+[ $rc -eq 0 ] && echo "RESULT: zlib 1.3.2 が建って入り、負の長さで戻る" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc
