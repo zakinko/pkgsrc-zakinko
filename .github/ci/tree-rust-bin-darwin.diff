@@ -1,6 +1,18 @@
 --- lang/rust-bin/Makefile.orig
 +++ lang/rust-bin/Makefile
-@@ -235,10 +235,41 @@
+@@ -207,6 +207,11 @@
+ 	${RM} -f ${DESTDIR}${PREFIX}/lib/rustlib/uninstall.sh
+ 
+ .if ${OPSYS} == "Darwin"
++# The dylibs under lib/rustlib/<target>/ keep the install name they ship with
++# (see fix-darwin-install-name below), which the shlib check cannot resolve;
++# they are found through LC_RPATH at run time.  A * matches a slash here.
++CHECK_SHLIBS_SKIP+=	lib/rustlib/*/lib/*.dylib
++
+ .PHONY: fix-darwin-install-name
+ post-install: fix-darwin-install-name
+ fix-darwin-install-name:
+@@ -235,10 +240,39 @@
  		    ${DESTDIR}${PREFIX}/lib/rustlib/${RUST_ARCH}/bin/${bin}; \
  	done
  .  endfor
@@ -28,8 +40,6 @@
 +#
 +# Check the id we do ask for actually landed.  A silent skip here would be the
 +# same trap one directory up.
-+CHECK_SHLIBS_SKIP+=	lib/rustlib/*/lib/*.dylib
-+
 +.  for lib in lib
  	for f in ${DESTDIR}${PREFIX}/${lib}/lib*.dylib; do		\
  		[ ! -f $$f ] && continue;				\

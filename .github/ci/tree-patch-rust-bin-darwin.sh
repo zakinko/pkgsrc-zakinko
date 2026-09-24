@@ -31,6 +31,17 @@ if ! grep -q 'for lib in lib lib/rustlib/${RUST_ARCH}/lib ${DESTDIR}' "$M" 2>/de
 	exit 0
 fi
 
+# 当てる前の写しを取る。検査の対照にする -- 上流の無改造のものが落ちるなら
+# 検査のほうが間違いで、木の話ではない。一度それで素の木を告発した。
+_pre=$(mktemp "${TMPDIR:-/tmp}/rust-bin-mk.XXXXXX")
+cp "$M" "$_pre"
+if ! sh "$D/check-mk-structure.sh" "$_pre" > /dev/null 2>&1; then
+	echo "!! 検査が上流の無改造の Makefile を落とす。検査のほうが間違い" >&2
+	sh "$D/check-mk-structure.sh" "$_pre" 2>&1 | sed 's/^/   /' >&2
+	rm -f "$_pre"
+	exit 1
+fi
+rm -f "$_pre"
 patch -f -p0 -d "$TREE" < "$D/tree-rust-bin-darwin.diff" > /dev/null
 
 # 当たった印。Darwin の腕の .for が lib だけになり、CHECK_SHLIBS_SKIP が
@@ -49,5 +60,7 @@ grep -q 'install_name_tool did not set' "$M" || {
 #	bmake: Malformed conditional '${OPSYS} == "Darwin"'
 # で macOS を両方落とした。:U では直らない -- 常に偽になって手当てが黙って
 # 効かなくなる。位置そのものを数える。
-sh "$D/check-mk-vars-after-prefs.sh" "$M" || exit 1
+# 当てる前の写しを対照に渡す。検査が上流の無改造の Makefile を落とすなら
+# 検査のほうが間違いで、木の話ではない。一度それで素の木を告発した。
+sh "$D/check-mk-structure.sh" "$M" || exit 1
 echo "  rust-bin (darwin): 深い install name の書き換えをやめた"

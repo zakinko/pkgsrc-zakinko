@@ -11,6 +11,17 @@ if grep -q 'x86_64-unknown-illumos' "$M" && ! grep -q '#RUST_ARCH:=	x86_64-unkno
 	echo "  rust-bin: 上流に追いついている。何もしない"
 	exit 0
 fi
+# 当てる前の写しを取る。検査の対照にする -- 上流の無改造のものが落ちるなら
+# 検査のほうが間違いで、木の話ではない。一度それで素の木を告発した。
+_pre=$(mktemp "${TMPDIR:-/tmp}/rust-bin-mk.XXXXXX")
+cp "$M" "$_pre"
+if ! sh "$D/check-mk-structure.sh" "$_pre" > /dev/null 2>&1; then
+	echo "!! 検査が上流の無改造の Makefile を落とす。検査のほうが間違い" >&2
+	sh "$D/check-mk-structure.sh" "$_pre" 2>&1 | sed 's/^/   /' >&2
+	rm -f "$_pre"
+	exit 1
+fi
+rm -f "$_pre"
 patch -f -p0 -d "$TREE" < "$D/tree-rust-bin-illumos.diff" > /dev/null
 # illumos と Solaris の両方を、OS_VARIANT で分けて入れる。片方だけ当たって
 # いる状態で通すと、片方の箱だけが黙って壊れる。
@@ -52,5 +63,7 @@ grep -q 'RUST_RPATH' "$M" && {
 # OS_VARIANT を条件に使うので、bsd.prefs.mk より後に在ることを数える。
 # 前に置くと bmake が Malformed conditional で止まり、:U を付けると常に偽に
 # なって片方の箱が黙って壊れる。
-sh "$D/check-mk-vars-after-prefs.sh" "$M" || exit 1
+# 当てる前の写しを対照に渡す。検査が上流の無改造の Makefile を落とすなら
+# 検査のほうが間違いで、木の話ではない。一度それで素の木を告発した。
+sh "$D/check-mk-structure.sh" "$M" || exit 1
 echo "  rust-bin: illumos と Solaris の配布物を上流から取るようにした"
