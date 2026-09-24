@@ -15,17 +15,17 @@
  
  NETBSD_REPO=	https://cdn.NetBSD.org/pub/pkgsrc/distfiles/LOCAL_PORTS/rust/
  
-@@ -104,6 +109,11 @@
- RUST_ARCH:=	x86_64-unknown-netbsd
- DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
+@@ -102,6 +107,11 @@
  .endif
+ .if ${MACHINE_PLATFORM:MNetBSD-*-x86_64} || make(distinfo) || make(makesum) || make(mdi)
+ RUST_ARCH:=	x86_64-unknown-netbsd
++DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
++.endif
 +.if (${MACHINE_PLATFORM:MSunOS-*-x86_64} && ${OS_VARIANT:U} != "Solaris") || \
 +    make(distinfo) || make(makesum) || make(mdi)
 +RUST_ARCH:=	x86_64-unknown-illumos
-+DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
-+.endif
- 
- # NetBSD provided binaries:
+ DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
+ .endif
  
 @@ -182,17 +192,7 @@
  SITES.${DF}=	${NETBSD_REPO}
@@ -45,64 +45,6 @@
  # Binary still extracts to plain non-nb'ed directory
  WRKSRC:=	${WRKSRC:C/nb[0-9]*//}
  WRKSRC:=	${WRKSRC:C/-$//}
-@@ -251,7 +251,38 @@
- 
- TOOL_DEPENDS+=		patchelf-[0-9]*:../../devel/patchelf
- 
--RUST_LLVM_RPATH=	${PREFIX}/lib
-+# Some illumos distributions carry no libgcc_s.so.1 on the default runtime
-+# path.  OpenIndiana has it only under /usr/gcc/<ver>/lib, and the upstream
-+# binaries are linked against it without an rpath, so nothing starts:
-+#
-+#   ld.so.1: rustc: fatal: libgcc_s.so.1: open failed: No such file or directory
-+#
-+# OmniOS does carry one where ld.so.1 looks, which is why the same tarball
-+# works there.  fix-relative-rpath below replaces the rpath outright rather
-+# than appending to it, so the directory has to be part of what it writes;
-+# anything LDFLAGS would have contributed is gone by then, and there is no
-+# link step here to contribute it in the first place.
-+#
-+# Ask the compiler where its own libgcc_s is instead of naming a path, since
-+# the version component moves.  A gcc that cannot answer echoes the argument
-+# back unchanged, so take the answer only when it is absolute.
-+.  if ${OPSYS} == "SunOS"
-+_RUST_LIBGCC_DIR!=	\
-+	lib=`${CC} -print-file-name=libgcc_s.so.1 2>/dev/null`;		\
-+	case "$$lib" in							\
-+	/*)	${DIRNAME} "$$lib" ;;					\
-+	*)	${ECHO} "" ;;						\
-+	esac
-+.  endif
-+_RUST_LIBGCC_DIR?=	# empty
-+
-+.  if !empty(_RUST_LIBGCC_DIR)
-+RUST_RPATH=		${PREFIX}/lib:${_RUST_LIBGCC_DIR}
-+.  else
-+RUST_RPATH=		${PREFIX}/lib
-+.  endif
-+
-+RUST_LLVM_RPATH=	${RUST_RPATH}
- FORCE_RPATH=		--force-rpath
- 
- # 32-bit NetBSD ports need libatomic
-@@ -280,7 +311,7 @@
- 	libexec/rust-analyzer-proc-macro-srv
- 	if [ -f ${DESTDIR}${PREFIX}/${bin} ]; then \
- 		${PREFIX}/bin/patchelf ${FORCE_RPATH} --set-rpath \
--		    ${PREFIX}/lib ${DESTDIR}${PREFIX}/${bin} ; \
-+		    ${RUST_RPATH} ${DESTDIR}${PREFIX}/${bin} ; \
- 	fi
- .  endfor
- # Only Linux builds link these binaries against an LLVM library
-@@ -297,7 +328,7 @@
- 		lib/rustlib/${RUST_ARCH}/codegen-backends
- 	for f in ${DESTDIR}${PREFIX}/${lib}/lib*.so; do			\
- 		[ ! -f $$f ] && continue;				\
--		${PREFIX}/bin/patchelf ${FORCE_RPATH} --set-rpath ${PREFIX}/lib $$f;	\
-+		${PREFIX}/bin/patchelf ${FORCE_RPATH} --set-rpath ${RUST_RPATH} $$f;	\
- 	done
- .  endfor
- # wrong architecture binary distributed, unused except on macOS
 --- lang/rust-bin/distinfo.orig
 +++ lang/rust-bin/distinfo
 @@ -45,6 +45,9 @@

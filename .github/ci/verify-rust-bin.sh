@@ -70,55 +70,6 @@ if [ "$n" != 1 ]; then
 	rc=1
 fi
 
-echo "########## rpath ##########"
-# 当て物が入ったかを grep で数えても、その値が使われたことにはならない。
-# 木に訊いて、実際に patchelf へ渡る値そのものを見る。
-RP=$(sv RUST_RPATH)
-echo "  RUST_RPATH: $RP"
-case $(uname -s) in
-SunOS)
-	# illumos には libgcc_s.so.1 を既定の実行時 path に置かない版がある
-	# (OpenIndiana は /usr/gcc/<ver>/lib にしかない。OmniOS は在る)。
-	# 足せていなければ入った rustc は起動しないので、install の前に落とす。
-	case $RP in
-	*:*)	echo "  libgcc_s の在処が入っている" ;;
-	*)	echo '  !! SunOS なのに ${PREFIX}/lib だけ。libgcc_s を足せていない'
-		echo "  --- cc が答える在処"
-		(${CC:-cc} -print-file-name=libgcc_s.so.1 2>&1 || true) | sed 's/^/      /'
-		rc=1 ;;
-	esac
-	;;
-Darwin)
-	# Darwin は Makefile の別の腕を通る。RUST_RPATH はそちらでは定義されて
-	# いないので、空が正しい。ここを *) にまとめて「$PREFIX/lib と一致」を
-	# 求めたら、緑だった macOS の二箱が落ちた。値が無いのを「変わった」と
-	# 読んだ私の検査の誤りで、install そのものは通っていた。
-	#
-	# platform ごとに答が違う検査は、platform ごとに期待値を書く。手元の
-	# 自己試験を case Linux 決め打ちで書いたので、この枝は一度も走って
-	# いなかった。
-	if [ -z "$RP" ]; then
-		echo "  Darwin では定義されない (正しい)"
-	else
-		echo "  !! Darwin で RUST_RPATH が定義されている: $RP" >&2
-		rc=1
-	fi
-	;;
-*)
-	# 非 SunOS・非 Darwin では当て物の前と**同じ値**でなければならない。
-	# 当て物は Darwin 以外の全部を通るので、image が無くて動かせない arch
-	# (NetBSD の powerpc / mipsel / earmv6hf / earmv7hf / aarch64eb) の
-	# ぶんは「読んで no-op」しか言えない。代わりに、動かせる箱の全部で
-	# 値が一致することを機械で確かめる。読んで安心する代わりに数える。
-	if [ "$RP" = "$PREFIX/lib" ]; then
-		echo "  当て物の前と同じ値 ($PREFIX/lib)"
-	else
-		echo "  !! 非 SunOS で値が変わっている。期待 $PREFIX/lib、実際 '$RP'" >&2
-		rc=1
-	fi
-	;;
-esac
-
 echo "########## 建てて入れる ##########"
 if ( cd "$D" && $PKGMAKE install > "$W/install.log" 2>&1 ); then
 	echo "  install できた"
@@ -133,8 +84,9 @@ if [ $rc = 0 ]; then
 	RUSTC=$PREFIX/bin/rustc
 	CARGO=$PREFIX/bin/cargo
 	if [ -x "$RUSTC" ]; then
-		# 名前ではなく入った実体を見る。RUST_RPATH が正しくても
-		# patchelf が書けていなければ意味が無い。
+		# 名前ではなく入った実体を見る。木の変数が正しくても patchelf が
+		# 書けていなければ意味が無い。Solaris ではここで「書けているのに
+		# 実行できない」が出た。
 		echo "  --- 入った rustc の RUNPATH"
 		( elfdump -d "$RUSTC" 2>/dev/null | grep -iE 'RUNPATH|RPATH' \
 		  || readelf -d "$RUSTC" 2>/dev/null | grep -iE 'RUNPATH|RPATH' \
@@ -151,6 +103,15 @@ if [ $rc = 0 ]; then
 			# いない形に見える (run 35760404446)。
 			echo "  --- ldd $RUSTC"
 			(ldd "$RUSTC" 2>&1 || true) | sed 's/^/      /' | head -30
+			# Solaris/illumos では「壊れている」と「library が
+			# 足りない」を混ぜない。rpath に libgcc_s の在処を足す版を
+			# 作ったら、後者が前者に変わった (ldd が signal 9 で死ぬ)。
+			# patchelf は Linux の道具なので、Solaris の ELF を編集する
+			# こと自体が壊しているのかを切り分ける。
+			if [ "$OS" = SunOS ]; then
+				echo "  --- patchelf と rpath の切り分け"
+				sh "$(dirname "$0")/probe-solaris-rpath.sh" "$RUSTC" || true
+			fi
 			for _l in libgcc_s.so.1 libatomic.so.3 libstdc++.so.6; do
 				echo "  --- $_l を箱の中で探す"
 				find /usr /opt "$PREFIX" -name "$_l*" 2>/dev/null |
