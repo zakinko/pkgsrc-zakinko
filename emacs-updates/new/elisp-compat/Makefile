@@ -42,7 +42,7 @@ do-extract:
 	${CP} ${FILESDIR}/elisp-compat.el ${WRKSRC}/
 
 do-build:
-	cd ${WRKSRC} && ${EMACS_BIN} -batch -q --no-site-file -L . \
+	cd ${WRKSRC} && ${EMACS_BIN} -batch -q ${_ELISP_COMPAT_BATCH} \
 		-f batch-byte-compile elisp-compat.el
 
 do-install:
@@ -50,4 +50,17 @@ do-install:
 		${DESTDIR}${EMACS_LISPPREFIX}
 
 .include "../../editors/emacs/modules.mk"
+
+# XEmacs and GNU Emacs disagree on two of the batch options.  XEmacs
+# takes -no-site-file with one hyphen and does not understand
+# --no-site-file, and it has no -L at all: it reads the argument as a
+# file to load and stops with "work is a directory".  Both are silent
+# about the option itself; what you see is the next argument being
+# treated as a file name.
+.if ${EMACS_FLAVOR} == "xemacs"
+_ELISP_COMPAT_BATCH=	-no-site-file -eval '(setq load-path (cons "." load-path))'
+.else
+_ELISP_COMPAT_BATCH=	--no-site-file -L .
+.endif
+
 .include "../../mk/bsd.pkg.mk"
