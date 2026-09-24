@@ -15,15 +15,22 @@
 #	imports github.com/tailscale/wireguard-go/ipc: build constraints exclude
 #	    all Go files in .../wireguard-go@v0.0.0-20260715223240-2e01ba5b00f0/ipc
 #
-# で落ちる。NetBSD 11.0/amd64 (techne) で踏んだ。直しは上流の Makefile と同じ
-# 二つだけを建てること。
+# で落ちる。NetBSD 11.0/amd64 (techne) で踏んだ。直しは建てる物を絞ること。
 #
-#	GO_BUILD_PATTERN=	. ./cmd/croc-web
+#	GO_BUILD_PATTERN=	.
+#
+# 上流の Makefile は ./cmd/croc-web も建てるが、その binary は release の
+# tarball からは動かない。出す web client は src/webassets/dist から埋め込む
+# もので、tarball には空の .gitkeep しか入っていない。中身は npm を呼ぶ
+# go:generate の産物なので、npm 無しで建てた croc-web は
+# "embedded web client is missing index.html" と言って終わるだけである。
+# 動かない binary を入れるのはやめて、PLIST からも落とした。
 #
 # 三段で見る。
 #
 #   1. zakinko/croc (pattern 入り) を install して package も作る。
-#      bin/croc と bin/croc-web が入り、croc version が 11.5.3 と言うか。
+#      bin/croc が入り、bin/croc-web と bin/install は入らず、
+#      croc version が 11.5.3 と言うか。
 #   2. 127.0.0.1 に relay を立て、300000 byte を send して receive する。
 #      cksum が一致するか。code は CROC_SECRET で渡す (--code は classic mode
 #      限定になった)。
@@ -139,50 +146,18 @@ if [ $rc -eq 0 ]; then
 	else
 		echo "FAIL: package が落ちた"; rc=1; tail -15 "$T/croc-package.log"
 	fi
-	for b in croc croc-web; do
-		[ -x "$PREFIX/bin/$b" ] && echo "  ok bin/$b" || { echo "!! bin/$b が無い"; rc=1; }
-	done
-	# croc-web は「入っている」だけ見ていた。入れる binary は動かすところまで
-	# 見ないと、送る本文に「未検証」と書く羽目になる。web を出させて取りに行く。
-	if [ -x "$PREFIX/bin/croc-web" ]; then
-		_wd=$T/crocweb; rm -rf "$_wd"; mkdir -p "$_wd"
-		HOME=$_wd "$PREFIX/bin/croc-web" --bind 127.0.0.1:19014 \
-			--relays 127.0.0.1:19009 --ports 19009 \
-			> "$_wd/web.log" 2>&1 &
-		_wp=$!
-		_ok=0
-		_i=0
-		while [ $_i -lt 20 ]; do
-			kill -0 $_wp 2>/dev/null || break
-			if fetch_url http://127.0.0.1:19014/ > "$_wd/index.html" 2>/dev/null; then
-				_ok=1; break
-			fi
-			_i=$((_i+1)); sleep 1
-		done
-		if [ $_ok = 1 ]; then
-			_n=$(wc -c < "$_wd/index.html" | tr -d ' ')
-			if grep -qi 'croc' "$_wd/index.html"; then
-				echo "  ok croc-web: 127.0.0.1:19014 が $_n byte の頁を返し、croc と書いてある"
-			else
-				echo "!! croc-web: $_n byte 返ったが croc の文字が無い"; rc=1
-				head -3 "$_wd/index.html" | sed 's/^/     /'
-			fi
-		elif grep -q 'missing index.html' "$_wd/web.log" 2>/dev/null; then
-			# 上流の release には built assets が入らない。
-			# src/webassets/dist は .gitkeep だけで、中身は
-			# "npm --prefix ../../web run embed" が作る go:generate の産物。
-			# npm を走らせずに建てた croc-web は必ずこれで止まる。
-			# 木の croc (11.3.2) も PLIST に bin/croc-web を持つので、
-			# この更新が持ち込んだ壊れではない。落とさずに述べるだけにする。
-			echo "  -- croc-web: 起動しない (embedded web client is missing index.html)"
-			echo "     上流の release に built web assets が入っていないため。"
-			echo "     npm run embed を走らせないと動かない。木の croc も同じ。"
-		else
-			echo "!! croc-web: 頁も取れず、既知の文言でもない"; rc=1
-			tail -8 "$_wd/web.log" 2>/dev/null | sed 's/^/     /'
-		fi
-		kill $_wp 2>/dev/null; wait $_wp 2>/dev/null
+	[ -x "$PREFIX/bin/croc" ] && echo "  ok bin/croc" || { echo "!! bin/croc が無い"; rc=1; }
+	# croc-web は建てないので入っていないこと自体が結果である。
+	# 一度は入れて動かし、embedded web client is missing index.html しか
+	# 言えないことを確かめたうえで落とした。入っていたら PLIST と
+	# GO_BUILD_PATTERN が食い違っている。
+	if [ -e "$PREFIX/bin/croc-web" ]; then
+		echo "!! bin/croc-web が入っている (GO_BUILD_PATTERN を見直すこと)"; rc=1
+	else
+		echo "  ok bin/croc-web は入らない"
 	fi
+	[ -e "$PREFIX/bin/install" ] && { echo "!! bin/install が入っている"; rc=1; } \
+		|| echo "  ok bin/install は入らない"
 	[ -e "$PREFIX/bin/install" ] && { echo "!! bin/install が入っている (./... の名残)"; rc=1; }
 	_v=$("$PREFIX/bin/croc" --version 2>&1 | head -1)
 	echo "  $_v"

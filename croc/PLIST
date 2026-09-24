@@ -1,3 +1,2 @@
 @comment $NetBSD$
 bin/croc
-bin/croc-web
