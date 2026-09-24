@@ -19,7 +19,14 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/skk/Make
  HOMEPAGE=	http://openlab.ring.gr.jp/skk/index.html
 diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/skk/PLIST inputmethod/skk/PLIST
 --- /usr/pkgsrc/inputmethod/skk/PLIST	2020-08-24 20:40:00.000000000 +0000
-+++ inputmethod/skk/PLIST	2026-09-24 09:33:06.540759118 +0000
++++ inputmethod/skk/PLIST	2026-09-24 10:51:06.762868073 +0000
+@@ -1,5 +1,5 @@
+ @comment $NetBSD: PLIST,v 1.20 2020/08/24 20:40:00 ryoon Exp $
+-info/skk.info
++${EMACS_INFOPREFIX}/skk.info
+ ${EMACS_LISPPREFIX}/skk/ccc.el
+ ${EMACS_LISPPREFIX}/skk/ccc.elc
+ ${EMACS_LISPPREFIX}/skk/cdb.el
 @@ -86,8 +86,6 @@
  ${EMACS_LISPPREFIX}/skk/skk-viper.elc
  ${EMACS_LISPPREFIX}/skk/skk.el

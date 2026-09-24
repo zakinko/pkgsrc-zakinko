@@ -57,8 +57,14 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/ecb/Makefile d
  .include "../../mk/bsd.pkg.mk"
 diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/ecb/PLIST devel/ecb/PLIST
 --- /usr/pkgsrc/devel/ecb/PLIST	2020-01-21 11:56:48.000000000 +0000
-+++ devel/ecb/PLIST	2026-09-24 09:25:46.806553513 +0000
-@@ -6,7 +6,6 @@
++++ devel/ecb/PLIST	2026-09-24 10:51:06.733363764 +0000
+@@ -1,12 +1,11 @@
+ @comment $NetBSD: PLIST,v 1.1 2020/01/21 11:56:48 pho Exp $
+-info/ecb.info
++${EMACS_INFOPREFIX}/ecb.info
+ ${EMACS_LISPPREFIX}/ecb/ecb-advice-test.el
+ ${EMACS_LISPPREFIX}/ecb/ecb-advice-test.elc
+ ${EMACS_LISPPREFIX}/ecb/ecb-analyse.el
  ${EMACS_LISPPREFIX}/ecb/ecb-analyse.elc
  ${EMACS_LISPPREFIX}/ecb/ecb-autogen.el
  ${EMACS_LISPPREFIX}/ecb/ecb-autogen.elc

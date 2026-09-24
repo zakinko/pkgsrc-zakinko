@@ -96,13 +96,12 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/math/ess/Makefile ma
  .include "../../mk/bsd.pkg.mk"
 diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/math/ess/PLIST math/ess/PLIST
 --- /usr/pkgsrc/math/ess/PLIST	2014-02-19 09:19:01.000000000 +0000
-+++ math/ess/PLIST	2026-09-24 09:33:06.767826525 +0000
++++ math/ess/PLIST	2026-09-24 10:51:06.815125552 +0000
 @@ -1,101 +1,54 @@
  @comment $NetBSD: PLIST,v 1.9 2014/02/19 09:19:01 markd Exp $
--${EMACS_INFOPREFIX}/ess.info
+ ${EMACS_INFOPREFIX}/ess.info
 -${EMACS_LISPPREFIX}/ess/ess-arc-d.el
 -${EMACS_LISPPREFIX}/ess/ess-arc-d.elc
-+info/ess.info
 +${EMACS_LISPPREFIX}/ess/ess-autoloads.el
  ${EMACS_LISPPREFIX}/ess/ess-bugs-d.el
  ${EMACS_LISPPREFIX}/ess/ess-bugs-d.elc

@@ -69,7 +69,7 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/haskell-mode/M
  .include "../../mk/bsd.pkg.mk"
 diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/haskell-mode/PLIST devel/haskell-mode/PLIST
 --- /usr/pkgsrc/devel/haskell-mode/PLIST	2018-01-07 21:17:50.000000000 +0000
-+++ devel/haskell-mode/PLIST	2026-09-24 09:25:47.002608599 +0000
++++ devel/haskell-mode/PLIST	2026-09-24 10:51:06.742737581 +0000
 @@ -1,22 +1,85 @@
  @comment $NetBSD: PLIST,v 1.6 2018/01/07 21:17:50 rillig Exp $
 -share/doc/haskell-mode/.emacs
@@ -77,7 +77,7 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/haskell-mode/P
 -share/doc/haskell-mode/indent.hs
 -share/doc/haskell-mode/index.html
 -share/doc/haskell-mode/installation-guide.html
-+info/haskell-mode.info
++${EMACS_INFOPREFIX}/haskell-mode.info
 +${EMACS_LISPPREFIX}/haskell-mode/ghc-core.el
 +${EMACS_LISPPREFIX}/haskell-mode/ghc-core.elc
 +${EMACS_LISPPREFIX}/haskell-mode/ghci-script-mode.el
