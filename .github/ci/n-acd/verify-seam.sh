@@ -319,6 +319,89 @@ fi
 FREE=`echo "$GW" | awk -F. '{printf "%s.%s.%s.231", $1, $2, $3}'`
 
 echo
+# 線の上で lease を取り切らせ、新しい継ぎ目を実際に踏ませる。ここまでの段は
+# 「建つ」と「合成した buffer を正しく扱う」を測ってきたが、BPF から読み、
+# bpf_hdr を歩き、filter が通した frame を解析し、状態機械が次の段へ進む
+# 経路は一度も走っていない。合成 buffer の test が通るのは、kernel が返す形を
+# こちらが正しく想像できていた場合の話である。
+#
+# tap を一本立てて、その上に偽の DHCP server を置く。tap には誰も繋がって
+# いないので frame は外へ出ない。借りている箱の segment に DHCPDISCOVER を
+# 撒くと、応える server が居れば lease を一つ取ってしまう。
+#
+# tap には二つ要る。
+#   carrier   誰も /dev/tapN を開いていないと kernel は送出しない。ifconfig は
+#             status: no carrier と言い、sendmsg() は成功するのに線には何も
+#             出ない。t-wire と t-lease は BPF へ直接書くので踏まないが、
+#             t-srcaddr は IP stack を通すので踏む。
+#   DAD       NetBSD は IPv4 でも DAD をする (net.inet.ip.dad_count=3)。
+#             TENTATIVE の間は送り元に使えない。実測で 6 秒かかった。
+#
+# tap を作れない箱では「測れない」と言って飛ばす。赤にはしない。
+echo
+echo "=== tap の上で線に出す"
+TAP=
+for t in tap0 tap1 tap2; do
+	if ifconfig "$t" create > /dev/null 2>&1; then TAP=$t; break; fi
+done
+if [ -z "$TAP" ]; then
+	echo "  tap を作れない。この箱では線の上の test は測らない"
+	echo "  (`ifconfig tap0 create 2>&1 | head -1`)"
+else
+	echo "  $TAP を使う"
+	ifconfig "$TAP" up
+	ifconfig "$TAP" inet 10.99.0.50 netmask 255.255.255.0 alias
+	ifconfig "$TAP" inet 10.99.0.1 netmask 255.255.255.255 alias
+	arp -s 10.99.0.99 02:00:00:00:00:99 > /dev/null 2>&1 || true
+	cat "/dev/$TAP" > /dev/null &
+	holder=$!
+	i=0
+	while ifconfig "$TAP" 2>/dev/null | grep -q 'inet 10\.99\..*TENTATIVE'; do
+		i=`expr $i + 1`
+		[ $i -gt 30 ] && { echo "  address が TENTATIVE のまま"; break; }
+		sleep 1
+	done
+	echo "  address が使えるまで ${i} 秒"
+
+	LFAIL=0
+	LSRC="$DS/n-dhcp4-client.c $DS/n-dhcp4-c-connection.c $DS/n-dhcp4-c-probe.c
+	      $DS/n-dhcp4-c-lease.c $DS/n-dhcp4-incoming.c $DS/n-dhcp4-outgoing.c
+	      $DS/n-dhcp4-socket.c $DS/n-dhcp4-socket-bsd.c $DS/util/packet.c
+	      $DS/util/packet-bsd.c $DS/util/socket-bsd.c $S/c-siphash/src/c-siphash.c"
+	for t in t-wire t-lease; do
+		cc $DF -I"$DS"/util -o "$W/$t" "$CI/../n-dhcp4/$t.c" $LSRC 2> "$W/$t.log" || {
+			echo "★ $t が建たない"; head -12 "$W/$t.log"; LFAIL=1; }
+	done
+	cc $DF -I"$DS"/util -o "$W/t-srcaddr" "$CI/../n-dhcp4/t-srcaddr.c" \
+		"$DS/util/socket-bsd.c" 2> "$W/t-srcaddr.log" || {
+		echo "★ t-srcaddr が建たない"; head -12 "$W/t-srcaddr.log"; LFAIL=1; }
+
+	if [ $LFAIL = 0 ]; then
+		echo "--- t-wire (DISCOVER が線に出るか)"
+		"$W/t-wire" "$TAP" || LFAIL=1
+		echo "--- t-lease (lease を取り、UDP で更新し、RELEASE まで)"
+		"$W/t-lease" "$TAP" || LFAIL=1
+		echo "--- t-lease decline"
+		"$W/t-lease" "$TAP" decline || LFAIL=1
+		# socket_udp_send_from() は継ぎ目の中で唯一 t-lease が踏まない。
+		# 上流の test-socket.c はこれを呼ぶが Linux の netns を使う。
+		echo "--- t-srcaddr (socket_udp_send_from が送り元を選ぶか)"
+		"$W/t-srcaddr" "$TAP"
+		sr=$?
+		[ $sr = 0 ] || [ $sr = 77 ] || LFAIL=1
+	fi
+
+	kill $holder > /dev/null 2>&1
+	arp -d 10.99.0.99 > /dev/null 2>&1 || true
+	ifconfig "$TAP" destroy > /dev/null 2>&1
+	if ifconfig "$TAP" > /dev/null 2>&1; then
+		echo "★ $TAP が消えていない"
+	else
+		echo "  $TAP を消した"
+	fi
+	[ $LFAIL = 0 ] || exit 1
+fi
+
 # 在る address の側は、答える相手が居る箱でしか測れない。qemu の user-mode
 # network の gateway (10.0.2.2) も、vmactions の FreeBSD が見る 192.168.122.2
 # も、普通の ARP には答えるが spa が 0 の request — DHCP client が起動のたびに

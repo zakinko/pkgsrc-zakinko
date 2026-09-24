@@ -421,14 +421,15 @@ int main(int argc, char **argv) {
         free(rbuf);
 
         if (want_decline) {
+                /*
+                 * 後片付けは上で済んでいる。ここでもう一度やっていたので、
+                 * rbuf は二度 free され、srv は二度 close され、probe と
+                 * client も二重に解放されていた。gcc 12 が
+                 *   warning: pointer 'rbuf' may be used after 'free'
+                 * で教えてくれた。落ちずに通っていたのは運である。
+                 */
                 printf("\ndecline を呼んだ: %s / server が DECLINE を受けた: %s\n",
                        declined ? "はい" : "いいえ", decline_seen ? "はい" : "いいえ");
-                if (usrv >= 0) close(usrv);
-                n_dhcp4_client_probe_free(probe);
-                n_dhcp4_client_unref(client);
-                n_dhcp4_client_config_free(cfg);
-                n_dhcp4_client_probe_config_free(pcfg);
-                close(srv); free(rbuf);
                 printf("\n%s\n", decline_seen ? "=== DECLINE が線に出た ===" : "=== 出なかった ===");
                 return decline_seen ? 0 : 1;
         }

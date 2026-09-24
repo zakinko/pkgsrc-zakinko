@@ -22,19 +22,26 @@ NetworkManager が同梱する n-dhcp4 の移植を測る。当て物は
   落ちることを見る。最後のは否定的な test で、**検査が入っているだけで素通り
   していないことは、壊して落ちるのを見ないと分からない。**
 
-## 手で回すもの (root と tap が要る)
+## CI が回すもの (root と tap が要る)
 
-CI の VM でも動くはずだが、tap の作り方が BSD ごとに違うので自動では回して
-いない。NetBSD 11.0 では下の手順で通っている。
+2026-09-25 から継ぎ目の検査が回している。tap を作れない箱では「測れない」と
+言って飛ばし、赤にはしない。手で回すなら下の手順。
 
 	ifconfig tap0 create
 	ifconfig tap0 up
 	ifconfig tap0 inet 10.99.0.50 netmask 255.255.255.0 alias
 	ifconfig tap0 inet 10.99.0.1  netmask 255.255.255.255 alias
+	cat /dev/tap0 > /dev/null &      # carrier を立てる
+	# NetBSD は IPv4 でも DAD をする。TENTATIVE が抜けるまで待つ (実測 6 秒)
 	./t-lease tap0            # lease を取り、UDP で更新し、RELEASE まで
 	./t-lease tap0 decline    # accept の代わりに decline
 	./t-wire tap0             # DHCPDISCOVER が線に出るかだけ
+	./t-srcaddr tap0          # socket_udp_send_from が送り元を選ぶか
 	ifconfig tap0 destroy
+
+`t-srcaddr` だけは IP stack を通すので carrier と DAD が要る。t-wire と
+t-lease は BPF へ直接書くので、carrier が無くても動いてしまう — それで
+長いあいだ気付かなかった。
 
 **tap を使うのは、借りている箱の segment に DHCPDISCOVER を撒かないため。**
 応える server が居れば lease を一つ取ってしまう。tap には誰も繋がっていない
@@ -43,3 +50,14 @@ unicast は両端の address を tap に載せて箱の中で折り返す。
 
 測り終えたら `destroy`。address ごと消える。`SIOCGIFFLAGS tap0: Device not
 configured` が返るのを見て確かめる。**消したつもりは確かめていない。**
+
+`t-srcaddr.c`
+: `socket_udp_send_from()` が、束縛した address ではなく渡した address を
+  送り元にするか。DHCP server は client に渡そうとしている address から
+  答えるので、socket の束縛先とは違う。Linux は IP_PKTINFO と
+  `struct in_pktinfo` の `ipi_spec_dst`、BSD は IP_SENDSRCADDR と素の
+  `struct in_addr`。**上流の `test-socket.c` はこれを呼ぶが Linux の network
+  namespace を使うので BSD では走らない。** `t-lease` も踏まない (偽 server
+  が自前で frame を組むため)。継ぎ目の中でここだけ覆いが無かった。
+  cmsg を付けない `sendto()` では束縛した側が出ることも一緒に見る。
+  そうしないと、**検査が何も測っていなくても緑になる。**
