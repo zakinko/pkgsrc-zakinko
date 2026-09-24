@@ -1,6 +1,0 @@
-Elisp written for GNU Emacs 24 and later reaches for a few things XEmacs
-never grew: eval with a LEXICAL argument, defvar-local, alist-get,
-string-trim, string-empty-p, and delete-dups on 21.4.  This package
-defines each of them only when it is missing, so a package that needs
-them can require xemacs-compat and keep the same sources it uses
-everywhere else.

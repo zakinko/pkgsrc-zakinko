@@ -1,8 +1,0 @@
-Elisp written for Emacs 24 and later reaches for defvar-local, alist-get,
-string-trim, string-empty-p, when-let, seq-filter and, on Emacs 21, dolist
-and delete-dups.  This package defines each of them only when the running
-Emacs does not have it, so a package that needs them can require
-emacs-compat and keep the sources it uses everywhere else.
-
-Emacs 20 needs devel/emacs20-compat, which has more to do; XEmacs needs
-devel/xemacs-compat.
