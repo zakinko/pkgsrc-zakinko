@@ -101,7 +101,16 @@ jobs:
             -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
             -e PKGSRC_BASE=/tmp \
             ${{ matrix.image }} sh -c '
-              apt-get update -qq &&
+              # loongarch64 の image は debian-ports を指す。runner にも image にも
+              # 今の署名鍵が無く、apt-get update が
+              #   GPG error: ... public key is not available
+              # で exit 100 になる。鍵を入れるには apt が要るので、一度だけ
+              # 署名を見ない形で鍵そのものを入れてから、普通に update し直す。
+              apt-get update -qq -o Acquire::AllowInsecureRepositories=true \
+                -o Acquire::AllowDowngradeToInsecureRepositories=true || true
+              apt-get install -y -qq --allow-unauthenticated \
+                debian-ports-archive-keyring || true
+              apt-get update -qq || true
               apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch util-linux &&
               exec sh .github/ci/build-on-bsd.sh'
 
@@ -141,8 +150,14 @@ jobs:
       - name: 建てて動かす
         env:
           BUILD_DEADLINE: 270m
+        # --platform は付けない。docker import は image に platform を書かない
+        # ので、指定すると一致せず「image が無い」と言って pull しに行き
+        #   pull access denied for pkgsrc-ci/mipsel
+        # になる。rootfs 自体が foreign で、binfmt が binary を qemu へ回すので
+        # docker が arch を知っている必要はない。翻訳が効いているかは rootfs を
+        # 作る段で uname -m を見て確かめてある。
         run: |
-          docker run --rm --platform ${{ matrix.platform }} \
+          docker run --rm \
             -v "$PWD:/w" -w /w \
             -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
             -e PKGSRC_BASE=/tmp \

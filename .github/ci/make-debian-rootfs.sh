@@ -33,9 +33,26 @@ R="$W/rootfs"
 # Debian ports は鍵が別。archive.debian.org は期限切れの鍵を持つので
 # --no-check-gpg にする。取るのは公開されている rootfs で、そこから
 # 秘密を読むわけではない。
+# Ubuntu の debian-ports-archive-keyring は、いま debian-ports に署名して
+# いる鍵より古い。そのまま使うと
+#   E: Release signed by unknown key (key id C6894E6BB25B9C99)
+#   The specified keyring ... may be incorrect or out of date.
+# で止まる。現行のものを Debian の main archive から取る。
 KEY=
 case $MIRROR in
-*debian-ports*) KEY="--keyring=/usr/share/keyrings/debian-ports-archive-keyring.gpg" ;;
+*debian-ports*)
+	KD=$(mktemp -d)
+	deb=$(curl -sf "http://deb.debian.org/debian/pool/main/d/debian-ports-archive-keyring/" |
+		sed -n 's/.*\(debian-ports-archive-keyring_[0-9.]*_all\.deb\).*/\1/p' |
+		sort -u | tail -1)
+	[ -n "$deb" ] || { echo "!! 現行の keyring が見つからない"; exit 1; }
+	echo "  keyring: $deb"
+	curl -sfo "$KD/k.deb" "http://deb.debian.org/debian/pool/main/d/debian-ports-archive-keyring/$deb"
+	( cd "$KD" && ar x k.deb && tar xf data.tar.* )
+	K="$KD/usr/share/keyrings/debian-ports-archive-keyring.gpg"
+	[ -f "$K" ] || { echo "!! keyring の中身が取り出せない"; ls -R "$KD" | head -20; exit 1; }
+	KEY="--keyring=$K"
+	;;
 *archive.debian.org*) KEY="--no-check-gpg" ;;
 esac
 
