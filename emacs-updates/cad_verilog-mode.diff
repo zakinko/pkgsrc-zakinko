@@ -66,10 +66,10 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/Makefile cad/v
 +
 +.include "../../editors/emacs/modules.mk"
 +
-+# Emacs 20 has neither dolist nor cl's remove; devel/emacs-compat and cl supply
++# Emacs 20 has neither dolist nor cl's remove; devel/elisp-compat and cl supply
 +# them, so the file byte-compiles there as it does everywhere else.
 +.if ${EMACS_FLAVOR} == "emacs" && ${EMACS_VERSION_MAJOR} < 21
-+DEPENDS+=	${EMACS_PKGNAME_PREFIX}emacs-compat-[0-9]*:../../devel/emacs-compat
++DEPENDS+=	${EMACS_PKGNAME_PREFIX}elisp-compat-[0-9]*:../../devel/elisp-compat
 +EMACS_COMPAT=	-l ${WRKSRC}/verilog-e20.el
 +.else
 +EMACS_COMPAT=	# none
@@ -104,12 +104,12 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/files/verilog-
 +
 +;; verilog-mode.el calls dolist and remove at compile time, and
 +;; make-obsolete-variable with the WHEN argument at load time.  pkgsrc's
-+;; emacs-compat has all three; pull it in when this is an Emacs that needs it,
++;; elisp-compat has all three; pull it in when this is an Emacs that needs it,
 +;; and do nothing anywhere else.
 +
 +(when (and (not (featurep 'xemacs)) (< emacs-major-version 21))
 +  (require 'cl)
-+  (require 'e20-compat))
++  (require 'elisp-compat))
 +
 +(provide 'verilog-e20)
 diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/patches/patch-verilog-mode.el cad/verilog-mode/patches/patch-verilog-mode.el
@@ -120,7 +120,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/patches/patch-
 +
 +verilog-mode calls make-obsolete-variable with the WHEN argument, which
 +Emacs 20 does not take, so the compiled file fails to load there.
-+devel/emacs-compat has the three-argument form (and dolist and remove,
++devel/elisp-compat has the three-argument form (and dolist and remove,
 +which the byte-compiler needs); files/verilog-e20.el pulls it in when this
 +is an Emacs 20, and is a no-op anywhere else.  The require is soft, so the
 +file still loads if that file is not installed.
@@ -130,7 +130,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/cad/verilog-mode/patches/patch-
 +@@ -1,5 +1,7 @@
 + ;;; verilog-mode.el --- major mode for editing verilog source in Emacs  -*- lexical-binding: t; -*-
 + 
-++(require (quote verilog-e20) nil t)   ; Emacs 20: pkgsrc's emacs-compat
+++(require (quote verilog-e20) nil t)   ; Emacs 20: pkgsrc's elisp-compat
 ++
 + ;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 + 

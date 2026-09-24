@@ -1,4 +1,4 @@
-;;; emacs-compat.el --- what an older Emacs lacks  -*- coding: iso-2022-7bit -*-
+;;; elisp-compat.el --- what an older Emacs lacks  -*- coding: iso-2022-7bit -*-
 
 ;; pkgsrc still carries editors/emacs20, and some of the elisp it packages
 ;; was written for Emacs 21 or later.  This file defines, only when they
@@ -426,7 +426,11 @@ and remember the rules, so font-lock can be told about them too."
 
 ;;; regexp-opt's PAREN = words (21)
 (if (and (not (fboundp 'e20-regexp-opt))
-	 (not (string-match "\\\\<" (progn (require 'regexp-opt) (regexp-opt '("a") 'words)))))
+	 ;; XEmacs 21.4 has no regexp-opt at all; 21.5 and every GNU Emacs
+	 ;; here do.  Without the condition-case the require signals and
+	 ;; the whole file stops loading.
+	 (condition-case nil (progn (require 'regexp-opt) t) (error nil))
+	 (not (string-match "\\\\<" (regexp-opt '("a") 'words))))
     (progn
       (fset 'e20-regexp-opt (symbol-function 'regexp-opt))
       (defun regexp-opt (strings &optional paren)
@@ -484,5 +488,25 @@ REMOVE is accepted and ignored; it only matters to setf."
 	(setq tail (cdr tail))))
     list))
 
+;; eval took a LEXICAL argument in Emacs 24.  XEmacs has the one-argument
+;; form, so a caller that passes t (dash.el does) gets a wrong-number-of-
+;; arguments error at byte-compile time.  XEmacs has no lexical binding to
+;; turn on, so the argument is accepted and ignored.
+;;
+;; Only XEmacs is wrapped.  GNU Emacs before 24 also takes one argument,
+;; but redefining eval there has not been measured and nothing in the tree
+;; has asked for it.
+(if (and (featurep 'xemacs)
+	 (not (condition-case nil (progn (eval 1 t) t) (error nil))))
+    (progn
+      (defalias 'emacs-compat-original-eval (symbol-function 'eval))
+      (defun eval (form &optional lexical)
+	"Evaluate FORM and return its value.
+LEXICAL is accepted for GNU Emacs 24 compatibility and ignored: XEmacs
+has no lexical binding to select."
+	(emacs-compat-original-eval form))))
+
 (provide 'e20-compat)
+(provide 'elisp-compat)
 (provide 'emacs-compat)
+(provide 'xemacs-compat)

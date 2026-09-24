@@ -9,7 +9,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/Makefile inputme
 +# 5.0.7.1 is the port of Tamago 4 to the Mule of Emacs 23 and later; its
 +# egg-com.el defines the fixed-euc coding systems with define-charset
 +# keywords Emacs 20 does not have.  On Emacs 20 use Tamago 4.0.6's own
-+# egg-com.el (files/egg-com-e20.el), and devel/emacs-compat for the
++# egg-com.el (files/egg-com-e20.el), and devel/elisp-compat for the
 +# few later functions the rest of the code uses.
 +# its/aynu.el needs JIS X 0213, which the build leaves out on Emacs 20.
 +PLIST_VARS+=	aynu
@@ -17,7 +17,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/Makefile inputme
 +PLIST.aynu=	yes
 +.endif
 +.if ${EMACS_VERSION_MAJOR} < 21
-+.include "../../devel/emacs-compat/buildlink3.mk"
++.include "../../devel/elisp-compat/buildlink3.mk"
 +post-patch:
 +	${CP} ${FILESDIR}/egg-com-e20.el ${WRKSRC}/egg-com.el
 +.endif
@@ -976,7 +976,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-do
 @@ -0,0 +1,15 @@
 +$NetBSD$
 +
-+Emacs 20: load devel/emacs-compat's e20-compat.el before compiling
++Emacs 20: load devel/elisp-compat's elisp-compat.el before compiling
 +(obarray-make, set-process-query-on-exit-flag).
 +
 +--- docomp.el.orig	2014-10-19 14:52:11.000000000 +0000
@@ -985,7 +985,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-do
 + 
 + ;;; Code:
 + 
-++(if (< emacs-major-version 21) (require 'e20-compat))
+++(if (< emacs-major-version 21) (require 'elisp-compat))
 + 
 + (setq load-path (append (list (expand-file-name "./") )
 + 			load-path))
@@ -995,7 +995,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-eg
 @@ -0,0 +1,15 @@
 +$NetBSD$
 +
-+Emacs 20: the functions devel/emacs-compat supplies (obarray-make,
++Emacs 20: the functions devel/elisp-compat supplies (obarray-make,
 +set-process-query-on-exit-flag) are used at load time.
 +
 +--- egg.el.orig	2014-10-19 14:52:11.000000000 +0000
@@ -1004,7 +1004,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-eg
 + 
 + ;;; Code:
 + 
-++(if (< emacs-major-version 21) (require 'e20-compat))
+++(if (< emacs-major-version 21) (require 'elisp-compat))
 + (defconst egg-version "5.0.7.1"
 +   "Version number for this version of Tamago.")
 + 
@@ -1017,7 +1017,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-it
  
 -Fix from FreeBSD ports
 +Fix from FreeBSD ports.  Emacs 20: obarray-make comes from
-+devel/emacs-compat.
++devel/elisp-compat.
  
 ---- its.el
 +--- its.el.orig
@@ -1027,7 +1027,7 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-it
 + 
 + ;;; Code:
 + 
-++(if (< emacs-major-version 21) (require 'e20-compat))
+++(if (< emacs-major-version 21) (require 'elisp-compat))
 + (eval-when-compile
 +   (require 'cl))
 + 
