@@ -53,6 +53,11 @@
 #			the latter reaches powerpc64, which is the one
 #			spelling the 64-bit archive suits.
 
+# The conditionals below read OPSYS, OS_VARIANT and MACHINE_PLATFORM.
+# Pull in the preferences here so this file is safe wherever it is
+# included, rather than relying on the includer having done it first.
+.include "../../mk/bsd.fast.prefs.mk"
+
 .if !defined(PLATFORM_SUPPORTS_GO_BIN)
 
 GO_BIN_PLATFORMS=	# empty

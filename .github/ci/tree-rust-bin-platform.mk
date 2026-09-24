@@ -10,6 +10,14 @@
 # refuses the platform is the breakage this exists to avoid.
 #
 # Same shape as lang/go-bin/platform.mk.
+#
+# The conditionals below read OPSYS, OS_VERSION and MACHINE_PLATFORM, so
+# pull in the preferences here rather than relying on whoever includes
+# this file having done it first.  lang/rust-bin/Makefile sets
+# ONLY_FOR_PLATFORM before it reaches bsd.prefs.mk, and including this
+# there without the line below gave
+#	Malformed conditional '${OPSYS} != "NetBSD" || ...'
+.include "../../mk/bsd.fast.prefs.mk"
 
 .if !defined(PLATFORM_SUPPORTS_RUST_BIN)
 

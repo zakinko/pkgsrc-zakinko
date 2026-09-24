@@ -26,12 +26,26 @@ VARS='OPSYS|OS_VARIANT|MACHINE_PLATFORM|MACHINE_ARCH|OS_VERSION'
 # 形にしたら、環境変数が子に引き継がれて無限再帰し、fork が尽きた。呼ぶ側が
 # 素の写しに対して一度、当てた後に一度、合わせて二度呼ぶ。検査は一つの file
 # だけを見る。
-prefs=$(grep -n 'include.*mk/bsd\.prefs\.mk' "$M" | head -1 | cut -d: -f1)
+# bsd.prefs.mk でも bsd.fast.prefs.mk でもよい。後者は .mk の断片が自分で
+# 引くための軽い版で、lang/rust/rust.mk が既にそうしている。
+prefs=$(grep -nE 'include.*mk/bsd\.(fast\.)?prefs\.mk' "$M" | head -1 | cut -d: -f1)
 if [ -z "$prefs" ]; then
-	# prefs を include しない package も在る。その場合は bsd.pkg.mk が
-	# 末尾で読むので、条件に使えるのは .include の後だけ。ここでは
-	# 判定材料が無いので何も言わない。
-	echo "  (bsd.prefs.mk を include していないので位置は測れない)"
+	# どちらも include していない。条件に使っていなければ何も言わない。
+	# 使っているなら、ここでは安全かどうかを判定できない -- 呼ぶ側が
+	# prefs より後で include していれば通り、前なら Malformed conditional
+	# になる。**その「測れない」を通してきたのがこの穴で、三度踏んだ。**
+	# 自分で引かせれば置き場所に依らなくなるので、そう求める。
+	uses=$(awk -v v="$VARS" '
+		/^\.[[:space:]]*(el)?if/ && $0 ~ "\\$\\{(" v ")" { print NR ": " $0 }
+	' "$M")
+	if [ -n "$uses" ]; then
+		echo "!! prefs を include せずに、条件で prefs 由来の変数を使っている:" >&2
+		printf '%s\n' "$uses" | sed 's/^/   /' >&2
+		echo "   置かれる場所によって Malformed conditional になる。" >&2
+		echo "   この file の頭で bsd.fast.prefs.mk を引くこと。" >&2
+		exit 1
+	fi
+	echo "  prefs を include していないが、条件でも使っていない"
 	exit 0
 fi
 
@@ -65,24 +79,35 @@ echo "  bsd.prefs.mk ($prefs 行) より前の条件使用: 0 件"
 # 代入" で数えたら、素の木の EXTRACT_SUFX や TOOL_DEPENDS まで告発した。
 # 一度 target を見たら旗が下りない書き方だったので、直した版まで落ちた。
 # 旗は代入で下ろし、target 行で上げる。
+# bmake の規則で数える。tab で始まる行 (recipe) は、直前の桁 0 の変数代入より
+# 後に target 行が無ければ target に繋がっていない。
+#
+# 継続行は行の始まりに依らず追う。最初は桁 0 の代入だけで追っていたので、
+#	.for go_platform go_archive in \
+#		Darwin-*-x86_64      darwin-amd64 \
+# の続きの行 (tab 始まり) を recipe と誤認して、自分の platform.mk を告発した。
+# その前は代入の継続行で上流の GENERATE_PLIST+= を告発している。同じ穴を
+# 二度開けたので、継続の判定を一箇所に寄せた。
 bad2=$(awk '
-	# 行末の \\ で続く行は、前の論理行の一部。代入の継続行は tab で始まる
-	# ことが在るので、recipe と数えてはいけない。素の木の GENERATE_PLIST+=
-	# がまさにそれで、これを数えていなかったので上流の Makefile まで
-	# 告発していた。
-	cont { if ($0 !~ /\\$/) cont = 0; next }
+	{
+		if (cont) { if ($0 !~ /\\$/) cont = 0; next }
+		starts_cont = ($0 ~ /\\$/)
+	}
 	# target 行。桁 0 で、空白・# ・. で始まらず、= より前に : が在る。
-	# .PHONY: は . で始まるので target とは数えない (実体が後に来る)。
 	/^[^ \t#.]/ {
-		line = $0
-		if (line ~ /\\$/) cont = 1
-		eq = index(line, "=")
-		co = index(line, ":")
-		if (co > 0 && (eq == 0 || co < eq)) { have = 1; next }
-		if (eq > 0) { have = 0; lastassign = NR ": " line; next }
+		eq = index($0, "=")
+		co = index($0, ":")
+		if (co > 0 && (eq == 0 || co < eq)) { have = 1 }
+		else if (eq > 0) { have = 0; lastassign = NR ": " $0 }
+		if (starts_cont) cont = 1
 		next
 	}
-	/^\t/ { if (!have && lastassign != "") { print lastassign; lastassign = "" } }
+	/^\t/ {
+		if (!have && lastassign != "") { print lastassign; lastassign = "" }
+		if (starts_cont) cont = 1
+		next
+	}
+	{ if (starts_cont) cont = 1 }
 ' "$M")
 
 if [ -n "$bad2" ]; then
