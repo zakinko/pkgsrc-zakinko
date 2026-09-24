@@ -26,6 +26,16 @@ The diffs are in the three parts wiz asked for on 2026-09-19.
 | `modules.mk.diff`, `pbulk-index.mk.diff` | the framework itself | – |
 | `pkg-fixes/framework/` | the Emacs packages' own side of it: `version.mk` written once per Emacs, `buildlink3.mk` reading the new variables, a `site-start.el` that lets Emacs find info under its version directory | the framework |
 | `pkg-fixes/fixes/` | packages that are wrong on trunk today, with the `modules.mk` that is there now | nothing |
+
+`fixes/emacs29-nox11-version.diff` is the one of those that only shows up
+once the lisp moves under a version directory.  `editors/emacs29` went to
+29.4 and `editors/emacs29-nox11/version.mk` stayed at
+`_EMACS_VERSION_MINOR= 1`, so a package built for emacs29nox installs its
+lisp into `share/emacs/29.1/site-lisp` while the Emacs that is meant to
+read it looks in `share/emacs/29.4/site-lisp`.  Found by building
+`www/emacs-w3m-snapshot` against emacs29nox: `devel/apel` installed, and
+the build then stopped with "Cannot open load file: product".  The other
+six Emacs packages and all four XEmacs ones agree with their own version.
 | `pkg-fixes/adaptations/` | packages that are right today and break once the prefix lands on their name | the framework |
 | `pkg-fixes/not-sent/` | a diff that applies but does not make its package build (`devel/ecb`), kept for the record | – |
 
