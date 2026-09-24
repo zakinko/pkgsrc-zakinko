@@ -30,8 +30,8 @@ echo "  MACHINE_PLATFORM: $PLAT"
 
 if [ -d "$GOPKG" ]; then
 	echo "########## GO_TYPE ##########"
-	sup=$(svv "$GOPKG" GO_BIN_SUPPORTED)
-	echo "  GO_BIN_SUPPORTED    : $sup"
+	sup=$(svv "$GOPKG" PLATFORM_SUPPORTS_GO_BIN)
+	echo "  PLATFORM_SUPPORTS_GO_BIN    : $sup"
 	echo "  GO_TYPE 無指定 の GO : $(svv "$GOPKG" GO)"
 	echo "  GO_TYPE 無指定 の dep: $(svv "$GOPKG" GO_PACKAGE_DEP)"
 	gb=$(svv "$GOPKG" GO GO_TYPE=bin)
@@ -43,7 +43,7 @@ if [ -d "$GOPKG" ]; then
 		         *) echo "  !! 対応する箱なのに bin にならない"; rc=1 ;; esac ;;
 	no)	case $db in *go-bin*) echo "  !! 対応しない箱なのに go-bin を要求している"; rc=1 ;;
 		         *) echo "  -> src に落ちた (対応しない箱なので正しい)" ;; esac ;;
-	*)	echo "  !! GO_BIN_SUPPORTED が yes/no でない: $sup"; rc=1 ;;
+	*)	echo "  !! PLATFORM_SUPPORTS_GO_BIN が yes/no でない: $sup"; rc=1 ;;
 	esac
 else
 	echo "  (devel/git-lfs が無いので GO_TYPE は見ない)"

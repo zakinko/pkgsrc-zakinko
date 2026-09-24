@@ -19,10 +19,10 @@
 +GO_TYPE?=		src
  
 -# Build dependency for Go
-+.include "../../lang/go-bin/platforms.mk"
++.include "../../lang/go-bin/platform.mk"
 +
 +.if ${GO_TYPE} == "bin" && !defined(GO_VERSION_REQD) && \
-+    ${GO_BIN_SUPPORTED} == "yes"
++    ${PLATFORM_SUPPORTS_GO_BIN} == "yes"
 +GO_DIR=			go-bin
 +GO_PACKAGE_DEP=		go-bin>=${GO${GOVERSSUFFIX}_VERSION:R}:../../lang/go-bin
 +.else

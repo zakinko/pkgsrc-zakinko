@@ -53,12 +53,11 @@
 #			the latter reaches powerpc64, which is the one
 #			spelling the 64-bit archive suits.
 
-.if !defined(GO_BIN_PLATFORMS_MK)
-GO_BIN_PLATFORMS_MK=	# defined
+.if !defined(PLATFORM_SUPPORTS_GO_BIN)
 
 GO_BIN_PLATFORMS=	# empty
 
-.for _platform_ _archive_ in \
+.for go_platform go_archive in \
 	Darwin-*-x86_64      darwin-amd64 \
 	Darwin-*-aarch64     darwin-arm64 \
 	DragonFly-*-x86_64   dragonfly-amd64 \
@@ -92,8 +91,8 @@ GO_BIN_PLATFORMS=	# empty
 	SunOS-*-x86_64       illumos-amd64 \
 	AIX-*-powerpc64      aix-ppc64
 
-GO_BIN_PLATFORMS+=		${_platform_}
-GO_BIN_ARCHIVE.${_platform_}=	${_archive_}
+GO_BIN_PLATFORMS+=		${go_platform}
+GO_BIN_ARCHIVE.${go_platform}=	${go_archive}
 .endfor
 
 # pkgsrc spells Solaris and illumos alike in MACHINE_PLATFORM, but
@@ -104,11 +103,11 @@ GO_BIN_ARCHIVE.SunOS-*-x86_64=	solaris-amd64
 .endif
 
 # Does this machine have one?
-GO_BIN_SUPPORTED=	no
-.for _platform_ in ${GO_BIN_PLATFORMS}
-.  if !empty(MACHINE_PLATFORM:M${_platform_})
-GO_BIN_SUPPORTED=	yes
+.for go_platform in ${GO_BIN_PLATFORMS}
+.  if !empty(MACHINE_PLATFORM:M${go_platform})
+PLATFORM_SUPPORTS_GO_BIN?=	yes
 .  endif
 .endfor
+PLATFORM_SUPPORTS_GO_BIN?=	no
 
-.endif  # GO_BIN_PLATFORMS_MK
+.endif # !defined(PLATFORM_SUPPORTS_GO_BIN)

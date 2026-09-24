@@ -5,7 +5,7 @@ set -e
 TREE=${1:?usage: $0 <pkgsrc tree>}
 D=$(cd "$(dirname "$0")" && pwd)
 
-if grep -q 'GO_BIN_SUPPORTED' "$TREE/lang/go/version.mk"; then
+if grep -q 'PLATFORM_SUPPORTS_GO_BIN' "$TREE/lang/go/version.mk"; then
 	echo "  go: version.mk は既に GO_TYPE を見ている。何もしない"
 	exit 0
 fi
@@ -18,13 +18,13 @@ fi
 # repo の根は この script の在処から辿る (.github/ci の二つ上)。
 SRC=$(cd "$D/../.." && pwd)/go-bin
 [ -d "$SRC" ] || { echo "!! go-bin が repo に無い: $SRC" >&2; exit 1; }
-for f in Makefile distinfo platforms.mk; do
+for f in Makefile distinfo platform.mk; do
 	cp "$SRC/$f" "$TREE/lang/go-bin/$f"
 done
-grep -q 'GO_BIN_PLATFORMS' "$TREE/lang/go-bin/platforms.mk" || {
-	echo "!! go-bin: platforms.mk が入っていない" >&2; exit 1; }
+grep -q 'GO_BIN_PLATFORMS' "$TREE/lang/go-bin/platform.mk" || {
+	echo "!! go-bin: platform.mk が入っていない" >&2; exit 1; }
 
 patch -f -p0 -d "$TREE" -i "$D/tree-go-type.diff" > /dev/null
-grep -q 'GO_BIN_SUPPORTED' "$TREE/lang/go/version.mk" || {
+grep -q 'PLATFORM_SUPPORTS_GO_BIN' "$TREE/lang/go/version.mk" || {
 	echo "!! go: version.mk に GO_TYPE が入っていない" >&2; exit 1; }
 echo "  go: go-bin を fork の中身にし、version.mk に GO_TYPE を入れた"

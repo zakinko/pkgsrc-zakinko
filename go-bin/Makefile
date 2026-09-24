@@ -31,14 +31,14 @@ CHECK_RELRO_SUPPORTED=		no
 
 .include "../../mk/bsd.prefs.mk"
 
-.include "platforms.mk"
+.include "platform.mk"
 
-.for _platform_ in ${GO_BIN_PLATFORMS}
-ONLY_FOR_PLATFORM+=	${_platform_}
-DIST.${_platform_}=	go${PKGVERSION_NOREV}.${GO_BIN_ARCHIVE.${_platform_}}.tar.gz
-.  if !empty(MACHINE_PLATFORM:M${_platform_}) || make(distinfo) || make(mdi)
-DISTFILES+=		${DIST.${_platform_}}
-EXTRACT_ONLY+=		${DIST.${_platform_}}
+.for go_platform in ${GO_BIN_PLATFORMS}
+ONLY_FOR_PLATFORM+=	${go_platform}
+DIST.${go_platform}=	go${PKGVERSION_NOREV}.${GO_BIN_ARCHIVE.${go_platform}}.tar.gz
+.  if !empty(MACHINE_PLATFORM:M${go_platform}) || make(distinfo) || make(mdi)
+DISTFILES+=		${DIST.${go_platform}}
+EXTRACT_ONLY+=		${DIST.${go_platform}}
 .  endif
 .endfor
 

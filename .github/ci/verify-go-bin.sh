@@ -43,9 +43,9 @@ done
 
 echo "########## go-bin から見て ##########"
 PLAT=$(sv MACHINE_PLATFORM)
-SUP=$(sv GO_BIN_SUPPORTED)
+SUP=$(sv PLATFORM_SUPPORTS_GO_BIN)
 DF=$(sv DISTFILES)
-printf '  GO_BIN_SUPPORTED: %s\n' "$SUP"
+printf '  PLATFORM_SUPPORTS_GO_BIN: %s\n' "$SUP"
 printf '  PKGNAME         : %s\n' "$(sv PKGNAME)"
 printf '  DISTFILES       : %s\n' "$DF"
 n=$(echo "$DF" | tr ' ' '\n' | grep -c . || true)
