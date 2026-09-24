@@ -15,19 +15,19 @@
  
  NETBSD_REPO=	https://cdn.NetBSD.org/pub/pkgsrc/distfiles/LOCAL_PORTS/rust/
  
-@@ -102,6 +107,11 @@
- .endif
- .if ${MACHINE_PLATFORM:MNetBSD-*-x86_64} || make(distinfo) || make(makesum) || make(mdi)
+@@ -104,6 +109,11 @@
  RUST_ARCH:=	x86_64-unknown-netbsd
-+DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
-+.endif
+ DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
+ .endif
 +.if (${MACHINE_PLATFORM:MSunOS-*-x86_64} && ${OS_VARIANT:U} != "Solaris") || \
 +    make(distinfo) || make(makesum) || make(mdi)
 +RUST_ARCH:=	x86_64-unknown-illumos
- DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
- .endif
++DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
++.endif
  
-@@ -182,17 +192,7 @@
+ # NetBSD provided binaries:
+ 
+@@ -182,17 +192,6 @@
  SITES.${DF}=	${NETBSD_REPO}
  .endif
  
@@ -40,7 +40,7 @@
 -#DISTFILES:=	${DISTFILES} ${DF}
 -#SITES.${DF}=	https://us-central.manta.mnx.io/pkgsrc/public/pkg-bootstraps/
 -#.endif
- 
+-
 -
  # Binary still extracts to plain non-nb'ed directory
  WRKSRC:=	${WRKSRC:C/nb[0-9]*//}

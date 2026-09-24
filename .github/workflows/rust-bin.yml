@@ -199,6 +199,10 @@ jobs:
         include:
           - { name: 'OmniOS',      action: omnios-vm,      release: 'r151058' }
           - { name: 'OpenIndiana', action: openindiana-vm, release: '' }
+          # 当て物は OS_VARIANT が Solaris のときだけ SunOS を
+          # ONLY_FOR_PLATFORM から外す。その条件を走らせる箱が無いまま
+          # 送る形だったので足す。ここでの正しい結果は「拒まれる」。
+          - { name: 'Solaris 11.4', action: solaris-vm,    release: '11.4' }
     steps:
       - uses: actions/checkout@v4
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
@@ -216,6 +220,13 @@ jobs:
           run: |
             PATH=/opt/gcc-14/bin:$PATH; export PATH
             sh .github/ci/build-on-bsd.sh
+      - uses: vmactions/solaris-vm@v1
+        if: matrix.action == 'solaris-vm'
+        with:
+          release: ${{ matrix.release }}
+          envs: 'PKGS TREE_PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
+          prepare: pkg install --accept developer/gcc developer/build/gnu-make || true
+          run: sh .github/ci/build-on-bsd.sh
       - uses: vmactions/openindiana-vm@v1
         if: matrix.action == 'openindiana-vm'
         with:

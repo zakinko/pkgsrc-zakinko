@@ -60,6 +60,48 @@ if [ -n "$SV_ERR" ]; then
 	rc=1
 fi
 
+# Solaris では「入らないこと」が正しい。当て物は
+#
+#   .if ${OS_VARIANT:U} != "Solaris"
+#   ONLY_FOR_PLATFORM+=	SunOS-*-x86_64
+#   .endif
+#
+# という条件を持っているのに、その条件を走らせる箱が matrix に無かった。
+# 条件を含む diff を、条件を一度も撃たずに送る形だったので閉じる。
+#
+# 上流が出しているのは x86_64-unknown-illumos の tarball だけで、Solaris 向けは
+# 無い。それが Solaris で動くかどうかは測っていないので、動かないとは書かない。
+# 測るのは「この package が Solaris を名乗り出ないこと」— 当て物が作る挙動
+# そのもの。
+if [ "$OS" = SunOS ] && [ "$(sv OS_VARIANT)" = Solaris ]; then
+	echo "########## Solaris では名乗り出ないこと ##########"
+	OFP=$(sv ONLY_FOR_PLATFORM)
+	echo "  ONLY_FOR_PLATFORM: $OFP"
+	case $OFP in
+	*SunOS*)
+		echo "  !! Solaris なのに SunOS が ONLY_FOR_PLATFORM に入っている" >&2
+		rc=1 ;;
+	*)	echo "  ok SunOS は入っていない" ;;
+	esac
+	# 建てようとして拒まれることまで見る。変数が正しくても、実際に
+	# 止まるかは別。
+	if ( cd "$D" && $PKGMAKE install > "$W/solaris.log" 2>&1 ); then
+		echo "  !! install が通ってしまった。Solaris へ配られている" >&2
+		rc=1
+	elif grep -qE 'not available for|ONLY_FOR_PLATFORM|NOT_FOR_PLATFORM' "$W/solaris.log"; then
+		echo "  ok platform が理由で止まった:"
+		grep -nE 'not available for|ONLY_FOR_PLATFORM|NOT_FOR_PLATFORM' "$W/solaris.log" |
+			sed 's/^/     /' | head -3
+	else
+		echo "  ?? 止まったが platform が理由ではない。これは当て物の証明にならない" >&2
+		tail -20 "$W/solaris.log" | sed 's/^/     /'
+		rc=1
+	fi
+	echo
+	echo "== rust-bin: Solaris では配られない ($PLAT) rc=$rc"
+	exit $rc
+fi
+
 echo "########## 取られる配布物 ##########"
 DF=$(sv DISTFILES)
 echo "  DISTFILES: $DF"
