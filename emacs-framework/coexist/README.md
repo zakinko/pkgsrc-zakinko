@@ -134,3 +134,47 @@ those packages collide on that one file.  None of them links X
 (`mozc_emacs_helper` pulls in zero X libraries), so they are candidates
 for a `-bin` package shared between versions, the way Debian has
 `emacs-bin-common`.  Not done here.
+
+## XEmacs: `xemacs/`
+
+`editors/xemacs` and `editors/xemacs-current` have the same problem and
+a smaller version of it.  Both carry `PKGBASE` `xemacs` (or
+`xemacs-nox11` for the nox pair), so only one of 21.4 and 21.5 can be
+installed, but XEmacs already puts almost everything under a version of
+its own:
+
+| | |
+|---|---|
+| `lib/xemacs-<version>/` | 1263 files, already per version |
+| `bin/xemacs-<version>` | the binary itself, already per version |
+| `bin/xemacs` | a symlink -- collides |
+| `bin/ellcc`, `gnuattach`, `gnuclient`, `gnudoit`, `ootags`, `xemacs-b2m`, `xemacs-ctags`, `xemacs-etags`, `xemacs-rcs-checkin` | collide |
+| `man/man1/` | seven pages collide |
+
+So seventeen files, against ninety-three for Emacs 29 and 30.  The two
+packages here give those seventeen the version and let `ALTERNATIVES`
+carry the plain names, which is the shape decision C picked for GNU
+Emacs.  `PKGNAME` becomes `xemacs214-nox11-21.4.25` and
+`xemacs215-nox11-21.5.36`.
+
+Measured: both installed in one prefix, `pkg_add` reporting no
+conflict, both starting and naming their own version, and `bin/xemacs`
+resolving through the wrapper.
+
+	xemacs-21.4.25    21.4 (patch 25) "Too Much Mozart" XEmacs Lucid
+	xemacs-21.5-b36   21.5  (beta36) "leeks" XEmacs Lucid
+
+Two things to know before adopting them.  The 21.5 binary is installed
+under `EMACS_DISTNAME` (`xemacs-21.5-b36`), not `DISTNAME`
+(`xemacs-21.5.36`), so that is the name `ALTERNATIVES` has to point at.
+And `_EMACS_PKGDIR_MAP` in `modules.mk` still sends `xemacs214nox` to
+`editors/xemacs-nox11`; it has to follow these packages, or a package
+built for XEmacs asks for a `xemacs-nox11-21.4.25` that is no longer
+what is installed.  The same is true of `coexist/A` and `coexist/B` for
+GNU Emacs -- the map points at the tree packages, and these are
+proposals beside them.
+
+The elisp side does not divide.  XEmacs looks for packages under
+`lib/xemacs/site-packages`, which is not split by version, so
+`modules.mk` gives XEmacs the flavour's prefix and one `xemacs-foo`
+serves both; `devel/elisp-compat` covers what 21.4 lacks and 21.5 has.
