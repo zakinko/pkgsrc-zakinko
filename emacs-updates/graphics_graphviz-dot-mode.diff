@@ -31,7 +31,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/graphics/graphviz-dot-mode/Make
 -
 -EMACS_MODULES=	base
 +EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
-+# and Emacs 20, with devel/emacs20-compat and devel/cl-lib-el for what
++# and Emacs 20, with devel/emacs-compat and devel/cl-lib-el for what
 +# 0.5.0 asks of Emacs 25, and files/graphviz-dot-e20.el for the rest
 +EMACS_VERSIONS_ACCEPTED+=	emacs20
  
@@ -45,7 +45,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/graphics/graphviz-dot-mode/Make
 +EL_E20=		graphviz-dot-e20.el
 +E20_FLAGS=	-L ${EMACS_LISPPREFIX} -l graphviz-dot-e20
 +.include "../../devel/cl-lib-el/buildlink3.mk"
-+.include "../../devel/emacs20-compat/buildlink3.mk"
++.include "../../devel/emacs-compat/buildlink3.mk"
 +post-extract:
 +	${CP} ${FILESDIR}/graphviz-dot-e20.el ${WRKSRC}/
 +.endif
@@ -92,7 +92,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/graphics/graphviz-dot-mode/file
 +;;; graphviz-dot-e20.el --- graphviz-dot-mode 0.5 on Emacs 20
 +
 +;; graphviz-dot-mode 0.5.0 asks for Emacs 25.  What it needs comes from
-+;; devel/cl-lib-el and e20-compat.el (devel/emacs20-compat); the compile.el
++;; devel/cl-lib-el and e20-compat.el (devel/emacs-compat); the compile.el
 +;; table below is the one piece specific to this mode.  Load it before
 +;; byte-compiling the mode too, so the macros expand.
 +
@@ -136,7 +136,7 @@ diff -ruN -x CVS -x work -x '*.orig' /usr/pkgsrc/graphics/graphviz-dot-mode/patc
 +$NetBSD$
 +
 +On Emacs 20 load the compatibility file the package installs beside the
-+mode (devel/emacs20-compat and devel/cl-lib-el supply the rest).
++mode (devel/emacs-compat and devel/cl-lib-el supply the rest).
 +
 +--- graphviz-dot-mode.el.orig
 ++++ graphviz-dot-mode.el

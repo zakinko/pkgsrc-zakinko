@@ -1,8 +1,0 @@
-pkgsrc still carries editors/emacs20, and some of the elisp it packages
-was written for Emacs 21 or later.  e20-compat.el defines, only when
-they are missing, the functions, macros and mechanisms those packages
-use: hash tables, replace-regexp-in-string, propertize, subr-x's string
-functions, setq-local, with-eval-after-load, prog-mode, syntax-ppss,
-syntax-propertize, and a translator that rewrites regexps using shy
-groups, intervals and [:alpha:] classes into what Emacs 20's engine
-accepts, remapping the match data afterwards.

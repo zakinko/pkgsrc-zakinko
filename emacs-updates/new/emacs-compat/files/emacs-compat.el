@@ -1,4 +1,4 @@
-;;; e20-compat.el --- pieces of Emacs 21 to 26 for Emacs 20  -*- coding: iso-2022-7bit -*-
+;;; emacs-compat.el --- what an older Emacs lacks  -*- coding: iso-2022-7bit -*-
 
 ;; pkgsrc still carries editors/emacs20, and some of the elisp it packages
 ;; was written for Emacs 21 or later.  This file defines, only when they
@@ -453,4 +453,36 @@ and remember the rules, so font-lock can be told about them too."
       (save-excursion
 	(re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t))))
 
+;; The three that Emacs 24 added.  They came from the file that
+;; served Emacs 21 to 23, when the two compat packages became one.
+;; Guarded like everything else here, so they do nothing on an
+;; Emacs that already has them.
+
+(unless (fboundp 'alist-get)
+  (defun alist-get (key alist &optional default remove testfn)
+    "Return the value associated with KEY in ALIST, or DEFAULT.
+REMOVE is accepted and ignored; it only matters to setf."
+    (let ((x (if testfn
+		 (assoc key alist testfn)
+	       (assq key alist))))
+      (if x (cdr x) default))))
+
+(unless (fboundp 'seq-filter)
+  (defun seq-filter (pred sequence)
+    "Return a list of the elements of SEQUENCE for which PRED is non-nil."
+    (let (out)
+      (mapc (lambda (x) (when (funcall pred x) (setq out (cons x out))))
+	    (append sequence nil))
+      (nreverse out))))
+
+(unless (fboundp 'delete-dups)
+  (defun delete-dups (list)
+    "Destructively remove `equal' duplicates from LIST."
+    (let ((tail list))
+      (while tail
+	(setcdr tail (delete (car tail) (cdr tail)))
+	(setq tail (cdr tail))))
+    list))
+
 (provide 'e20-compat)
+(provide 'emacs-compat)
