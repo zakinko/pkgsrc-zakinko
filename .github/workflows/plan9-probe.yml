@@ -1,6 +1,11 @@
 name: plan9 probe
 
 # Plan 9 で pkgsrc の bootstrap がどこまで行くかを測るだけ。直すのはその後。
+#
+# 2026-09-24 に起こし直す。前の三回は cancel と failure で、偵察の出力を
+# 一行も得ていない。にもかかわらず go-bin の platform.mk に「pkgsrc は
+# そこで走らない」と書いていた。根拠は mk/platform/Plan9.mk が無いという
+# 不在だけで、実機では測れていなかった。
 # 2013 年の移植の試み (9p.io の contrib/staal1978) は bmake を建てる所で
 # 止まったと README に書いてあるが、今も同じかは誰も測っていない。
 #
