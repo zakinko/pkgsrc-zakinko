@@ -1,0 +1,206 @@
+--- lang/rust-bin/Makefile.orig
++++ lang/rust-bin/Makefile
+@@ -13,29 +13,14 @@
+ 
+ CONFLICTS+=	rust-[0-9]*
+ 
+-# Rust upstream provided binaries
+-ONLY_FOR_PLATFORM+=	Darwin-*-aarch64
+-ONLY_FOR_PLATFORM+=	Darwin-*-x86_64
+-ONLY_FOR_PLATFORM+=	FreeBSD-*-x86_64
+-ONLY_FOR_PLATFORM+=	Linux-*-aarch64
+-ONLY_FOR_PLATFORM+=	Linux-*-i386
+-ONLY_FOR_PLATFORM+=	Linux-*-x86_64
+-ONLY_FOR_PLATFORM+=	NetBSD-*-x86_64
++# The list lives in platform.mk so that lang/rust/rust.mk can ask the
++# same question when it decides whether RUST_TYPE=bin can be honoured.
++.include "platform.mk"
+ 
+-# he@NetBSD.org provided binaries
+-ONLY_FOR_PLATFORM+=	NetBSD-*-aarch64
+-ONLY_FOR_PLATFORM+=	NetBSD-*-aarch64eb
+-ONLY_FOR_PLATFORM+=	NetBSD-*-earmv7hf
+-ONLY_FOR_PLATFORM+=	NetBSD-*-earmv6hf
+-ONLY_FOR_PLATFORM+=	NetBSD-*-i386
+-ONLY_FOR_PLATFORM+=	NetBSD-*-powerpc
+-ONLY_FOR_PLATFORM+=	NetBSD-*-sparc64
+-ONLY_FOR_PLATFORM+=	NetBSD-*-mipsel
+-ONLY_FOR_PLATFORM+=	NetBSD-*-riscv64
++.for rust_bin_platform in ${RUST_BIN_PLATFORMS}
++ONLY_FOR_PLATFORM+=	${rust_bin_platform}
++.endfor
+ 
+-# Illumos, jperkin@ provided binaries
+-ONLY_FOR_PLATFORM+=	SunOS-*-x86_64
+-
+ NETBSD_REPO=	https://cdn.NetBSD.org/pub/pkgsrc/distfiles/LOCAL_PORTS/rust/
+ 
+ CHECK_RELRO_SKIP+=	lib/rustlib/*/bin/*
+@@ -104,6 +89,19 @@
+ RUST_ARCH:=	x86_64-unknown-netbsd
+ DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
+ .endif
++# Upstream builds x86_64-unknown-illumos and x86_64-pc-solaris separately, and
++# OS_VARIANT is what distinguishes the two on an otherwise identical
++# MACHINE_PLATFORM.  OS_VARIANT is only set on SunOS, hence the :U.
++.if (${MACHINE_PLATFORM:MSunOS-*-x86_64} && ${OS_VARIANT:U} != "Solaris") || \
++    make(distinfo) || make(makesum) || make(mdi)
++RUST_ARCH:=	x86_64-unknown-illumos
++DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
++.endif
++.if (${MACHINE_PLATFORM:MSunOS-*-x86_64} && ${OS_VARIANT:U} == "Solaris") || \
++    make(distinfo) || make(makesum) || make(mdi)
++RUST_ARCH:=	x86_64-pc-solaris
++DISTFILES:=	${DISTFILES} ${DISTNAME}-${RUST_ARCH}.tar.gz
++.endif
+ 
+ # NetBSD provided binaries:
+ 
+@@ -181,17 +179,6 @@
+ DISTFILES:=	${DISTFILES} ${DF}
+ SITES.${DF}=	${NETBSD_REPO}
+ .endif
+-
+-# Illumos:
+-#.if ${MACHINE_PLATFORM:MSunOS-*-x86_64} || make(distinfo) || make(makesum) || make(mdi)
+-#RUST_ARCH:=	x86_64-unknown-illumos
+-#DN:=		${DISTNAME}
+-#EXTRACT_SUFX=	.tar.gz
+-#DF:=		${DN}-${RUST_ARCH}${EXTRACT_SUFX}
+-#DISTFILES:=	${DISTFILES} ${DF}
+-#SITES.${DF}=	https://us-central.manta.mnx.io/pkgsrc/public/pkg-bootstraps/
+-#.endif
+-
+ 
+ # Binary still extracts to plain non-nb'ed directory
+ WRKSRC:=	${WRKSRC:C/nb[0-9]*//}
+@@ -207,6 +194,11 @@
+ 	${RM} -f ${DESTDIR}${PREFIX}/lib/rustlib/uninstall.sh
+ 
+ .if ${OPSYS} == "Darwin"
++# The dylibs under lib/rustlib/<target>/ keep the install name they ship with
++# (see fix-darwin-install-name below), which the shlib check cannot resolve;
++# they are found through LC_RPATH at run time.  A * matches a slash here.
++CHECK_SHLIBS_SKIP+=	lib/rustlib/*/lib/*.dylib
++
+ .PHONY: fix-darwin-install-name
+ post-install: fix-darwin-install-name
+ fix-darwin-install-name:
+@@ -235,10 +227,39 @@
+ 		    ${DESTDIR}${PREFIX}/lib/rustlib/${RUST_ARCH}/bin/${bin}; \
+ 	done
+ .  endfor
+-.  for lib in lib lib/rustlib/${RUST_ARCH}/lib lib/rustlib/${RUST_ARCH}/codegen-backends
++# Only the dylibs directly under ${PREFIX}/lib.  The ones below
++# lib/rustlib/<target>/ keep the install name they ship with, because the
++# rewrite does not fit in the x86_64 build and is not needed for the program
++# to run.
++#
++# It does not fit: install_name_tool accepts an id of at most 71 characters in
++# those dylibs, and ${PREFIX}/lib/rustlib/x86_64-apple-darwin/lib/libstd-<hash>
++# .dylib is 74.  The arm64 build has room for 87, which is why only x86_64 ever
++# showed it.  Worse, install_name_tool reports
++#     error: ... can't be redone ... because larger updated load commands do
++#     not fit (the program must be relinked, ...)
++# and exits 0, so the rewrite was skipped in silence and the failure surfaced
++# much later as
++#     pkg_add: rust-bin-1.96.1: missing required library: @rpath/libstd-...
++#
++# It is not needed: bin/rustc carries LC_RPATH @loader_path/../lib, which from
++# ${PREFIX}/bin resolves to ${PREFIX}/lib, exactly where the dylibs land, and
++# the ones under lib/rustlib are reached the same way.  None of them has an
++# @rpath dependency other than its own id, so the -change loop had nothing to
++# do there either.  codegen-backends does not exist in the darwin tarballs.
++#
++# Check the id we do ask for actually landed.  A silent skip here would be the
++# same trap one directory up.
++.  for lib in lib
+ 	for f in ${DESTDIR}${PREFIX}/${lib}/lib*.dylib; do		\
+ 		[ ! -f $$f ] && continue;				\
+-		install_name_tool -id `${ECHO} $$f | ${SED} -e 's,${DESTDIR},,g'` $$f; \
++		want=`${ECHO} $$f | ${SED} -e 's,${DESTDIR},,g'`;	\
++		install_name_tool -id $$want $$f;			\
++		got=`otool -D $$f | tail -1`;				\
++		if [ "$$got" != "$$want" ]; then			\
++			${ECHO} "install_name_tool did not set $$want (got $$got)" 1>&2; \
++			exit 1;						\
++		fi;							\
+ 		otool -XL $$f | grep '@rpath' | while read rpath rest; do \
+ 			install_name_tool -change $$rpath \
+ 			    `${ECHO} $$rpath | ${SED} -e 's,@rpath,${PREFIX}/lib,g'` \
+@@ -254,11 +275,20 @@
+ RUST_LLVM_RPATH=	${PREFIX}/lib
+ FORCE_RPATH=		--force-rpath
+ 
+-# 32-bit NetBSD ports need libatomic
++# These ports need libatomic.  The 32-bit ones need it for 64-bit atomics;
++# riscv64 needs it although it is 64-bit, because the compiler turns sub-word
++# atomics into libatomic calls there.  Without this the installed rustc does
++# not start:
++#
++#   librustc_driver-*.so: Shared object "libatomic.so.3" not found
++#
++# NetBSD ships no libatomic in base on any architecture, so nothing else
++# supplies it.
+ .  if ${MACHINE_PLATFORM:MNetBSD-*-powerpc} || \
+       ${MACHINE_PLATFORM:MNetBSD-*-earmv[67]hf} || \
+       ${MACHINE_PLATFORM:MNetBSD-*-mipsel} || \
+-      ${MACHINE_PLATFORM:MNetBSD-*-i386}
++      ${MACHINE_PLATFORM:MNetBSD-*-i386} || \
++      ${MACHINE_PLATFORM:MNetBSD-*-riscv64}
+ .    include "../../devel/libatomic/buildlink3.mk"
+ .  endif
+ 
+--- lang/rust-bin/distinfo.orig
++++ lang/rust-bin/distinfo
+@@ -42,9 +42,15 @@
+ BLAKE2s (rust-bin-1.96.1/rust-1.96.1-x86_64-apple-darwin.tar.gz) = 9c618801154d5452dd27538bb05c97271edf476bf7be67558129c13c0faddd2d
+ SHA512 (rust-bin-1.96.1/rust-1.96.1-x86_64-apple-darwin.tar.gz) = e675210bb203ad7a7ca27bd1f9cf7f5f55ec296dfa6e6da3cc4e472dcba7949be22d8ce98eac33659e4702e4026a4eee68c19eb36ba766d4bc0fe2f370107368
+ Size (rust-bin-1.96.1/rust-1.96.1-x86_64-apple-darwin.tar.gz) = 338031166 bytes
++BLAKE2s (rust-bin-1.96.1/rust-1.96.1-x86_64-pc-solaris.tar.gz) = 5f77e3f5c862f422cf72087aeca8763ea152318ac34cac8c4ef27c0a60c30543
++SHA512 (rust-bin-1.96.1/rust-1.96.1-x86_64-pc-solaris.tar.gz) = 3fbcf60482c2efe1e5368ae1f6a54f4c03dd1351ccba5b36a92bd3b2c652ae42c4d3d9bf4f13e327e87f693e8719f1a6260d1beeabc519ff79d8aa4edb1fca00
++Size (rust-bin-1.96.1/rust-1.96.1-x86_64-pc-solaris.tar.gz) = 477434058 bytes
+ BLAKE2s (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-freebsd.tar.gz) = 49a8821f30acb0dda99bfff8a1c6daac86e9d261282555a366de0f6f23b51e75
+ SHA512 (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-freebsd.tar.gz) = 17a113e4826d39f75d35a57eb4e12f10c9c404c21ca2162c915c5f53f66811c76699660fa7bf98505d47dc94c825aff0a4974ec9bf63cd6e8adde92ff6d0fa4d
+ Size (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-freebsd.tar.gz) = 393935107 bytes
++BLAKE2s (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-illumos.tar.gz) = 7ee8f35bc316dc2e0bde75d51c52de51704f57d18fcd432c0310253390c07f02
++SHA512 (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-illumos.tar.gz) = 1c6f04d51d2877757ef61af4942f7da43fffeecd78d28d5e30b3ec525f88518680bc884a414d93f9a4391291091870261da9005f36645ad63096f455a8ddccc7
++Size (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-illumos.tar.gz) = 472217520 bytes
+ BLAKE2s (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-linux-gnu.tar.gz) = 1d88b628231bd463d97681258a34ee5309a0335e3bc1bac9b20a702f19cfd746
+ SHA512 (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-linux-gnu.tar.gz) = d7d950a3e2e937181cb2ee16b30a411ef657ae26aa006b5f2d92bd41bc903f5f9e42303f079540214ec19176051be15f4df05b922e313ee42c5cb584257d8774
+ Size (rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-linux-gnu.tar.gz) = 377140346 bytes
+--- lang/rust/rust.mk.orig
++++ lang/rust/rust.mk
+@@ -37,6 +37,9 @@
+ 
+ .include "../../mk/bsd.fast.prefs.mk"
+ .include "platform.mk"
++# Whether lang/rust-bin has a binary for this machine.  The list belongs
++# to that package, so it lives there.
++.include "../../lang/rust-bin/platform.mk"
+ 
+ RUST_REQ?=	1.85.0
+ RUST_RUNTIME?=	no
+@@ -47,7 +50,11 @@
+ RUST_TYPE?=	src
+ .endif
+ 
+-.if ${RUST_TYPE} == "bin"
++# "bin" only means anything where lang/rust-bin has a binary.  Asking for
++# it elsewhere falls back to "src" rather than failing, so that a single
++# RUST_TYPE=bin in mk.conf does not break the machines nobody builds a
++# binary for.
++.if ${RUST_TYPE} == "bin" && ${PLATFORM_SUPPORTS_RUST_BIN} == "yes"
+ .  if ${RUST_RUNTIME} == "no"
+ BUILDLINK_DEPMETHOD.rust-bin?=		build
+ .  endif
+@@ -55,7 +62,8 @@
+ .  include "${RUST_DIR}-bin/buildlink3.mk"
+ .endif
+ 
+-.if ${RUST_TYPE} == "src"
++.if ${RUST_TYPE} == "src" || \
++    (${RUST_TYPE} == "bin" && ${PLATFORM_SUPPORTS_RUST_BIN} == "no")
+ .  if ${RUST_RUNTIME} == "no"
+ BUILDLINK_DEPMETHOD.rust?=		build
+ .  endif

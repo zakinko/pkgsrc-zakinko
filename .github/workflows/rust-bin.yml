@@ -21,10 +21,9 @@ on:
     paths:
       - '.github/workflows/rust-bin.yml'
       - '.github/ci/verify-rust-bin.sh'
-      - '.github/ci/tree-patch-rust-bin-illumos.sh'
-      - '.github/ci/tree-rust-bin-illumos.diff'
-      - '.github/ci/tree-patch-rust-bin-darwin.sh'
-      - '.github/ci/tree-rust-bin-darwin.diff'
+      - '.github/ci/tree-patch-rust-bin.sh'
+      - '.github/ci/tree-rust-bin.diff'
+      - '.github/ci/tree-rust-bin-platform.mk'
       - '.github/ci/tree-patch-metadata-darwin-selfid.sh'
       - '.github/ci/tree-metadata-darwin-selfid.diff'
   workflow_dispatch:
@@ -39,7 +38,7 @@ env:
   # bison の nls が gettext-tools と python313 を連れてくる。測っているのは
   # rustc が入って動くかなので外す。go-bin.yml と同じ理由。
   MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
-  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-rust-bin-illumos.sh .github/ci/tree-patch-rust-bin-riscv64-atomic.sh .github/ci/tree-patch-rust-bin-darwin.sh .github/ci/tree-patch-metadata-darwin-selfid.sh'
+  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-rust-bin.sh .github/ci/tree-patch-metadata-darwin-selfid.sh'
 
 jobs:
   linux:

@@ -32,7 +32,7 @@ env:
   PKGS: ''
   VERIFY: lang-type
   MKCONF_EXTRA: 'PKG_DEFAULT_OPTIONS=-nls'
-  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-go-type.sh .github/ci/tree-patch-rust-type.sh .github/ci/tree-patch-rust-bin-riscv64-atomic.sh'
+  TREE_PATCH: '.github/ci/tree-patch-libnbcompat-chflags.sh .github/ci/tree-patch-go-type.sh .github/ci/tree-patch-rust-bin.sh'
 
 jobs:
   linux:
