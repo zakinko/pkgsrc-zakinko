@@ -156,6 +156,30 @@ jobs:
       # rust-bin は ONLY_FOR_PLATFORM で NetBSD-*-i386 を謳っていて、
       # rpath の塊は Darwin 以外の全部に効くので、ここを測らないと効き目の
       # 範囲を言えない。
+      # run-in-qemu.sh は qemu を自分では入れない。mule.yml と同じ手当てを
+      # 置く。入れ忘れて一度落ちた: "runvm.sh: qemu-system-i386 が無い"。
+      # 既存の workflow に在る step を写さず、新しい job を書き足したときに
+      # 抜けた形。
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない。TCG になり相当遅い"
+          else
+            echo "::warning::/dev/kvm が無い。TCG になり相当遅い"
+          fi
+          command -v qemu-system-i386 || { echo "!! qemu-system-i386 が入らなかった"; exit 1; }
+
       - name: NetBSD/i386 で rust-bin を建てて動かす
         env:
           # 他の箱と同じ木でないと比べられない。run-in-qemu.sh の既定は
