@@ -119,6 +119,37 @@ else
 	echo "  !! install できない"
 	tail -40 "$W/install.log"
 	rc=1
+	# Darwin では install_name_tool が load command を伸ばせずに止まる。
+	#
+	#   error: install_name_tool: changing install names or rpaths can't be
+	#   redone ... because larger updated load commands do not fit
+	#
+	# @rpath (6 字) を ${PREFIX}/lib (/opt/pkg では 12 字) に書き換えるので
+	# 一つにつき 6 byte 伸び、header の余白を超える。aarch64 では収まっていた。
+	#
+	# 直し方を決める前に、上流が何を持っているかを読む。LC_RPATH が既に
+	# 在るなら @rpath を潰す必要は無く、足りない分を -add_rpath で一本
+	# 加えるだけで済む — そちらなら伸びるのは一箇所。無いなら別の手が要る。
+	# 読まずに -add_rpath へ替えると、必要な書き換えまで落とす。
+	if [ "$OS" = Darwin ]; then
+		echo "  --- 上流が持っている load command を読む"
+		_wrk=$(sv WRKSRC)
+		for _f in "$_wrk/rustc/bin/rustc" "$_wrk/rust-std-$(sv RUST_ARCH)/lib/rustlib/$(sv RUST_ARCH)/lib"/libstd-*.dylib; do
+			[ -e "$_f" ] || continue
+			echo "      == ${_f#$_wrk/}"
+			otool -l "$_f" 2>/dev/null |
+				awk '/LC_RPATH/,0' | grep -m4 -E 'LC_RPATH|path ' | sed 's/^/         /'
+			echo "         -- install name と依存"
+			otool -XL "$_f" 2>/dev/null | head -6 | sed 's/^/         /'
+			echo "         -- header の余白 (sizeofcmds と最初の section の間)"
+			otool -h "$_f" 2>/dev/null | tail -2 | sed 's/^/         /'
+			break
+		done
+		echo "  --- 伸びる量"
+		_new="$PREFIX/lib"
+		printf '         @rpath=%s  %s=%s  一つにつき +%s byte\n' \
+			6 "$_new" "${#_new}" "$(( ${#_new} - 6 ))"
+	fi
 fi
 
 if [ $rc = 0 ]; then

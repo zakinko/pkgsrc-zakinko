@@ -94,12 +94,23 @@ echo
 echo "  --- 四つの写しで測る (as-installed / 正規化 / 生 / 長さだけ揃えた対照)"
 # 入っている物そのまま。patchelf は既に一度当たっている (${PREFIX}/lib)。
 run_case as-installed ""
+# 一度目の測定で norm (34 字) も raw-dotdot (76 字) も pad-same-len (76 字) も
+# 壊れたので、.. は原因から外れた。残るのは
+#   (b) 入っている rpath (${PREFIX}/lib = 12 字) より長くすること
+#   (c) patchelf を二度目に当てること自体
+# 入っている物は既に一度 patchelf が当たって動いているので、**同じ長さで
+# 書き直す**と **短くする** の二手で分かれる。片方だけでは足りない —
+# 同じ長さが通っても、短いのが通らなければ話が変わる。
+run_case same-rewrite "$PREFIX/lib"
+run_case shorter      "/lib"
 run_case norm         "$PREFIX/lib:$NORMDIR"
 run_case raw-dotdot   "$PREFIX/lib:$RAWDIR"
 run_case pad-same-len "$PREFIX/lib:$PADDIR"
 
 echo
 echo "  --- 読み方"
+echo "      same-rewrite が壊れる                 -> patchelf を二度当てること自体"
+echo "      same-rewrite は動いて shorter も動く  -> 長くすることが原因"
 echo "      norm が動いて raw-dotdot が壊れる     -> .. が原因"
 echo "      norm も壊れて pad-same-len も壊れる   -> 長さ、または patchelf 全般"
 echo "      norm が動いて pad-same-len が壊れる   -> 長さ"
