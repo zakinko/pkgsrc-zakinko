@@ -49,4 +49,8 @@ rm -f "$TREE/.distinfo-asis" "$TREE/.distinfo-sorted"
 # probe-solaris-rpath.sh が測る。
 grep -q 'RUST_RPATH' "$M" && {
 	echo "!! rust-bin: rpath の塊が混ざっている。切り離したはず" >&2; exit 1; }
+# OS_VARIANT を条件に使うので、bsd.prefs.mk より後に在ることを数える。
+# 前に置くと bmake が Malformed conditional で止まり、:U を付けると常に偽に
+# なって片方の箱が黙って壊れる。
+sh "$D/check-mk-vars-after-prefs.sh" "$M" || exit 1
 echo "  rust-bin: illumos と Solaris の配布物を上流から取るようにした"

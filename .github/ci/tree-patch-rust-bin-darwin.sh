@@ -44,4 +44,10 @@ grep -q 'for lib in lib lib/rustlib/${RUST_ARCH}/lib' "$M" || {
 	echo "!! rust-bin (darwin): 非 Darwin 側の .for まで消えている" >&2; exit 1; }
 grep -q 'install_name_tool did not set' "$M" || {
 	echo "!! rust-bin (darwin): -id が効いたことの確認が入っていない" >&2; exit 1; }
+# CHECK_SHLIBS_SKIP は Darwin の腕の中、bsd.prefs.mk より後に置く。最初は
+# 45 行目 (prefs は 67 行目) に置いて
+#	bmake: Malformed conditional '${OPSYS} == "Darwin"'
+# で macOS を両方落とした。:U では直らない -- 常に偽になって手当てが黙って
+# 効かなくなる。位置そのものを数える。
+sh "$D/check-mk-vars-after-prefs.sh" "$M" || exit 1
 echo "  rust-bin (darwin): 深い install name の書き換えをやめた"

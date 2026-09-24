@@ -1,19 +1,6 @@
 --- lang/rust-bin/Makefile.orig
 +++ lang/rust-bin/Makefile
-@@ -42,6 +42,12 @@
- 
- CHECK_SHLIBS_SKIP+=	bin/cargo-clippy
- CHECK_SHLIBS_SKIP+=	bin/rustfmt
-+.if ${OPSYS} == "Darwin"
-+# These keep their shipped @rpath install names, which the check cannot
-+# resolve; they are found through LC_RPATH at run time.  A * matches a slash
-+# in these patterns.
-+CHECK_SHLIBS_SKIP+=	lib/rustlib/*/lib/*.dylib
-+.endif
- 
- # Bootstraps built for 9.0 or newer, -8 gcc is too old...
- BROKEN_ON_PLATFORM+=	NetBSD-8.*
-@@ -235,10 +241,39 @@
+@@ -235,10 +235,41 @@
  		    ${DESTDIR}${PREFIX}/lib/rustlib/${RUST_ARCH}/bin/${bin}; \
  	done
  .  endfor
@@ -41,6 +28,8 @@
 +#
 +# Check the id we do ask for actually landed.  A silent skip here would be the
 +# same trap one directory up.
++CHECK_SHLIBS_SKIP+=	lib/rustlib/*/lib/*.dylib
++
 +.  for lib in lib
  	for f in ${DESTDIR}${PREFIX}/${lib}/lib*.dylib; do		\
  		[ ! -f $$f ] && continue;				\
