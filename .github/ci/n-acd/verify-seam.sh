@@ -295,8 +295,30 @@ fi
 FREE=`echo "$GW" | awk -F. '{printf "%s.%s.%s.231", $1, $2, $3}'`
 
 echo
-echo "=== 実機で ARP を撃つ (gateway $GW を USED、$FREE を READY と期待)"
-"$W/t-probe" "$GW" "$FREE"
+# qemu の user-mode network (slirp) の gateway は本物ではない。10.0.2.2 は
+# qemu が作っている物で、spa が 0 の ARP request — DHCP client が起動のたびに
+# 出す、まさにこの probe — には答えない。普通の ARP には答えるので kernel は
+# 解決できるが、こちらは READY が返る。
+#
+# これは移植の欠陥ではなく、測る相手が居ないということである。NetBSD/i386 の
+# image は slirp、amd64 の image は本物の bridge (192.168.122.x) を使うので、
+# 同じ検査が片方でだけ赤になっていた (run 35892459265)。
+#
+# 10.0.2.0/24 は slirp の固定の番地。そこでは「在る address」の側を測らない。
+SLIRP=no
+case "$GW" in
+10.0.2.*) SLIRP=yes ;;
+esac
+
+if [ "$SLIRP" = yes ]; then
+	echo "=== 実機で ARP を撃つ ($FREE を READY と期待)"
+	echo "  gateway $GW は qemu の user-mode network の物で、spa=0 の ARP には"
+	echo "  答えない。USED の側は測らない"
+	"$W/t-probe" "" "$FREE"
+else
+	echo "=== 実機で ARP を撃つ (gateway $GW を USED、$FREE を READY と期待)"
+	"$W/t-probe" "$GW" "$FREE"
+fi
 r=$?
 # 77 は /dev/bpf を開けなかった側。権限が無いのは「測れなかった」であって
 # 「落ちた」ではない。CI の VM は root なので出ないが、手で走らせたときに

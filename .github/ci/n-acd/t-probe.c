@@ -124,9 +124,16 @@ int main(int argc, char **argv) {
         n_acd_config_free(c);
         if (r) { printf("n_acd_new -> %d (%s)\n", r, strerror(-r)); return 77; }
 
-        printf("--- 在る address %s を探る (USED を期待)\n", argv[1]);
-        run(acd, argv[1], argv[1], 12, &got, &have);
-        if (!have || got != N_ACD_EVENT_USED) { printf("  ★期待と違う\n"); fail = 1; }
+        /*
+         * argv[1] が空なら「在る address」の側は測らない。qemu の
+         * user-mode network では gateway が本物ではなく、spa=0 の ARP に
+         * 答えないので、そこに期待を置いても測っているのは qemu である。
+         */
+        if (argv[1][0]) {
+                printf("--- 在る address %s を探る (USED を期待)\n", argv[1]);
+                run(acd, argv[1], argv[1], 12, &got, &have);
+                if (!have || got != N_ACD_EVENT_USED) { printf("  ★期待と違う\n"); fail = 1; }
+        }
 
         printf("--- 無い address %s を探る (READY を期待)\n", argv[2]);
         run(acd, argv[2], argv[2], 20, &got, &have);
