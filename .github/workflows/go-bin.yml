@@ -105,6 +105,52 @@ jobs:
               apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch util-linux &&
               exec sh .github/ci/build-on-bsd.sh'
 
+  # 公式の docker image が無い arch。rootfs を自分で作る。
+  #
+  #	linux-ppc64 (BE)   Debian ports の unstable に在る
+  #	linux-mipsle       archive.debian.org の bullseye に在る
+  #	linux-mips  (BE)   archive.debian.org の stretch にしか無い。2017 年で
+  #	                   gcc 6 なので pkgsrc-current が bootstrap するかは
+  #	                   分からない。分からないことを測るのが目的
+  #
+  # linux-mips64 (BE) はここにも無い。Debian は mips64el しか出したことが
+  # なく、mips64 BE の rootfs をどこからも取れない。aix-ppc64 と並んで、
+  # 箱が見つからなかった二つ。
+  linux-rootfs:
+    name: Linux ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'glibc ppc64',  arch: ppc64,  suite: unstable,
+              mirror: 'http://deb.debian.org/debian-ports', platform: 'linux/ppc64' }
+          - { name: 'glibc mipsle', arch: mipsel, suite: bullseye,
+              mirror: 'http://archive.debian.org/debian', platform: 'linux/mipsle' }
+          - { name: 'glibc mips',   arch: mips,   suite: stretch,
+              mirror: 'http://archive.debian.org/debian', platform: 'linux/mips' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - name: rootfs を作る
+        run: |
+          sh .github/ci/make-debian-rootfs.sh \
+            '${{ matrix.arch }}' '${{ matrix.suite }}' '${{ matrix.mirror }}' \
+            'pkgsrc-ci/${{ matrix.arch }}:latest'
+      - name: 建てて動かす
+        env:
+          BUILD_DEADLINE: 270m
+        run: |
+          docker run --rm --platform ${{ matrix.platform }} \
+            -v "$PWD:/w" -w /w \
+            -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
+            -e PKGSRC_BASE=/tmp \
+            'pkgsrc-ci/${{ matrix.arch }}:latest' /bin/sh -c '
+              apt-get update -qq || true
+              apt-get install -y -qq build-essential curl wget tar gzip perl patch || true
+              exec /bin/sh .github/ci/build-on-bsd.sh'
+
   # NetBSD/i386。vmactions は NetBSD の image を amd64 / aarch64 / riscv64 /
   # sparc64 と 11.0 の microvm しか持たないので、自前で建てた image を QEMU で
   # 起こす。host が x86_64 なので i386 の guest は KVM で走る。
