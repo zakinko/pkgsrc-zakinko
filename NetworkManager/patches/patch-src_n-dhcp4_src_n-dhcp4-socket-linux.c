@@ -9,7 +9,7 @@ build keeps doing exactly what it did.
 
 --- src/n-dhcp4/src/n-dhcp4-socket-linux.c.orig
 +++ src/n-dhcp4/src/n-dhcp4-socket-linux.c
-@@ -0,0 +1,513 @@
+@@ -0,0 +1,512 @@
 +/*
 + * DHCP specific low-level socket helpers - Linux
 + *
@@ -27,7 +27,6 @@ build keeps doing exactly what it did.
 +#include <linux/if_packet.h>
 +#include <linux/netdevice.h>
 +#include <linux/udp.h>
-+#include <netinet/ip.h>
 +#include <stddef.h>
 +#include <stdlib.h>
 +#include <stdint.h>

@@ -295,36 +295,48 @@ fi
 FREE=`echo "$GW" | awk -F. '{printf "%s.%s.%s.231", $1, $2, $3}'`
 
 echo
-# qemu の user-mode network (slirp) の gateway は本物ではない。10.0.2.2 は
-# qemu が作っている物で、spa が 0 の ARP request — DHCP client が起動のたびに
-# 出す、まさにこの probe — には答えない。普通の ARP には答えるので kernel は
-# 解決できるが、こちらは READY が返る。
+# 在る address の側は、答える相手が居る箱でしか測れない。qemu の user-mode
+# network の gateway (10.0.2.2) も、vmactions の FreeBSD が見る 192.168.122.2
+# も、普通の ARP には答えるが spa が 0 の request — DHCP client が起動のたびに
+# 出す、まさにこの probe — には答えない。NetBSD/amd64 の image が見る gateway
+# は答えるので、同じ検査が箱によって赤くなっていた (run 35892459265 の i386、
+# 35951667921 の FreeBSD)。
 #
-# これは移植の欠陥ではなく、測る相手が居ないということである。NetBSD/i386 の
-# image は slirp、amd64 の image は本物の bridge (192.168.122.x) を使うので、
-# 同じ検査が片方でだけ赤になっていた (run 35892459265)。
+# そこで二段に分ける。まず kernel に普通の ARP で引かせ、相手の MAC が取れるか
+# を見る。取れないなら誰も居ないので READY が正しく、測る物が無い。取れるのに
+# probe が READY を返したなら、相手は居るが probe には答えない側である。
+# どちらも移植の欠陥ではないので赤にしないが、**黙って通さず、どちらだったかを
+# 出す。**
 #
-# 10.0.2.0/24 は slirp の固定の番地。そこでは「在る address」の側を測らない。
-SLIRP=no
-case "$GW" in
-10.0.2.*) SLIRP=yes ;;
-esac
-
-if [ "$SLIRP" = yes ]; then
-	echo "=== 実機で ARP を撃つ ($FREE を READY と期待)"
-	echo "  gateway $GW は qemu の user-mode network の物で、spa=0 の ARP には"
-	echo "  答えない。USED の側は測らない"
-	"$W/t-probe" "" "$FREE"
-else
-	echo "=== 実機で ARP を撃つ (gateway $GW を USED、$FREE を READY と期待)"
-	"$W/t-probe" "$GW" "$FREE"
+# 無い address の側 (READY を期待) は、どの箱でも測れるのでそのまま。
+echo "=== 実機で ARP を撃つ (gateway $GW を USED、$FREE を READY と期待)"
+GWMAC=no
+ping -c 1 -w 2 "$GW" > /dev/null 2>&1 || ping -c 1 "$GW" > /dev/null 2>&1 || true
+if arp -n "$GW" 2>/dev/null | grep -qi '[0-9a-f][0-9a-f]:[0-9a-f][0-9a-f]:'; then
+	GWMAC=yes
 fi
+echo "  kernel は普通の ARP で gateway を `[ $GWMAC = yes ] && echo 引けた || echo 引けない`"
+
+"$W/t-probe" "$GW" "$FREE"
 r=$?
+
 # 77 は /dev/bpf を開けなかった側。権限が無いのは「測れなかった」であって
 # 「落ちた」ではない。CI の VM は root なので出ないが、手で走らせたときに
 # 赤にしても意味が無い。
 if [ $r = 77 ]; then
 	echo "  root でないので撃てなかった (継ぎ目の手前までは通っている)"
+	echo
+	echo "=== ここまで全部通った"
+	exit 0
+fi
+# 1 は在る address の側だけ。2 は無い address の側なので、それは赤のまま。
+if [ $r = 1 ]; then
+	if [ $GWMAC = yes ]; then
+		echo "  gateway は普通の ARP には答えるが spa=0 の probe には答えない。"
+		echo "  USED の側はこの箱では測れない (無い address の側は通っている)"
+	else
+		echo "★ 在る address のつもりの $GW に誰も居ない。測る相手が無い"
+	fi
 	echo
 	echo "=== ここまで全部通った"
 	exit 0

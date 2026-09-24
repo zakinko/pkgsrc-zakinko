@@ -16,7 +16,7 @@ packet_sendto_udp() sets them.
 
 --- src/n-dhcp4/src/n-dhcp4-socket.c.orig
 +++ src/n-dhcp4/src/n-dhcp4-socket.c
-@@ -1,342 +1,33 @@
+@@ -1,342 +1,32 @@
  /*
 - * DHCP specific low-level socket helpers
 + * DHCP specific low-level socket helpers - the portable half
@@ -38,8 +38,8 @@ packet_sendto_udp() sets them.
 -#include <linux/if_packet.h>
 -#include <linux/netdevice.h>
 -#include <linux/udp.h>
+-#include <netinet/ip.h>
 +#include <netinet/in.h>
- #include <netinet/ip.h>
  #include <stddef.h>
  #include <stdlib.h>
  #include <stdint.h>
@@ -49,7 +49,7 @@ packet_sendto_udp() sets them.
  #include "n-dhcp4-private.h"
  #include "util/packet.h"
  #include "util/socket.h"
--
+ 
 -/**
 - * n_dhcp4_c_socket_packet_new() - create a new DHCP4 client packet socket
 - * @sockfdp:            return argument for the new socket
@@ -79,18 +79,18 @@ packet_sendto_udp() sets them.
 -                BPF_STMT(BPF_LD + BPF_B + BPF_ABS, offsetof(struct iphdr, protocol)),                           /* A <- IP protocol */
 -                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, IPPROTO_UDP, 1, 0),                                         /* IP protocol == UDP ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
--
+ 
 -                BPF_STMT(BPF_LD + BPF_H + BPF_ABS, offsetof(struct iphdr, frag_off)),                           /* A <- Flags + Fragment offset */
 -                BPF_STMT(BPF_ALU + BPF_AND + BPF_K, IP_MF | IP_OFFMASK),                                        /* A <- A & (IP_MF | IP_OFFMASK) */
 -                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, 0, 1, 0),                                                   /* fragmented packet ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
--
+ 
 -                BPF_STMT(BPF_LDX + BPF_B + BPF_MSH, 0),                                                         /* X <- IP header length */
 -                BPF_STMT(BPF_LD + BPF_W + BPF_LEN, 0),                                                          /* A <- packet length */
 -                BPF_STMT(BPF_ALU + BPF_SUB + BPF_X, 0),                                                         /* A -= X */
 -                BPF_JUMP(BPF_JMP + BPF_JGE + BPF_K, sizeof(struct udphdr) + sizeof(NDhcp4Message), 1, 0),       /* packet >= DHCPPacket ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
--
+ 
 -                /*
 -                 * UDP
 -                 *
@@ -102,7 +102,7 @@ packet_sendto_udp() sets them.
 -                BPF_STMT(BPF_LD + BPF_H + BPF_IND, offsetof(struct udphdr, dest)),                              /* A <- UDP destination port */
 -                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, N_DHCP4_NETWORK_CLIENT_PORT, 1, 0),                         /* UDP destination port == DHCP client port ? */
 -                BPF_STMT(BPF_RET + BPF_K, 0),                                                                   /* ignore */
--
+ 
 -                BPF_STMT(BPF_LD + BPF_W + BPF_K, sizeof(struct udphdr)),                                        /* A <- size of UDP header */
 -                BPF_STMT(BPF_ALU + BPF_ADD + BPF_X, 0),                                                         /* A += X */
 -                BPF_STMT(BPF_MISC + BPF_TAX, 0),                                                                /* X <- A */
@@ -255,12 +255,12 @@ packet_sendto_udp() sets them.
 -        r = connect(sockfd, (struct sockaddr*)&daddr, sizeof(daddr));
 -        if (r < 0)
 -                return -errno;
- 
+-
 -        *sockfdp = sockfd;
 -        sockfd = -1;
 -        return 0;
 -}
- 
+-
 -/**
 - * n_dhcp4_s_socket_packet_new() - create a new DHCP4 server packet socket
 - * @sockfdp:            return argument for the new socket
@@ -272,16 +272,16 @@ packet_sendto_udp() sets them.
 - */
 -int n_dhcp4_s_socket_packet_new(int *sockfdp) {
 -        _c_cleanup_(c_closep) int sockfd = -1;
- 
+-
 -        sockfd = socket(AF_PACKET, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
 -        if (sockfd < 0)
 -                return -errno;
- 
+-
 -        *sockfdp = sockfd;
 -        sockfd = -1;
 -        return 0;
 -}
- 
+-
 -/**
 - * n_dhcp4_s_socket_udp_new() - create a new DHCP4 server UDP socket
 - * @sockfdp:            return argument for the new socket
@@ -370,7 +370,7 @@ packet_sendto_udp() sets them.
  static int n_dhcp4_socket_packet_send(int sockfd,
                                        int ifindex,
                                        const struct sockaddr_in *src_paddr,
-@@ -345,9 +36,15 @@
+@@ -345,9 +35,15 @@
                                        const struct sockaddr_in *dest_paddr,
                                        uint8_t dscp,
                                        NDhcp4Outgoing *message) {
@@ -388,7 +388,7 @@ packet_sendto_udp() sets them.
                  .sll_ifindex = ifindex,
                  .sll_halen = halen,
          };
-@@ -509,33 +206,20 @@
+@@ -509,33 +205,20 @@
                  .sin_port = htons(N_DHCP4_NETWORK_CLIENT_PORT),
                  .sin_addr = *inaddr_dest,
          };
@@ -433,7 +433,7 @@ packet_sendto_udp() sets them.
          if (len < 0) {
                  if (errno == EAGAIN || errno == ENOBUFS)
                          return N_DHCP4_E_DROPPED;
-@@ -543,7 +227,7 @@
+@@ -543,7 +226,7 @@
                          return N_DHCP4_E_DOWN;
                  else
                          return -errno;
@@ -442,7 +442,7 @@ packet_sendto_udp() sets them.
                  return N_DHCP4_E_DROPPED;
  
          return 0;
-@@ -586,60 +270,8 @@
+@@ -586,60 +269,8 @@
          message = NULL;
          return 0;
  }
@@ -503,7 +503,7 @@ packet_sendto_udp() sets them.
  int n_dhcp4_c_socket_udp_recv(int sockfd,
                                uint8_t *buf,
                                size_t n_buf,
-@@ -652,17 +284,23 @@
+@@ -652,17 +283,23 @@
                                size_t n_buf,
                                NDhcp4Incoming **messagep,
                                struct sockaddr_in *dest) {

@@ -125,19 +125,21 @@ int main(int argc, char **argv) {
         if (r) { printf("n_acd_new -> %d (%s)\n", r, strerror(-r)); return 77; }
 
         /*
-         * argv[1] が空なら「在る address」の側は測らない。qemu の
-         * user-mode network では gateway が本物ではなく、spa=0 の ARP に
-         * 答えないので、そこに期待を置いても測っているのは qemu である。
+         * どちらの側が外れたかを終了状態で分ける。呼ぶ側は「在る address の
+         * 側だけ外れた」を、相手が probe に答えない箱では測れなかったこととして
+         * 受けたい。両方を 1 で返すと、無い address の側の退行まで一緒に許す
+         * ことになる。
+         *
+         *   1  在る address の側だけ外れた
+         *   2  無い address の側が外れた (両方外れた場合を含む)
          */
-        if (argv[1][0]) {
-                printf("--- 在る address %s を探る (USED を期待)\n", argv[1]);
-                run(acd, argv[1], argv[1], 12, &got, &have);
-                if (!have || got != N_ACD_EVENT_USED) { printf("  ★期待と違う\n"); fail = 1; }
-        }
+        printf("--- 在る address %s を探る (USED を期待)\n", argv[1]);
+        run(acd, argv[1], argv[1], 12, &got, &have);
+        if (!have || got != N_ACD_EVENT_USED) { printf("  ★期待と違う\n"); fail = 1; }
 
         printf("--- 無い address %s を探る (READY を期待)\n", argv[2]);
         run(acd, argv[2], argv[2], 20, &got, &have);
-        if (!have || got != N_ACD_EVENT_READY) { printf("  ★期待と違う\n"); fail = 1; }
+        if (!have || got != N_ACD_EVENT_READY) { printf("  ★期待と違う\n"); fail = 2; }
 
         n_acd_unref(acd);
         printf("%s\n", fail ? "=== 落ちた ===" : "=== 通った ===");

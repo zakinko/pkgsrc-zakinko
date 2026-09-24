@@ -8,7 +8,7 @@ handed to sendmsg(), rather than passing n-dhcp4's wider type through.
 
 --- src/n-dhcp4/src/util/packet-linux.c.orig
 +++ src/n-dhcp4/src/util/packet-linux.c
-@@ -0,0 +1,339 @@
+@@ -0,0 +1,346 @@
 +/*
 + * Packet Sockets - Linux
 + *
@@ -27,6 +27,13 @@ handed to sendmsg(), rather than passing n-dhcp4's wider type through.
 +#include <linux/if_packet.h>
 +#include <linux/udp.h>
 +#include <netinet/in.h>
++/*
++ * <netinet/ip.h> needs struct in_addr from <netinet/in.h> and n_short
++ * and n_long from <netinet/in_systm.h> on the BSDs, and pulls in
++ * neither itself.
++ */
++#include <netinet/in.h>
++#include <netinet/in_systm.h>
 +#include <netinet/ip.h>
 +#include <stdbool.h>
 +#include <stdlib.h>

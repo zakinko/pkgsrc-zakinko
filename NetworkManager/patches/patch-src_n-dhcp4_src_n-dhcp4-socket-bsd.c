@@ -37,7 +37,7 @@ server, so this is here to keep the file whole rather than because it runs.
 
 --- src/n-dhcp4/src/n-dhcp4-socket-bsd.c.orig
 +++ src/n-dhcp4/src/n-dhcp4-socket-bsd.c
-@@ -0,0 +1,609 @@
+@@ -0,0 +1,608 @@
 +/*
 + * DHCP specific low-level socket helpers - the BSDs
 + *
@@ -67,7 +67,6 @@ server, so this is here to keep the file whole rather than because it runs.
 +#include <net/if.h>
 +#include <netinet/in.h>
 +#include <netinet/in_systm.h>
-+#include <netinet/ip.h>
 +#include <netinet/udp.h>
 +#include <stddef.h>
 +#include <stdio.h>

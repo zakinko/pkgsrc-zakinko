@@ -41,7 +41,13 @@ PKGCONFIG_OVERRIDE+=	src/libnm-client-impl/libnm.pc.in
 CHECK_PORTABILITY_SKIP+=	contrib/scripts/checkpatch-git-post-commit-hook
 CHECK_PORTABILITY_SKIP+=	contrib/scripts/code-style-git-post-commit-hook
 
+# 1.58.1 は generator の置き場を unit の置き場とは別の option にした。
+# 既定は空で、空のままだと systemd を探しにいって
+#   meson.build:426:2: ERROR: Assert failed: systemd required but not
+#   found, please provide a valid systemd user generator dir or disable it
+# になる。unitdir と同じく置かない。
 MESON_ARGS+=	-Dsystemdsystemunitdir=no
+MESON_ARGS+=	-Dsystemdsystemgeneratordir=no
 MESON_ARGS+=	-Dsystemd_journal=false
 MESON_ARGS+=	-Dsession_tracking=no
 MESON_ARGS+=	-Dselinux=false
