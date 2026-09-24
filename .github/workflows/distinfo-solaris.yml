@@ -12,9 +12,15 @@ name: Solaris の配布物の distinfo を測る
 # 前者が無いと桁の合った別の数字を出し、後者が無いと途中で切れた file の
 # 正しい checksum を出す。
 
+# 測定は済んでいる (distinfo の三行は tree-rust-bin-illumos.diff に入った)。
+# 道具ごと残すのは、値をもう一度出せるようにするため。上流が版を上げたら
+# 同じ手順で測り直す。この file か道具を触ったときだけ走る。
+#
+# 起こすために distinfo-probe という枝を切ったが、走行中の run を畳まずに
+# 測るための一時的なもので、測り終えたので消した。thttpd に寄せる。
 on:
   push:
-    branches: [distinfo-probe]
+    branches: [thttpd]
     paths:
       - '.github/workflows/distinfo-solaris.yml'
       - '.github/ci/distinfo-lines.py'
