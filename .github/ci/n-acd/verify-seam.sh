@@ -148,6 +148,30 @@ if ls src/n-acd/src/*.rej src/*.rej > /dev/null 2>&1; then
 fi
 echo "  $n 本当てて、跡を確かめた"
 
+# meson の変数を使う側だけが当たっていないか見る。file を直に cc へ渡して
+# 建てているので、meson を一度も走らせないこの検査では
+#
+#	src/meson.build:27:4: ERROR: Unknown variable name "nettools_is_linux"
+#
+# に気付けない。実際 1.58.1 へ上げたとき、定義を入れる hunk だけが落ちていて
+# 使う側の三行は当たっており、Linux の run が一周して初めて出た。meson は
+# 持っていないので、使う名前が先に定義されているかだけを見る。
+echo "=== meson の変数が定義されているか"
+mb="$NM/src/meson.build"
+mfail=0
+for v in `grep -o 'nettools_[a-z_]*' "$mb" | sort -u`; do
+	def=`grep -n "^$v *=" "$mb" | head -1 | cut -d: -f1`
+	use=`grep -n "$v" "$mb" | head -1 | cut -d: -f1`
+	if [ -z "$def" ]; then
+		echo "★ $v を使っているのに定義が無い"; mfail=1
+	elif [ "$def" -gt "$use" ]; then
+		echo "★ $v の定義 ($def 行) が最初の使用 ($use 行) より後ろ"; mfail=1
+	else
+		echo "  $v: $def 行で定義、$use 行から使用"
+	fi
+done
+[ $mfail = 0 ] || exit 1
+
 echo "=== n-acd を丸ごと建てる"
 S="$NM/src"
 INC="-I$S/n-acd/src -I$S/c-list/src -I$S/c-rbtree/src -I$S/c-siphash/src -I$S/c-stdaux/src"

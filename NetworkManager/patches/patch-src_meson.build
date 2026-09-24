@@ -9,7 +9,25 @@ no later moment, and no descriptor, to attach one.
 
 --- src/meson.build.orig
 +++ src/meson.build
-@@ -24,7 +24,8 @@
+@@ -18,13 +18,26 @@
+   c_args: '-std=c11',
+ )
+ 
++# n-acd and n-dhcp4 reach the kernel in a handful of places - a packet socket,
++# a poller and a timer - and those are the only parts of them that are not
++# portable. They live in one file per platform rather than in conditionals
++# spread through the code, so each file reads as one system's idea of
++# networking.
++#
++# SO_ATTACH_BPF is defined below only where it means something: the BSDs
++# install their packet filter with BIOCSETF while opening the device, and there
++# is no later moment, nor a descriptor, to attach one.
++nettools_is_linux = host_machine.system() == 'linux'
++nettools_os_args = nettools_is_linux ? ['-DSO_ATTACH_BPF=50'] : []
++
+ libn_acd = static_library(
+   'n-acd',
+   sources: files(
      'n-acd/src/n-acd.c',
      'n-acd/src/n-acd-probe.c',
      'n-acd/src/util/timer.c',
@@ -19,7 +37,7 @@ no later moment, and no descriptor, to attach one.
    ),
    include_directories: include_directories(
      'c-list/src',
-@@ -35,10 +36,9 @@
+@@ -35,10 +48,9 @@
    c_args: [
      '-std=c11',
      '-D_GNU_SOURCE',
@@ -31,7 +49,7 @@ no later moment, and no descriptor, to attach one.
  )
  
  libn_dhcp4 = static_library(
-@@ -52,7 +52,9 @@
+@@ -52,7 +64,9 @@
      'n-dhcp4/src/n-dhcp4-outgoing.c',
      'n-dhcp4/src/n-dhcp4-socket.c',
      'n-dhcp4/src/util/packet.c',

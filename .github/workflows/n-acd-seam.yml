@@ -38,8 +38,11 @@ on:
       - '.github/ci/c-stdaux/**'
       - '.github/workflows/n-acd-seam.yml'
 
+# target も group に入れる。入れないと、一つの箱を押し直した dispatch が
+# 同じ commit の push の run を畳む。実際 36011008996 (i386 だけ) が
+# 1b051d0 の六箱の run を消した。
 concurrency:
-  group: n-acd-seam-${{ github.ref }}
+  group: n-acd-seam-${{ github.ref }}-${{ inputs.target }}
   cancel-in-progress: true
 
 jobs:
