@@ -1,5 +1,5 @@
---- modules.mk.orig	2026-09-22 23:57:06.342655454 +0000
-+++ modules.mk	2026-09-22 23:57:06.344216266 +0000
+--- editors/emacs/modules.mk.orig
++++ editors/emacs/modules.mk
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
