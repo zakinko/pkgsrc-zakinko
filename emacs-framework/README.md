@@ -28,7 +28,6 @@ The diffs are in the three parts wiz asked for on 2026-09-19.
 | `pkg-fixes/fixes/` | packages that are wrong on trunk today, with the `modules.mk` that is there now | nothing |
 | `pkg-fixes/adaptations/` | packages that are right today and break once the prefix lands on their name | the framework |
 | `pkg-fixes/not-sent/` | a diff that applies but does not make its package build (`devel/ecb`), kept for the record | – |
-| `pkg-new/` | packages that do not exist in pkgsrc yet and that the diffs above depend on: `devel/cl-lib-el` (named by `fixes/flim.diff`) and `devel/emacs-compat` | the framework, for `emacs-compat` |
 
 `modules.mk` and `pbulk-index.mk` are the patched files; `*.orig` is the
 trunk revision they were made from (`modules.mk,v 1.42`,

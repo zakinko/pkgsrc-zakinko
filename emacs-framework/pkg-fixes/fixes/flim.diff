@@ -12,17 +12,9 @@
  			PACKAGEDIR=${EMACS_LISPPREFIX:C|/lisp$||}
  
  EMACS_MODULES=		base
-@@ -65,8 +69,15 @@
- 
+@@ -66,7 +70,7 @@
  .include "../../editors/emacs/modules.mk"
  
-+# patches/patch-eword-decode.el adds (require 'cl-lib).  Emacs 24.3 and
-+# later bundle cl-lib; the older Emacsen pkgsrc still carries, and
-+# XEmacs, do not, so it has to be depended on there.
-+.if ${EMACS_VERSION_MAJOR} < 24
-+DEPENDS+=	${EMACS_PKGNAME_PREFIX}cl-lib-el-[0-9]*:../../devel/cl-lib-el
-+.endif
-+
  .if (${EMACS_FLAVOR} != "xemacs")
 -BUILDLINK_API_DEPENDS.apel+=	apel>=10.8
 +BUILDLINK_API_DEPENDS.apel+=	${EMACS_PKGNAME_PREFIX}apel>=10.8
