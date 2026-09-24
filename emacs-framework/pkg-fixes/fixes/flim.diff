@@ -1,8 +1,28 @@
 --- devel/flim/Makefile.orig
 +++ devel/flim/Makefile
-@@ -66,7 +66,7 @@
+@@ -29,7 +29,11 @@
+ INSTALL_TARGET.emacs=	install
+ INSTALL_TARGET.xemacs=	install-package
+ MAKEFLAGS.emacs+=	EMACS=${EMACS_BIN}
++# flim's own Makefile reads EMACS as well as XEMACS.  Passing only
++# XEMACS leaves EMACS at its default, so an XEmacs build byte-compiles
++# with GNU Emacs and installs those .elc under the XEmacs tree.
+ MAKEFLAGS.xemacs+=	XEMACS=${EMACS_BIN} \
++			EMACS=${EMACS_BIN} \
+ 			PACKAGEDIR=${EMACS_LISPPREFIX:C|/lisp$||}
+ 
+ EMACS_MODULES=		base
+@@ -65,8 +69,15 @@
+ 
  .include "../../editors/emacs/modules.mk"
  
++# patches/patch-eword-decode.el adds (require 'cl-lib).  Emacs 24.3 and
++# later bundle cl-lib; the older Emacsen pkgsrc still carries, and
++# XEmacs, do not, so it has to be depended on there.
++.if ${EMACS_VERSION_MAJOR} < 24
++DEPENDS+=	${EMACS_PKGNAME_PREFIX}cl-lib-el-[0-9]*:../../devel/cl-lib-el
++.endif
++
  .if (${EMACS_FLAVOR} != "xemacs")
 -BUILDLINK_API_DEPENDS.apel+=	apel>=10.8
 +BUILDLINK_API_DEPENDS.apel+=	${EMACS_PKGNAME_PREFIX}apel>=10.8
