@@ -1,0 +1,18 @@
+--- mk/defaults/mk.conf.orig
++++ mk/defaults/mk.conf
+@@ -1086,6 +1086,15 @@
+ # Possible:	any user name
+ # Default:	${GAMES_USER}
+ 
++#GO_TYPE?=	src
++# Used by dependencies of lang/go to decide whether the Go toolchain
++# should be installed from the binary release upstream publishes, which
++# is lang/go-bin, or built from source.  "bin" falls back to "src" on a
++# platform upstream publishes no binary for, and for a package that pins
++# a release with GO_VERSION_REQD.
++# Possible: bin src
++# Default: src
++
+ #GRUB_NETWORK_CARDS=
+ # Compile netboot support for the listed network interface cards into GRUB.
+ # Use e.g. "rtl8139" for RealTek 8139 support or "eepro100 epic100" for
