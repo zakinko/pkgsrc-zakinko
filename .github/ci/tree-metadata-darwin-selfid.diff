@@ -1,0 +1,25 @@
+--- mk/pkgformat/pkg/metadata.mk.orig
++++ mk/pkgformat/pkg/metadata.mk
+@@ -94,9 +94,21 @@
+ 		done;							\
+ 		;;							\
+ 	Mach-O)								\
++		: "otool -L prints a dylib's own install name as the first"; \
++		: "entry for that file, and the awk below used to count it as"; \
++		: "a requirement of the package on itself (PR pkg/58966).  It"; \
++		: "went unnoticed while every id was rewritten to an absolute"; \
++		: "path, because the filter further down drops requirements"; \
++		: "that the PLIST also provides.  A package that keeps the"; \
++		: "@rpath id it was shipped with -- lang/rust-bin on Darwin,"; \
++		: "where install_name_tool cannot fit the longer absolute path"; \
++		: "-- ends up with REQUIRES=@rpath/libfoo.dylib and no matching"; \
++		: "PROVIDES, and pkg_add refuses the package.  Skip the first"; \
++		: "entry when the file itself is a dylib; an executable has no"; \
++		: "LC_ID_DYLIB, so its first entry is a real dependency."; \
+ 		libs=`${AWK} '/\/lib.*\.dylib/ { print "${DESTDIR}${PREFIX}/" $$0 } END { exit 0 }' ${_PLIST_NOKEYWORDS}`; \
+ 		if ${TEST} "$$bins" != "" -o "$$libs" != ""; then	\
+-			requires=`($$ldd $$bins $$libs 2>/dev/null || ${TRUE}) | ${DARWIN_REQUIRES_FILTER} | ${AWK} '/compatibility version/ { print $$1 }' | ${SORT} -u`; \
++			requires=`($$ldd $$bins $$libs 2>/dev/null || ${TRUE}) | ${DARWIN_REQUIRES_FILTER} | ${AWK} '/^[^\t]/ { h = $$0; n = index(h, " (architecture "); if (n > 0) h = substr(h, 1, n - 1); if (substr(h, length(h), 1) == ":") h = substr(h, 1, length(h) - 1); isdylib = (length(h) > 6 && substr(h, length(h) - 5) == ".dylib"); first = 1; next } /compatibility version/ { if (isdylib && first) { first = 0; next } first = 0; print $$1 }' | ${SORT} -u`; \
+ 		fi;							\
+ 		;;							\
+ 	PE)								\
