@@ -60,48 +60,6 @@ if [ -n "$SV_ERR" ]; then
 	rc=1
 fi
 
-# Solaris では「入らないこと」が正しい。当て物は
-#
-#   .if ${OS_VARIANT:U} != "Solaris"
-#   ONLY_FOR_PLATFORM+=	SunOS-*-x86_64
-#   .endif
-#
-# という条件を持っているのに、その条件を走らせる箱が matrix に無かった。
-# 条件を含む diff を、条件を一度も撃たずに送る形だったので閉じる。
-#
-# 上流が出しているのは x86_64-unknown-illumos の tarball だけで、Solaris 向けは
-# 無い。それが Solaris で動くかどうかは測っていないので、動かないとは書かない。
-# 測るのは「この package が Solaris を名乗り出ないこと」— 当て物が作る挙動
-# そのもの。
-if [ "$OS" = SunOS ] && [ "$(sv OS_VARIANT)" = Solaris ]; then
-	echo "########## Solaris では名乗り出ないこと ##########"
-	OFP=$(sv ONLY_FOR_PLATFORM)
-	echo "  ONLY_FOR_PLATFORM: $OFP"
-	case $OFP in
-	*SunOS*)
-		echo "  !! Solaris なのに SunOS が ONLY_FOR_PLATFORM に入っている" >&2
-		rc=1 ;;
-	*)	echo "  ok SunOS は入っていない" ;;
-	esac
-	# 建てようとして拒まれることまで見る。変数が正しくても、実際に
-	# 止まるかは別。
-	if ( cd "$D" && $PKGMAKE install > "$W/solaris.log" 2>&1 ); then
-		echo "  !! install が通ってしまった。Solaris へ配られている" >&2
-		rc=1
-	elif grep -qE 'not available for|ONLY_FOR_PLATFORM|NOT_FOR_PLATFORM' "$W/solaris.log"; then
-		echo "  ok platform が理由で止まった:"
-		grep -nE 'not available for|ONLY_FOR_PLATFORM|NOT_FOR_PLATFORM' "$W/solaris.log" |
-			sed 's/^/     /' | head -3
-	else
-		echo "  ?? 止まったが platform が理由ではない。これは当て物の証明にならない" >&2
-		tail -20 "$W/solaris.log" | sed 's/^/     /'
-		rc=1
-	fi
-	echo
-	echo "== rust-bin: Solaris では配られない ($PLAT) rc=$rc"
-	exit $rc
-fi
-
 echo "########## 取られる配布物 ##########"
 DF=$(sv DISTFILES)
 echo "  DISTFILES: $DF"
@@ -110,6 +68,19 @@ for f in $DF; do n=$((n + 1)); done
 if [ "$n" != 1 ]; then
 	echo "  !! この箱の分だけで 1 個のはずが $n 個ある"
 	rc=1
+fi
+# SunOS では illumos と Solaris で別の tarball になる。MACHINE_PLATFORM は
+# どちらも SunOS-5.11-x86_64 なので、取り違えても platform の検査では出ない。
+# OS_VARIANT と配布物の名前が噛み合っているかを直に見る。二つの .if を
+# 入れ違えたらここで落ちる。
+if [ "$OS" = SunOS ]; then
+	_v=$(sv OS_VARIANT)
+	case "$_v:$DF" in
+	Solaris:*x86_64-pc-solaris*)      echo "  ok Solaris に Solaris 用" ;;
+	Solaris:*)                        echo "  !! Solaris なのに $DF" >&2; rc=1 ;;
+	*:*x86_64-unknown-illumos*)       echo "  ok $_v に illumos 用" ;;
+	*)                                echo "  !! $_v なのに $DF" >&2; rc=1 ;;
+	esac
 fi
 
 echo "########## 建てて入れる ##########"
