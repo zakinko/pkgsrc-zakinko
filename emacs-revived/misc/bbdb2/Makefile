@@ -34,8 +34,9 @@ MAKE_JOBS_SAFE=		no
 post-extract:
 	${RM} -rf ${WRKSRC}/lisp/*.elc
 
+CONFIGURE_ARGS+=	--with-emacs=${EMACS_BIN}
+
 .if ${EMACS_FLAVOR} == "xemacs"
-CONFIGURE_ARGS+=	--with-emacs=xemacs
 CONFIGURE_ARGS+=	--with-package-dir=${PREFIX}/lib/xemacs/site-packages
 INSTALL_TARGET=		install-pkg
 .else
