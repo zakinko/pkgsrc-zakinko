@@ -89,7 +89,6 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [leim20/](leim20/) | `editors/leim20` | 版を四箇所直書きしていたのを `${VERSION}` へ。LICENSE と当て物の説明 |
 | [leim21/](leim21/) | `editors/leim21` | LICENSE と当て物の説明 |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
-| [mozc-elisp226/](mozc-elisp226/) | `inputmethod/mozc-elisp226` | 要らない GUI 依存を外し、要る mozc-server を足す。emacs29〜31 |
 | [mule-ucs/](mule-ucs/) | `editors/mule-ucs` | LICENSE。MESSAGE を DESCR へ。当て物の説明 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
 | [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
