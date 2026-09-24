@@ -47,4 +47,8 @@ jobs:
         with:
           release: ${{ matrix.release }}
           # 一行。改行を入れると && が挿し込まれて rc が閉じなくなる。
-          run: echo '########## rc から見た箱 ##########'; cat /dev/osversion; echo 'objtype='$objtype; echo 'path='$path; echo '--- /bin/ape'; ls /bin/ape >[2]/dev/null; echo '########## POSIX shell を探す ##########'; posix=(); for(s in /bin/ape/psh /bin/ape/sh /rc/bin/ape/psh /$objtype/bin/ape/psh){ if(test -x $s){ echo '  見つかった: '$s; posix=($posix $s) } }; if(~ $#posix 0){ echo '  !! POSIX shell が無い。ここで終わり'; exit '' }; echo '########## 偵察 script を渡す ##########'; $posix(1) .github/ci/probe-plan9.sh
+          # 四度 45 分で timeout した。VM は 2 分で上がって telnet まで
+          # 届いているので、止まっているのは run: の実行。log に出る
+          # command が非 ASCII の途中で切れているので、まずは純 ASCII の
+          # 最小形で「一行でも返るか」を見る。返ればそこから広げる。
+          run: cat /dev/osversion; echo objtype=$objtype; ls /bin/ape

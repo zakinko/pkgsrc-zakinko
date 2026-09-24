@@ -30,7 +30,11 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - uses: cygwin/cygwin-install-action@v5
+      # v5 は sha512.sum の取得で落ちた。
+      #   Invoke-WebRequest : Object reference not set to an instance of an object
+      # cygwin.com/sha512.sum は手元から HTTP 200 で引けるので site 側ではない。
+      # v6 (2025-07-07) が出ているので上げる。
+      - uses: cygwin/cygwin-install-action@v6
         with:
           packages: >-
             gcc-core gcc-g++ make curl wget tar gzip xz patch
