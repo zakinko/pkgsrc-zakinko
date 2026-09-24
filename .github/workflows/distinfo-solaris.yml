@@ -1,0 +1,60 @@
+name: Solaris の配布物の distinfo を測る
+
+# 上流 (static.rust-lang.org) は x86_64-pc-solaris の tarball を出している。
+# lang/rust-bin はそれを使っていない。使うには distinfo の三行が要るが、
+# 477MB あるので手元では取らずここで測る。
+#
+# 手で写さない。値を写す作業はいつか片方だけ古くなる。取った実物から出す。
+#
+# 独立な照合を二つ置く。
+#   道具そのもの  既知の distinfo 行 (8.5KB の file) と一字一句合うか
+#   取得の健全性  rust の channel manifest が持つ SHA256 と合うか
+# 前者が無いと桁の合った別の数字を出し、後者が無いと途中で切れた file の
+# 正しい checksum を出す。
+
+on:
+  push:
+    branches: [distinfo-probe]
+    paths:
+      - '.github/workflows/distinfo-solaris.yml'
+      - '.github/ci/distinfo-lines.py'
+  workflow_dispatch:
+
+concurrency:
+  group: distinfo-solaris-${{ github.run_id }}
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具そのものを先に確かめる
+        run: python3 .github/ci/distinfo-lines.py --selftest
+      - name: x86_64-pc-solaris
+        run: |
+          python3 .github/ci/distinfo-lines.py \
+            --url https://static.rust-lang.org/dist/rust-1.96.1-x86_64-pc-solaris.tar.gz \
+            --name 'rust-bin-1.96.1/rust-1.96.1-x86_64-pc-solaris.tar.gz' \
+            --expect-sha256 0fad4367888fa4490e0a16cfece5f4584e92ee734b6dd9ff6928a28898cf286c
+      # illumos の三行は既に distinfo に入れてある。同じ道具で測り直して
+      # 一致するかを見る。合わなければ入れた値が怪しい。
+      - name: illumos を測り直して、入れてある値と突き合わせる
+        run: |
+          python3 .github/ci/distinfo-lines.py \
+            --url https://static.rust-lang.org/dist/rust-1.96.1-x86_64-unknown-illumos.tar.gz \
+            --name 'rust-bin-1.96.1/rust-1.96.1-x86_64-unknown-illumos.tar.gz' \
+            --expect-sha256 c2240381b0b3c2497e16c575c0ac2cabd20b1295d12fe9a06cf2235755424cb2 \
+            | tee illumos.txt
+          echo "=== 当て物に入れてある値"
+          grep illumos .github/ci/tree-rust-bin-illumos.diff | grep '^+'
+          echo "=== 突き合わせ"
+          for k in BLAKE2s SHA512 Size; do
+            got=$(awk -v k=$k '$1==k {print $4}' illumos.txt)
+            have=$(grep "^+$k .*illumos" .github/ci/tree-rust-bin-illumos.diff | awk '{print $4}')
+            if [ "$got" = "$have" ]; then
+              echo "  $k 一致"
+            else
+              echo "  !! $k が合わない: 測定 $got / 当て物 $have"; exit 1
+            fi
+          done
