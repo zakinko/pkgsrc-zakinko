@@ -116,10 +116,23 @@ else
 			otool -h "$_f" 2>/dev/null | tail -2 | sed 's/^/         /'
 			break
 		done
-		echo "  --- 伸びる量"
-		_new="$PREFIX/lib"
-		printf '         @rpath=%s  %s=%s  一つにつき +%s byte\n' \
-			6 "$_new" "${#_new}" "$(( ${#_new} - 6 ))"
+		# 溢れているのは -change ではなく -id。log が名指しした file は
+		#   lib/rustlib/<target>/lib/libstd-*.dylib
+		# で、Makefile の .for lib の輪は各 dylib に対して
+		#   install_name_tool -id <DESTDIR を外した絶対 path>
+		# を打つ。深い path ほど伸びる。${PREFIX}/lib 直下なら小さい。
+		# 二つの候補の差を数字で出して、どちらが効いているかを log に残す。
+		echo "  --- 伸びる量 (候補を分けて数える)"
+		_ra='@rpath/libstd-c230e80c85060539.dylib'
+		for _d in "lib" "lib/rustlib/$(sv RUST_ARCH)/lib"; do
+			_id="$PREFIX/$_d/libstd-c230e80c85060539.dylib"
+			printf '         -id  %-46s %3s 字  %+d byte\n' \
+				"$_d/" "${#_id}" "$(( ${#_id} - ${#_ra} ))"
+		done
+		_ch="$PREFIX/lib"
+		printf '         -change @rpath -> %-31s %3s 字  %+d byte\n' \
+			"$_ch" "${#_ch}" "$(( ${#_ch} - 6 ))"
+		echo "         (log が名指しした file が深い方なら -id が原因)"
 	fi
 fi
 
