@@ -1,6 +1,6 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/ruby-rd-mode/Makefile devel/ruby-rd-mode/Makefile
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/ruby-rd-mode/Makefile devel/ruby-rd-mode/Makefile
 --- /usr/pkgsrc/devel/ruby-rd-mode/Makefile	2026-02-17 14:34:52.000000000 +0000
-+++ devel/ruby-rd-mode/Makefile	2026-09-21 12:02:42.356172261 +0000
++++ devel/ruby-rd-mode/Makefile	2026-09-24 09:25:47.306663444 +0000
 @@ -15,7 +15,7 @@
  
  WRKSRC=			${WRKDIR}/${DISTNAME}/utils
@@ -10,16 +10,122 @@ diff -ruN -x CVS -x work /usr/pkgsrc/devel/ruby-rd-mode/Makefile devel/ruby-rd-m
  NO_CONFIGURE=		yes
  
  INSTALLATION_DIRS=	${EMACS_LISPPREFIX:C|^${PREFIX}/||}/rd-mode
-diff -ruN -x CVS -x work /usr/pkgsrc/devel/ruby-rd-mode/distinfo devel/ruby-rd-mode/distinfo
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/ruby-rd-mode/distinfo devel/ruby-rd-mode/distinfo
 --- /usr/pkgsrc/devel/ruby-rd-mode/distinfo	2026-02-17 14:34:52.000000000 +0000
-+++ devel/ruby-rd-mode/distinfo	2026-09-21 12:02:42.787560887 +0000
++++ devel/ruby-rd-mode/distinfo	2026-09-24 10:11:40.889071264 +0000
 @@ -1,6 +1,6 @@
  $NetBSD: distinfo,v 1.14 2026/02/17 14:34:52 taca Exp $
  
 -BLAKE2s (rdtool-0.6.38.gem) = eecaccfb611bf2df447f0d717e6768b55ae50616336c8a2aa5141f0484dd9248
 -SHA512 (rdtool-0.6.38.gem) = 958e9066a8b3610eb1a78069e615c5bd672aa56b3b45669604b35cd094bb8ddc549d8f373d1ee53864c27a0aa7ee038101b3256c56b3b8ffe618f75a1a939bcd
 -Size (rdtool-0.6.38.gem) = 115712 bytes
+-SHA1 (patch-rd-mode.el) = f6ed758013c18ded3ba83f0075a4210e21d8e3bb
 +BLAKE2s (rdtool-0.6.39.gem) = 7028ab5812b67da3a56f92da5d6a9f58898dca802299c8b45e637e87595f9658
 +SHA512 (rdtool-0.6.39.gem) = 8e4a736ba82b5dde1b1171580e6cc222f491881a36ddb1bd7ea3999bb3ccb4638f0bad605842e584dbba0c2b63e5ad4e790c2ea847dfe2e0bdd0ca0049895a8f
 +Size (rdtool-0.6.39.gem) = 120832 bytes
- SHA1 (patch-rd-mode.el) = f6ed758013c18ded3ba83f0075a4210e21d8e3bb
++SHA1 (patch-rd-mode.el) = 2d5d65fa4783c5e999b8b588ceeccca6cd46438e
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/devel/ruby-rd-mode/patches/patch-rd-mode.el devel/ruby-rd-mode/patches/patch-rd-mode.el
+--- /usr/pkgsrc/devel/ruby-rd-mode/patches/patch-rd-mode.el	2026-02-17 14:34:52.000000000 +0000
++++ devel/ruby-rd-mode/patches/patch-rd-mode.el	2026-09-24 10:11:40.651979678 +0000
+@@ -1,15 +1,20 @@
+-$NetBSD: patch-rd-mode.el,v 1.1 2026/02/17 14:34:52 taca Exp $
++$NetBSD$
+ 
+-* use rd-font-lock-keywords after defvar it.
+-* insert-buffer is for interactive use only.
+-* inser-string is obsolete since emacs 22.1.
++* rd-font-lock-keywords is used inside rd-mode before it is defvar-ed,
++  so the byte-compiler warns and the value is void at the first call.
++  Move the mode definition after the keyword list.
++* insert-buffer is for interactive use only; use insert-buffer-substring.
+ 
+---- rd-mode.el.orig	2026-02-17 14:12:15.501651638 +0000
++  0.6.39 dropped the obsolete insert-string call, so the hunk for it is
++  gone; the other two are still needed.
++
++--- rd-mode.el.orig
+ +++ rd-mode.el
+-@@ -43,31 +43,6 @@
+- (defvar rd-mode-hook nil
+-   "Hooks run when entering `rd-mode' major mode")
++@@ -68,31 +68,6 @@
++     m)
++   "Keymap used in rd-mode.")
+  
++-;;;###autoload
+ -(define-derived-mode rd-mode text-mode "RD"
+ -  "Major mode for RD editing.
+ -\\{rd-mode-map}"
+@@ -17,7 +22,7 @@
+ -  (setq paragraph-separate "=+\\|\\++\\|[ \t\n\^L]*$")
+ -  (make-local-variable 'paragraph-start)
+ -  (setq paragraph-start "=+\\|\\++\\|[ \t\n\^L]")
+--  (make-local-variable 'require-final-newline)  
++-  (make-local-variable 'require-final-newline)
+ -  (setq require-final-newline t)
+ -  (make-local-variable 'font-lock-defaults)
+ -  (setq font-lock-defaults '((rd-font-lock-keywords) t nil))
+@@ -29,7 +34,6 @@
+ -  (add-hook (make-local-variable 'write-contents-hooks) 'rd-strip-cr-on-top)
+ -  (add-hook (make-local-variable 'after-save-hook) 'rd-rehide-endline)
+ -  (rd-hide-other-block-all)
+--  (rd-setup-keys)
+ -  (setq indent-tabs-mode nil)
+ -  (setq imenu-create-index-function 'rd-imenu-create-index)
+ -  (run-hooks 'rd-mode-hook)
+@@ -38,10 +42,11 @@
+  (defvar rd-heading1-face 'font-lock-keyword-face)
+  (defvar rd-heading2-face 'font-lock-type-face)
+  (defvar rd-heading3-face 'font-lock-variable-name-face)
+-@@ -112,6 +87,31 @@
++@@ -137,6 +112,31 @@
+       0 rd-description-face)
+     ))
+  
+++;;;###autoload
+ +(define-derived-mode rd-mode text-mode "RD"
+ +  "Major mode for RD editing.
+ +\\{rd-mode-map}"
+@@ -49,7 +54,7 @@
+ +  (setq paragraph-separate "=+\\|\\++\\|[ \t\n\^L]*$")
+ +  (make-local-variable 'paragraph-start)
+ +  (setq paragraph-start "=+\\|\\++\\|[ \t\n\^L]")
+-+  (make-local-variable 'require-final-newline)  
+++  (make-local-variable 'require-final-newline)
+ +  (setq require-final-newline t)
+ +  (make-local-variable 'font-lock-defaults)
+ +  (setq font-lock-defaults '((rd-font-lock-keywords) t nil))
+@@ -61,16 +66,15 @@
+ +  (add-hook (make-local-variable 'write-contents-hooks) 'rd-strip-cr-on-top)
+ +  (add-hook (make-local-variable 'after-save-hook) 'rd-rehide-endline)
+ +  (rd-hide-other-block-all)
+-+  (rd-setup-keys)
+ +  (setq indent-tabs-mode nil)
+ +  (setq imenu-create-index-function 'rd-imenu-create-index)
+ +  (run-hooks 'rd-mode-hook)
+ +)
+ +
+- (defun rd-setup-keys ()
+-   (interactive)
+-   (define-key rd-mode-map "\t" 'rd-indent-line)
+-@@ -381,7 +381,7 @@
++ (defun rd-strip-cr-on-top ()
++   (save-excursion
++     (widen)
++@@ -387,7 +387,7 @@
+  
+  (defun rd-insert-buffer-as-verbatim (buf)
+    (interactive "bInsert buffer (verb): ")
+@@ -79,12 +83,3 @@
+    (rd-cite-region (point)(mark)))
+  
+  
+-@@ -415,7 +415,7 @@
+-           )
+-     (end-of-line)
+-     (newline)
+--    (if item (insert-string item) )
+-+    (if item (insert item))
+-     )
+-   )
+- 
