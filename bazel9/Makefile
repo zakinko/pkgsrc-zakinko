@@ -80,13 +80,19 @@ BROKEN_ON_PLATFORM=	NetBSD-11.99.*-*
 WRKSRC=		${WRKDIR}
 NO_CONFIGURE=	yes
 USE_LANGUAGES=	c c++
-# bash stays, but only as a run-time dependency.  Nothing in the build runs
-# it any more; what needs it is the bazel that comes out, because a genrule
-# cmd is bash on every platform bazel supports -- see
-# patch-src_main_java_..._BazelRuleClassProvider.java, where every entry in
-# the table names a bash.  Pointing NetBSD at /bin/sh there would quietly
-# change what a genrule means on this platform and nowhere else.
-USE_TOOLS+=	bash:run pkg-config unzip zip
+# No bash, at build time or after.  NetBSD has none in base, so every
+# mention of one here was a dependency on another package -- to build this,
+# and then to run a single genrule with the bazel it produced.
+#
+# Two halves went into removing it.  The bootstrap scripts are patched to
+# /bin/sh (patch-compile.sh and the six beside it), and the genrule shell
+# in patch-src_main_java_..._BazelRuleClassProvider.java names /bin/sh
+# rather than a bash.  The second half is a real change in behaviour on
+# this platform: a genrule cmd written in bash syntax will fail here and
+# work on Linux.  BAZEL_SH overrides the default, so installing a bash and
+# pointing BAZEL_SH at it restores the old behaviour for anyone who needs
+# it.
+USE_TOOLS+=	pkg-config unzip zip
 
 USE_JAVA=		yes
 USE_JAVA2=		21
@@ -123,19 +129,14 @@ NOT_FOR_PLATFORM+=	${LP32PLATFORMS}
 # lang/go/version.mk happens to set this too, but relying on that would make
 # the build depend on an include that is here for GOROOT.
 
-# The build no longer runs bash.  The seven scripts it does run are patched
-# to /bin/sh instead -- see patch-compile.sh for what that involves.  NetBSD
-# has no bash in the base system, so requiring one meant this package could
-# not be built until another package had been built first, on every
-# platform, for a handful of constructs that all have plain sh spellings.
+# scripts/packages/bazel.sh keeps its #!/bin/bash and is not patched.  It
+# is the self-extracting installer's own script; pkgsrc installs
+# output/bazel directly and never runs it, so marking it as anything else
+# would be a lie about what it is written in.
 #
-# scripts/packages/bazel.sh is left alone.  It is the self-extracting
-# installer's own script; pkgsrc installs output/bazel directly and never
-# runs it.
-#
-# What was here before was a SUBST class rewriting #!/bin/bash to bash's
-# path.  Worth recording why it was a SUBST and not REPLACE_BASH, in case
-# anyone reaches for the latter again: REPLACE_BASH hangs off
+# Where the shebang rewriting used to live: a SUBST class, not REPLACE_BASH.
+# Worth recording in case anyone reaches for the latter, since it looks
+# like the right variable and does nothing here.  REPLACE_BASH hangs off
 # do-configure-pre-hook, and mk/configure/bsd.configure.mk wraps the
 # configure machinery in .if !defined(NO_CONFIGURE).  This package sets
 # NO_CONFIGURE=yes, so the replacement is never reached and the variable is
@@ -154,20 +155,21 @@ post-extract:
 	${CP} ${FILESDIR}/md5_netbsd.sh ${WRKSRC}/src/md5_netbsd.sh
 	${CHMOD} +x ${WRKSRC}/src/md5_netbsd.sh
 
-# The patches above name the JDK and bash by placeholder rather than by
-# path, because pkglint rejects a patch that writes ${PREFIX} into the
-# source and because LOCALBASE is not always /usr/pkg.  Both are paths to
-# other packages, so they follow LOCALBASE, and the JDK is whichever one
-# java-vm.mk settled on.
+# The patches above name the JDK by placeholder rather than by path,
+# because pkglint rejects a patch that writes ${PREFIX} into the source and
+# because the JDK is wherever java-vm.mk settled on, which is not fixed.
+#
+# LOCALBASE used to be substituted here as well, for the two places that
+# named a bash under it.  Neither names one any more, so the variable and
+# the two files that only appeared for it are gone.  A SUBST class whose
+# pattern matches nothing is not harmless: it is reported, and then it is
+# ignored, which is how a substitution quietly stops being applied.
 SUBST_CLASSES+=		paths
 SUBST_STAGE.paths=	pre-build
-SUBST_MESSAGE.paths=	Setting the paths to the JDK and to bash
+SUBST_MESSAGE.paths=	Setting the path to the JDK
 SUBST_FILES.paths+=	scripts/bootstrap/buildenv.sh
 SUBST_FILES.paths+=	scripts/packages/template_bin.sh
-SUBST_FILES.paths+=	src/BUILD
 SUBST_FILES.paths+=	src/main/cpp/blaze_util_bsd.cc
-SUBST_FILES.paths+=	src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java
-SUBST_VARS.paths+=	LOCALBASE
 SUBST_VARS.paths+=	PKG_JAVA_HOME
 
 SUBST_CLASSES+=		python
