@@ -1,6 +1,6 @@
-diff -urN -x CVS -x '*.orig' old/bazel/DESCR new/bazel/DESCR
---- devel/bazel/DESCR	2026-09-24 05:18:31.743966230 +0000
-+++ devel/bazel/DESCR	2026-09-24 05:18:31.706198860 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/DESCR new/bazel/DESCR
+--- devel/bazel/DESCR	2026-09-24 05:22:28.553951298 +0000
++++ devel/bazel/DESCR	2026-09-24 05:22:28.456225749 +0000
 @@ -1,23 +1,8 @@
 -{Fast, Correct} - Choose two
 +Bazel is a build tool that builds code quickly and reliably. It is used
@@ -31,18 +31,17 @@ diff -urN -x CVS -x '*.orig' old/bazel/DESCR new/bazel/DESCR
 -  by the growing Bazel community.
 +Upstream does not support NetBSD; this package carries the patches that
 +add it alongside the FreeBSD and OpenBSD cases already in the tree.
-diff -urN -x CVS -x '*.orig' old/bazel/Makefile new/bazel/Makefile
---- devel/bazel/Makefile	2026-09-24 05:18:31.743272566 +0000
-+++ devel/bazel/Makefile	2026-09-24 05:18:31.876269358 +0000
-@@ -1,87 +1,257 @@
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/Makefile new/bazel/Makefile
+--- devel/bazel/Makefile	2026-09-24 05:22:28.553293672 +0000
++++ devel/bazel/Makefile	2026-09-24 05:23:07.463910245 +0000
+@@ -1,87 +1,256 @@
 -# $NetBSD: Makefile,v 1.17 2026/08/29 08:41:01 wiz Exp $
 +# $NetBSD$
 +#
-+# 6.4.0 is too old for what depends on this: mozc 3.34 requires bazel 9,
-+# and mozc 3.33 needs it too once its bzlmod graph is moved forward.  In
-+# pkgsrc bazel is a TOOL_DEPENDS of the mozc packages and nothing else --
-+# no package pulls it in through buildlink3.mk -- so moving it forward
-+# does not reach past them.
++# 6.4.0 is too old for what depends on this.  mozc 3.34 requires bazel 9, and mozc 3.33
++# needs it too once its bzlmod graph is moved forward, so neither builds
++# without this.  In pkgsrc bazel is a TOOL_DEPENDS of the mozc packages and
++# nothing else -- no package pulls it in through buildlink3.mk.
  
 -# Java project does not work as follows:
 -# Error: could not find libjava.so
@@ -352,16 +351,16 @@ diff -urN -x CVS -x '*.orig' old/bazel/Makefile new/bazel/Makefile
  .include "../../lang/python/tool.mk"
  .include "../../mk/java-vm.mk"
  .include "../../mk/bsd.pkg.mk"
-diff -urN -x CVS -x '*.orig' old/bazel/PLIST new/bazel/PLIST
---- devel/bazel/PLIST	2026-09-24 05:18:31.745403284 +0000
-+++ devel/bazel/PLIST	2026-09-24 05:18:31.707378898 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/PLIST new/bazel/PLIST
+--- devel/bazel/PLIST	2026-09-24 05:22:28.554902257 +0000
++++ devel/bazel/PLIST	2026-09-24 05:22:28.457180898 +0000
 @@ -1,2 +1,2 @@
 -@comment $NetBSD: PLIST,v 1.3 2024/01/01 12:00:58 ryoon Exp $
 +@comment $NetBSD$
  bin/bazel
-diff -urN -x CVS -x '*.orig' old/bazel/distinfo new/bazel/distinfo
---- devel/bazel/distinfo	2026-09-24 05:18:31.744663246 +0000
-+++ devel/bazel/distinfo	2026-09-24 05:18:31.708115864 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/distinfo new/bazel/distinfo
+--- devel/bazel/distinfo	2026-09-24 05:22:28.554420911 +0000
++++ devel/bazel/distinfo	2026-09-24 05:22:28.457683197 +0000
 @@ -1,56 +1,33 @@
 -$NetBSD: distinfo,v 1.5 2026/02/24 20:48:20 christos Exp $
 +$NetBSD$
@@ -425,7 +424,7 @@ diff -urN -x CVS -x '*.orig' old/bazel/distinfo new/bazel/distinfo
 +Size (bazel-9.2.0-dist.zip) = 221376908 bytes
 +SHA1 (patch-MODULE.bazel) = fe640f920d55ec2b58b05031784f0f0622204baa
 +SHA1 (patch-scripts_bootstrap_buildenv.sh) = 4d902926e792e764747ed82c67699b4da23ca859
-+SHA1 (patch-scripts_bootstrap_compile.sh) = fa56b8c7631f74a74a6f84b4881b25a9bbeabdd2
++SHA1 (patch-scripts_bootstrap_compile.sh) = 2c108365d5e2db3fa1cdd4f229e68e1ffcc5d4c9
 +SHA1 (patch-scripts_packages_BUILD) = 768db2a0ceacc4eaec8cb0530b4685dad6176339
 +SHA1 (patch-scripts_packages_template__bin.sh) = 0fe206329a8bf3a4adad7c23f4d1923bdaf78281
 +SHA1 (patch-src_BUILD) = fa47133811ce7ab07706ce3dd9187aedebed3ab0
@@ -451,9 +450,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/distinfo new/bazel/distinfo
 +SHA1 (patch-src_tools_singlejar_zip__headers.h) = 9571be520e6b844ff198c2e601550892bf22d8c6
 +SHA1 (patch-third__party_BUILD) = 1ccd262ee5df05b7c642687c1cdac641d3a29a11
 +SHA1 (patch-tools_jdk_BUILD.tools) = 3f948f2a040016dfb4daa19789335fd484f1592d
-diff -urN -x CVS -x '*.orig' old/bazel/files/md5_netbsd.sh new/bazel/files/md5_netbsd.sh
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/md5_netbsd.sh new/bazel/files/md5_netbsd.sh
 --- devel/bazel/files/md5_netbsd.sh	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/files/md5_netbsd.sh	2026-09-24 05:18:31.710345477 +0000
++++ devel/bazel/files/md5_netbsd.sh	2026-09-24 05:22:28.459182549 +0000
 @@ -0,0 +1,17 @@
 +#!/usr/bin/env bash
 +#
@@ -472,9 +471,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/md5_netbsd.sh new/bazel/files/md5_n
 +# limitations under the License.
 +#
 +/usr/bin/md5 "$@" | /usr/bin/md5 | head -c 32
-diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/BUILD new/bazel/files/toolchain_local/BUILD
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/toolchain_local/BUILD new/bazel/files/toolchain_local/BUILD
 --- devel/bazel/files/toolchain_local/BUILD	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/files/toolchain_local/BUILD	2026-09-24 05:18:31.712208842 +0000
++++ devel/bazel/files/toolchain_local/BUILD	2026-09-24 05:22:28.460668213 +0000
 @@ -0,0 +1,80 @@
 +load("@rules_python//python:py_runtime.bzl", "py_runtime")
 +load("@rules_python//python:py_runtime_pair.bzl", "py_runtime_pair")
@@ -556,9 +555,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/BUILD new/bazel/fil
 +    toolchain = ":netbsd_py_runtime_pair",
 +    toolchain_type = "@rules_python//python:toolchain_type",
 +)
-diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/platforms-pr142-pr143.patch new/bazel/files/toolchain_local/platforms-pr142-pr143.patch
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/toolchain_local/platforms-pr142-pr143.patch new/bazel/files/toolchain_local/platforms-pr142-pr143.patch
 --- devel/bazel/files/toolchain_local/platforms-pr142-pr143.patch	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/files/toolchain_local/platforms-pr142-pr143.patch	2026-09-24 05:18:31.712918709 +0000
++++ devel/bazel/files/toolchain_local/platforms-pr142-pr143.patch	2026-09-24 05:22:28.461277508 +0000
 @@ -0,0 +1,29 @@
 +diff -u -r a/host/extension.bzl b/host/extension.bzl
 +--- a/host/extension.bzl
@@ -589,9 +588,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/platforms-pr142-pr1
 +     name = "freebsd",
 +     constraint_setting = ":os",
 + )
-diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/rules_go-pr4711.patch new/bazel/files/toolchain_local/rules_go-pr4711.patch
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/toolchain_local/rules_go-pr4711.patch new/bazel/files/toolchain_local/rules_go-pr4711.patch
 --- devel/bazel/files/toolchain_local/rules_go-pr4711.patch	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/files/toolchain_local/rules_go-pr4711.patch	2026-09-24 05:18:31.713614048 +0000
++++ devel/bazel/files/toolchain_local/rules_go-pr4711.patch	2026-09-24 05:22:28.461755223 +0000
 @@ -0,0 +1,16 @@
 +diff -u -r a/MODULE.bazel b/MODULE.bazel
 +--- a/MODULE.bazel	2026-08-26 09:16:10.854960335 +0000
@@ -609,9 +608,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/rules_go-pr4711.pat
 + use_repo(
 +     go_sdk,
 +     "go_host_compatible_sdk_label",
-diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/rules_java-pr381.patch new/bazel/files/toolchain_local/rules_java-pr381.patch
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/toolchain_local/rules_java-pr381.patch new/bazel/files/toolchain_local/rules_java-pr381.patch
 --- devel/bazel/files/toolchain_local/rules_java-pr381.patch	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/files/toolchain_local/rules_java-pr381.patch	2026-09-24 05:18:31.714288156 +0000
++++ devel/bazel/files/toolchain_local/rules_java-pr381.patch	2026-09-24 05:22:28.462241318 +0000
 @@ -0,0 +1,38 @@
 +diff -u -r a/toolchains/BUILD b/toolchains/BUILD
 +--- a/toolchains/BUILD
@@ -651,9 +650,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/rules_java-pr381.pa
 +         "@bazel_tools//src/conditions:openbsd": ["include/openbsd"],
 +         "@bazel_tools//src/conditions:windows": ["include/win32"],
 +         "//conditions:default": [],
-diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/zstd_jni-netbsd.patch new/bazel/files/toolchain_local/zstd_jni-netbsd.patch
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/toolchain_local/zstd_jni-netbsd.patch new/bazel/files/toolchain_local/zstd_jni-netbsd.patch
 --- devel/bazel/files/toolchain_local/zstd_jni-netbsd.patch	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/files/toolchain_local/zstd_jni-netbsd.patch	2026-09-24 05:18:31.715090772 +0000
++++ devel/bazel/files/toolchain_local/zstd_jni-netbsd.patch	2026-09-24 05:22:28.462729369 +0000
 @@ -0,0 +1,11 @@
 +diff -u -r a/BUILD.bazel b/BUILD.bazel
 +--- a/BUILD.bazel	2026-08-26 09:57:42.012449625 +0000
@@ -666,8 +665,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/zstd_jni-netbsd.pat
 +         "@bazel_tools//src/conditions:openbsd": ["@bazel_tools//tools/jdk:jni_md_header-openbsd"],
 +         "@bazel_tools//src/conditions:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
 +         "//conditions:default": ["@bazel_tools//tools/jdk:jni_md_header-linux"],
-diff -urN -x CVS -x '*.orig' old/bazel/files/upb-bazel-clang.patch new/bazel/files/upb-bazel-clang.patch
---- devel/bazel/files/upb-bazel-clang.patch	2026-09-24 05:18:31.751299005 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/files/upb-bazel-clang.patch new/bazel/files/upb-bazel-clang.patch
+--- devel/bazel/files/upb-bazel-clang.patch	2026-09-24 05:22:28.561320670 +0000
 +++ devel/bazel/files/upb-bazel-clang.patch	1970-01-01 00:00:00.000000000 +0000
 @@ -1,19 +0,0 @@
 ---- bazel/build_defs.bzl.orig	2023-12-14 07:54:10.464989126 +0000
@@ -689,8 +688,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/files/upb-bazel-clang.patch new/bazel/fil
 -     # GCC (at least) emits spurious warnings for this that cannot be fixed
 -     # without introducing redundant initialization (with runtime cost):
 -     #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80635
-diff -urN -x CVS -x '*.orig' old/bazel/hacks.mk new/bazel/hacks.mk
---- devel/bazel/hacks.mk	2026-09-24 05:18:31.752041837 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/hacks.mk new/bazel/hacks.mk
+--- devel/bazel/hacks.mk	2026-09-24 05:22:28.562064620 +0000
 +++ devel/bazel/hacks.mk	1970-01-01 00:00:00.000000000 +0000
 @@ -1,15 +0,0 @@
 -# $NetBSD: hacks.mk,v 1.1 2024/06/08 08:05:14 nia Exp $
@@ -708,9 +707,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/hacks.mk new/bazel/hacks.mk
 -.endif
 -
 -.endif
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-MODULE.bazel new/bazel/patches/patch-MODULE.bazel
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-MODULE.bazel new/bazel/patches/patch-MODULE.bazel
 --- devel/bazel/patches/patch-MODULE.bazel	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/patches/patch-MODULE.bazel	2026-09-24 05:18:31.717108627 +0000
++++ devel/bazel/patches/patch-MODULE.bazel	2026-09-24 05:22:28.464293255 +0000
 @@ -0,0 +1,70 @@
 +$NetBSD$
 +
@@ -782,8 +781,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-MODULE.bazel new/bazel/patc
 + # =========================================
 + # Java dependencies
 + # =========================================
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-distdir__deps.bzl new/bazel/patches/patch-distdir__deps.bzl
---- devel/bazel/patches/patch-distdir__deps.bzl	2026-09-24 05:18:31.793677576 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-distdir__deps.bzl new/bazel/patches/patch-distdir__deps.bzl
+--- devel/bazel/patches/patch-distdir__deps.bzl	2026-09-24 05:22:28.567537103 +0000
 +++ devel/bazel/patches/patch-distdir__deps.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,22 +0,0 @@
 -$NetBSD: patch-distdir__deps.bzl,v 1.1 2024/01/01 12:00:58 ryoon Exp $
@@ -808,9 +807,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-distdir__deps.bzl new/bazel
 -     },
 -     "zstd-jni": {
 -         "archive": "v1.5.2-3.zip",
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_buildenv.sh new/bazel/patches/patch-scripts_bootstrap_buildenv.sh
---- devel/bazel/patches/patch-scripts_bootstrap_buildenv.sh	2026-09-24 05:18:31.794352522 +0000
-+++ devel/bazel/patches/patch-scripts_bootstrap_buildenv.sh	2026-09-24 05:18:31.717814582 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-scripts_bootstrap_buildenv.sh new/bazel/patches/patch-scripts_bootstrap_buildenv.sh
+--- devel/bazel/patches/patch-scripts_bootstrap_buildenv.sh	2026-09-24 05:22:28.568020963 +0000
++++ devel/bazel/patches/patch-scripts_bootstrap_buildenv.sh	2026-09-24 05:22:28.464799744 +0000
 @@ -1,14 +1,19 @@
 -$NetBSD: patch-scripts_bootstrap_buildenv.sh,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -835,13 +834,13 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_buildenv.
  +  ;;
  +
   openbsd)
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_compile.sh new/bazel/patches/patch-scripts_bootstrap_compile.sh
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-scripts_bootstrap_compile.sh new/bazel/patches/patch-scripts_bootstrap_compile.sh
 --- devel/bazel/patches/patch-scripts_bootstrap_compile.sh	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/patches/patch-scripts_bootstrap_compile.sh	2026-09-24 05:18:31.718492601 +0000
-@@ -0,0 +1,45 @@
++++ devel/bazel/patches/patch-scripts_bootstrap_compile.sh	2026-09-24 05:22:28.465357077 +0000
+@@ -0,0 +1,51 @@
 +$NetBSD$
 +
-+Keep the bootstrap working on JDK 23 and newer.
++Run the annotation processors on JDK 23 and newer, first stage.
 +
 +javac stopped running annotation processors it finds on the classpath
 +unless it is asked to, so the AutoValue and AutoService processors never
@@ -855,9 +854,15 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_compile.s
 +onwards, because the option does not exist before 21 and the default is
 +already what we want up to 22.
 +
++This covers the javac that builds the bootstrap bazel and nothing else.
++Once that bazel runs, tools/build_rules/java_rules_skylark.bzl calls the
++JDK's javac again from a genrule, and the same thing happens there 1,778
++actions later.  That one takes --javacopt and --host_javacopt rather than
++a patch; the Makefile passes them.  Change one and look at the other.
++
 +Upstream solved this after 9.2.0 by naming the processors explicitly
 +(-processor) and splitting the compilation in two, which is a larger
-+change than belongs in a patch here.
++change than belongs in a patch here.  It did not solve the genrule.
 +
 +--- scripts/bootstrap/compile.sh.orig
 ++++ scripts/bootstrap/compile.sh
@@ -884,9 +889,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_compile.s
 +       --add-exports=java.base/jdk.internal.vm=ALL-UNNAMED \
 +       ${BAZEL_JAVAC_OPTS} "@${paramfile}"
 +
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_packages_BUILD new/bazel/patches/patch-scripts_packages_BUILD
---- devel/bazel/patches/patch-scripts_packages_BUILD	2026-09-24 05:18:31.794920751 +0000
-+++ devel/bazel/patches/patch-scripts_packages_BUILD	2026-09-24 05:18:31.719210011 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-scripts_packages_BUILD new/bazel/patches/patch-scripts_packages_BUILD
+--- devel/bazel/patches/patch-scripts_packages_BUILD	2026-09-24 05:22:28.568513484 +0000
++++ devel/bazel/patches/patch-scripts_packages_BUILD	2026-09-24 05:22:28.465836747 +0000
 @@ -1,12 +1,18 @@
 -$NetBSD: patch-scripts_packages_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -910,9 +915,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_packages_BUILD new/
           "//src/conditions:darwin": [
 -             ":with-jdk/install.sh",
 +             ":generate-package-info",
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_packages_template__bin.sh new/bazel/patches/patch-scripts_packages_template__bin.sh
---- devel/bazel/patches/patch-scripts_packages_template__bin.sh	2026-09-24 05:18:31.795537030 +0000
-+++ devel/bazel/patches/patch-scripts_packages_template__bin.sh	2026-09-24 05:18:31.719936919 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-scripts_packages_template__bin.sh new/bazel/patches/patch-scripts_packages_template__bin.sh
+--- devel/bazel/patches/patch-scripts_packages_template__bin.sh	2026-09-24 05:22:28.569251287 +0000
++++ devel/bazel/patches/patch-scripts_packages_template__bin.sh	2026-09-24 05:22:28.466329547 +0000
 @@ -1,13 +1,20 @@
 -$NetBSD: patch-scripts_packages_template__bin.sh,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -938,9 +943,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_packages_template__
  +      BASHRC="~/.bashrc"
  +      ;;
       openbsd)
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_BUILD new/bazel/patches/patch-src_BUILD
---- devel/bazel/patches/patch-src_BUILD	2026-09-24 05:18:31.796115875 +0000
-+++ devel/bazel/patches/patch-src_BUILD	2026-09-24 05:18:31.720610468 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_BUILD new/bazel/patches/patch-src_BUILD
+--- devel/bazel/patches/patch-src_BUILD	2026-09-24 05:22:28.570382157 +0000
++++ devel/bazel/patches/patch-src_BUILD	2026-09-24 05:22:28.466855033 +0000
 @@ -1,20 +1,28 @@
 -$NetBSD: patch-src_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -983,9 +988,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_BUILD new/bazel/patches
           "//src/conditions:openbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/local/bin/bash@' > $@",
           "//conditions:default": "cp $(SRCS) $@",
       }),
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_conditions_BUILD new/bazel/patches/patch-src_conditions_BUILD
---- devel/bazel/patches/patch-src_conditions_BUILD	2026-09-24 05:18:31.797240040 +0000
-+++ devel/bazel/patches/patch-src_conditions_BUILD	2026-09-24 05:18:31.721292678 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_conditions_BUILD new/bazel/patches/patch-src_conditions_BUILD
+--- devel/bazel/patches/patch-src_conditions_BUILD	2026-09-24 05:22:28.571169408 +0000
++++ devel/bazel/patches/patch-src_conditions_BUILD	2026-09-24 05:22:28.467320455 +0000
 @@ -1,11 +1,23 @@
 -$NetBSD: patch-src_conditions_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1013,9 +1018,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_conditions_BUILD new/ba
  +    name = "netbsd",
  +    constraint_values = ["@platforms//os:netbsd"],
  +    visibility = ["//visibility:public"],
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_conditions_BUILD.tools new/bazel/patches/patch-src_conditions_BUILD.tools
---- devel/bazel/patches/patch-src_conditions_BUILD.tools	2026-09-24 05:18:31.798085119 +0000
-+++ devel/bazel/patches/patch-src_conditions_BUILD.tools	2026-09-24 05:18:31.722057580 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_conditions_BUILD.tools new/bazel/patches/patch-src_conditions_BUILD.tools
+--- devel/bazel/patches/patch-src_conditions_BUILD.tools	2026-09-24 05:22:28.571914754 +0000
++++ devel/bazel/patches/patch-src_conditions_BUILD.tools	2026-09-24 05:22:28.467838957 +0000
 @@ -1,11 +1,22 @@
 -$NetBSD: patch-src_conditions_BUILD.tools,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1042,9 +1047,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_conditions_BUILD.tools 
  +    name = "netbsd",
  +    constraint_values = ["@platforms//os:netbsd"],
  +    visibility = ["//visibility:public"],
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_BUILD new/bazel/patches/patch-src_main_cpp_BUILD
---- devel/bazel/patches/patch-src_main_cpp_BUILD	2026-09-24 05:18:31.798979367 +0000
-+++ devel/bazel/patches/patch-src_main_cpp_BUILD	2026-09-24 05:18:31.722688107 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_cpp_BUILD new/bazel/patches/patch-src_main_cpp_BUILD
+--- devel/bazel/patches/patch-src_main_cpp_BUILD	2026-09-24 05:22:28.572639148 +0000
++++ devel/bazel/patches/patch-src_main_cpp_BUILD	2026-09-24 05:22:28.468333433 +0000
 @@ -1,8 +1,15 @@
 -$NetBSD: patch-src_main_cpp_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1099,9 +1104,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_BUILD new/baze
           "//src/conditions:openbsd": [
           ],
           "//src/conditions:windows": [
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc new/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc
---- devel/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc	2026-09-24 05:18:31.799820815 +0000
-+++ devel/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc	2026-09-24 05:18:31.723384285 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc new/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc
+--- devel/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc	2026-09-24 05:22:28.573361865 +0000
++++ devel/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc	2026-09-24 05:22:28.468841598 +0000
 @@ -1,41 +1,45 @@
 -$NetBSD: patch-src_main_cpp_blaze__util__bsd.cc,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1165,9 +1170,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_blaze__util__b
     // OpenBSD does not provide a way for a running process to find a path to its
     // own executable, so we try to figure out a path by inspecting argv[0]. In
     // theory this is inadequate, since the parent process can set argv[0] to
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_option__processor.cc new/bazel/patches/patch-src_main_cpp_option__processor.cc
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_cpp_option__processor.cc new/bazel/patches/patch-src_main_cpp_option__processor.cc
 --- devel/bazel/patches/patch-src_main_cpp_option__processor.cc	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/patches/patch-src_main_cpp_option__processor.cc	2026-09-24 05:18:31.723996094 +0000
++++ devel/bazel/patches/patch-src_main_cpp_option__processor.cc	2026-09-24 05:22:28.469329649 +0000
 @@ -0,0 +1,18 @@
 +$NetBSD$
 +
@@ -1187,9 +1192,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_option__proces
 + #elif defined(__OpenBSD__)
 +   platform_config = "openbsd";
 + #endif
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_util_md5.h new/bazel/patches/patch-src_main_cpp_util_md5.h
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_cpp_util_md5.h new/bazel/patches/patch-src_main_cpp_util_md5.h
 --- devel/bazel/patches/patch-src_main_cpp_util_md5.h	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/patches/patch-src_main_cpp_util_md5.h	2026-09-24 05:18:31.724669085 +0000
++++ devel/bazel/patches/patch-src_main_cpp_util_md5.h	2026-09-24 05:22:28.469885865 +0000
 @@ -0,0 +1,18 @@
 +$NetBSD$
 +
@@ -1209,8 +1214,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_util_md5.h new
 + #include <sys/endian.h>
 + #elif defined(__APPLE__) || defined(_WIN32)
 + // Hopefully OSX and Windows will keep running solely on little endian CPUs, so:
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java	2026-09-24 05:18:31.800929894 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java	2026-09-24 05:22:28.573896012 +0000
 +++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,16 +0,0 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
@@ -1229,9 +1234,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 -               OS.OPENBSD,
 -               ConstraintValueInfo.create(
 -                   OS_CONSTRAINT_SETTING,
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java	2026-09-24 05:18:31.802292358 +0000
-+++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java	2026-09-24 05:18:31.725548247 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java	2026-09-24 05:22:28.574847809 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java	2026-09-24 05:22:28.538728134 +0000
 @@ -1,22 +1,18 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1271,9 +1276,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 +         case OPENBSD -> "openbsd";
 +         case WINDOWS ->
 +             switch (CPU.getCurrent()) {
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java
 --- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java	1970-01-01 00:00:00.000000000 +0000
-+++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java	2026-09-24 05:18:31.726225148 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java	2026-09-24 05:22:28.539349721 +0000
 @@ -0,0 +1,26 @@
 +$NetBSD$
 +
@@ -1301,8 +1306,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 +               Label.parseCanonicalUnchecked("@platforms//os:openbsd")),
 +           OS.OPENBSD,
 +           ConstraintValueInfo.create(
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java	2026-09-24 05:18:31.803000828 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java	2026-09-24 05:22:28.575385307 +0000
 +++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
@@ -1318,9 +1323,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 -       case OPENBSD:
 -         return "@platforms//os:openbsd";
 -       case LINUX:
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java	2026-09-24 05:18:31.803548663 +0000
-+++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java	2026-09-24 05:18:31.727078330 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java	2026-09-24 05:22:28.575854640 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java	2026-09-24 05:22:28.540087525 +0000
 @@ -1,12 +1,18 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1347,9 +1352,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 -           .buildOrThrow();
 +           .put(OS.LINUX, PathFragment.create("/bin/bash"))
 +           .put(OS.DARWIN, PathFragment.create("/bin/bash"))
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java	2026-09-24 05:18:31.804200422 +0000
-+++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java	2026-09-24 05:18:31.727836806 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java	2026-09-24 05:22:28.576353586 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java	2026-09-24 05:22:28.540730903 +0000
 @@ -1,12 +1,18 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
 +$NetBSD$
@@ -1372,8 +1377,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
           case OPENBSD:
           case UNKNOWN:
             loadLibrary("main/native/libunix_jni.so");
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java	2026-09-24 05:18:31.804921742 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java	2026-09-24 05:22:28.576836329 +0000
 +++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1389,8 +1394,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 -               + "--config=windows on Windows, etc.")
 -   public boolean enablePlatformSpecificConfig;
 - 
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java	2026-09-24 05:18:31.806530047 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java	2026-09-24 05:22:28.578358031 +0000
 +++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1406,9 +1411,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
 -       case OPENBSD:
 -         return "openbsd";
 -       default:
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java
---- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java	2026-09-24 05:18:31.807096321 +0000
-+++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java	2026-09-24 05:18:31.728596679 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java	2026-09-24 05:22:28.638678267 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java	2026-09-24 05:22:28.541380985 +0000
 @@ -1,19 +1,27 @@
 -$NetBSD: patch-src_main_java_com_google_devtools_build_lib_util_OS.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1441,9 +1446,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_de
   
     private final String canonicalName;
     private final String detectionName;
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_BUILD new/bazel/patches/patch-src_main_native_BUILD
---- devel/bazel/patches/patch-src_main_native_BUILD	2026-09-24 05:18:31.805488015 +0000
-+++ devel/bazel/patches/patch-src_main_native_BUILD	2026-09-24 05:18:31.729405720 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_native_BUILD new/bazel/patches/patch-src_main_native_BUILD
+--- devel/bazel/patches/patch-src_main_native_BUILD	2026-09-24 05:22:28.577299796 +0000
++++ devel/bazel/patches/patch-src_main_native_BUILD	2026-09-24 05:22:28.542002852 +0000
 @@ -1,20 +1,28 @@
 -$NetBSD: patch-src_main_native_BUILD,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1483,9 +1488,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_BUILD new/b
           "//src/conditions:openbsd": ["unix_jni_bsd.cc"],
           "//conditions:default": ["unix_jni_linux.cc"],
       }),
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_unix__jni.h new/bazel/patches/patch-src_main_native_unix__jni.h
---- devel/bazel/patches/patch-src_main_native_unix__jni.h	2026-09-24 05:18:31.807640244 +0000
-+++ devel/bazel/patches/patch-src_main_native_unix__jni.h	2026-09-24 05:18:31.730265327 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_native_unix__jni.h new/bazel/patches/patch-src_main_native_unix__jni.h
+--- devel/bazel/patches/patch-src_main_native_unix__jni.h	2026-09-24 05:22:28.639458255 +0000
++++ devel/bazel/patches/patch-src_main_native_unix__jni.h	2026-09-24 05:22:28.542771944 +0000
 @@ -1,13 +1,19 @@
 -$NetBSD: patch-src_main_native_unix__jni.h,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1510,9 +1515,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_unix__jni.h
   // stat64 is deprecated on OS X/BSD.
   typedef struct stat portable_stat_struct;
   #define portable_stat ::stat
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_unix__jni__bsd.cc new/bazel/patches/patch-src_main_native_unix__jni__bsd.cc
---- devel/bazel/patches/patch-src_main_native_unix__jni__bsd.cc	2026-09-24 05:18:31.808185565 +0000
-+++ devel/bazel/patches/patch-src_main_native_unix__jni__bsd.cc	2026-09-24 05:18:31.730960108 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_native_unix__jni__bsd.cc new/bazel/patches/patch-src_main_native_unix__jni__bsd.cc
+--- devel/bazel/patches/patch-src_main_native_unix__jni__bsd.cc	2026-09-24 05:22:28.640000503 +0000
++++ devel/bazel/patches/patch-src_main_native_unix__jni__bsd.cc	2026-09-24 05:22:28.543256363 +0000
 @@ -1,13 +1,25 @@
 -$NetBSD: patch-src_main_native_unix__jni__bsd.cc,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1543,9 +1548,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_unix__jni__
   #elif defined(__OpenBSD__)
   // No sys/extattr.h or sysctlbyname on this platform.
   #else
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_tools_BUILD new/bazel/patches/patch-src_main_tools_BUILD
---- devel/bazel/patches/patch-src_main_tools_BUILD	2026-09-24 05:18:31.808752956 +0000
-+++ devel/bazel/patches/patch-src_main_tools_BUILD	2026-09-24 05:18:31.731572476 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_tools_BUILD new/bazel/patches/patch-src_main_tools_BUILD
+--- devel/bazel/patches/patch-src_main_tools_BUILD	2026-09-24 05:22:28.640992807 +0000
++++ devel/bazel/patches/patch-src_main_tools_BUILD	2026-09-24 05:22:28.543794700 +0000
 @@ -1,8 +1,15 @@
 -$NetBSD: patch-src_main_tools_BUILD,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1601,9 +1606,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_tools_BUILD new/ba
       deps = select({
           "//src/conditions:darwin": [],
           "//src/conditions:freebsd": [],
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_tools_process-tools-darwin.cc new/bazel/patches/patch-src_main_tools_process-tools-darwin.cc
---- devel/bazel/patches/patch-src_main_tools_process-tools-darwin.cc	2026-09-24 05:18:31.809371470 +0000
-+++ devel/bazel/patches/patch-src_main_tools_process-tools-darwin.cc	2026-09-24 05:18:31.732504159 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_main_tools_process-tools-darwin.cc new/bazel/patches/patch-src_main_tools_process-tools-darwin.cc
+--- devel/bazel/patches/patch-src_main_tools_process-tools-darwin.cc	2026-09-24 05:22:28.641611042 +0000
++++ devel/bazel/patches/patch-src_main_tools_process-tools-darwin.cc	2026-09-24 05:22:28.544750687 +0000
 @@ -1,24 +1,67 @@
 -$NetBSD: patch-src_main_tools_process-tools-darwin.cc,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1681,8 +1686,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_tools_process-tool
         if (procs->p_pid != pgid) {
   #else
         if (procs->kp_proc.p_pid != pgid) {
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java
---- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java	2026-09-24 05:18:31.809967356 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java	2026-09-24 05:22:28.642196592 +0000
 +++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,12 +0,0 @@
 -$NetBSD: patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1697,8 +1702,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_de
 -           new Object[] {OS.OPENBSD, "@platforms//os:openbsd"},
 -           new Object[] {OS.WINDOWS, "@platforms//os:windows"});
 -     }
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java
---- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java	2026-09-24 05:18:31.811864245 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java	2026-09-24 05:22:28.643943741 +0000
 +++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,22 +0,0 @@
 -$NetBSD: patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1723,8 +1728,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_de
 -     assertThat(determineShellExecutable(OS.OPENBSD, binBash))
 -         .isEqualTo(PathFragment.create("/bin/bash"));
 -     assertThat(determineShellExecutable(OS.WINDOWS, binBash))
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java
---- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java	2026-09-24 05:18:31.812443928 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java	2026-09-24 05:22:28.644470065 +0000
 +++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,15 +0,0 @@
 -$NetBSD: patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1742,8 +1747,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_de
 -         "    name = 'openbsd',",
 -         "    constraint_setting = ':os',",
 -         ")");
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java
---- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java	2026-09-24 05:18:31.813032829 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java	2026-09-24 05:22:28.644988287 +0000
 +++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,12 +0,0 @@
 -$NetBSD: patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1758,8 +1763,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_de
 -       case OPENBSD:
 -       case UNKNOWN:
 -         return false;
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java
---- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java	2026-09-24 05:18:31.813621452 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java	2026-09-24 05:22:28.645530535 +0000
 +++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,32 +0,0 @@
 -$NetBSD: patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1794,8 +1799,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_de
 -       case OPENBSD:
 -         assertThat(parser.getResidue()).containsExactly("command_openbsd");
 -         break;
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java
---- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java	2026-09-24 05:18:31.814211471 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java	2026-09-24 05:22:28.646785443 +0000
 +++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java	1970-01-01 00:00:00.000000000 +0000
 @@ -1,20 +0,0 @@
 -$NetBSD: patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1818,8 +1823,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_de
 -           {/* asyncOnCommandLine= */ false, OS.OPENBSD, true},
 -           {/* asyncOnCommandLine= */ false, OS.UNKNOWN, false},
 -         });
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh new/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh
---- devel/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh	2026-09-24 05:18:31.815549629 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh new/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh
+--- devel/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh	2026-09-24 05:22:28.648157685 +0000
 +++ devel/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh	1970-01-01 00:00:00.000000000 +0000
 @@ -1,22 +0,0 @@
 -$NetBSD: patch-src_test_shell_bazel_remote_remote__execution__test.sh,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1844,8 +1849,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_bazel_remote
 -     ;;
 -   *)
 -     return 0
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh new/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh
---- devel/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh	2026-09-24 05:18:31.816242455 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh new/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh
+--- devel/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh	2026-09-24 05:22:28.649026510 +0000
 +++ devel/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-src_test_shell_bazel_unicode__filenames__test.sh,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1861,8 +1866,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_bazel_unicod
 -     ;;
 -   *)
 -     echo "Skipping test." && return
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_shell__utils.sh new/bazel/patches/patch-src_test_shell_shell__utils.sh
---- devel/bazel/patches/patch-src_test_shell_shell__utils.sh	2026-09-24 05:18:31.810711305 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_test_shell_shell__utils.sh new/bazel/patches/patch-src_test_shell_shell__utils.sh
+--- devel/bazel/patches/patch-src_test_shell_shell__utils.sh	2026-09-24 05:22:28.642727665 +0000
 +++ devel/bazel/patches/patch-src_test_shell_shell__utils.sh	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-src_test_shell_shell__utils.sh,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1878,8 +1883,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_shell__utils
 -       result=$(md5 -q $@ || echo)
 -     else
 -       result=$(md5sum $@ | awk '{print $1}' || echo)
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_BUILD new/bazel/patches/patch-src_tools_singlejar_BUILD
---- devel/bazel/patches/patch-src_tools_singlejar_BUILD	2026-09-24 05:18:31.817090887 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_tools_singlejar_BUILD new/bazel/patches/patch-src_tools_singlejar_BUILD
+--- devel/bazel/patches/patch-src_tools_singlejar_BUILD	2026-09-24 05:22:28.650039488 +0000
 +++ devel/bazel/patches/patch-src_tools_singlejar_BUILD	1970-01-01 00:00:00.000000000 +0000
 @@ -1,20 +0,0 @@
 -$NetBSD: patch-src_tools_singlejar_BUILD,v 1.1 2024/01/01 12:00:59 ryoon Exp $
@@ -1902,9 +1907,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_BUILD n
 -         "//src/conditions:openbsd": ["-lm"],
 -         "//conditions:default": [],
 -     }),
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_diag.h new/bazel/patches/patch-src_tools_singlejar_diag.h
---- devel/bazel/patches/patch-src_tools_singlejar_diag.h	2026-09-24 05:18:31.817944068 +0000
-+++ devel/bazel/patches/patch-src_tools_singlejar_diag.h	2026-09-24 05:18:31.733177149 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_tools_singlejar_diag.h new/bazel/patches/patch-src_tools_singlejar_diag.h
+--- devel/bazel/patches/patch-src_tools_singlejar_diag.h	2026-09-24 05:22:28.650836796 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_diag.h	2026-09-24 05:22:28.545252706 +0000
 @@ -1,13 +1,18 @@
 -$NetBSD: patch-src_tools_singlejar_diag.h,v 1.1 2024/01/01 12:00:59 ryoon Exp $
 +$NetBSD$
@@ -1927,9 +1932,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_diag.h 
   
   #include <err.h>
   #define diag_err(...) err(__VA_ARGS__)
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc new/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc
---- devel/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc	2026-09-24 05:18:31.818869325 +0000
-+++ devel/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc	2026-09-24 05:18:31.733855727 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc new/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc
+--- devel/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc	2026-09-24 05:22:28.651564263 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc	2026-09-24 05:22:28.545725672 +0000
 @@ -1,13 +1,19 @@
 -$NetBSD: patch-src_tools_singlejar_mapped__file__posix.inc,v 1.1 2024/01/01 12:01:00 ryoon Exp $
 +$NetBSD$
@@ -1953,9 +1958,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_mapped_
         __SIZEOF_POINTER__ == 8)
   #error This code for 64 bit Unix.
   #endif
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_port.h new/bazel/patches/patch-src_tools_singlejar_port.h
---- devel/bazel/patches/patch-src_tools_singlejar_port.h	2026-09-24 05:18:31.819735916 +0000
-+++ devel/bazel/patches/patch-src_tools_singlejar_port.h	2026-09-24 05:18:31.734530115 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_tools_singlejar_port.h new/bazel/patches/patch-src_tools_singlejar_port.h
+--- devel/bazel/patches/patch-src_tools_singlejar_port.h	2026-09-24 05:22:28.652374980 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_port.h	2026-09-24 05:22:28.546190256 +0000
 @@ -1,13 +1,17 @@
 -$NetBSD: patch-src_tools_singlejar_port.h,v 1.1 2024/01/01 12:01:00 ryoon Exp $
 +$NetBSD$
@@ -1977,9 +1982,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_port.h 
   typedef int64_t off64_t;
   #endif
   static_assert(sizeof(off64_t) == 8, "File offset type must be 64-bit");
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_zip__headers.h new/bazel/patches/patch-src_tools_singlejar_zip__headers.h
---- devel/bazel/patches/patch-src_tools_singlejar_zip__headers.h	2026-09-24 05:18:31.820607256 +0000
-+++ devel/bazel/patches/patch-src_tools_singlejar_zip__headers.h	2026-09-24 05:18:31.735193886 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-src_tools_singlejar_zip__headers.h new/bazel/patches/patch-src_tools_singlejar_zip__headers.h
+--- devel/bazel/patches/patch-src_tools_singlejar_zip__headers.h	2026-09-24 05:22:28.652912199 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_zip__headers.h	2026-09-24 05:22:28.546739487 +0000
 @@ -1,13 +1,17 @@
 -$NetBSD: patch-src_tools_singlejar_zip__headers.h,v 1.1 2024/01/01 12:01:00 ryoon Exp $
 +$NetBSD$
@@ -2001,9 +2006,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_zip__he
   #include <sys/endian.h>
   #elif defined(__APPLE__) || defined(_WIN32)
   // Hopefully OSX and Windows will keep running solely on little endian CPUs, so:
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_BUILD new/bazel/patches/patch-third__party_BUILD
---- devel/bazel/patches/patch-third__party_BUILD	2026-09-24 05:18:31.821532792 +0000
-+++ devel/bazel/patches/patch-third__party_BUILD	2026-09-24 05:18:31.735886153 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-third__party_BUILD new/bazel/patches/patch-third__party_BUILD
+--- devel/bazel/patches/patch-third__party_BUILD	2026-09-24 05:22:28.653414498 +0000
++++ devel/bazel/patches/patch-third__party_BUILD	2026-09-24 05:22:28.547239830 +0000
 @@ -1,24 +1,17 @@
 -$NetBSD: patch-third__party_BUILD,v 1.1 2024/01/01 12:01:00 ryoon Exp $
 +$NetBSD$
@@ -2042,8 +2047,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_BUILD new/baze
 -     name = "openbsd",
 -     values = {"host_cpu": "openbsd"},
 - )
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch new/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch
---- devel/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch	2026-09-24 05:18:31.822470900 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch new/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch
+--- devel/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch	2026-09-24 05:22:28.653942777 +0000
 +++ devel/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch	1970-01-01 00:00:00.000000000 +0000
 @@ -1,90 +0,0 @@
 -$NetBSD: patch-third__party_abseil-cpp_netbsd-sunos.patch,v 1.2 2026/02/24 20:48:20 christos Exp $
@@ -2136,8 +2141,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_abseil-cpp_net
 -+ #define ABSL_HAVE_PTHREAD_GETSCHEDPARAM 1
 -+ #endif
 -+ 
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_grpc_netbsd-config.patch new/bazel/patches/patch-third__party_grpc_netbsd-config.patch
---- devel/bazel/patches/patch-third__party_grpc_netbsd-config.patch	2026-09-24 05:18:31.824726215 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-third__party_grpc_netbsd-config.patch new/bazel/patches/patch-third__party_grpc_netbsd-config.patch
+--- devel/bazel/patches/patch-third__party_grpc_netbsd-config.patch	2026-09-24 05:22:28.655425927 +0000
 +++ devel/bazel/patches/patch-third__party_grpc_netbsd-config.patch	1970-01-01 00:00:00.000000000 +0000
 @@ -1,546 +0,0 @@
 -$NetBSD: patch-third__party_grpc_netbsd-config.patch,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2686,8 +2691,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_grpc_netbsd-co
 -++
 -++/* Define to `unsigned int' if <sys/types.h> does not define. */
 -++/* #undef size_t */
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch new/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch
---- devel/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch	2026-09-24 05:18:31.825387193 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch new/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch
+--- devel/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch	2026-09-24 05:22:28.655931019 +0000
 +++ devel/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch	1970-01-01 00:00:00.000000000 +0000
 @@ -1,24 +0,0 @@
 -$NetBSD: patch-third__party_upb_upb-bazel-clang.patch,v 1.2 2025/12/15 03:37:01 maya Exp $
@@ -2714,8 +2719,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_upb_upb-bazel-
 -+     # GCC (at least) emits spurious warnings for this that cannot be fixed
 -+     # without introducing redundant initialization (with runtime cost):
 -+     #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80635
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD new/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD
---- devel/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD	2026-09-24 05:18:31.825999561 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD new/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD
+--- devel/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD	2026-09-24 05:22:28.656412924 +0000
 +++ devel/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD	1970-01-01 00:00:00.000000000 +0000
 @@ -1,12 +0,0 @@
 -$NetBSD: patch-third__party_zstd-jni_zstd-jni.BUILD,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2730,8 +2735,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_zstd-jni_zstd-
 -         "@bazel_tools//src/conditions:openbsd": ["@bazel_tools//tools/jdk:jni_md_header-openbsd"],
 -         "@bazel_tools//src/conditions:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
 -         "//conditions:default": ["@bazel_tools//tools/jdk:jni_md_header-linux"],
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_BUILD.static.bsd new/bazel/patches/patch-tools_cpp_BUILD.static.bsd
---- devel/bazel/patches/patch-tools_cpp_BUILD.static.bsd	2026-09-24 05:18:31.826733174 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_cpp_BUILD.static.bsd new/bazel/patches/patch-tools_cpp_BUILD.static.bsd
+--- devel/bazel/patches/patch-tools_cpp_BUILD.static.bsd	2026-09-24 05:22:28.656912429 +0000
 +++ devel/bazel/patches/patch-tools_cpp_BUILD.static.bsd	1970-01-01 00:00:00.000000000 +0000
 @@ -1,57 +0,0 @@
 -$NetBSD: patch-tools_cpp_BUILD.static.bsd,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2791,8 +2796,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_BUILD.static.bsd 
 -     name = "cc-compiler-openbsd",
 -     all_files = ":empty",
 -     ar_files = ":empty",
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl new/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl
---- devel/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl	2026-09-24 05:18:31.827427675 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl new/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl
+--- devel/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl	2026-09-24 05:22:28.657417800 +0000
 +++ devel/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,59 +0,0 @@
 -$NetBSD: patch-tools_cpp_bsd__cc__toolchain__config.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2854,8 +2859,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_bsd__cc__toolchai
 -     else:
 -         tool_paths = [
 -             tool_path(name = "ar", path = "/bin/false"),
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_cc__configure.bzl new/bazel/patches/patch-tools_cpp_cc__configure.bzl
---- devel/bazel/patches/patch-tools_cpp_cc__configure.bzl	2026-09-24 05:18:31.828231130 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_cpp_cc__configure.bzl new/bazel/patches/patch-tools_cpp_cc__configure.bzl
+--- devel/bazel/patches/patch-tools_cpp_cc__configure.bzl	2026-09-24 05:22:28.657915349 +0000
 +++ devel/bazel/patches/patch-tools_cpp_cc__configure.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-tools_cpp_cc__configure.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2871,8 +2876,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_cc__configure.bzl
 -         paths = resolve_labels(repository_ctx, [
 -             "@bazel_tools//tools/cpp:BUILD.static.bsd",
 -             "@bazel_tools//tools/cpp:bsd_cc_toolchain_config.bzl",
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl new/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl
---- devel/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl	2026-09-24 05:18:31.828899930 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl new/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl
+--- devel/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl	2026-09-24 05:22:28.658398371 +0000
 +++ devel/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-tools_cpp_lib__cc__configure.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2888,8 +2893,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_lib__cc__configur
 -     if os_name.find("openbsd") != -1:
 -         return "openbsd"
 -     if os_name.find("windows") != -1:
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl new/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl
---- devel/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl	2026-09-24 05:18:31.829596666 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl new/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl
+--- devel/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl	2026-09-24 05:22:28.658908492 +0000
 +++ devel/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-tools_cpp_unix__cc__configure.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2905,8 +2910,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_unix__cc__configu
 - 
 -     cc = find_cc(repository_ctx, overriden_tools)
 -     is_clang = _is_clang(repository_ctx, cc)
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_BUILD.java__tools new/bazel/patches/patch-tools_jdk_BUILD.java__tools
---- devel/bazel/patches/patch-tools_jdk_BUILD.java__tools	2026-09-24 05:18:31.830181377 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_jdk_BUILD.java__tools new/bazel/patches/patch-tools_jdk_BUILD.java__tools
+--- devel/bazel/patches/patch-tools_jdk_BUILD.java__tools	2026-09-24 05:22:28.659395146 +0000
 +++ devel/bazel/patches/patch-tools_jdk_BUILD.java__tools	1970-01-01 00:00:00.000000000 +0000
 @@ -1,33 +0,0 @@
 -$NetBSD: patch-tools_jdk_BUILD.java__tools,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -2942,9 +2947,9 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_BUILD.java__tools
 -         ":openbsd": ["-lm"],
 -         "//conditions:default": [],
 -     }),
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_BUILD.tools new/bazel/patches/patch-tools_jdk_BUILD.tools
---- devel/bazel/patches/patch-tools_jdk_BUILD.tools	2026-09-24 05:18:31.823432754 +0000
-+++ devel/bazel/patches/patch-tools_jdk_BUILD.tools	2026-09-24 05:18:31.736572553 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_jdk_BUILD.tools new/bazel/patches/patch-tools_jdk_BUILD.tools
+--- devel/bazel/patches/patch-tools_jdk_BUILD.tools	2026-09-24 05:22:28.654433342 +0000
++++ devel/bazel/patches/patch-tools_jdk_BUILD.tools	2026-09-24 05:22:28.547761964 +0000
 @@ -1,32 +1,17 @@
 -$NetBSD: patch-tools_jdk_BUILD.tools,v 1.1 2024/01/01 12:01:00 ryoon Exp $
 +$NetBSD$
@@ -2993,8 +2998,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_BUILD.tools new/b
 +     "jni_md_header-openbsd",
 +     "jni_md_header-windows",
 +     "platformclasspath",
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_jdk__build__file.bzl new/bazel/patches/patch-tools_jdk_jdk__build__file.bzl
---- devel/bazel/patches/patch-tools_jdk_jdk__build__file.bzl	2026-09-24 05:18:31.830790673 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_jdk_jdk__build__file.bzl new/bazel/patches/patch-tools_jdk_jdk__build__file.bzl
+--- devel/bazel/patches/patch-tools_jdk_jdk__build__file.bzl	2026-09-24 05:22:28.659928734 +0000
 +++ devel/bazel/patches/patch-tools_jdk_jdk__build__file.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,17 +0,0 @@
 -$NetBSD: patch-tools_jdk_jdk__build__file.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -3014,8 +3019,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_jdk__build__file.
 -     name = "jni_md_header-openbsd",
 -     srcs = ["include/openbsd/jni_md.h"],
 -     deprecation = DEPRECATION_MESSAGE,
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_platforms_BUILD new/bazel/patches/patch-tools_platforms_BUILD
---- devel/bazel/patches/patch-tools_platforms_BUILD	2026-09-24 05:18:31.831915397 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_platforms_BUILD new/bazel/patches/patch-tools_platforms_BUILD
+--- devel/bazel/patches/patch-tools_platforms_BUILD	2026-09-24 05:22:28.661058766 +0000
 +++ devel/bazel/patches/patch-tools_platforms_BUILD	1970-01-01 00:00:00.000000000 +0000
 @@ -1,32 +0,0 @@
 -$NetBSD: patch-tools_platforms_BUILD,v 1.1 2024/01/01 12:01:00 ryoon Exp $
@@ -3050,8 +3055,8 @@ diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_platforms_BUILD new/b
 -         "@platforms//os:openbsd",
 -         "@platforms//os:linux",
 -         "@platforms//os:windows",
-diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_platforms_BUILD.tools new/bazel/patches/patch-tools_platforms_BUILD.tools
---- devel/bazel/patches/patch-tools_platforms_BUILD.tools	2026-09-24 05:18:31.832573860 +0000
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/bazel/patches/patch-tools_platforms_BUILD.tools new/bazel/patches/patch-tools_platforms_BUILD.tools
+--- devel/bazel/patches/patch-tools_platforms_BUILD.tools	2026-09-24 05:22:28.661557712 +0000
 +++ devel/bazel/patches/patch-tools_platforms_BUILD.tools	1970-01-01 00:00:00.000000000 +0000
 @@ -1,32 +0,0 @@
 -$NetBSD: patch-tools_platforms_BUILD.tools,v 1.1 2024/01/01 12:01:00 ryoon Exp $

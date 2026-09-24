@@ -1,6 +1,6 @@
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile new/mozc-server/Makefile
---- inputmethod/mozc-server/Makefile	2026-09-24 05:11:12.585077880 +0000
-+++ inputmethod/mozc-server/Makefile	2026-09-24 05:11:12.555125470 +0000
+--- inputmethod/mozc-server/Makefile	2026-09-24 05:22:28.258275451 +0000
++++ inputmethod/mozc-server/Makefile	2026-09-24 05:22:28.674377497 +0000
 @@ -1,36 +1,49 @@
 -# $NetBSD: Makefile,v 1.105 2026/09/02 19:03:07 wiz Exp $
 +# $NetBSD$
@@ -12,7 +12,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile new/mozc-server
  
 +.include "../../inputmethod/mozc-server/options.mk"
 +
-+# GUI を建てないので Qt は要らない。
++# No GUI is built here, so Qt is not needed.
 +MOZC_GYP_ARGS=	--noqt
 +
  post-configure:
@@ -22,7 +22,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile new/mozc-server
 +		unzip -o -d ../dictionary jigyosyo.zip && \
 +		unzip -o -d ../dictionary ken_all.zip
  
-+.if empty(PKG_OPTIONS:Mgyp)
++.if ${MOZC_BUILDER} == "bazel"
  do-build:
  	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
  		${PREFIX}/bin/bazel \
@@ -33,9 +33,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile new/mozc-server
 +			--jobs=${MAKE_JOBS:U1} \
  			--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
  			--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
- 			--host_action_env=PATH=${PATH} \
- 			--action_env=PATH=${PATH} \
+-			--host_action_env=PATH=${PATH} \
+-			--action_env=PATH=${PATH} \
 -			--sandbox_debug \
++			--host_action_env=PATH=${PATH:Q} \
++			--action_env=PATH=${PATH:Q} \
  			--verbose_failures \
 -			--subcommands \
 -			--distdir=${WRKSRC}/dist \
@@ -63,9 +65,9 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile new/mozc-server
 +.include "Makefile.common"
  .include "../../mk/bsd.pkg.mk"
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc-server/Makefile.common
---- inputmethod/mozc-server/Makefile.common	2026-09-24 05:11:12.622614494 +0000
-+++ inputmethod/mozc-server/Makefile.common	2026-09-24 05:18:48.408449006 +0000
-@@ -1,78 +1,53 @@
+--- inputmethod/mozc-server/Makefile.common	2026-09-24 05:22:28.347582332 +0000
++++ inputmethod/mozc-server/Makefile.common	2026-09-24 05:22:28.678780571 +0000
+@@ -1,78 +1,59 @@
 -# $NetBSD: Makefile.common,v 1.43 2024/12/11 03:07:20 maya Exp $
 +# $NetBSD$
  
@@ -77,20 +79,26 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
 -# used by inputmethod/mozc-renderer/Makefile
  
 -DISTNAME=	mozc-2.29.5268.102
-+# 3.34.6239 には GYP が無い。src/build_mozc.py も src/gyp/ も .gyp も .gypi も
-+# 一本も入っておらず、建て方は bazel だけである。消えたのは 3.34 ではなく
-+# 3.33.6133 で、その一つ前の 3.33.6089 が GYP を積んだ最後のタグになる。
++# 3.34.6239 carries no GYP at all: no src/build_mozc.py, no src/gyp/, not one
++# .gyp or .gypi file.  Bazel is the only way upstream builds it now.  GYP went
++# away in 3.33.6133, not in 3.34, so 3.33.6089 is the last tag that still has
++# it.
 +#
-+# bazel は 32bit の platform で建たないので、i386 に mozc を届けるには GYP が
-+# 要る。そこで 3.33.6089 の tarball をもう一本取り、そこから GYP の足場だけを
-+# 3.34.6239 の木へ流し込む。
++# Bazel does not build on 32-bit platforms, so GYP is what gets mozc to i386.
++# A second tarball of 3.33.6089 is fetched and only the GYP scaffolding from it
++# is laid over the 3.34.6239 tree.
 +#
-+# 足場と 3.34 の木のずれは小さい。GYP が名指ししている 602 本のうち 3.34 で
-+# 消えたのは 6 本だけで、逆に増えた .cc は実質 2 本しかない。patches/ に入って
-+# いる .gyp の当て物がその差である。
++# The two trees are close.  Of the 602 sources GYP names, 6 are gone in 3.34
++# and effectively 2 .cc files are new; the .gyp patches under patches/ are that
++# difference.
 +
 +DISTNAME=	mozc-3.34.6239
  CATEGORIES=	inputmethod
++# Eight of the distfiles have no version in their name.  Japan Post replaces
++# ken_all.zip and jigyosyo.zip under the same name every month, so unprefixed
++# they would collide in distfiles/ with the next release's copies.  The icon
++# png/svg files are unversioned too.
++DIST_SUBDIR=	${DISTNAME}
  MASTER_SITES=	${MASTER_SITE_GITHUB:=google/}
  GITHUB_PROJECT=	mozc
  GITHUB_TAG=	${PKGVERSION_NOREV}
@@ -101,9 +109,10 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
  COMMENT=	Japanese inputmethod Mozc engine
  LICENSE=	modified-bsd
  
-+# 3.34 は .gitmodules ごと消して、依存を MODULE.bazel で数えるようにした。
-+# GYP は third_party/ に実物が置いてあることを前提にしているので、bzlmod が
-+# 指している版をここで並べ直す。abseil と protobuf は 3.33.6089 より新しい。
++# 3.34 dropped .gitmodules and counts its dependencies in MODULE.bazel instead.
++# GYP expects the real trees to be sitting in third_party/, so the versions
++# bzlmod points at are listed again here.  abseil and protobuf are newer than
++# what 3.33.6089 used.
  GITHUB_SUBMODULES+=	google breakpad 216cea7bca53fa441a3ee0d0f5fd339a3a894224 third_party/breakpad
 -GITHUB_SUBMODULES+=	google googletest 58d77fa8070e8cec2dc1ed015d66b454c8d78850 third_party/gtest
 +GITHUB_SUBMODULES+=	google googletest 52eb8108c5bdec04579160ae17225d66034bd723 third_party/gtest
@@ -148,12 +157,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
 -
 -MOZC_DISTS+=	apple_support.1.3.1.tar.gz
 -SITES.apple_support.1.3.1.tar.gz=	https://github.com/bazelbuild/apple_support/releases/download/1.3.1/
-+# GYP の足場を取り出すためだけの二本目。木としては使わない。
-+MOZC_GYP_VERSION=	3.33.6089
-+MOZC_GYP_DISTFILE=	mozc-${MOZC_GYP_VERSION}.tar.gz
-+SITES.${MOZC_GYP_DISTFILE}=	-https://github.com/google/mozc/archive/${MOZC_GYP_VERSION}.tar.gz
-+DISTFILES+=	${MOZC_GYP_DISTFILE}
- 
+-
 -MOZC_DISTS+=	bazel-skylib-1.4.1.tar.gz
 -SITES.bazel-skylib-1.4.1.tar.gz=	https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/
 -
@@ -168,13 +172,26 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
 -
 -MOZC_DISTS+=	8fbaae947b87c1e66c0934493168fc6d583ed889.zip
 -SITES.8fbaae947b87c1e66c0934493168fc6d583ed889.zip=	https://github.com/google/google-toolbox-for-mac/archive/
-+EXTRACT_ONLY=	${DEFAULT_DISTFILES} ${_GITHUB_DEFAULT_DISTFILES} ${MOZC_GYP_DISTFILE}
++# A second tarball, fetched only to lift the GYP scaffolding out of it.  It is
++# not used as a source tree.
++MOZC_GYP_VERSION=	3.33.6089
++MOZC_GYP_DISTFILE=	mozc-${MOZC_GYP_VERSION}.tar.gz
++SITES.${MOZC_GYP_DISTFILE}=	-https://github.com/google/mozc/archive/${MOZC_GYP_VERSION}.tar.gz
++DISTFILES+=	${MOZC_GYP_DISTFILE}
  
  MOZC_DISTS+=	dictionary.png
  SITES.dictionary.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/chrome_reader_mode/materialiconsoutlined/48dp/1x/outline_chrome_reader_mode_black_48dp.png
-@@ -103,34 +78,70 @@
+@@ -102,52 +83,131 @@
+ DISTFILES+=	${d}
  .endfor
  
++# MOZC_DISTS are not archives to unpack: the png and svg files are not archives
++# at all, and post-configure opens the two zip files under dictionary/.
++# Everything else -- the source tarball, the GYP scaffolding and the tarballs
++# GITHUB_SUBMODULES adds -- does get extracted.  Subtracting MOZC_DISTS from
++# DISTFILES means adding to the list above is enough; this line needs no edit.
++EXTRACT_ONLY=	${DISTFILES:${MOZC_DISTS:@d@N${d}@:ts:}}
++
  WRKSRC=		${WRKDIR}/${DISTNAME}/src
 +MOZC_GYP_SRC=	${WRKDIR}/mozc-${MOZC_GYP_VERSION}/src
  
@@ -188,19 +205,28 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
 +.include "../../mk/bsd.prefs.mk"
  
 -USE_CXX_FEATURES+=	c++14
-+.if empty(PKG_OPTIONS:Mgyp)
-+# 3.34 の .bazeliskrc は bazel 9 を指す。pkgsrc の devel/bazel は 6.4.0 なので
-+# 満たせない。devel/bazel が 9.2.0 を NetBSD で建てられるようにしたもの。
++# options.mk sets MOZC_BUILDER and every package here includes it before this
++# file.  Say so rather than letting an unset variable pick gyp quietly: a
++# package added later that forgets the include would build the other way
++# without anything to show for it.
++.if !defined(MOZC_BUILDER)
++PKG_FAIL_REASON+=	"MOZC_BUILDER is unset: include"
++PKG_FAIL_REASON+=	"inputmethod/mozc-server/options.mk before this file."
++.endif
+ 
+-TOOL_DEPENDS+=		bazel-[0-9]*:../../devel/bazel
++.if ${MOZC_BUILDER} == "bazel"
++# The .bazeliskrc in 3.34 asks for Bazel 9.  devel/bazel in pkgsrc is 6.4.0 and
++# cannot satisfy it; devel/bazel is 9.2.0 taught to build on NetBSD.
 +TOOL_DEPENDS+=	bazel>=9.0:../../devel/bazel
-+# bzlmod は依存を建てる最中に取りにいく。
++# bzlmod fetches dependencies while the build runs.
 +ALLOW_NETWORK_ACCESS=	yes
 +.else
 +TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
 +TOOL_DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
 +TOOL_DEPENDS+=	ninja-build-[0-9]*:../../devel/ninja-build
 +.endif
- 
--TOOL_DEPENDS+=		bazel-[0-9]*:../../devel/bazel
++
 +USE_LANGUAGES=	c c++
 +USE_TOOLS+=	pkg-config unzip
 +
@@ -217,22 +243,32 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
  SUBST_VARS.prefix+=	X11BASE
  
 -.include "../../mk/bsd.prefs.mk"
-+# 3.33.6089 から GYP の足場を被せる。3.34 に同じ名前のファイルがあるときは
-+# 3.34 を残す — 持ってきたいのは建て方であって、中身ではない。build_tools は
-+# 共有のものが 3.34 側で直っているので、この向きでないと古いものが勝つ。
++# Lay the GYP scaffolding from 3.33.6089 over the tree.  Where 3.34 already has
++# a file of the same name, 3.34 wins -- what is wanted here is how it builds,
++# not what it builds.  Several build_tools files are shared and were fixed in
++# 3.34, so the other direction would let the older copies take over.
++#
++# The list goes through a file rather than a pipe because the exit status of
++# ${FIND} is thrown away on the left of |.  An empty tree would walk straight
++# through the loop, no scaffolding would be laid down, and the build would get
++# as far as do-configure before failing as if build_mozc.py had never existed.
 +post-extract:
-+	cd ${MOZC_GYP_SRC} && ${FIND} . -type f -print | while read f; do		\
++	${RUN} cd ${MOZC_GYP_SRC};						\
++	${FIND} . -type f -print > ${WRKDIR}/.mozc-gyp-files;			\
++	while read f; do							\
 +		case "$$f" in							\
-+		*.gyp|*.gypi|./gyp/*|./protobuf/*|./build_mozc.py|./build_tools/*) ;; \
++		*.gyp|*.gypi|./gyp/*|./protobuf/*|./build_mozc.py|./build_tools/*) \
++			;;							\
 +		*)	continue ;;						\
 +		esac;								\
-+		[ -e "${WRKSRC}/$$f" ] && continue;				\
-+		${MKDIR} "${WRKSRC}/`dirname $$f`";				\
++		if ${TEST} -e "${WRKSRC}/$$f"; then continue; fi;		\
++		${MKDIR} "${WRKSRC}/$${f%/*}";					\
 +		${CP} -p "$$f" "${WRKSRC}/$$f";					\
-+	done
++	done < ${WRKDIR}/.mozc-gyp-files;					\
++	${RM} -f ${WRKDIR}/.mozc-gyp-files
  
  OPSYSVARS+=	OSDEST
-+.if empty(PKG_OPTIONS:Mgyp)
++.if ${MOZC_BUILDER} == "bazel"
  OSDEST.Linux=	linux-opt
  OSDEST.NetBSD=	netbsd-opt
 +.else
@@ -249,14 +285,20 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
 +.endif
  
  CHECK_PIE_SUPPORTED=	no
++# The data files are read out of dist/ rather than copied in.  They live under
++# DIST_SUBDIR, so the link has to name it; pointing at ${DISTDIR} alone only
++# resolves on a machine that happens to still have an older unprefixed copy.
  pre-configure:
-@@ -140,14 +151,26 @@
+ 	${MKDIR} ${WRKSRC}/dist
+ .for d in ${MOZC_DISTS}
+-	${LN} -s ${DISTDIR}/${d} ${WRKSRC}/dist/${d}
++	${LN} -s ${DISTDIR}/${DIST_SUBDIR}/${d} ${WRKSRC}/dist/${d}
  .endfor
  	${RM} -r ${WRKDIR}/.cwrapper
  
 -.if empty(PKGPATH:Minputmethod/mozc-server)
-+# server と elisp は Qt にも GL にも触らない。renderer と tool だけが要る。
-+.if !empty(PKGPATH:M*/mozc-renderer334) || !empty(PKGPATH:M*/mozc-tool334)
++# server and elisp touch neither Qt nor GL; only renderer and tool need them.
++.if !empty(PKGPATH:M*/mozc-renderer) || !empty(PKGPATH:M*/mozc-tool)
  .include "../../graphics/MesaLib/buildlink3.mk"
  .include "../../x11/qt6-qtbase/buildlink3.mk"
  .endif
@@ -268,24 +310,26 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
  .include "../../lang/python/tool.mk"
  .include "../../mk/atomic64.mk"
 +
-+# bazel の道で python の genrule (base:gen_config_file_stream_data) を引く
-+# target は、python toolchain が登録されていないと
++# On the Bazel path, any target that pulls a Python genrule
++# (base:gen_config_file_stream_data) fails in analysis with
 +#
 +#	No matching toolchains found for types:
 +#	  @@bazel_tools//tools/python:toolchain_type
 +#
-+# で analysis が落ちる。rules_python が配る interpreter に BSD 向けが無い
-+# ため。system の python3 を使う runtime_env toolchain を足し、その名で
-+# 見つかるよう tools に python3 を作る (箱には python3.13 しか無い)。
-+# server は python の genrule を引かないので気づけず、elisp/tool/renderer
-+# だけが落ちた。
++# unless a Python toolchain is registered, because none of the interpreters
++# rules_python ships are built for BSD.  Register the runtime_env toolchain,
++# which uses the system python3, and the name python3 then has to be on PATH
++# (pkgsrc installs only python3.13).  The lang/python/tool.mk include above
++# links both python and python3 into ${BUILDLINK_DIR}/bin, so there is nothing
++# for the package itself to create.
++#
++# server pulls no Python genrule, so it built fine and hid this; elisp, tool
++# and renderer were the ones that failed.
 +BAZEL_ARGS+=		--extra_toolchains=@rules_python//python/runtime_env_toolchains:all
-+TOOLS_CREATE+=		python3
-+TOOLS_PATH.python3=	${PYTHONBIN}
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/distinfo new/mozc-server/distinfo
---- inputmethod/mozc-server/distinfo	2026-09-24 05:11:12.624168602 +0000
-+++ inputmethod/mozc-server/distinfo	2026-09-24 05:11:12.512669515 +0000
-@@ -1,50 +1,23 @@
+--- inputmethod/mozc-server/distinfo	2026-09-24 05:22:28.348596148 +0000
++++ inputmethod/mozc-server/distinfo	2026-09-24 05:22:28.165261953 +0000
+@@ -1,121 +1,78 @@
 -$NetBSD: distinfo,v 1.30 2024/12/11 03:07:20 maya Exp $
 +$NetBSD$
  
@@ -310,58 +354,51 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/distinfo new/mozc-server
 -BLAKE2s (bazel-skylib-1.4.1.tar.gz) = b8521cf98c61ab80854c0e0bef365447e0c1b94b51e018ef1e6a64a1b1776478
 -SHA512 (bazel-skylib-1.4.1.tar.gz) = 1342cd99bed5c9f47a1b5643e011144f8e037097b917210178b6b1dac6f4a980ba009e0656b904be527bfd1ab4966b3ed00b291d7f52a3486908caa3e647c3ae
 -Size (bazel-skylib-1.4.1.tar.gz) = 36047 bytes
-+BLAKE2s (abseil-abseil-cpp-255c84dadd029fd8ad25c5efb5933e47beaa00c7.tar.gz) = b7371738379a5f54feb8c09ed438b9da0b28fae4066eb543315da5e83cd42147
-+SHA512 (abseil-abseil-cpp-255c84dadd029fd8ad25c5efb5933e47beaa00c7.tar.gz) = b24305afbfc93d78d4549270c3dabe8af2a8cc5165694da151150cef5aa5715c1c96cc5b5c0925360a16ef61e70940030f2ec40123420a5ea0612fc2d2acffd6
-+Size (abseil-abseil-cpp-255c84dadd029fd8ad25c5efb5933e47beaa00c7.tar.gz) = 2301499 bytes
- BLAKE2s (chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = ed98efdbceffd7f4d178db312bb90024228f449bb2445193a50d259af4922233
- SHA512 (chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = 961259c270471524ac371310460ca0fc34cec1cc57f6604915a6771be5f577420a7f1ddccb0d865fb94f5fb1516e0cdbb7f74d05252c5c3782d2b8fe7bf6f7df
- Size (chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = 630462 bytes
+-BLAKE2s (chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = ed98efdbceffd7f4d178db312bb90024228f449bb2445193a50d259af4922233
+-SHA512 (chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = 961259c270471524ac371310460ca0fc34cec1cc57f6604915a6771be5f577420a7f1ddccb0d865fb94f5fb1516e0cdbb7f74d05252c5c3782d2b8fe7bf6f7df
+-Size (chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = 630462 bytes
 -BLAKE2s (de0b4a8ff9b5d4c98108bdfe723291a33c52c54f.zip) = 7ccdef72dd1a71f1a690c2150e8fc480fa9548a7ce743f5a74de37540201591c
 -SHA512 (de0b4a8ff9b5d4c98108bdfe723291a33c52c54f.zip) = 5e99e04aa1fa164887d1fa88e3e08f8803c89a3be0ec7aa5fedebd392b1ba599e929932d9a8d16366995a6ab37d10528ba5b7b2a757240310f429a65751cd1a5
 -Size (de0b4a8ff9b5d4c98108bdfe723291a33c52c54f.zip) = 71636 bytes
- BLAKE2s (dictionary.png) = faab4e340b71053cc0801d05433c2a92dc73f1474e8a92a648c766d0abae0d83
- SHA512 (dictionary.png) = aac820bbf51b2dfe23a9e0de57c2c9f4301e021c3ae29047ec8918ccb22b698f775ceee1dfe5ceaf21ada9228085ae1a36e65ab33fd811acf072e4d380225d9c
- Size (dictionary.png) = 205 bytes
- BLAKE2s (dictionary.svg) = 6966323b10cb82ffe64d7a6526cae4862f6a82eed55984c906d53a7538ddc1d9
- SHA512 (dictionary.svg) = 648b486ec244c117ae25aadbff1f14211a311df37161b7777c442aff2f7f8dd61d41912d81891a0de29383e3430ee80ecdad7d9b1fb9e0ea7addcbf97af018c3
- Size (dictionary.svg) = 294 bytes
+-BLAKE2s (dictionary.png) = faab4e340b71053cc0801d05433c2a92dc73f1474e8a92a648c766d0abae0d83
+-SHA512 (dictionary.png) = aac820bbf51b2dfe23a9e0de57c2c9f4301e021c3ae29047ec8918ccb22b698f775ceee1dfe5ceaf21ada9228085ae1a36e65ab33fd811acf072e4d380225d9c
+-Size (dictionary.png) = 205 bytes
+-BLAKE2s (dictionary.svg) = 6966323b10cb82ffe64d7a6526cae4862f6a82eed55984c906d53a7538ddc1d9
+-SHA512 (dictionary.svg) = 648b486ec244c117ae25aadbff1f14211a311df37161b7777c442aff2f7f8dd61d41912d81891a0de29383e3430ee80ecdad7d9b1fb9e0ea7addcbf97af018c3
+-Size (dictionary.svg) = 294 bytes
 -BLAKE2s (ea4e825d22c9ae0031d59ec5e86dc85bb50cbbcb.zip) = c86669c738a86df0089415becc71e6159b5d1169f46c80f48a93d7a140b63280
 -SHA512 (ea4e825d22c9ae0031d59ec5e86dc85bb50cbbcb.zip) = 07d93a8106fef6af4572c92000779b9719405d0a6a5a8ffafa227b22e6cdbaffa481b80e7cbb62204cd805b0463f1edf53d91277dca7436563946ad69c1ff6bc
 -Size (ea4e825d22c9ae0031d59ec5e86dc85bb50cbbcb.zip) = 985349 bytes
 -BLAKE2s (f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip) = 9bd199bc4b12616790f889dfe15133eb83ee000ff7ee6611f50cb011ad275e14
 -SHA512 (f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip) = f1a484e0052b4ed60189f89bd15cfa86aa5e0f89b0a58ecf5f470cfa9dbe53a4da9ff622281e3fb06e7669dc0391f604cd6bd86cc5fa0bb17239200c4c953378
 -Size (f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip) = 30437 bytes
- BLAKE2s (google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 9ad9f07697109ee2bf795c327bef55c0d7de9ecdf25a04c999ac3a542904607e
- SHA512 (google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 6c7c667349c1b8e5509ba3a4a78873b87d1f1decefbd01e916e4b34497518c53c418ff5eaf88c9c9ef1815c8ee75112f876eebca4222ebb372fe6e5c2f5ab948
- Size (google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 5276094 bytes
+-BLAKE2s (google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 9ad9f07697109ee2bf795c327bef55c0d7de9ecdf25a04c999ac3a542904607e
+-SHA512 (google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 6c7c667349c1b8e5509ba3a4a78873b87d1f1decefbd01e916e4b34497518c53c418ff5eaf88c9c9ef1815c8ee75112f876eebca4222ebb372fe6e5c2f5ab948
+-Size (google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 5276094 bytes
 -BLAKE2s (google-googletest-58d77fa8070e8cec2dc1ed015d66b454c8d78850.tar.gz) = 975854728adcbc9b8f8642b2d484529024b2f9459a81769bba39b0cc74565f5a
 -SHA512 (google-googletest-58d77fa8070e8cec2dc1ed015d66b454c8d78850.tar.gz) = d8153c426e4f9c89a74721cc4a24dfcaf319810f4f10aa25fc972f99da2d96d66bc840cf2f51b756fef6b1ca47e8d2c8633f5862cc24e34d57309ad48802124a
 -Size (google-googletest-58d77fa8070e8cec2dc1ed015d66b454c8d78850.tar.gz) = 855887 bytes
-+BLAKE2s (google-googletest-52eb8108c5bdec04579160ae17225d66034bd723.tar.gz) = cba05d4127e4b7b3b5bc91530d280cc476f51c7929a4a75a3408adc604cbc353
-+SHA512 (google-googletest-52eb8108c5bdec04579160ae17225d66034bd723.tar.gz) = 7382ec9f583939f482d9d684ebccee9e564a2f1b7f1af0fbe654bdd498ba3b3f70d96e94983e7fc1890f936c18a6803599ba629ed3518345730dabc2cd73f9a8
-+Size (google-googletest-52eb8108c5bdec04579160ae17225d66034bd723.tar.gz) = 886690 bytes
- BLAKE2s (hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = 41a7c5d9cc2ffcce85239a416580d4595c129e7aca00316462e387b205183d07
- SHA512 (hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = b7e997a979b6d50e49b9af5dc830ea4df0532f6ab1321b9ef14983f65bb54f1b2967375c82e07957ae7693ebbf43c9b56ecea6bfea8dd1fdaee444bd549d83a7
- Size (hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = 71051 bytes
-@@ -57,65 +30,49 @@
- BLAKE2s (microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = bd4eed4a97519b07fc1ac749e92058425232bff17796425b7469a065d3e2e7ce
- SHA512 (microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = 59548723d25e6f3c4a0f750d9874b06a487c15afb9cc9fa3a7a5290cbf79ea42cf36b9906c73dc56c566736141819d7a020b7a3d793724df83a9de5bc61ef674
- Size (microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = 520155 bytes
+-BLAKE2s (hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = 41a7c5d9cc2ffcce85239a416580d4595c129e7aca00316462e387b205183d07
+-SHA512 (hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = b7e997a979b6d50e49b9af5dc830ea4df0532f6ab1321b9ef14983f65bb54f1b2967375c82e07957ae7693ebbf43c9b56ecea6bfea8dd1fdaee444bd549d83a7
+-Size (hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = 71051 bytes
+-BLAKE2s (jigyosyo.zip) = cb01141626d5bce7ff4afab640d852e22bba417b1251b8f6baa49fc284e6eb6d
+-SHA512 (jigyosyo.zip) = c13cb5a2dd3621d919bd4c1284453d709d31de892cfcddab563f53496c8bd91794645ac8b6d0d979f2430241507a8e396e4388f95ee86dec85470dbb00617dcf
+-Size (jigyosyo.zip) = 773563 bytes
+-BLAKE2s (ken_all.zip) = 03229936476c091df9b5bcdcbaec4bfced2df115199d5d7dac1e02268bbd2699
+-SHA512 (ken_all.zip) = 29a8a1ded2b252d26d031ada408334f2aeec7faa44957a3cbe7c6f9ac2bc2749f49cab25defa184899c1e42ae24e6b725653f95405bfbef6769fe4b3181c1952
+-Size (ken_all.zip) = 1693901 bytes
+-BLAKE2s (microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = bd4eed4a97519b07fc1ac749e92058425232bff17796425b7469a065d3e2e7ce
+-SHA512 (microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = 59548723d25e6f3c4a0f750d9874b06a487c15afb9cc9fa3a7a5290cbf79ea42cf36b9906c73dc56c566736141819d7a020b7a3d793724df83a9de5bc61ef674
+-Size (microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = 520155 bytes
 -BLAKE2s (mozc-2.29.5268.102.tar.gz) = d01da00f8d8c4bb0e14188fab66d05cd3dd3097ee5803fea7c7dfff4927e2caf
 -SHA512 (mozc-2.29.5268.102.tar.gz) = 1b3586659044fabad5eec151e885c6781d00af8c345e2e8768aceaacfdcdce01651d08d854cbcd079e6f1f75743e305316b2f410c3d8049c23880a7e0f620d0c
 -Size (mozc-2.29.5268.102.tar.gz) = 38277685 bytes
-+BLAKE2s (mozc-3.33.6089.tar.gz) = f7472719a1fe1936b5cf05a670e54695fe909bea3e01631a5fd70bcea41a772a
-+SHA512 (mozc-3.33.6089.tar.gz) = 878ca8c19839e06c00176e588c045c5090c59fc6579c4849ac185f7a165e9ea2e25295cec4c7bf0b8b5050720a8bac9725e710230c20afccd88b33e00b2511b7
-+Size (mozc-3.33.6089.tar.gz) = 28288333 bytes
-+BLAKE2s (mozc-3.34.6239.tar.gz) = 5a8b757cc798b4d9953e5540a1b73fa61a4d574f65e1794eba6396c560b772b6
-+SHA512 (mozc-3.34.6239.tar.gz) = bcc5a72acda4b4015062dd7b54b29672004e861e5cae1a9995825c1212108a8793dfa33a50b42c32ed963d3975af3658e3f10fdc54ad633edd13a5766b5ee937
-+Size (mozc-3.34.6239.tar.gz) = 29071078 bytes
- BLAKE2s (properties.png) = 2efc23bb92dde31330eef88524946da9071311584e8f4ffa144544873a591aa7
- SHA512 (properties.png) = 1cbd9307f0e96c1255c1cb915d10d2254281574c8fcf54e97a518d3a49475cc7775d6f4042a04e2358f7db5808986eef9cd9b84fff571dce1b9ec23f8fb3a8fd
- Size (properties.png) = 557 bytes
- BLAKE2s (properties.svg) = 14593fd55cda98cfabc1624b6ff2348a4f69c90a74fdacf35251f7499e2fb315
- SHA512 (properties.svg) = 637b8ec750fa0a5a32afbcefb43430d122de889d32ce6295327934dede6051d1a37678a895b8c2fa26ab0c28f5a372e7b6ca0aad7acebaf64cc5a88c32ff43de
- Size (properties.svg) = 812 bytes
+-BLAKE2s (properties.png) = 2efc23bb92dde31330eef88524946da9071311584e8f4ffa144544873a591aa7
+-SHA512 (properties.png) = 1cbd9307f0e96c1255c1cb915d10d2254281574c8fcf54e97a518d3a49475cc7775d6f4042a04e2358f7db5808986eef9cd9b84fff571dce1b9ec23f8fb3a8fd
+-Size (properties.png) = 557 bytes
+-BLAKE2s (properties.svg) = 14593fd55cda98cfabc1624b6ff2348a4f69c90a74fdacf35251f7499e2fb315
+-SHA512 (properties.svg) = 637b8ec750fa0a5a32afbcefb43430d122de889d32ce6295327934dede6051d1a37678a895b8c2fa26ab0c28f5a372e7b6ca0aad7acebaf64cc5a88c32ff43de
+-Size (properties.svg) = 812 bytes
 -BLAKE2s (protocolbuffers-protobuf-54a2e5caa9d1a0a714fb2aa99753a1444414292a.tar.gz) = 4c142ebd4c669862e2a68ec2c90db0b9d1b17a74d9dbc379f994b01b5a84aaa1
 -SHA512 (protocolbuffers-protobuf-54a2e5caa9d1a0a714fb2aa99753a1444414292a.tar.gz) = 05d4c987e790dc1180b1e3555de52fa7b52866b2dea2dff5fca1398edd4a39c32611e7bc074df9749a06bcf2e9ee338379329900b01bc7f3c8caff55412e06ed
 -Size (protocolbuffers-protobuf-54a2e5caa9d1a0a714fb2aa99753a1444414292a.tar.gz) = 5185168 bytes
@@ -380,15 +417,12 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/distinfo new/mozc-server
 -BLAKE2s (rules_swift.1.2.0.tar.gz) = e06c396a988fb1b1a09e4264a851a9b647c96230e11590fafe7bdb06bb8b8c8d
 -SHA512 (rules_swift.1.2.0.tar.gz) = eb6cd542e5cddf1b508a2a1766f9e77844bb529e672c1752662c93b69d08beefe986144bc0c1a60a5c36f032d8946777f9438e7ef701db0f7c0d50f8ffc7c8a4
 -Size (rules_swift.1.2.0.tar.gz) = 208764 bytes
-+BLAKE2s (protocolbuffers-protobuf-4b0c3aacf0657fbf38253b38918d3358dd4319ec.tar.gz) = 289e78090549667a772c55b95234d67930d0cbcdb70edceb9c218658e13f00ca
-+SHA512 (protocolbuffers-protobuf-4b0c3aacf0657fbf38253b38918d3358dd4319ec.tar.gz) = 974edab1dd4dd30d9132c173d37348ec873059c5453e99a0249645def5d6cd757664c1412a8c4b7d09f0695086fe9c4a8ca5bb1b4b606742c811dcb6f16f4e9c
-+Size (protocolbuffers-protobuf-4b0c3aacf0657fbf38253b38918d3358dd4319ec.tar.gz) = 7047063 bytes
- BLAKE2s (tool.png) = c9d840c557a9032f59d50afd1918cc63e7bcd8ee2695d7c5cbe7189d3047f391
- SHA512 (tool.png) = 35f270784ff7b947aa3636d9531c502775315116f694f95a21a93ef9bf77d67ab7b194153b186a8371a78ce8b162ca82fb232aea92dc37ba2de86c79fe8f19b1
- Size (tool.png) = 360 bytes
- BLAKE2s (tool.svg) = 008797301692abef03d44d24f9ae8a82ab791af3cc2ac6c0be4704aae80c976d
- SHA512 (tool.svg) = 471ae428ca8312b4ecc8ab3f7348f89b2778e853a3106e21b5027b5fa23d8ea2eb301a18d64203af52e4ca8bfe51f184966e01670c514dc019a649c5f557e08a
- Size (tool.svg) = 326 bytes
+-BLAKE2s (tool.png) = c9d840c557a9032f59d50afd1918cc63e7bcd8ee2695d7c5cbe7189d3047f391
+-SHA512 (tool.png) = 35f270784ff7b947aa3636d9531c502775315116f694f95a21a93ef9bf77d67ab7b194153b186a8371a78ce8b162ca82fb232aea92dc37ba2de86c79fe8f19b1
+-Size (tool.png) = 360 bytes
+-BLAKE2s (tool.svg) = 008797301692abef03d44d24f9ae8a82ab791af3cc2ac6c0be4704aae80c976d
+-SHA512 (tool.svg) = 471ae428ca8312b4ecc8ab3f7348f89b2778e853a3106e21b5027b5fa23d8ea2eb301a18d64203af52e4ca8bfe51f184966e01670c514dc019a649c5f557e08a
+-Size (tool.svg) = 326 bytes
 -BLAKE2s (zlib-1.2.13.tar.xz) = a7379d82dbff33a861dd6bbafb45b330a8922a6aff1c4be5b1dd415af4029bd0
 -SHA512 (zlib-1.2.13.tar.xz) = 9e7ac71a1824855ae526506883e439456b74ac0b811d54e94f6908249ba8719bec4c8d7672903c5280658b26cb6b5e93ecaaafe5cdc2980c760fa196773f0725
 -Size (zlib-1.2.13.tar.xz) = 1296496 bytes
@@ -418,112 +452,158 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/distinfo new/mozc-server
 -SHA1 (patch-session_session__test.cc) = da2d7033d8c3a68c1cf154f4e17a3642f34bcfb3
 -SHA1 (patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc) = 26e9978a2b131c935f57e54d5fdd99bc71aa9c82
 -SHA1 (patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl) = 5ffa624bc7ba6a195f7f6206dc1513c090d18719
-+SHA1 (patch-base_absl.gyp) = 322299a458a9ae11465dae3b483cea97c624ec63
-+SHA1 (patch-base_base.gyp) = 07cc8bc83e29b411f6adcc81fd953512597ef86f
-+SHA1 (patch-base_base__test.gyp) = 105908180b25f438d12881627214784904754d8f
-+SHA1 (patch-base_cpu__stats.cc) = fad5bec6b2738837d041ce94d4ea0386f05c438f
-+SHA1 (patch-base_file_recursive.cc) = 6ec919694760d561f20e4a4e51e654aeab556bc1
-+SHA1 (patch-base_password__manager.cc) = b3dedf1ac43de994a04c051227de52307da16c1b
-+SHA1 (patch-base_port.h) = aaf20013550305efbd2521c48390f108ac31e562
-+SHA1 (patch-base_process.cc) = 2f1dbb35caaeb8efdba8ca151a86f5bd69aeb630
-+SHA1 (patch-base_system__util.cc) = 763924f09e7443a021703606e9fd53ad72d18e38
-+SHA1 (patch-build__mozc.py) = 3cfdb1f3d8755b46a3f1e76189ed9ddbd31a616c
-+SHA1 (patch-build__tools_mozc__version.py) = c7632c65863a9fda8581c297ae69a0554964f3f2
-+SHA1 (patch-build__tools_util.py) = 9a9149dfe23fcd84565b6db14b6e32e9089860e9
-+SHA1 (patch-client_client.cc) = 4ec781c89b49da4e70e500d64e1ffe053de89b14
-+SHA1 (patch-data__manager_data__manager.gypi) = e649caf35c791ee487e9657106c95b4b51ffa038
-+SHA1 (patch-dictionary_dictionary__base.gyp) = 501c510358752b446fc1ff19dd1d00d3927e8ad3
-+SHA1 (patch-dictionary_file_dictionary__file.gyp) = 3e394e9e8a6a800a3d46cb1ff7b6a1282db77827
-+SHA1 (patch-dictionary_file_dictionary__file__test.gyp) = 6d9fe8e8f577f4cb3ca7f6c57cfbf98575dd5527
-+SHA1 (patch-dictionary_system_system__dictionary.gyp) = 9c7b27f2a218a732f9231344912870cec3640bf3
-+SHA1 (patch-gui_qt__libraries.gypi) = ee8572da12565c731b48f5a091b153340e55c4f4
-+SHA1 (patch-gui_qt__tool__dir.gypi) = da54f4e10f999f9db8e994745dd98c90b99c1cb8
-+SHA1 (patch-gyp_common.gypi) = aa4a26c03ddfca8f033b67df08c1ea2aa3c93a00
-+SHA1 (patch-ipc_ipc__path__manager.cc) = f1a9168fca41e8683a1dacae5e60dece046addb5
-+SHA1 (patch-ipc_unix__ipc.cc) = 3d7b283a2e11bde50755c422924476018fc7f9b6
-+SHA1 (patch-renderer_renderer.gyp) = ca6cb1db5de3b8f3de3048e8075a2b09ff09f565
-+SHA1 (patch-session_session.cc) = 6b625e3a5f9990fcc34685b0cd077f5b69232acf
++BLAKE2s (mozc-3.34.6239/abseil-abseil-cpp-255c84dadd029fd8ad25c5efb5933e47beaa00c7.tar.gz) = b7371738379a5f54feb8c09ed438b9da0b28fae4066eb543315da5e83cd42147
++SHA512 (mozc-3.34.6239/abseil-abseil-cpp-255c84dadd029fd8ad25c5efb5933e47beaa00c7.tar.gz) = b24305afbfc93d78d4549270c3dabe8af2a8cc5165694da151150cef5aa5715c1c96cc5b5c0925360a16ef61e70940030f2ec40123420a5ea0612fc2d2acffd6
++Size (mozc-3.34.6239/abseil-abseil-cpp-255c84dadd029fd8ad25c5efb5933e47beaa00c7.tar.gz) = 2301499 bytes
++BLAKE2s (mozc-3.34.6239/chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = ed98efdbceffd7f4d178db312bb90024228f449bb2445193a50d259af4922233
++SHA512 (mozc-3.34.6239/chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = 961259c270471524ac371310460ca0fc34cec1cc57f6604915a6771be5f577420a7f1ddccb0d865fb94f5fb1516e0cdbb7f74d05252c5c3782d2b8fe7bf6f7df
++Size (mozc-3.34.6239/chromium-gyp-9ecf45e37677743503342ee4c6a76eaee80e4a7f.tar.gz) = 630462 bytes
++BLAKE2s (mozc-3.34.6239/dictionary.png) = faab4e340b71053cc0801d05433c2a92dc73f1474e8a92a648c766d0abae0d83
++SHA512 (mozc-3.34.6239/dictionary.png) = aac820bbf51b2dfe23a9e0de57c2c9f4301e021c3ae29047ec8918ccb22b698f775ceee1dfe5ceaf21ada9228085ae1a36e65ab33fd811acf072e4d380225d9c
++Size (mozc-3.34.6239/dictionary.png) = 205 bytes
++BLAKE2s (mozc-3.34.6239/dictionary.svg) = 6966323b10cb82ffe64d7a6526cae4862f6a82eed55984c906d53a7538ddc1d9
++SHA512 (mozc-3.34.6239/dictionary.svg) = 648b486ec244c117ae25aadbff1f14211a311df37161b7777c442aff2f7f8dd61d41912d81891a0de29383e3430ee80ecdad7d9b1fb9e0ea7addcbf97af018c3
++Size (mozc-3.34.6239/dictionary.svg) = 294 bytes
++BLAKE2s (mozc-3.34.6239/google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 9ad9f07697109ee2bf795c327bef55c0d7de9ecdf25a04c999ac3a542904607e
++SHA512 (mozc-3.34.6239/google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 6c7c667349c1b8e5509ba3a4a78873b87d1f1decefbd01e916e4b34497518c53c418ff5eaf88c9c9ef1815c8ee75112f876eebca4222ebb372fe6e5c2f5ab948
++Size (mozc-3.34.6239/google-breakpad-216cea7bca53fa441a3ee0d0f5fd339a3a894224.tar.gz) = 5276094 bytes
++BLAKE2s (mozc-3.34.6239/google-googletest-52eb8108c5bdec04579160ae17225d66034bd723.tar.gz) = cba05d4127e4b7b3b5bc91530d280cc476f51c7929a4a75a3408adc604cbc353
++SHA512 (mozc-3.34.6239/google-googletest-52eb8108c5bdec04579160ae17225d66034bd723.tar.gz) = 7382ec9f583939f482d9d684ebccee9e564a2f1b7f1af0fbe654bdd498ba3b3f70d96e94983e7fc1890f936c18a6803599ba629ed3518345730dabc2cd73f9a8
++Size (mozc-3.34.6239/google-googletest-52eb8108c5bdec04579160ae17225d66034bd723.tar.gz) = 886690 bytes
++BLAKE2s (mozc-3.34.6239/hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = 41a7c5d9cc2ffcce85239a416580d4595c129e7aca00316462e387b205183d07
++SHA512 (mozc-3.34.6239/hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = b7e997a979b6d50e49b9af5dc830ea4df0532f6ab1321b9ef14983f65bb54f1b2967375c82e07957ae7693ebbf43c9b56ecea6bfea8dd1fdaee444bd549d83a7
++Size (mozc-3.34.6239/hiroyuki-komatsu-japanese-usage-dictionary-e5b3425575734c323e1d947009dd74709437b684.tar.gz) = 71051 bytes
++BLAKE2s (mozc-3.34.6239/jigyosyo.zip) = cb01141626d5bce7ff4afab640d852e22bba417b1251b8f6baa49fc284e6eb6d
++SHA512 (mozc-3.34.6239/jigyosyo.zip) = c13cb5a2dd3621d919bd4c1284453d709d31de892cfcddab563f53496c8bd91794645ac8b6d0d979f2430241507a8e396e4388f95ee86dec85470dbb00617dcf
++Size (mozc-3.34.6239/jigyosyo.zip) = 773563 bytes
++BLAKE2s (mozc-3.34.6239/ken_all.zip) = 03229936476c091df9b5bcdcbaec4bfced2df115199d5d7dac1e02268bbd2699
++SHA512 (mozc-3.34.6239/ken_all.zip) = 29a8a1ded2b252d26d031ada408334f2aeec7faa44957a3cbe7c6f9ac2bc2749f49cab25defa184899c1e42ae24e6b725653f95405bfbef6769fe4b3181c1952
++Size (mozc-3.34.6239/ken_all.zip) = 1693901 bytes
++BLAKE2s (mozc-3.34.6239/microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = bd4eed4a97519b07fc1ac749e92058425232bff17796425b7469a065d3e2e7ce
++SHA512 (mozc-3.34.6239/microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = 59548723d25e6f3c4a0f750d9874b06a487c15afb9cc9fa3a7a5290cbf79ea42cf36b9906c73dc56c566736141819d7a020b7a3d793724df83a9de5bc61ef674
++Size (mozc-3.34.6239/microsoft-wil-fc5dbf55989fe20351c71d038a8d12de4b397a6d.tar.gz) = 520155 bytes
++BLAKE2s (mozc-3.34.6239/mozc-3.33.6089.tar.gz) = f7472719a1fe1936b5cf05a670e54695fe909bea3e01631a5fd70bcea41a772a
++SHA512 (mozc-3.34.6239/mozc-3.33.6089.tar.gz) = 878ca8c19839e06c00176e588c045c5090c59fc6579c4849ac185f7a165e9ea2e25295cec4c7bf0b8b5050720a8bac9725e710230c20afccd88b33e00b2511b7
++Size (mozc-3.34.6239/mozc-3.33.6089.tar.gz) = 28288333 bytes
++BLAKE2s (mozc-3.34.6239/mozc-3.34.6239.tar.gz) = 5a8b757cc798b4d9953e5540a1b73fa61a4d574f65e1794eba6396c560b772b6
++SHA512 (mozc-3.34.6239/mozc-3.34.6239.tar.gz) = bcc5a72acda4b4015062dd7b54b29672004e861e5cae1a9995825c1212108a8793dfa33a50b42c32ed963d3975af3658e3f10fdc54ad633edd13a5766b5ee937
++Size (mozc-3.34.6239/mozc-3.34.6239.tar.gz) = 29071078 bytes
++BLAKE2s (mozc-3.34.6239/properties.png) = 2efc23bb92dde31330eef88524946da9071311584e8f4ffa144544873a591aa7
++SHA512 (mozc-3.34.6239/properties.png) = 1cbd9307f0e96c1255c1cb915d10d2254281574c8fcf54e97a518d3a49475cc7775d6f4042a04e2358f7db5808986eef9cd9b84fff571dce1b9ec23f8fb3a8fd
++Size (mozc-3.34.6239/properties.png) = 557 bytes
++BLAKE2s (mozc-3.34.6239/properties.svg) = 14593fd55cda98cfabc1624b6ff2348a4f69c90a74fdacf35251f7499e2fb315
++SHA512 (mozc-3.34.6239/properties.svg) = 637b8ec750fa0a5a32afbcefb43430d122de889d32ce6295327934dede6051d1a37678a895b8c2fa26ab0c28f5a372e7b6ca0aad7acebaf64cc5a88c32ff43de
++Size (mozc-3.34.6239/properties.svg) = 812 bytes
++BLAKE2s (mozc-3.34.6239/protocolbuffers-protobuf-4b0c3aacf0657fbf38253b38918d3358dd4319ec.tar.gz) = 289e78090549667a772c55b95234d67930d0cbcdb70edceb9c218658e13f00ca
++SHA512 (mozc-3.34.6239/protocolbuffers-protobuf-4b0c3aacf0657fbf38253b38918d3358dd4319ec.tar.gz) = 974edab1dd4dd30d9132c173d37348ec873059c5453e99a0249645def5d6cd757664c1412a8c4b7d09f0695086fe9c4a8ca5bb1b4b606742c811dcb6f16f4e9c
++Size (mozc-3.34.6239/protocolbuffers-protobuf-4b0c3aacf0657fbf38253b38918d3358dd4319ec.tar.gz) = 7047063 bytes
++BLAKE2s (mozc-3.34.6239/tool.png) = c9d840c557a9032f59d50afd1918cc63e7bcd8ee2695d7c5cbe7189d3047f391
++SHA512 (mozc-3.34.6239/tool.png) = 35f270784ff7b947aa3636d9531c502775315116f694f95a21a93ef9bf77d67ab7b194153b186a8371a78ce8b162ca82fb232aea92dc37ba2de86c79fe8f19b1
++Size (mozc-3.34.6239/tool.png) = 360 bytes
++BLAKE2s (mozc-3.34.6239/tool.svg) = 008797301692abef03d44d24f9ae8a82ab791af3cc2ac6c0be4704aae80c976d
++SHA512 (mozc-3.34.6239/tool.svg) = 471ae428ca8312b4ecc8ab3f7348f89b2778e853a3106e21b5027b5fa23d8ea2eb301a18d64203af52e4ca8bfe51f184966e01670c514dc019a649c5f557e08a
++Size (mozc-3.34.6239/tool.svg) = 326 bytes
++SHA1 (patch-base_absl.gyp) = de4cddecb687064ce079e59454647e492a494c2f
++SHA1 (patch-base_base.gyp) = c0c8457c7c04c7cedf0c8557d4b2cbc403eb2d56
++SHA1 (patch-base_base__test.gyp) = 99c63a1757cacef67f92cce1893200219ec42583
++SHA1 (patch-base_cpu__stats.cc) = 84118f5ee0fed77dd73aac808cd300e061a54575
++SHA1 (patch-base_file_recursive.cc) = 9760d8c5d5d447c6566a50535a32c6dd5cc22a61
++SHA1 (patch-base_password__manager.cc) = dc3dd1c874a4129695baec42893165c6c5488788
++SHA1 (patch-base_port.h) = 7f31ad1b39fe3a453cb1f4b4507bb40faa60889d
++SHA1 (patch-base_process.cc) = 57b821d0ff8d176281dbd8b67bcab87b89fd76ee
++SHA1 (patch-base_system__util.cc) = 9c389af60ab8bb9c174387b04e1258edaca4ee6d
++SHA1 (patch-build__mozc.py) = 272b613828434cef34049cff02e4ffbfb5c9721b
++SHA1 (patch-build__tools_mozc__version.py) = a77d06784c3e9acf8767d84b473a48e48b4d00c0
++SHA1 (patch-build__tools_util.py) = 1fc7a4bc2c2c71893880cb9f8efd4e02c2be2df4
++SHA1 (patch-client_client.cc) = 0f40f673d44436d4133d0ea800c149ca05ab610e
++SHA1 (patch-data__manager_data__manager.gypi) = 57c47af194fe60a7ccd4dd00034f0e451e09ebbc
++SHA1 (patch-dictionary_dictionary__base.gyp) = 0abf720855e2c83f87e41e63f21e7e1e06760f16
++SHA1 (patch-dictionary_file_dictionary__file.gyp) = 02c20e2a48a3478da79ecc4318383d05f76ac88f
++SHA1 (patch-dictionary_file_dictionary__file__test.gyp) = 41966cb859a250e5da77abd9c926ad2cafe2d0a4
++SHA1 (patch-dictionary_system_system__dictionary.gyp) = 201de6b83eaac4fd92fca1831e312b7c64e9bd19
++SHA1 (patch-gui_qt__libraries.gypi) = 600efef64b5c6e24f5bd5f3a08abd04cbe9332c4
++SHA1 (patch-gui_qt__tool__dir.gypi) = 08a7a5a78d97bf5856c95210b1c7f91aab454bba
++SHA1 (patch-gyp_common.gypi) = e454010ea9414a8ac2566a6780708b183b1d7aad
++SHA1 (patch-ipc_ipc__path__manager.cc) = 48e2ed3535be2ef11b7441889048021c9b7a9c2a
++SHA1 (patch-ipc_unix__ipc.cc) = b31d3776ca48a151c5da08deb3ad89bb3a61ee22
++SHA1 (patch-renderer_renderer.gyp) = af64b0a97106f708f982527a9562662455aa50e8
++SHA1 (patch-session_session.cc) = 9641cf8192ef39392c07321cd70a65633bbc598b
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/options.mk new/mozc-server/options.mk
 --- inputmethod/mozc-server/options.mk	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/options.mk	2026-09-24 05:18:48.404476714 +0000
-@@ -0,0 +1,52 @@
++++ inputmethod/mozc-server/options.mk	2026-09-24 05:22:28.683925918 +0000
+@@ -0,0 +1,70 @@
 +# $NetBSD$
 +
 +PKG_OPTIONS_VAR=	PKG_OPTIONS.mozc
-+PKG_SUPPORTED_OPTIONS=	gyp
++PKG_SUPPORTED_OPTIONS=	bazel gyp
++PKG_SUGGESTED_OPTIONS=	gyp
 +
 +.include "../../mk/bsd.prefs.mk"
 +
-+# 3.34.6239 に gyp は入っていない。src/build_mozc.py も src/gyp/ も .gyp も
-+# 一本も無く、建て方は bazel だけである。消えたのは 3.34 ではなく 3.33.6133
-+# で、その一つ前の 3.33.6089 が gyp を積んだ最後のタグになる。gyp option は
-+# その足場を 3.33.6089 の tarball から持ってきて使う (Makefile.common の
-+# post-extract)。
++# 3.34.6239 ships no GYP: no src/build_mozc.py, no src/gyp/, not one .gyp file.
++# Bazel is the only way upstream builds it.  GYP went away in 3.33.6133, not in
++# 3.34, so 3.33.6089 is the last tag that still has it, and the gyp option
++# brings that scaffolding across from the 3.33.6089 tarball (see post-extract
++# in Makefile.common).
 +#
-+# bazel の道は devel/bazel が要る。bazel は bootstrap に JVM が要り、
-+# mk/java-vm.mk が NetBSD で openjdk21 を出すのは x86_64 と i386 と aarch64
-+# だけで、そのうち i386 は bazel 自身が拒む:
++# The Bazel path needs devel/bazel.  Bazel needs a JVM to bootstrap, and
++# mk/java-vm.mk offers openjdk21 on NetBSD only for x86_64, i386 and aarch64.
++# Of those, Bazel itself turns i386 away:
 +#
 +#	src/tools/singlejar/mapped_file_posix.inc
-+#	#error This code for 64 bit Unix.	(__SIZEOF_POINTER__ == 8 を要求)
++#	#error This code for 64 bit Unix.	(wants __SIZEOF_POINTER__ == 8)
 +#
-+# 残るのは x86_64 と aarch64 の二つ。それ以外では bazel が建たないので、
-+# gyp を既定にする。
++# That leaves x86_64 and aarch64.  Everywhere else Bazel will not build.
 +#
-+# 実測したのは NetBSD/x86_64 だけである。aarch64 を数に入れているのは JDK と
-+# 64bit の条件が両方満たされるからで、誰かが建てたからではない。
-+.if ${OPSYS} != "NetBSD" || \
-+    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64")
-+PKG_SUGGESTED_OPTIONS+=	gyp
-+.endif
++# Only NetBSD/x86_64 has actually been measured.  aarch64 is counted because
++# both conditions -- a JDK and 64 bits -- hold, not because anyone built it.
++#
++# gyp is the default on every platform, including the two where Bazel works.
++# It needs only python and ninja, it is the same code, and both paths emit the
++# same version string, so a package built either way is interchangeable at run
++# time.  Defaulting to the one that runs everywhere keeps the package uniform
++# across the platforms pkgsrc covers; ask for bazel where you want it.
 +
 +.include "../../mk/bsd.options.mk"
 +
-+# 既定を外して bazel を頼まれたときの止め方。ここが無いと
-+# devel/bazel の ONLY_FOR_PLATFORM に当たって「bazel-9.2.0 is not
-+# available for this platform」で止まり、package が足りないように見えて、
-+# option の選び方が違うようには見えない。
-+.if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
-+    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
-+PKG_FAIL_REASON+=	"The bazel build needs devel/bazel, which builds"	\
-+			"only on NetBSD x86_64 and aarch64."			\
-+			"Set PKG_OPTIONS.mozc=gyp to build mozc here."
++# Which builder to use.  The Makefiles test MOZC_BUILDER rather than
++# PKG_OPTIONS, so that the fallback below is decided in one place.
++MOZC_BUILDER=	gyp
++.if !empty(PKG_OPTIONS:Mbazel)
++MOZC_BUILDER=	bazel
 +.endif
 +
-+# gyp の道が届く範囲は build_mozc.py が決める。当て物で NetBSD を足したので
-+# NetBSD と、上流が元から見ている Linux では通る。FreeBSD や SunOS では
++# Before the bazel option existed, turning gyp off was how you asked for
++# bazel.  PKG_OPTIONS.mozc=-gyp still means that; keep it working rather than
++# quietly building the other way than the one that was asked for.
++.if empty(PKG_OPTIONS:Mgyp) && empty(PKG_OPTIONS:Mbazel)
++MOZC_BUILDER=	bazel
++.endif
++
++# Asking for bazel where bazel cannot be built is not a reason to stop: gyp
++# builds the same programs there.  Fall back to it and say so.  Stopping
++# instead walks into the ONLY_FOR_PLATFORM of devel/bazel and reports
++# "bazel-9.2.0 is not available for this platform", which reads as a missing
++# package rather than as a platform that has no bazel.
++.if ${MOZC_BUILDER} == "bazel" && (${OPSYS} != "NetBSD" || \
++    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
++MOZC_BUILDER=	gyp
++WARNINGS+=	"[options.mk] bazel builds only on NetBSD x86_64 and aarch64;"
++WARNINGS+=	"[options.mk] building mozc with gyp instead."
++.endif
++
++# How far the gyp path reaches is build_mozc.py's decision.  A patch adds
++# NetBSD, so NetBSD works, as does the Linux upstream already handles.  On
++# FreeBSD or SunOS it stops with
 +#
 +#	CRITICAL: target_platform FreeBSD is invalid.
 +#
-+# で止まる。理由が明示されるので、ここでは platform を狭めていない。
++# which says why, so no platform list is narrowed here.
 +
-+# どちらで建てても版の文字列は同じなので、実行時には入れ替えが利く。
-+# なぜそれを言う必要があるかは patch-build__tools_mozc__version.py を参照。
-Binary files old/mozc-server/patches/._. and new/mozc-server/patches/._. differ
-Binary files old/mozc-server/patches/._patch-base_base.gyp and new/mozc-server/patches/._patch-base_base.gyp differ
-Binary files old/mozc-server/patches/._patch-base_base__test.gyp and new/mozc-server/patches/._patch-base_base__test.gyp differ
-Binary files old/mozc-server/patches/._patch-base_cpu__stats.cc and new/mozc-server/patches/._patch-base_cpu__stats.cc differ
-Binary files old/mozc-server/patches/._patch-base_file_recursive.cc and new/mozc-server/patches/._patch-base_file_recursive.cc differ
-Binary files old/mozc-server/patches/._patch-base_password__manager.cc and new/mozc-server/patches/._patch-base_password__manager.cc differ
-Binary files old/mozc-server/patches/._patch-base_port.h and new/mozc-server/patches/._patch-base_port.h differ
-Binary files old/mozc-server/patches/._patch-base_process.cc and new/mozc-server/patches/._patch-base_process.cc differ
-Binary files old/mozc-server/patches/._patch-base_system__util.cc and new/mozc-server/patches/._patch-base_system__util.cc differ
-Binary files old/mozc-server/patches/._patch-build__mozc.py and new/mozc-server/patches/._patch-build__mozc.py differ
-Binary files old/mozc-server/patches/._patch-build__tools_util.py and new/mozc-server/patches/._patch-build__tools_util.py differ
-Binary files old/mozc-server/patches/._patch-client_client.cc and new/mozc-server/patches/._patch-client_client.cc differ
-Binary files old/mozc-server/patches/._patch-data__manager_data__manager.gypi and new/mozc-server/patches/._patch-data__manager_data__manager.gypi differ
-Binary files old/mozc-server/patches/._patch-dictionary_file_dictionary__file.gyp and new/mozc-server/patches/._patch-dictionary_file_dictionary__file.gyp differ
-Binary files old/mozc-server/patches/._patch-dictionary_file_dictionary__file__test.gyp and new/mozc-server/patches/._patch-dictionary_file_dictionary__file__test.gyp differ
-Binary files old/mozc-server/patches/._patch-dictionary_system_system__dictionary.gyp and new/mozc-server/patches/._patch-dictionary_system_system__dictionary.gyp differ
-Binary files old/mozc-server/patches/._patch-gui_qt__libraries.gypi and new/mozc-server/patches/._patch-gui_qt__libraries.gypi differ
-Binary files old/mozc-server/patches/._patch-gui_qt__tool__dir.gypi and new/mozc-server/patches/._patch-gui_qt__tool__dir.gypi differ
-Binary files old/mozc-server/patches/._patch-gyp_common.gypi and new/mozc-server/patches/._patch-gyp_common.gypi differ
-Binary files old/mozc-server/patches/._patch-ipc_ipc__path__manager.cc and new/mozc-server/patches/._patch-ipc_ipc__path__manager.cc differ
-Binary files old/mozc-server/patches/._patch-ipc_unix__ipc.cc and new/mozc-server/patches/._patch-ipc_unix__ipc.cc differ
-Binary files old/mozc-server/patches/._patch-renderer_renderer.gyp and new/mozc-server/patches/._patch-renderer_renderer.gyp differ
-Binary files old/mozc-server/patches/._patch-session_session.cc and new/mozc-server/patches/._patch-session_session.cc differ
++# Either path produces the same version string, so the two are interchangeable
++# at run time.  patch-build__tools_mozc__version.py says why that needs saying.
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-WORKSPACE.bazel new/mozc-server/patches/patch-WORKSPACE.bazel
---- inputmethod/mozc-server/patches/patch-WORKSPACE.bazel	2026-09-24 05:11:12.606368016 +0000
+--- inputmethod/mozc-server/patches/patch-WORKSPACE.bazel	2026-09-24 05:22:28.262862067 +0000
 +++ inputmethod/mozc-server/patches/patch-WORKSPACE.bazel	1970-01-01 00:00:00.000000000 +0000
 @@ -1,42 +0,0 @@
 -$NetBSD: patch-WORKSPACE.bazel,v 1.2 2024/12/11 03:07:20 maya Exp $
@@ -570,13 +650,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-WORKSPACE.
 -+#)
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_absl.gyp new/mozc-server/patches/patch-base_absl.gyp
 --- inputmethod/mozc-server/patches/patch-base_absl.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-base_absl.gyp	2026-09-24 05:11:12.509356803 +0000
-@@ -0,0 +1,17 @@
++++ inputmethod/mozc-server/patches/patch-base_absl.gyp	2026-09-24 05:22:28.168410119 +0000
+@@ -0,0 +1,18 @@
 +$NetBSD$
 +
-+time_zone_name_win.cc は abseil 20260107.1 で現れた Windows 専用の source で、
-+glob がそのまま拾ってしまう。3.34 が指している abseil は 3.33.6089 のものより
-+新しいので、GYP の側の除外一覧はそのぶん追いつかせる必要がある。
++time_zone_name_win.cc is a Windows-only source that appeared in abseil
++20260107.1, and the glob picks it up regardless.  The abseil 3.34 points at is
++newer than the one 3.33.6089 used, so the exclusion list on the GYP side has
++to catch up by that much.
 +
 +--- base/absl.gyp.orig
 ++++ base/absl.gyp
@@ -591,15 +672,16 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_absl.
 +         '-Wno-error',
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_base.gyp new/mozc-server/patches/patch-base_base.gyp
 --- inputmethod/mozc-server/patches/patch-base_base.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-base_base.gyp	2026-09-24 05:11:12.476030221 +0000
-@@ -0,0 +1,54 @@
++++ inputmethod/mozc-server/patches/patch-base_base.gyp	2026-09-24 05:22:28.169151554 +0000
+@@ -0,0 +1,55 @@
 +$NetBSD$
 +
-+3.34 は Singleton をやめ、singleton.h ごと落とした。GYP の側にはまだ
-+singleton だけを建てる target が残っているので外す。
++3.34 gave up on Singleton and dropped singleton.h with it.  The GYP side still
++has a target that builds nothing but singleton, so it goes.
 +
-+入れ替わりに置く protobuf_util は 3.34 で現れたもので、renderer_style_handler
-+が要る。依存は BUILD.bazel の同名の target に合わせてある。
++What replaces it, protobuf_util, is new in 3.34 and is needed by
++renderer_style_handler.  Its dependencies match the target of the same name in
++BUILD.bazel.
 +
 +--- base/base.gyp.orig
 ++++ base/base.gyp
@@ -649,12 +731,12 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_base.
 +     },
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_base__test.gyp new/mozc-server/patches/patch-base_base__test.gyp
 --- inputmethod/mozc-server/patches/patch-base_base__test.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-base_base__test.gyp	2026-09-24 05:11:12.485247594 +0000
++++ inputmethod/mozc-server/patches/patch-base_base__test.gyp	2026-09-24 05:22:28.169882373 +0000
 @@ -0,0 +1,43 @@
 +$NetBSD$
 +
-+singleton_test.cc と strings/zstring_view_test.cc は 3.34 に無い。
-+zstring_view_test は他に source を持たないので target ごと落とす。
++singleton_test.cc and strings/zstring_view_test.cc are not in 3.34.
++zstring_view_test has no other source, so the whole target goes.
 +
 +--- base/base_test.gyp.orig
 ++++ base/base_test.gyp
@@ -695,14 +777,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_base_
 +       'conditions': [
 +         # To work around a link error on Ninja build, we put this target in
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_cpu__stats.cc new/mozc-server/patches/patch-base_cpu__stats.cc
---- inputmethod/mozc-server/patches/patch-base_cpu__stats.cc	2026-09-24 05:11:12.607052181 +0000
-+++ inputmethod/mozc-server/patches/patch-base_cpu__stats.cc	2026-09-24 05:11:12.508330137 +0000
+--- inputmethod/mozc-server/patches/patch-base_cpu__stats.cc	2026-09-24 05:22:28.263343693 +0000
++++ inputmethod/mozc-server/patches/patch-base_cpu__stats.cc	2026-09-24 05:22:28.170621573 +0000
 @@ -1,31 +1,36 @@
 -$NetBSD: patch-base_cpu__stats.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- base/cpu_stats.cc.orig	2023-10-26 12:00:50.000000000 +0000
-+NetBSD の CPU 使用率は sysctl KERN_CP_TIME で取る。
++On NetBSD, CPU usage comes from sysctl KERN_CP_TIME.
 +
 +--- base/cpu_stats.cc.orig
  +++ base/cpu_stats.cc
@@ -743,14 +825,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_cpu__
     return 1;
   #endif  // __linux__ || __wasm__
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_file_recursive.cc new/mozc-server/patches/patch-base_file_recursive.cc
---- inputmethod/mozc-server/patches/patch-base_file_recursive.cc	2026-09-24 05:11:12.607654492 +0000
-+++ inputmethod/mozc-server/patches/patch-base_file_recursive.cc	2026-09-24 05:11:12.500238047 +0000
+--- inputmethod/mozc-server/patches/patch-base_file_recursive.cc	2026-09-24 05:22:28.263844036 +0000
++++ inputmethod/mozc-server/patches/patch-base_file_recursive.cc	2026-09-24 05:22:28.171378373 +0000
 @@ -1,14 +1,17 @@
 -$NetBSD: patch-base_file_recursive.cc,v 1.1 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- base/file/recursive.cc.orig	2023-10-26 12:00:50.000000000 +0000
-+NetBSD を Linux と同じ枝に入れる。
++Put NetBSD on the same branch as Linux.
 +
 +--- base/file/recursive.cc.orig
  +++ base/file/recursive.cc
@@ -771,7 +853,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_file_
 + absl::Status DeleteRecursively(const absl::string_view path) {
     // fts is not POSIX, but it's available on both Linux and MacOS.
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_logging.cc new/mozc-server/patches/patch-base_logging.cc
---- inputmethod/mozc-server/patches/patch-base_logging.cc	2026-09-24 05:11:12.608234454 +0000
+--- inputmethod/mozc-server/patches/patch-base_logging.cc	2026-09-24 05:22:28.264308899 +0000
 +++ inputmethod/mozc-server/patches/patch-base_logging.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,17 +0,0 @@
 -$NetBSD: patch-base_logging.cc,v 1.7 2024/02/10 01:17:27 ryoon Exp $
@@ -792,14 +874,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_loggi
 - #ifdef __LP64__
 -   return absl::StrCat(timestamp, ::getpid(), " ",
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_password__manager.cc new/mozc-server/patches/patch-base_password__manager.cc
---- inputmethod/mozc-server/patches/patch-base_password__manager.cc	2026-09-24 05:11:12.608873921 +0000
-+++ inputmethod/mozc-server/patches/patch-base_password__manager.cc	2026-09-24 05:11:12.506111978 +0000
+--- inputmethod/mozc-server/patches/patch-base_password__manager.cc	2026-09-24 05:22:28.264860925 +0000
++++ inputmethod/mozc-server/patches/patch-base_password__manager.cc	2026-09-24 05:22:28.172108354 +0000
 @@ -1,13 +1,16 @@
 -$NetBSD: patch-base_password__manager.cc,v 1.6 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- base/password_manager.cc.orig	2023-10-26 12:00:50.000000000 +0000
-+NetBSD を Linux と同じ枝に入れる。
++Put NetBSD on the same branch as Linux.
 +
 +--- base/password_manager.cc.orig
  +++ base/password_manager.cc
@@ -816,14 +898,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_passw
   #endif  // __linux__ || __wasm__
   
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_port.h new/mozc-server/patches/patch-base_port.h
---- inputmethod/mozc-server/patches/patch-base_port.h	2026-09-24 05:11:12.609509476 +0000
-+++ inputmethod/mozc-server/patches/patch-base_port.h	2026-09-24 05:11:12.496524726 +0000
+--- inputmethod/mozc-server/patches/patch-base_port.h	2026-09-24 05:22:28.265325230 +0000
++++ inputmethod/mozc-server/patches/patch-base_port.h	2026-09-24 05:22:28.172843923 +0000
 @@ -1,21 +1,45 @@
 -$NetBSD: patch-base_port.h,v 1.6 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- base/port.h.orig	2023-10-26 12:00:50.000000000 +0000
-+NetBSD と FreeBSD を platform の一覧に足す。
++Add NetBSD and FreeBSD to the list of platforms.
 +
 +--- base/port.h.orig
  +++ base/port.h
@@ -879,14 +961,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_port.
 + constexpr bool IsAndroid() {
 +   return internal::kTargetPlatform == internal::PlatformType::kAndroid;
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_process.cc new/mozc-server/patches/patch-base_process.cc
---- inputmethod/mozc-server/patches/patch-base_process.cc	2026-09-24 05:11:12.610096981 +0000
-+++ inputmethod/mozc-server/patches/patch-base_process.cc	2026-09-24 05:11:12.492022477 +0000
+--- inputmethod/mozc-server/patches/patch-base_process.cc	2026-09-24 05:22:28.266096557 +0000
++++ inputmethod/mozc-server/patches/patch-base_process.cc	2026-09-24 05:22:28.173640392 +0000
 @@ -1,13 +1,15 @@
 -$NetBSD: patch-base_process.cc,v 1.7 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- base/process.cc.orig	2023-12-13 09:15:36.129469332 +0000
-+NetBSD を Linux と同じ枝に入れる。xdg-open は pkgsrc の下に入る。
++Put NetBSD on the same branch as Linux.  xdg-open lives under pkgsrc.
 +
 +--- base/process.cc.orig
  +++ base/process.cc
@@ -928,17 +1010,18 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_proce
 -       "--mode=error_message_dialog --error_type=" + error_type;
 +       absl::StrCat("--mode=error_message_dialog --error_type=", error_type);
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_system__util.cc new/mozc-server/patches/patch-base_system__util.cc
---- inputmethod/mozc-server/patches/patch-base_system__util.cc	2026-09-24 05:11:12.610696778 +0000
-+++ inputmethod/mozc-server/patches/patch-base_system__util.cc	2026-09-24 05:11:12.489768560 +0000
-@@ -1,62 +1,84 @@
+--- inputmethod/mozc-server/patches/patch-base_system__util.cc	2026-09-24 05:22:28.266563934 +0000
++++ inputmethod/mozc-server/patches/patch-base_system__util.cc	2026-09-24 05:22:28.241907728 +0000
+@@ -1,62 +1,85 @@
 -$NetBSD: patch-base_system__util.cc,v 1.7 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- base/system_util.cc.orig	2023-10-26 12:00:50.000000000 +0000
-+NetBSD を Linux と同じ枝に入れ、置き場を pkgsrc のものにする。
++Put NetBSD on the same branch as Linux, and point the locations at pkgsrc.
 +
-+3.34 は MOZC_SERVER_DIR を build 時に渡せるようになったが、gyp から文字列
-+マクロを渡すのは引用符の始末が要る。既定値の側を書き換える方が短い。
++3.34 lets MOZC_SERVER_DIR be passed in at build time, but handing a string
++macro through GYP means dealing with the quoting.  Rewriting the default is
++shorter.
 +
 +--- base/system_util.cc.orig
  +++ base/system_util.cc
@@ -1058,7 +1141,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_syste
     const int32_t page_size = sysconf(_SC_PAGESIZE);
     const int32_t number_of_phyisical_pages = sysconf(_SC_PHYS_PAGES);
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_system__util__test.cc new/mozc-server/patches/patch-base_system__util__test.cc
---- inputmethod/mozc-server/patches/patch-base_system__util__test.cc	2026-09-24 05:11:12.611346023 +0000
+--- inputmethod/mozc-server/patches/patch-base_system__util__test.cc	2026-09-24 05:22:28.267036900 +0000
 +++ inputmethod/mozc-server/patches/patch-base_system__util__test.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-base_system__util__test.cc,v 1.1 2024/02/10 01:17:27 ryoon Exp $
@@ -1075,7 +1158,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-base_syste
 -   FileUtilMock file_util_mock;
 -   SystemUtil::SetUserProfileDirectory("");
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-bazel_pkg__config__repository.bzl new/mozc-server/patches/patch-bazel_pkg__config__repository.bzl
---- inputmethod/mozc-server/patches/patch-bazel_pkg__config__repository.bzl	2026-09-24 05:11:12.611918442 +0000
+--- inputmethod/mozc-server/patches/patch-bazel_pkg__config__repository.bzl	2026-09-24 05:22:28.267512100 +0000
 +++ inputmethod/mozc-server/patches/patch-bazel_pkg__config__repository.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-bazel_pkg__config__repository.bzl,v 1.1 2024/02/10 01:17:27 ryoon Exp $
@@ -1093,15 +1176,15 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-bazel_pkg_
 - 
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-build__mozc.py new/mozc-server/patches/patch-build__mozc.py
 --- inputmethod/mozc-server/patches/patch-build__mozc.py	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-build__mozc.py	2026-09-24 05:11:12.478770234 +0000
++++ inputmethod/mozc-server/patches/patch-build__mozc.py	2026-09-24 05:22:28.242664808 +0000
 @@ -0,0 +1,86 @@
 +$NetBSD$
 +
-+NetBSD を platform の一覧に足す。
++Add NetBSD to the list of platforms.
 +
-+あわせて版の定義の在処を直す。3.34 は data/version/mozc_version_template.bzl
-+をやめて version.bzl にした。中身は同じ形なので、写しを置かずに参照先だけ
-+変える。
++Also fix where the version definition is read from.  3.34 replaced
++data/version/mozc_version_template.bzl with version.bzl.  The contents have
++the same shape, so only the reference changes; no copy is kept here.
 +
 +--- build_mozc.py.orig
 ++++ build_mozc.py
@@ -1183,13 +1266,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-build__moz
 + def BuildOnWindows(targets):
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-build__tools_mozc__version.py new/mozc-server/patches/patch-build__tools_mozc__version.py
 --- inputmethod/mozc-server/patches/patch-build__tools_mozc__version.py	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-build__tools_mozc__version.py	2026-09-24 05:11:12.508832156 +0000
-@@ -0,0 +1,16 @@
++++ inputmethod/mozc-server/patches/patch-build__tools_mozc__version.py	2026-09-24 05:22:28.243336401 +0000
+@@ -0,0 +1,17 @@
 +$NetBSD$
 +
-+NetBSD を platform の一覧に足す。番号は Linux と同じ 2 にしてある。ここは
-+版の文字列に入る数字で、gyp で建てたものと bazel で建てたものが同じ版として
-+扱われる必要がある。bazel 側は oss_linux として建てるので 2 になる。
++Add NetBSD to the list of platforms.  The number is 2, the same as Linux.
++It goes into the version string, and a build made with GYP has to be treated
++as the same version as one made with Bazel.  The Bazel side builds as
++oss_linux, which is 2.
 +
 +--- build_tools/mozc_version.py.orig
 ++++ build_tools/mozc_version.py
@@ -1203,11 +1287,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-build__too
 + VERSION_PROPERTIES = [
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-build__tools_util.py new/mozc-server/patches/patch-build__tools_util.py
 --- inputmethod/mozc-server/patches/patch-build__tools_util.py	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-build__tools_util.py	2026-09-24 05:11:12.499122262 +0000
++++ inputmethod/mozc-server/patches/patch-build__tools_util.py	2026-09-24 05:22:28.244520909 +0000
 @@ -0,0 +1,18 @@
 +$NetBSD$
 +
-+NetBSD を platform の一覧に足す。
++Add NetBSD to the list of platforms.
 +
 +--- build_tools/util.py.orig
 ++++ build_tools/util.py
@@ -1224,14 +1308,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-build__too
 +   """Returns the number of CPU cores available.
 + 
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-client_client.cc new/mozc-server/patches/patch-client_client.cc
---- inputmethod/mozc-server/patches/patch-client_client.cc	2026-09-24 05:11:12.612501756 +0000
-+++ inputmethod/mozc-server/patches/patch-client_client.cc	2026-09-24 05:11:12.495518173 +0000
+--- inputmethod/mozc-server/patches/patch-client_client.cc	2026-09-24 05:22:28.267990652 +0000
++++ inputmethod/mozc-server/patches/patch-client_client.cc	2026-09-24 05:22:28.245019297 +0000
 @@ -1,13 +1,16 @@
 -$NetBSD: patch-client_client.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
 +$NetBSD$
  
 ---- client/client.cc.orig	2023-12-13 09:23:05.795914176 +0000
-+NetBSD を Linux と同じ枝に入れる。
++Put NetBSD on the same branch as Linux.
 +
 +--- client/client.cc.orig
  +++ client/client.cc
@@ -1248,7 +1332,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-client_cli
     if (!extra_arg.empty()) {
       absl::StrAppend(&arg, " ", extra_arg);
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-config.bzl new/mozc-server/patches/patch-config.bzl
---- inputmethod/mozc-server/patches/patch-config.bzl	2026-09-24 05:11:12.613068867 +0000
+--- inputmethod/mozc-server/patches/patch-config.bzl	2026-09-24 05:22:28.338316071 +0000
 +++ inputmethod/mozc-server/patches/patch-config.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,29 +0,0 @@
 -$NetBSD: patch-config.bzl,v 1.2 2024/02/10 01:17:27 ryoon Exp $
@@ -1281,7 +1365,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-config.bzl
 - MACOS_BUNDLE_ID_PREFIX = "org.mozc.inputmethod.Japanese"
 - MACOS_MIN_OS_VER = "11.0"
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-config_stats__config__util__test.cc new/mozc-server/patches/patch-config_stats__config__util__test.cc
---- inputmethod/mozc-server/patches/patch-config_stats__config__util__test.cc	2026-09-24 05:11:12.613877629 +0000
+--- inputmethod/mozc-server/patches/patch-config_stats__config__util__test.cc	2026-09-24 05:22:28.339263118 +0000
 +++ inputmethod/mozc-server/patches/patch-config_stats__config__util__test.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-config_stats__config__util__test.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
@@ -1299,11 +1383,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-config_sta
 - }
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-data__manager_data__manager.gypi new/mozc-server/patches/patch-data__manager_data__manager.gypi
 --- inputmethod/mozc-server/patches/patch-data__manager_data__manager.gypi	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-data__manager_data__manager.gypi	2026-09-24 05:11:12.487221029 +0000
++++ inputmethod/mozc-server/patches/patch-data__manager_data__manager.gypi	2026-09-24 05:22:28.246844668 +0000
 @@ -0,0 +1,15 @@
 +$NetBSD$
 +
-+版の定義の移動。patch-build__mozc.py と同じ理由。
++The version definition moved; same reason as patch-build__mozc.py.
 +
 +--- data_manager/data_manager.gypi.orig
 ++++ data_manager/data_manager.gypi
@@ -1317,7 +1401,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-data__mana
 +           'inputs': [
 +             '<(generator)',
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary_BUILD.bazel new/mozc-server/patches/patch-dictionary_BUILD.bazel
---- inputmethod/mozc-server/patches/patch-dictionary_BUILD.bazel	2026-09-24 05:11:12.614472956 +0000
+--- inputmethod/mozc-server/patches/patch-dictionary_BUILD.bazel	2026-09-24 05:22:28.339790839 +0000
 +++ inputmethod/mozc-server/patches/patch-dictionary_BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 @@ -1,29 +0,0 @@
 -$NetBSD: patch-dictionary_BUILD.bazel,v 1.1 2024/12/11 03:07:20 maya Exp $
@@ -1351,18 +1435,18 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary
 -     ),
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary_dictionary__base.gyp new/mozc-server/patches/patch-dictionary_dictionary__base.gyp
 --- inputmethod/mozc-server/patches/patch-dictionary_dictionary__base.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-dictionary_dictionary__base.gyp	2026-09-24 05:11:12.509830048 +0000
++++ inputmethod/mozc-server/patches/patch-dictionary_dictionary__base.gyp	2026-09-24 05:22:28.247358421 +0000
 @@ -0,0 +1,63 @@
 +$NetBSD$
 +
-+3.34 の user_pos は 3.33.6089 に無かったものを二つ要る。
++user_pos in 3.34 needs two things that 3.33.6089 did not have.
 +
-+一つは protocol/user_dictionary_storage.pb.h で、user_pos.h が読むように
-+なった。もう一つは dictionary/pos_cost_map.inc で、これは 3.34 で新しく
-+現れた生成物である。作り方は隣の gen_pos_map と同じ形で、data/rules の
-+user_pos.def から gen_pos_cost_map.py が起こす。
++One is protocol/user_dictionary_storage.pb.h, which user_pos.h now includes.
++The other is dictionary/pos_cost_map.inc, a generated file that is new in
++3.34; it is produced the same way as gen_pos_map next to it, by
++gen_pos_cost_map.py out of data/rules/user_pos.def.
 +
-+どちらも BUILD.bazel の同名の target が並べているものに合わせてある。
++Both match what the target of the same name in BUILD.bazel lists.
 +
 +--- dictionary/dictionary_base.gyp.orig
 ++++ dictionary/dictionary_base.gyp
@@ -1418,12 +1502,12 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary
 +       'toolsets': ['host'],
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary_file_dictionary__file.gyp new/mozc-server/patches/patch-dictionary_file_dictionary__file.gyp
 --- inputmethod/mozc-server/patches/patch-dictionary_file_dictionary__file.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-dictionary_file_dictionary__file.gyp	2026-09-24 05:11:12.477092368 +0000
++++ inputmethod/mozc-server/patches/patch-dictionary_file_dictionary__file.gyp	2026-09-24 05:22:28.248013253 +0000
 @@ -0,0 +1,46 @@
 +$NetBSD$
 +
-+3.34 は codec_factory.cc と codec_util.cc を codec.cc へ畳んだ。どちらも
-+その一本しか source を持たない target なので、target ごと落とす。
++3.34 folded codec_factory.cc and codec_util.cc into codec.cc.  Each was the
++only source of its target, so both targets go.
 +
 +--- dictionary/file/dictionary_file.gyp.orig
 ++++ dictionary/file/dictionary_file.gyp
@@ -1468,11 +1552,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary
 +       'toolsets': ['target', 'host'],
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary_file_dictionary__file__test.gyp new/mozc-server/patches/patch-dictionary_file_dictionary__file__test.gyp
 --- inputmethod/mozc-server/patches/patch-dictionary_file_dictionary__file__test.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-dictionary_file_dictionary__file__test.gyp	2026-09-24 05:11:12.489240280 +0000
++++ inputmethod/mozc-server/patches/patch-dictionary_file_dictionary__file__test.gyp	2026-09-24 05:22:28.248719767 +0000
 @@ -0,0 +1,24 @@
 +$NetBSD$
 +
-+codec_factory は codec に畳まれた。
++codec_factory was folded into codec.
 +
 +--- dictionary/file/dictionary_file_test.gyp.orig
 ++++ dictionary/file/dictionary_file_test.gyp
@@ -1496,11 +1580,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary
 +       ],
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary_system_system__dictionary.gyp new/mozc-server/patches/patch-dictionary_system_system__dictionary.gyp
 --- inputmethod/mozc-server/patches/patch-dictionary_system_system__dictionary.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-dictionary_system_system__dictionary.gyp	2026-09-24 05:11:12.488242947 +0000
++++ inputmethod/mozc-server/patches/patch-dictionary_system_system__dictionary.gyp	2026-09-24 05:22:28.249206980 +0000
 @@ -0,0 +1,33 @@
 +$NetBSD$
 +
-+codec_factory は codec に畳まれた。
++codec_factory was folded into codec.
 +
 +--- dictionary/system/system_dictionary.gyp.orig
 ++++ dictionary/system/system_dictionary.gyp
@@ -1532,7 +1616,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-dictionary
 +         'system_dictionary_codec',
 +       ],
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_config__dialog_config__dialog.cc new/mozc-server/patches/patch-gui_config__dialog_config__dialog.cc
---- inputmethod/mozc-server/patches/patch-gui_config__dialog_config__dialog.cc	2026-09-24 05:11:12.615056829 +0000
+--- inputmethod/mozc-server/patches/patch-gui_config__dialog_config__dialog.cc	2026-09-24 05:22:28.340332528 +0000
 +++ inputmethod/mozc-server/patches/patch-gui_config__dialog_config__dialog.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,31 +0,0 @@
 -$NetBSD: patch-gui_config__dialog_config__dialog.cc,v 1.8 2024/02/10 01:17:27 ryoon Exp $
@@ -1567,7 +1651,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_config
 -   usageStatsLabel->setEnabled(false);
 -   usageStatsLabel->setVisible(false);
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_config__dialog_keybinding__editor.cc new/mozc-server/patches/patch-gui_config__dialog_keybinding__editor.cc
---- inputmethod/mozc-server/patches/patch-gui_config__dialog_keybinding__editor.cc	2026-09-24 05:11:12.615634836 +0000
+--- inputmethod/mozc-server/patches/patch-gui_config__dialog_keybinding__editor.cc	2026-09-24 05:22:28.340881480 +0000
 +++ inputmethod/mozc-server/patches/patch-gui_config__dialog_keybinding__editor.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,31 +0,0 @@
 -$NetBSD: patch-gui_config__dialog_keybinding__editor.cc,v 1.5 2024/02/10 01:17:27 ryoon Exp $
@@ -1602,7 +1686,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_config
 -   // Seems that even after clicking the button for the keybinding dialog,
 -   // the edit is not raised. This might be a bug of setFocusProxy.
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_config__dialog_keymap__editor.cc new/mozc-server/patches/patch-gui_config__dialog_keymap__editor.cc
---- inputmethod/mozc-server/patches/patch-gui_config__dialog_keymap__editor.cc	2026-09-24 05:11:12.616276537 +0000
+--- inputmethod/mozc-server/patches/patch-gui_config__dialog_keymap__editor.cc	2026-09-24 05:22:28.341463119 +0000
 +++ inputmethod/mozc-server/patches/patch-gui_config__dialog_keymap__editor.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-gui_config__dialog_keymap__editor.cc,v 1.4 2024/02/10 01:17:27 ryoon Exp $
@@ -1619,7 +1703,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_config
 -         this, windowTitle(),
 -         tr("Changes of keymaps for direct input mode will apply only to "
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_dictionary__tool_dictionary__tool.cc new/mozc-server/patches/patch-gui_dictionary__tool_dictionary__tool.cc
---- inputmethod/mozc-server/patches/patch-gui_dictionary__tool_dictionary__tool.cc	2026-09-24 05:11:12.616857897 +0000
+--- inputmethod/mozc-server/patches/patch-gui_dictionary__tool_dictionary__tool.cc	2026-09-24 05:22:28.341964020 +0000
 +++ inputmethod/mozc-server/patches/patch-gui_dictionary__tool_dictionary__tool.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-gui_dictionary__tool_dictionary__tool.cc,v 1.7 2024/02/10 01:17:27 ryoon Exp $
@@ -1637,11 +1721,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_dictio
 -   setCentralWidget(splitter_);
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_qt__libraries.gypi new/mozc-server/patches/patch-gui_qt__libraries.gypi
 --- inputmethod/mozc-server/patches/patch-gui_qt__libraries.gypi	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-gui_qt__libraries.gypi	2026-09-24 05:11:12.504183520 +0000
++++ inputmethod/mozc-server/patches/patch-gui_qt__libraries.gypi	2026-09-24 05:22:28.245816326 +0000
 @@ -0,0 +1,15 @@
 +$NetBSD$
 +
-+NetBSD の Qt は pkgsrc の下に入る。
++On NetBSD, Qt lives under pkgsrc.
 +
 +--- gui/qt_libraries.gypi.orig
 ++++ gui/qt_libraries.gypi
@@ -1656,11 +1740,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_qt__li
 +     }],
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_qt__tool__dir.gypi new/mozc-server/patches/patch-gui_qt__tool__dir.gypi
 --- inputmethod/mozc-server/patches/patch-gui_qt__tool__dir.gypi	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-gui_qt__tool__dir.gypi	2026-09-24 05:11:12.497769576 +0000
++++ inputmethod/mozc-server/patches/patch-gui_qt__tool__dir.gypi	2026-09-24 05:22:28.249673799 +0000
 @@ -0,0 +1,19 @@
 +$NetBSD$
 +
-+NetBSD の Qt は pkgsrc の下に入る。
++On NetBSD, Qt lives under pkgsrc.
 +
 +--- gui/qt_tool_dir.gypi.orig
 ++++ gui/qt_tool_dir.gypi
@@ -1678,7 +1762,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_qt__to
 +         }],
 +         ['qt_ver==6 and target_platform=="Mac"', {
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_word__register__dialog_word__register__dialog.cc new/mozc-server/patches/patch-gui_word__register__dialog_word__register__dialog.cc
---- inputmethod/mozc-server/patches/patch-gui_word__register__dialog_word__register__dialog.cc	2026-09-24 05:11:12.617446798 +0000
+--- inputmethod/mozc-server/patches/patch-gui_word__register__dialog_word__register__dialog.cc	2026-09-24 05:22:28.342496211 +0000
 +++ inputmethod/mozc-server/patches/patch-gui_word__register__dialog_word__register__dialog.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-gui_word__register__dialog_word__register__dialog.cc,v 1.7 2024/02/10 01:17:28 ryoon Exp $
@@ -1696,11 +1780,11 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gui_word__
 -   // TODO(team): Support other platforms.
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gyp_common.gypi new/mozc-server/patches/patch-gyp_common.gypi
 --- inputmethod/mozc-server/patches/patch-gyp_common.gypi	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-gyp_common.gypi	2026-09-24 05:11:12.501453285 +0000
++++ inputmethod/mozc-server/patches/patch-gyp_common.gypi	2026-09-24 05:22:28.250168275 +0000
 @@ -0,0 +1,66 @@
 +$NetBSD$
 +
-+NetBSD を target_platform と OS の条件に足す。
++Add NetBSD to the target_platform and OS conditions.
 +
 +--- gyp/common.gypi.orig
 ++++ gyp/common.gypi
@@ -1765,19 +1849,19 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-gyp_common
 +       ['OS=="mac"', {
 +         'make_global_settings': [
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-ipc_ipc__path__manager.cc new/mozc-server/patches/patch-ipc_ipc__path__manager.cc
---- inputmethod/mozc-server/patches/patch-ipc_ipc__path__manager.cc	2026-09-24 05:11:12.618041287 +0000
-+++ inputmethod/mozc-server/patches/patch-ipc_ipc__path__manager.cc	2026-09-24 05:11:12.490959214 +0000
+--- inputmethod/mozc-server/patches/patch-ipc_ipc__path__manager.cc	2026-09-24 05:22:28.343020858 +0000
++++ inputmethod/mozc-server/patches/patch-ipc_ipc__path__manager.cc	2026-09-24 05:22:28.250683704 +0000
 @@ -1,13 +1,68 @@
 -$NetBSD: patch-ipc_ipc__path__manager.cc,v 1.7 2024/02/10 01:17:28 ryoon Exp $
 +$NetBSD$
  
 ---- ipc/ipc_path_manager.cc.orig	2023-12-13 09:35:34.871003763 +0000
-+NetBSD で server の path を sysctl から取る。
++Get the server path from sysctl on NetBSD.
 +
-+NetBSD の procfs は noauto なので、素の箱では /proc/<pid>/exe が読めない。
-+FreeBSD の枝は既に sysctl を叩いているのに、NetBSD だけ Linux の枝に相乗り
-+していた。MIB の並びは FreeBSD と違い、pid が三番目で KERN_PROC_PATHNAME が
-+四番目になる。
++NetBSD mounts procfs noauto, so /proc/<pid>/exe cannot be read on a stock
++machine.  The FreeBSD branch already asks sysctl, but NetBSD was riding along
++on the Linux one.  The MIB is not laid out as on FreeBSD: the pid is third and
++KERN_PROC_PATHNAME fourth.
 +
 +--- ipc/ipc_path_manager.cc.orig
  +++ ipc/ipc_path_manager.cc
@@ -1843,19 +1927,19 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-ipc_ipc__p
     std::string proc = absl::StrFormat("/proc/%u/exe", pid);
 -   char filename[512];
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-ipc_unix__ipc.cc new/mozc-server/patches/patch-ipc_unix__ipc.cc
---- inputmethod/mozc-server/patches/patch-ipc_unix__ipc.cc	2026-09-24 05:11:12.618672652 +0000
-+++ inputmethod/mozc-server/patches/patch-ipc_unix__ipc.cc	2026-09-24 05:11:12.507117971 +0000
+--- inputmethod/mozc-server/patches/patch-ipc_unix__ipc.cc	2026-09-24 05:22:28.343512262 +0000
++++ inputmethod/mozc-server/patches/patch-ipc_unix__ipc.cc	2026-09-24 05:22:28.251145494 +0000
 @@ -1,43 +1,114 @@
 -$NetBSD: patch-ipc_unix__ipc.cc,v 1.7 2024/02/10 01:17:28 ryoon Exp $
 +$NetBSD$
  
 ---- ipc/unix_ipc.cc.orig	2023-10-26 12:00:50.000000000 +0000
-+NetBSD で unix domain socket の相手を確かめる。
++Check the peer of a unix domain socket on NetBSD.
 +
-+peer の credential は LOCAL_PEEREID と struct unpcbid で取る。あわせて
-+sockaddr_un の長さを offsetof で数える。sizeof(sun_family) は sun_path の
-+offset ではない。NetBSD の sun_family は 1 バイトで前に sun_len があるので、
-+一文字短い path を bind してしまう。
++The peer credentials come from LOCAL_PEEREID and struct unpcbid.  The length
++of the sockaddr_un is counted with offsetof at the same time: sizeof(sun_family)
++is not the offset of sun_path.  NetBSD's sun_family is one byte with sun_len in
++front of it, so the old arithmetic binds a path one character short.
 +
 +--- ipc/unix_ipc.cc.orig
  +++ ipc/unix_ipc.cc
@@ -1984,14 +2068,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-ipc_unix__
 +     ::chmod(server_address_.c_str(), 0600);
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-renderer_renderer.gyp new/mozc-server/patches/patch-renderer_renderer.gyp
 --- inputmethod/mozc-server/patches/patch-renderer_renderer.gyp	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/patches/patch-renderer_renderer.gyp	2026-09-24 05:11:12.474948240 +0000
++++ inputmethod/mozc-server/patches/patch-renderer_renderer.gyp	2026-09-24 05:22:28.251652542 +0000
 @@ -0,0 +1,89 @@
 +$NetBSD$
 +
-+NetBSD の renderer は X11 を pkgsrc の下から引く。
++The renderer on NetBSD gets X11 from under pkgsrc.
 +
-+あわせて renderer_style_handler に protobuf_util を繋ぐ。3.34 で
-+base/protobuf_util.h を読むようになった。
++It also wires protobuf_util into renderer_style_handler, which started
++including base/protobuf_util.h in 3.34.
 +
 +--- renderer/renderer.gyp.orig
 ++++ renderer/renderer.gyp
@@ -2076,14 +2160,14 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-renderer_r
 +       'targets': [
 +         {
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-session_session.cc new/mozc-server/patches/patch-session_session.cc
---- inputmethod/mozc-server/patches/patch-session_session.cc	2026-09-24 05:11:12.619315192 +0000
-+++ inputmethod/mozc-server/patches/patch-session_session.cc	2026-09-24 05:11:12.502717412 +0000
+--- inputmethod/mozc-server/patches/patch-session_session.cc	2026-09-24 05:22:28.344607652 +0000
++++ inputmethod/mozc-server/patches/patch-session_session.cc	2026-09-24 05:22:28.252141431 +0000
 @@ -1,22 +1,24 @@
 -$NetBSD: patch-session_session.cc,v 1.7 2024/02/10 01:17:28 ryoon Exp $
 +$NetBSD$
  
 ---- session/session.cc.orig	2023-12-13 09:32:05.846503615 +0000
-+NetBSD を Linux と同じ枝に入れる。
++Put NetBSD on the same branch as Linux.
 +
 +--- session/session.cc.orig
  +++ session/session.cc
@@ -2111,7 +2195,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-session_se
   #else   // TARGET_OS_IPHONE || __linux__ || __wasm__
     if (config.has_use_cascading_window()) {
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-session_session__handler__scenario__test.cc new/mozc-server/patches/patch-session_session__handler__scenario__test.cc
---- inputmethod/mozc-server/patches/patch-session_session__handler__scenario__test.cc	2026-09-24 05:11:12.619890125 +0000
+--- inputmethod/mozc-server/patches/patch-session_session__handler__scenario__test.cc	2026-09-24 05:22:28.345307462 +0000
 +++ inputmethod/mozc-server/patches/patch-session_session__handler__scenario__test.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-session_session__handler__scenario__test.cc,v 1.1 2024/02/10 01:17:28 ryoon Exp $
@@ -2128,7 +2212,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-session_se
 -     // TODO(hsumita): Removes this ifndef block.
 -     DATA_DIR "select_t13n_on_cascading_window.txt",
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-session_session__test.cc new/mozc-server/patches/patch-session_session__test.cc
---- inputmethod/mozc-server/patches/patch-session_session__test.cc	2026-09-24 05:11:12.620724030 +0000
+--- inputmethod/mozc-server/patches/patch-session_session__test.cc	2026-09-24 05:22:28.346010065 +0000
 +++ inputmethod/mozc-server/patches/patch-session_session__test.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,31 +0,0 @@
 -$NetBSD: patch-session_session__test.cc,v 1.5 2024/02/10 01:17:28 ryoon Exp $
@@ -2163,7 +2247,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-session_se
 -     // candidate words is different from other platform.
 -     // TODO(komatsu): Modify the client for Linux to explicitly change
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc new/mozc-server/patches/patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc
---- inputmethod/mozc-server/patches/patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc	2026-09-24 05:11:12.621278291 +0000
+--- inputmethod/mozc-server/patches/patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc	2026-09-24 05:22:28.346485265 +0000
 +++ inputmethod/mozc-server/patches/patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc	1970-01-01 00:00:00.000000000 +0000
 @@ -1,14 +0,0 @@
 -$NetBSD: patch-third__party_abseil-cpp_absl_base_internal_raw__logging.cc,v 1.1 2024/02/10 01:17:28 ryoon Exp $
@@ -2181,7 +2265,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-third__par
 - #include <unistd.h>
 - 
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/patches/patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl new/mozc-server/patches/patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl
---- inputmethod/mozc-server/patches/patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl	2026-09-24 05:11:12.621909376 +0000
+--- inputmethod/mozc-server/patches/patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl	2026-09-24 05:22:28.346965214 +0000
 +++ inputmethod/mozc-server/patches/patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl	1970-01-01 00:00:00.000000000 +0000
 @@ -1,13 +0,0 @@
 -$NetBSD: patch-third__party_protobuf_toolchain_cc__toolchain__config.bzl,v 1.1 2024/02/10 01:17:28 ryoon Exp $

@@ -1,7 +1,7 @@
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-tool/Makefile new/mozc-tool/Makefile
---- inputmethod/mozc-tool/Makefile	2026-09-24 05:11:12.654402054 +0000
-+++ inputmethod/mozc-tool/Makefile	2026-09-24 05:11:12.566370754 +0000
-@@ -1,29 +1,71 @@
+--- inputmethod/mozc-tool/Makefile	2026-09-24 05:22:28.449556466 +0000
++++ inputmethod/mozc-tool/Makefile	2026-09-24 05:22:28.741148274 +0000
+@@ -1,29 +1,74 @@
 -# $NetBSD: Makefile,v 1.101 2026/09/02 19:03:08 wiz Exp $
 +# $NetBSD$
  
@@ -12,37 +12,40 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-tool/Makefile new/mozc-tool/Mak
  
 +DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server
 +
-+# gui.gyp は mozc_tool を条件節の外で定義しているので、gyp では Qt を見つけ
-+# させるだけで建つ (patch-gui_qt__libraries.gypi と
-+# patch-gui_qt__tool__dir.gypi)。そこが mozc-renderer と違う。
-+# 3.34 に gyp は無いが、Makefile.common の post-extract が 3.33.6089 から
-+# 足場を持ってくる。
++# gui.gyp defines mozc_tool outside any conditional, so under GYP it builds
++# once Qt can be found (patch-gui_qt__libraries.gypi and
++# patch-gui_qt__tool__dir.gypi).  That is where it differs from mozc-renderer.
++# 3.34 has no GYP of its own, but post-extract in Makefile.common brings the
++# scaffolding across from 3.33.6089.
 +
-+# Qt6 の QtGui は qopengl.h 越しに GL/gl.h を引く。MesaLib を依存に挙げて
-+# いないと buildlink が GL を compiler へ見せず、
++# Qt6 QtGui reaches GL/gl.h through qopengl.h.  Without MesaLib among the
++# dependencies, buildlink never shows GL to the compiler and the build stops
++# at
 +#
 +#	gui/base/util.cc
 +#	qopengl.h:115:13: fatal error: GL/gl.h: No such file or directory
 +#
-+# で止まる。header は在って見えないだけである。gyp で建てていた 333 では
-+# 露見しなかった。bazel へ生の -I を渡す手は execution root の外を指すと
-+# 拒まれるので、cc_configure に渡す。BAZEL_CXXOPTS を見て toolchain を組む
-+# ときに compiler の search path を読むので、そこに入った場所は
-+# cxx_builtin_include_directories に載り、sandbox にも mount される。
-+# buildlink だけでは compiler からは見えても sandbox の中には現れない。
++# The header is there, it is just not visible.  333, built with GYP, never hit
++# this.  Handing Bazel a bare -I does not work -- it refuses paths outside the
++# execution root -- so the include goes to cc_configure instead.  cc_configure
++# reads the compiler search path while assembling the toolchain from
++# BAZEL_CXXOPTS, so whatever lands there ends up in
++# cxx_builtin_include_directories and is mounted into the sandbox as well.
++# buildlink alone makes it visible to the compiler but not inside the sandbox.
 +.include "../../graphics/MesaLib/buildlink3.mk"
 +
 +MAKE_ENV+=	BAZEL_CXXOPTS=-std=gnu++17:-I${PREFIX}/include:-I${X11BASE}/include
-+# link も同じ穴で、mozc の pkg_config_repository は --libs-only-l で -l しか
-+# 集めない (Linux では Qt が既定の path に居る)。pkgsrc の Qt6 は
-+# ${PREFIX}/qt6/lib に居て buildlink は LDFLAGS で -L を渡すが、bazel は
-+# env - で環境を捨て、cc_configure は LDFLAGS を読まない。読むのは
-+# BAZEL_LINKOPTS なので、そこから toolchain に焼き込む。
-+MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:-Wl,-R${PREFIX}/qt6/lib:-L${PREFIX}/lib:-Wl,-R${PREFIX}/lib:-L${X11BASE}/lib:-Wl,-R${X11BASE}/lib
++# Linking has the same hole: mozc's pkg_config_repository calls --libs-only-l
++# and so collects only -l flags (on Linux Qt sits on the default path).  The
++# pkgsrc Qt6 lives in /qt6/lib and buildlink passes -L through
++# LDFLAGS, but Bazel throws the environment away with env - and cc_configure
++# does not read LDFLAGS.  It reads BAZEL_LINKOPTS, so the paths are baked into
++# the toolchain from there.
++MAKE_ENV+=	BAZEL_LINKOPTS=-L${PREFIX}/qt6/lib:${COMPILER_RPATH_FLAG}${PREFIX}/qt6/lib:-L${PREFIX}/lib:${COMPILER_RPATH_FLAG}${PREFIX}/lib:-L${X11BASE}/lib:${COMPILER_RPATH_FLAG}${X11BASE}/lib
 +
 +.include "../../inputmethod/mozc-server/options.mk"
 +
-+.if empty(PKG_OPTIONS:Mgyp)
++.if ${MOZC_BUILDER} == "bazel"
  do-build:
  	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
  		${PREFIX}/bin/bazel \
@@ -53,11 +56,13 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-tool/Makefile new/mozc-tool/Mak
 -			--distdir=${WRKSRC}/dist \
  			--jobs=${MAKE_JOBS:U1} \
 -			--subcommands \
+-			--host_action_env=PATH=${PATH} \
+-			--action_env=PATH=${PATH} \
+-			--sandbox_debug \
 +			--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
 +			--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
- 			--host_action_env=PATH=${PATH} \
- 			--action_env=PATH=${PATH} \
--			--sandbox_debug \
++			--host_action_env=PATH=${PATH:Q} \
++			--action_env=PATH=${PATH:Q} \
  			--verbose_failures \
 -			--config oss_linux --compilation_mode opt
 +			${BAZEL_ARGS} \
@@ -82,8 +87,8 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-tool/Makefile new/mozc-tool/Mak
  .include "../../inputmethod/mozc-server/Makefile.common"
  .include "../../mk/bsd.pkg.mk"
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-tool/PLIST new/mozc-tool/PLIST
---- inputmethod/mozc-tool/PLIST	2026-09-24 05:11:12.655829330 +0000
-+++ inputmethod/mozc-tool/PLIST	2026-09-24 05:11:12.541428757 +0000
+--- inputmethod/mozc-tool/PLIST	2026-09-24 05:22:28.450541507 +0000
++++ inputmethod/mozc-tool/PLIST	2026-09-24 05:22:28.443548440 +0000
 @@ -1,2 +1,2 @@
 -@comment $NetBSD: PLIST,v 1.1 2013/01/18 11:38:02 ryoon Exp $
 +@comment $NetBSD$
