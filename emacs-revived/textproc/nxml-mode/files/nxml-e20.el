@@ -1,10 +1,10 @@
 ;;; nxml-e20.el --- nxml-mode's fontification on Emacs 20  -*- coding: iso-2022-7bit -*-
 
 ;; Everything general nxml-mode needs from later Emacsen comes from
-;; e20-compat.el (devel/emacs20-compat).  What is left is nxml-mode's own
+;; elisp-compat.el (devel/elisp-compat).  What is left is nxml-mode's own
 ;; way of fontifying.
 
-(require 'e20-compat)
+(require 'elisp-compat)
 
 ;; Emacs 21 fontifies lazily from redisplay through fontification-functions.
 ;; Emacs 20 has no such hook, so fontify what is on screen after each

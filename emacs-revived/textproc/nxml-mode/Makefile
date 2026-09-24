@@ -1,6 +1,7 @@
 # $NetBSD: Makefile,v 1.13 2022/05/14 22:25:41 dholland Exp $
 
 DISTNAME=		nxml-mode-20041004
+PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME}
 PKGREVISION=		4
 CATEGORIES=		textproc editors
 MASTER_SITES=		http://www.thaiopensource.com/download/
@@ -13,7 +14,7 @@ NO_CONFIGURE=		yes
 USE_TOOLS+=		makeinfo perl
 
 # nxml-mode was written for Emacs 21 and is bundled since Emacs 23; the
-# package is for emacs20, with devel/emacs20-compat supplying what Emacs 20
+# package is for emacs20, with devel/elisp-compat supplying what Emacs 20
 # lacks and files/nxml-e20.el the mode's own fontification (see the
 # patches).  Emacs 20 needs Mule-UCS for decode-char.
 EMACS_VERSIONS_ACCEPTED=	emacs20
@@ -44,6 +45,6 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/char-name/unicode/*.el ${DESTDIR}${EMACS_LISPPREFIX:Q}/nxml-mode/char-name/unicode
 	${INSTALL_DATA} ${WRKSRC}/nxml-mode.info ${DESTDIR}${EMACS_INFOPREFIX:Q}
 
-.include "../../devel/emacs20-compat/buildlink3.mk"
+.include "../../devel/elisp-compat/buildlink3.mk"
 .include "../../editors/emacs/modules.mk"
 .include "../../mk/bsd.pkg.mk"
