@@ -123,11 +123,39 @@ report() {
 trap report EXIT
 
 # 取得の道具は OS ごとに違う。base にあるもので済ませる。
+#
+# 三度まで撃ち直す。pkgsrc.tar.gz (140MB) の取得が
+#
+#	curl: (18) end of response with 100074830 bytes missing
+#
+# で切れて OpenIndiana の測定が丸ごと流れた。18 は CURLE_PARTIAL_FILE で、
+# 箱の側の問題ではない。
+#
+# curl の --retry は足さない。古い箱の curl が知らない option を渡すと
+# unknown option で即死し、一時的な失敗を直すために恒久的な失敗を作る。
+# 外側で回すだけなら、どの道具でも同じように効く。
+#
+# 撃ち直す前に取れかけの file を消す。残すと、続きから取ったように見えて
+# 壊れた物が通ることがある。
 dl() {
-	if command -v curl > /dev/null 2>&1; then curl -fsSL -o "$2" "$1"
-	elif command -v fetch > /dev/null 2>&1; then fetch -q -o "$2" "$1"
-	else ftp -o "$2" "$1"
-	fi
+	_u=$1; _o=$2; _n=0
+	while :; do
+		_n=$((_n + 1))
+		if command -v curl > /dev/null 2>&1; then
+			curl -fsSL -o "$_o" "$_u" && return 0
+		elif command -v fetch > /dev/null 2>&1; then
+			fetch -q -o "$_o" "$_u" && return 0
+		else
+			ftp -o "$_o" "$_u" && return 0
+		fi
+		if [ "$_n" -ge 3 ]; then
+			echo "!! $_u を三度試して取れなかった" >&2
+			return 1
+		fi
+		echo "  取得が失敗した ($_n 回目)。5 秒待って撃ち直す: $_u" >&2
+		rm -f "$_o"
+		sleep 5
+	done
 }
 
 # illumos の base の tar は pax 拡張ヘッダ (typeflag 'x') を知らない。
