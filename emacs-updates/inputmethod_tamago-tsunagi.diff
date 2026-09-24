@@ -1,6 +1,6 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/Makefile inputmethod/tamago-tsunagi/Makefile
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/Makefile inputmethod/tamago-tsunagi/Makefile
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/Makefile	2026-02-10 08:17:24.000000000 +0000
-+++ inputmethod/tamago-tsunagi/Makefile	2026-09-21 19:24:45.940084740 +0000
++++ inputmethod/tamago-tsunagi/Makefile	2026-09-24 09:33:07.384678107 +0000
 @@ -17,4 +17,20 @@
  GNU_CONFIGURE=		yes
  
@@ -22,9 +22,9 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/Makefile inputme
 +	${CP} ${FILESDIR}/egg-com-e20.el ${WRKSRC}/egg-com.el
 +.endif
  .include "../../mk/bsd.pkg.mk"
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/PLIST inputmethod/tamago-tsunagi/PLIST
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/PLIST inputmethod/tamago-tsunagi/PLIST
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/PLIST	2017-12-09 03:28:49.000000000 +0000
-+++ inputmethod/tamago-tsunagi/PLIST	2026-09-21 19:25:23.045794824 +0000
++++ inputmethod/tamago-tsunagi/PLIST	2026-09-24 09:33:07.386821955 +0000
 @@ -36,8 +36,8 @@
  share/emacs/site-lisp/egg/its/.nosearch
  share/emacs/site-lisp/egg/its/ascii.el
@@ -36,22 +36,22 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/PLIST inputmetho
  share/emacs/site-lisp/egg/its/bixing.el
  share/emacs/site-lisp/egg/its/bixing.elc
  share/emacs/site-lisp/egg/its/erpin.el
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/distinfo inputmethod/tamago-tsunagi/distinfo
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/distinfo inputmethod/tamago-tsunagi/distinfo
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/distinfo	2025-12-27 12:44:02.000000000 +0000
-+++ inputmethod/tamago-tsunagi/distinfo	2026-09-21 19:28:05.967056325 +0000
++++ inputmethod/tamago-tsunagi/distinfo	2026-09-24 09:33:11.905525310 +0000
 @@ -4,6 +4,8 @@
  SHA512 (tamago-tsunagi-5.0.7.1.tar.gz) = dc830a9e7a7c53743c3e51807d9966bb2c0cb20c39a347bd6a3c2015a74fc5015eb9ddb8c9d0d357390e87d8b85122186299a391b6fa484916bbfc7025ec1ea7
  Size (tamago-tsunagi-5.0.7.1.tar.gz) = 314153 bytes
  SHA1 (patch-Makefile.in) = 8cb77ab851229d9b4173451ba9ca46bdfff940b9
-+SHA1 (patch-docomp.el) = e105c5956dbffef334b44e51bd4889c1e10dde1d
++SHA1 (patch-docomp.el) = baf37b7f5cdbd4f8e6406a2d4895ac156cfa66c5
  SHA1 (patch-egg-com.el) = 2c54082b0970d4d206d1ea3ec2ccf87faf77b5b0
  SHA1 (patch-egg-x0213.el) = 8fc19a1cc4804b774048c96b469dc4c75b65bdd5
 -SHA1 (patch-its.el) = a501ce1399a2a742887c4f1811f8582b0cc2abbe
-+SHA1 (patch-egg.el) = 6a94a40c4ae13926c8a63f5d92ff94ac2bda2e81
-+SHA1 (patch-its.el) = ed328fcc02670017469281c7c434813ac81e418f
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/files/egg-com-e20.el inputmethod/tamago-tsunagi/files/egg-com-e20.el
++SHA1 (patch-egg.el) = e3c5236027c7b52a6e77c3e0ba34223f40fbbff7
++SHA1 (patch-its.el) = 3c7a5838e7a4ad6086fec1580fdf470f76911d96
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/files/egg-com-e20.el inputmethod/tamago-tsunagi/files/egg-com-e20.el
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/files/egg-com-e20.el	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/tamago-tsunagi/files/egg-com-e20.el	2026-09-21 19:23:11.285529203 +0000
++++ inputmethod/tamago-tsunagi/files/egg-com-e20.el	2026-09-24 09:33:07.392854286 +0000
 @@ -0,0 +1,917 @@
 +;;; egg-com.el --- Communication Routines in Egg Input Method Architecture
 +
@@ -970,9 +970,9 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/files/egg-com-e2
 +
 +(provide 'egg-com)
 +;;; egg-com.el ends here.
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-docomp.el inputmethod/tamago-tsunagi/patches/patch-docomp.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-docomp.el inputmethod/tamago-tsunagi/patches/patch-docomp.el
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-docomp.el	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/tamago-tsunagi/patches/patch-docomp.el	2026-09-21 19:23:35.509657689 +0000
++++ inputmethod/tamago-tsunagi/patches/patch-docomp.el	2026-09-24 09:33:07.434662952 +0000
 @@ -0,0 +1,15 @@
 +$NetBSD$
 +
@@ -989,9 +989,9 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-do
 + 
 + (setq load-path (append (list (expand-file-name "./") )
 + 			load-path))
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-egg.el inputmethod/tamago-tsunagi/patches/patch-egg.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-egg.el inputmethod/tamago-tsunagi/patches/patch-egg.el
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-egg.el	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/tamago-tsunagi/patches/patch-egg.el	2026-09-21 19:26:29.204273345 +0000
++++ inputmethod/tamago-tsunagi/patches/patch-egg.el	2026-09-24 09:33:07.439174978 +0000
 @@ -0,0 +1,15 @@
 +$NetBSD$
 +
@@ -1008,9 +1008,9 @@ diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-eg
 + (defconst egg-version "5.0.7.1"
 +   "Version number for this version of Tamago.")
 + 
-diff -ruN -x CVS -x work /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-its.el inputmethod/tamago-tsunagi/patches/patch-its.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-its.el inputmethod/tamago-tsunagi/patches/patch-its.el
 --- /usr/pkgsrc/inputmethod/tamago-tsunagi/patches/patch-its.el	2025-12-27 12:44:02.000000000 +0000
-+++ inputmethod/tamago-tsunagi/patches/patch-its.el	2026-09-21 19:28:05.671085747 +0000
++++ inputmethod/tamago-tsunagi/patches/patch-its.el	2026-09-24 09:33:07.442416172 +0000
 @@ -3,11 +3,20 @@
  --- egg/wnn.elc ---
  egg/wnn.el:34:11: Error: Wrong type argument: obarrayp, [nil nil nil ...
