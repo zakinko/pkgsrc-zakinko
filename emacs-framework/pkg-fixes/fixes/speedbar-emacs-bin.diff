@@ -1,0 +1,11 @@
+--- editors/speedbar/Makefile.orig
++++ editors/speedbar/Makefile
+@@ -14,7 +14,7 @@
+ 
+ .include "../../editors/emacs/modules.mk"
+ 
+-PKGSRC_MAKE_ENV+=	EMACS=${EMACS}
++PKGSRC_MAKE_ENV+=	EMACS=${EMACS_BIN}
+ 
+ NO_CONFIGURE=	yes
+ USE_TOOLS+=	gmake
