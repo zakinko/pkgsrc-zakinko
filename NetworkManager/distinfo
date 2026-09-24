@@ -26,5 +26,5 @@ SHA1 (patch-src_n-dhcp4_src_util_packet-linux.c) = 255dd4dd84b98b4bfa89bb92b640d
 SHA1 (patch-src_n-dhcp4_src_util_packet.c) = 36399e20bc23cd2205d152949881b97dd5759105
 SHA1 (patch-src_n-dhcp4_src_util_packet.h) = 2f40fe5c6f5154e63f49cb8130a39a3d4f42256e
 SHA1 (patch-src_n-dhcp4_src_util_socket-bsd.c) = 101bd10d46ee50c42db85929781f8624379fceca
-SHA1 (patch-src_n-dhcp4_src_util_socket-linux.c) = 14a1387a65d32ddd53909a8b129e5185379ed978
+SHA1 (patch-src_n-dhcp4_src_util_socket-linux.c) = d7e7e9d3e77b90066129e8dc7e2a7143bbd1ab72
 SHA1 (patch-src_n-dhcp4_src_util_socket.h) = 3be4f88e74de279900e435b76fbbef1d94b99c1b

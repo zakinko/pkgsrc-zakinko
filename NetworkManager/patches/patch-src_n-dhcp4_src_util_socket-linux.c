@@ -10,7 +10,7 @@ util/socket.c is left in the tree; nothing lists it as a source any more.
 
 --- src/n-dhcp4/src/util/socket-linux.c.orig
 +++ src/n-dhcp4/src/util/socket-linux.c
-@@ -0,0 +1,169 @@
+@@ -0,0 +1,170 @@
 +/*
 + * Socket Utilities
 + */
@@ -23,6 +23,7 @@ util/socket.c is left in the tree; nothing lists it as a source any more.
 +#include <string.h>
 +#include <sys/ioctl.h>
 +#include <sys/socket.h>
++#include <sys/uio.h>
 +#include "socket.h"
 +
 +/**
