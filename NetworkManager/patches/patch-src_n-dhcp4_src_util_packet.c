@@ -95,11 +95,10 @@ known input matches a value computed independently.
          };
          const uint8_t *iter;
          uint64_t acc = 0;
-@@ -139,312 +158,5 @@
-                 acc = (acc & 0xffff) + (acc >> 16);
+@@ -140,317 +159,3 @@
  
          return ~acc;
--}
+ }
 -
 -/**
 - * packet_sendto_udp() - send UDP packet on AF_PACKET socket
@@ -201,7 +200,7 @@ known input matches a value computed independently.
 -}
 -
 -/**
-- * packet_recvfrom_upd() - receive UDP packet from AF_PACKET socket
+- * packet_recvfrom_udp() - receive UDP packet from AF_PACKET socket
 - * @sockfd:             AF_PACKET/SOCK_DGRAM socket
 - * @buf:                buffor for payload
 - * @n_buf:              max length of payload in bytes
@@ -333,6 +332,12 @@ known input matches a value computed independently.
 -                 * packet, so discard it entirely.
 -                 */
 -                return 0;
+-        } else if (ntohs(udp_hdr.len) < sizeof(struct udphdr)) {
+-                /*
+-                 * The UDP length field is smaller than the UDP header it is
+-                 * supposed to count, so discard it entirely.
+-                 */
+-                return 0;
 -        }
 -
 -        /*
@@ -379,8 +384,8 @@ known input matches a value computed independently.
 -        /* Return length of UDP payload (i.e., data written to @buf). */
 -        *n_transmittedp = pktlen;
 -        return 0;
- }
- 
+-}
+-
 -/**
 - * packet_shutdown() - shutdown socket for future receive operations
 - * @sockfd:     socket

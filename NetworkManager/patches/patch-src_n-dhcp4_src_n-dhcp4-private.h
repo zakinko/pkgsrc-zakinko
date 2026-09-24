@@ -186,7 +186,7 @@ which only one of them has - does not appear in the interface.
  void n_dhcp4_c_connection_deinit(NDhcp4CConnection *connection);
  
  int n_dhcp4_c_connection_listen(NDhcp4CConnection *connection);
-@@ -662,7 +769,7 @@
+@@ -667,7 +774,7 @@
  int n_dhcp4_client_probe_raise(NDhcp4ClientProbe *probe, NDhcp4CEventNode **nodep, unsigned int event);
  void n_dhcp4_client_probe_get_timeout(NDhcp4ClientProbe *probe, uint64_t *timeoutp);
  int n_dhcp4_client_probe_dispatch_timer(NDhcp4ClientProbe *probe, uint64_t ns_now);

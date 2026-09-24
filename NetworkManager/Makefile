@@ -1,8 +1,8 @@
 # $NetBSD$
 
-DISTNAME=	NetworkManager-1.50.0
+DISTNAME=	NetworkManager-1.58.1
 CATEGORIES=	zakinko sysutils net
-MASTER_SITES=	https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/
+MASTER_SITES=	https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/
 EXTRACT_SUFX=	.tar.bz2
 
 MAINTAINER=	cirnatdan@NetBSD.org

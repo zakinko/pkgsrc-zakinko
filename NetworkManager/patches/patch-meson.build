@@ -24,7 +24,7 @@ one that the list accepts.
 
 --- meson.build.orig
 +++ meson.build
-@@ -327,7 +327,13 @@
+@@ -367,7 +367,13 @@
  config_h.set10('HAVE_WEXT', enable_wext)
  
  # Checks for libdl - on certain platforms its part of libc

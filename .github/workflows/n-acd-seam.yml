@@ -58,12 +58,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: NetworkManager.tar.bz2
-          key: nm-dist-1.50.0
+          key: nm-dist-1.58.1
       - name: 配布物を取る
         if: steps.dist.outputs.cache-hit != 'true'
         run: |
           curl -sSfL -o NetworkManager.tar.bz2 \
-            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/NetworkManager-1.58.1.tar.bz2
           ls -l NetworkManager.tar.bz2
       - uses: vmactions/freebsd-vm@v1
         with:
@@ -85,12 +85,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: NetworkManager.tar.bz2
-          key: nm-dist-1.50.0
+          key: nm-dist-1.58.1
       - name: 配布物を取る
         if: steps.dist.outputs.cache-hit != 'true'
         run: |
           curl -sSfL -o NetworkManager.tar.bz2 \
-            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/NetworkManager-1.58.1.tar.bz2
           ls -l NetworkManager.tar.bz2
       - uses: vmactions/netbsd-vm@v1
         with:
@@ -112,12 +112,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: NetworkManager.tar.bz2
-          key: nm-dist-1.50.0
+          key: nm-dist-1.58.1
       - name: 配布物を取る
         if: steps.dist.outputs.cache-hit != 'true'
         run: |
           curl -sSfL -o NetworkManager.tar.bz2 \
-            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/NetworkManager-1.58.1.tar.bz2
           ls -l NetworkManager.tar.bz2
       - uses: vmactions/openbsd-vm@v1
         with:
@@ -139,12 +139,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: NetworkManager.tar.bz2
-          key: nm-dist-1.50.0
+          key: nm-dist-1.58.1
       - name: 配布物を取る
         if: steps.dist.outputs.cache-hit != 'true'
         run: |
           curl -sSfL -o NetworkManager.tar.bz2 \
-            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/NetworkManager-1.58.1.tar.bz2
           ls -l NetworkManager.tar.bz2
       - uses: vmactions/dragonflybsd-vm@v1
         with:
@@ -166,12 +166,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: NetworkManager.tar.bz2
-          key: nm-dist-1.50.0
+          key: nm-dist-1.58.1
       - name: 配布物を取る
         if: steps.dist.outputs.cache-hit != 'true'
         run: |
           curl -sSfL -o NetworkManager.tar.bz2 \
-            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2
+            https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/NetworkManager-1.58.1.tar.bz2
           ls -l NetworkManager.tar.bz2
       - uses: vmactions/ghostbsd-vm@v1
         with:
@@ -215,7 +215,7 @@ jobs:
         env:
           UPSTREAM_PKG: 'zakinko/NetworkManager'
           VERIFY_SCRIPT: n-acd/verify-seam.sh
-          DIST_URL: 'https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.50.0/NetworkManager-1.50.0.tar.bz2'
+          DIST_URL: 'https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/archive/1.58.1/NetworkManager-1.58.1.tar.bz2'
 
       - name: 転んだら console を出す
         if: failure()

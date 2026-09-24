@@ -8,7 +8,7 @@ handed to sendmsg(), rather than passing n-dhcp4's wider type through.
 
 --- src/n-dhcp4/src/util/packet-linux.c.orig
 +++ src/n-dhcp4/src/util/packet-linux.c
-@@ -0,0 +1,349 @@
+@@ -0,0 +1,339 @@
 +/*
 + * Packet Sockets - Linux
 + *
@@ -92,29 +92,13 @@ handed to sendmsg(), rather than passing n-dhcp4's wider type through.
 +                        .iov_len = n_buf,
 +                },
 +        };
-+        struct sockaddr_ll addr = {
-+                .sll_family = AF_PACKET,
-+                .sll_protocol = htons(PACKET_PROTOCOL_IP),
-+                .sll_ifindex = dest_haddr->sll_ifindex,
-+                .sll_halen = dest_haddr->sll_halen,
-+        };
 +        struct msghdr msg = {
-+                .msg_name = &addr,
-+                .msg_namelen = sizeof(addr),
++                .msg_name = (void*)dest_haddr,
++                .msg_namelen = sizeof(*dest_haddr),
 +                .msg_iov = iov,
 +                .msg_iovlen = sizeof(iov) / sizeof(iov[0]),
 +        };
 +        ssize_t pktlen;
-+
-+        /*
-+         * The caller's address is wider than the kernel's, to fit an
-+         * Infiniband hardware address; only as much of it as sockaddr_ll holds
-+         * is handed over here.
-+         */
-+        if (dest_haddr->sll_halen > sizeof(addr.sll_addr))
-+                return -EINVAL;
-+
-+        memcpy(addr.sll_addr, dest_haddr->sll_addr, dest_haddr->sll_halen);
 +
 +        ip_hdr.check = packet_internet_checksum((void*)&ip_hdr, sizeof(ip_hdr));
 +        udp_hdr.check = packet_internet_checksum_udp(&src_paddr->sin_addr,
@@ -151,7 +135,7 @@ handed to sendmsg(), rather than passing n-dhcp4's wider type through.
 +}
 +
 +/**
-+ * packet_recvfrom_upd() - receive UDP packet from AF_PACKET socket
++ * packet_recvfrom_udp() - receive UDP packet from AF_PACKET socket
 + * @sockfd:             AF_PACKET/SOCK_DGRAM socket
 + * @buf:                buffor for payload
 + * @n_buf:              max length of payload in bytes
@@ -281,6 +265,12 @@ handed to sendmsg(), rather than passing n-dhcp4's wider type through.
 +                /*
 +                 * The UDP header specified a longer length than the returned
 +                 * packet, so discard it entirely.
++                 */
++                return 0;
++        } else if (ntohs(udp_hdr.len) < sizeof(struct udphdr)) {
++                /*
++                 * The UDP length field is smaller than the UDP header it is
++                 * supposed to count, so discard it entirely.
 +                 */
 +                return 0;
 +        }

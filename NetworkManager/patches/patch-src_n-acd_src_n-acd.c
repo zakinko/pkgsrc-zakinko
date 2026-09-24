@@ -131,7 +131,7 @@ that check silently.
  /**
   * n_acd_config_new() - create configuration object
   * @configp:                    output argument for new configuration
-@@ -298,11 +249,9 @@
+@@ -303,11 +254,9 @@
          if (r)
                  return r;
  
@@ -146,7 +146,7 @@ that check silently.
  
          if (acd->fd_bpf_map >= 0)
                  close(acd->fd_bpf_map);
-@@ -328,7 +277,6 @@
+@@ -335,7 +284,6 @@
  _c_public_ int n_acd_new(NAcd **acdp, NAcdConfig *config) {
          _c_cleanup_(n_acd_unrefp) NAcd *acd = NULL;
          _c_cleanup_(c_closep) int fd_bpf_prog = -1;
@@ -154,7 +154,7 @@ that check silently.
          int r;
  
          if (config->ifindex <= 0 ||
-@@ -349,10 +297,6 @@
+@@ -356,10 +304,6 @@
          if (r)
                  return r;
  
@@ -165,9 +165,9 @@ that check silently.
          r = timer_init(&acd->timer);
          if (r < 0)
                  return r;
-@@ -367,25 +311,18 @@
-         if (r)
+@@ -380,25 +324,18 @@
                  return r;
+         }
  
 -        r = n_acd_socket_new(&acd->fd_socket, fd_bpf_prog, config);
 +        r = n_acd_os_socket_new(&acd->fd_socket, config->ifindex, fd_bpf_prog);
@@ -200,7 +200,7 @@ that check silently.
  
          *acdp = acd;
          acd = NULL;
-@@ -403,9 +340,16 @@
+@@ -416,9 +353,16 @@
  
          c_assert(c_rbtree_is_empty(&acd->ip_tree));
  
@@ -219,7 +219,7 @@ that check silently.
                  close(acd->fd_socket);
                  acd->fd_socket = -1;
          }
-@@ -415,15 +359,12 @@
+@@ -428,15 +372,12 @@
                  acd->fd_bpf_map = -1;
          }
  
@@ -239,7 +239,7 @@ that check silently.
          }
  
          free(acd);
-@@ -476,13 +417,6 @@
+@@ -489,13 +430,6 @@
  }
  
  int n_acd_send(NAcd *acd, const struct in_addr *tpa, const struct in_addr *spa) {
@@ -253,7 +253,7 @@ that check silently.
          struct ether_arp arp = {
                  .ea_hdr = {
                          .ar_hrd = htobe16(ARPHRD_ETHER),
-@@ -492,7 +426,6 @@
+@@ -505,7 +439,6 @@
                          .ar_op = htobe16(ARPOP_REQUEST),
                  },
          };
@@ -261,7 +261,7 @@ that check silently.
          int r;
  
          memcpy(arp.arp_sha, acd->mac, sizeof(acd->mac));
-@@ -501,51 +434,42 @@
+@@ -514,51 +447,42 @@
          if (spa)
                  memcpy(arp.arp_spa, &spa->s_addr, sizeof(spa->s_addr));
  
@@ -343,7 +343,7 @@ that check silently.
          }
  
          return 0;
-@@ -566,10 +490,11 @@
+@@ -579,10 +503,11 @@
   * it. Whenever the file-descriptor polls readable, n_acd_dispatch() should be
   * called.
   *
@@ -356,8 +356,8 @@ that check silently.
 +        *fdp = acd->fd_poll;
  }
  
- static int n_acd_handle_timeout(NAcd *acd) {
-@@ -702,37 +627,27 @@
+ /**
+@@ -729,37 +654,27 @@
          return 0;
  }
  
@@ -412,7 +412,7 @@ that check silently.
  }
  
  static bool n_acd_packet_is_valid(NAcd *acd, void *packet, size_t n_packet) {
-@@ -776,65 +691,39 @@
+@@ -803,65 +718,39 @@
          return true;
  }
  
@@ -505,7 +505,7 @@ that check silently.
                  /*
                   * If all buffers were filled with data, we cannot be sure that
                   * there is nothing left to read. But to avoid starvation, we
-@@ -847,16 +736,16 @@
+@@ -874,16 +763,16 @@
                   * On the other hand, there are several conditions where the
                   * kernel might return less batches than requested, but was
                   * still preempted. However, all of those cases require the
@@ -528,7 +528,7 @@ that check silently.
                          continue;
                  /*
                   * Handle the packet. Bail out if something went wrong. Note
-@@ -893,24 +782,23 @@
+@@ -920,24 +809,23 @@
   *         on failure.
   */
  _c_public_ int n_acd_dispatch(NAcd *acd) {
@@ -564,7 +564,7 @@ that check silently.
                          break;
                  default:
                          c_assert(0);
-@@ -941,7 +829,7 @@
+@@ -968,7 +856,7 @@
   * context.
   *
   * Users must call this function repeatedly until either an error is returned,

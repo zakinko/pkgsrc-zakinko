@@ -148,7 +148,7 @@ registration at creation.
          connection->state = N_DHCP4_C_CONNECTION_STATE_CLOSED;
          connection->ns_drain_timeout = 0;
  }
-@@ -1133,7 +1121,7 @@
+@@ -1153,7 +1141,7 @@
          int r;
  
          if (connection->ns_drain_timeout != 0 && connection->ns_drain_timeout < timestamp) {
@@ -157,7 +157,7 @@ registration at creation.
                  connection->fd_packet = c_close(connection->fd_packet);
                  connection->state = N_DHCP4_C_CONNECTION_STATE_UDP;
                  connection->ns_drain_timeout = 0;
-@@ -1202,7 +1190,7 @@
+@@ -1222,7 +1210,7 @@
                   * and drained, clean up the packet socket and fall through to
                   * dispatching the UDP socket.
                   */
