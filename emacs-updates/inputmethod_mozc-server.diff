@@ -64,7 +64,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile new/mozc-server
  .include "../../mk/bsd.pkg.mk"
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc-server/Makefile.common
 --- inputmethod/mozc-server/Makefile.common	2026-09-24 05:11:12.622614494 +0000
-+++ inputmethod/mozc-server/Makefile.common	2026-09-24 05:11:31.079123352 +0000
++++ inputmethod/mozc-server/Makefile.common	2026-09-24 05:18:48.408449006 +0000
 @@ -1,78 +1,53 @@
 -# $NetBSD: Makefile.common,v 1.43 2024/12/11 03:07:20 maya Exp $
 +# $NetBSD$
@@ -190,8 +190,8 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/Makefile.common new/mozc
 -USE_CXX_FEATURES+=	c++14
 +.if empty(PKG_OPTIONS:Mgyp)
 +# 3.34 の .bazeliskrc は bazel 9 を指す。pkgsrc の devel/bazel は 6.4.0 なので
-+# 満たせない。devel/bazel9 が 9.2.0 を NetBSD で建てられるようにしたもの。
-+TOOL_DEPENDS+=	bazel>=9.0:../../devel/bazel9
++# 満たせない。devel/bazel が 9.2.0 を NetBSD で建てられるようにしたもの。
++TOOL_DEPENDS+=	bazel>=9.0:../../devel/bazel
 +# bzlmod は依存を建てる最中に取りにいく。
 +ALLOW_NETWORK_ACCESS=	yes
 +.else
@@ -445,7 +445,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/distinfo new/mozc-server
 +SHA1 (patch-session_session.cc) = 6b625e3a5f9990fcc34685b0cd077f5b69232acf
 diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/options.mk new/mozc-server/options.mk
 --- inputmethod/mozc-server/options.mk	1970-01-01 00:00:00.000000000 +0000
-+++ inputmethod/mozc-server/options.mk	2026-09-24 05:11:31.074867783 +0000
++++ inputmethod/mozc-server/options.mk	2026-09-24 05:18:48.404476714 +0000
 @@ -0,0 +1,52 @@
 +# $NetBSD$
 +
@@ -460,7 +460,7 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/options.mk new/mozc-serv
 +# その足場を 3.33.6089 の tarball から持ってきて使う (Makefile.common の
 +# post-extract)。
 +#
-+# bazel の道は devel/bazel9 が要る。bazel は bootstrap に JVM が要り、
++# bazel の道は devel/bazel が要る。bazel は bootstrap に JVM が要り、
 +# mk/java-vm.mk が NetBSD で openjdk21 を出すのは x86_64 と i386 と aarch64
 +# だけで、そのうち i386 は bazel 自身が拒む:
 +#
@@ -480,12 +480,12 @@ diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-server/options.mk new/mozc-serv
 +.include "../../mk/bsd.options.mk"
 +
 +# 既定を外して bazel を頼まれたときの止め方。ここが無いと
-+# devel/bazel9 の ONLY_FOR_PLATFORM に当たって「bazel-9.2.0 is not
++# devel/bazel の ONLY_FOR_PLATFORM に当たって「bazel-9.2.0 is not
 +# available for this platform」で止まり、package が足りないように見えて、
 +# option の選び方が違うようには見えない。
 +.if empty(PKG_OPTIONS:Mgyp) && (${OPSYS} != "NetBSD" || \
 +    (${MACHINE_ARCH} != "x86_64" && ${MACHINE_ARCH} != "aarch64"))
-+PKG_FAIL_REASON+=	"The bazel build needs devel/bazel9, which builds"	\
++PKG_FAIL_REASON+=	"The bazel build needs devel/bazel, which builds"	\
 +			"only on NetBSD x86_64 and aarch64."			\
 +			"Set PKG_OPTIONS.mozc=gyp to build mozc here."
 +.endif

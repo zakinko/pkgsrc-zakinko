@@ -1,0 +1,3088 @@
+diff -urN -x CVS -x '*.orig' old/bazel/DESCR new/bazel/DESCR
+--- devel/bazel/DESCR	2026-09-24 05:18:31.743966230 +0000
++++ devel/bazel/DESCR	2026-09-24 05:18:31.706198860 +0000
+@@ -1,23 +1,8 @@
+-{Fast, Correct} - Choose two
++Bazel is a build tool that builds code quickly and reliably. It is used
++to build the majority of Google's software.
+ 
+-Build and test software of any size, quickly and reliably.
++This is the LTS 9 series. pkgsrc's devel/bazel is 6.4.0, which cannot
++build projects that ask for a newer Bazel, such as mozc 3.x.
+ 
+-* Speed up your builds and tests:
+-  Bazel rebuilds only what is necessary.
+-  With advanced local and distributed caching, optimized dependency analysis
+-  and parallel execution, you get fast and incremental builds.
+-
+-* One tool, multiple languages:
+-  Build and test Java, C++, Android, iOS, Go,
+-  and a wide variety of other language platforms.
+-  Bazel runs on Windows, macOS, and Linux.
+-
+-* Scalable:
+-  Bazel helps you scale your organization, codebase, and
+-  continuous integration solution. It handles codebases of any size,
+-  in multiple repositories or a huge monorepo.
+-
+-* Extensible to your needs:
+-  Easily add support for new languages and platforms with Bazel's familiar
+-  extension language. Share and re-use language rules written
+-  by the growing Bazel community.
++Upstream does not support NetBSD; this package carries the patches that
++add it alongside the FreeBSD and OpenBSD cases already in the tree.
+diff -urN -x CVS -x '*.orig' old/bazel/Makefile new/bazel/Makefile
+--- devel/bazel/Makefile	2026-09-24 05:18:31.743272566 +0000
++++ devel/bazel/Makefile	2026-09-24 05:18:31.876269358 +0000
+@@ -1,87 +1,257 @@
+-# $NetBSD: Makefile,v 1.17 2026/08/29 08:41:01 wiz Exp $
++# $NetBSD$
++#
++# 6.4.0 is too old for what depends on this: mozc 3.34 requires bazel 9,
++# and mozc 3.33 needs it too once its bzlmod graph is moved forward.  In
++# pkgsrc bazel is a TOOL_DEPENDS of the mozc packages and nothing else --
++# no package pulls it in through buildlink3.mk -- so moving it forward
++# does not reach past them.
+ 
+-# Java project does not work as follows:
+-# Error: could not find libjava.so
+-# Error: Could not find Java SE Runtime Environment.
+-
+-# To bootstrap Bezel, apply all patches and run as do-build target
+-# defines under Linux.
+-
+-.if UPSTREAM
+-DISTNAME=	bazel-6.4.0-dist
++DISTNAME=	bazel-9.2.0-dist
+ PKGNAME=	${DISTNAME:S/-dist//}
+-PKGREVISION=	8
++CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_GITHUB:=bazelbuild/}
+ GITHUB_PROJECT=	bazel
+-GITHUB_RELEASE= ${PKGVERSION_NOREV}
++GITHUB_RELEASE=	${PKGVERSION_NOREV}
+ EXTRACT_SUFX=	.zip
+-.else
+-DISTNAME=	bazel-6.4.0-dist-netbsd
+-PKGNAME=	${DISTNAME:S/-dist-netbsd//}
+-MASTER_SITES=	${MASTER_SITE_LOCAL}
+-.endif
+-CATEGORIES=	devel
+ 
+-MAINTAINER=	ryoon@NetBSD.org
++MAINTAINER=	zakinko@snowrabbit.org
+ HOMEPAGE=	https://bazel.build/
+-COMMENT=	Fast and correct build automation tool
++COMMENT=	Fast and correct build automation tool (LTS 9)
+ LICENSE=	apache-2.0
+ 
+-BROKEN_ON_PLATFORM+=	${LP32PLATFORMS}
+-# external/com_google_absl/absl/debugging/internal/elf_mem_image.cc:355:43: error: member reference base type 'const Elf64_Versym' (aka 'const unsigned short') is not a structure or union
+-# needs equivalent of devel/abseil/patches/patch-absl_debugging_internal_elf__mem__image.cc
+-BROKEN_ON_PLATFORM+=	NetBSD-11.99.*-*
++# Upstream bazel does not know about NetBSD: the enum in OS.java lists
++# FreeBSD and OpenBSD only.  The patches here add it.
++#
++# bazel needs a JVM to bootstrap, and mk/java-vm.mk offers openjdk21 on
++# NetBSD only for x86_64, i386 and aarch64
++# (_ONLY_FOR_PLATFORMS.openjdk21).  Of those, bazel's own singlejar refuses
++# 32-bit outright:
++#
++#	src/tools/singlejar/mapped_file_posix.inc
++#	#if !((defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
++#	       defined(__OpenBSD__)) && __SIZEOF_POINTER__ == 8)
++#	#error This code for 64 bit Unix.
++#
++# Two things are in that condition.  __NetBSD__ is not in the list at all,
++# which is why the patches here add it; and __SIZEOF_POINTER__ == 8 is what
++# stops a 32-bit build, so adding __NetBSD__ does not help i386.  port.h
++# only asserts that off64_t is 64 bits, which holds on i386 as well because
++# NetBSD's off_t does not vary with the architecture.
++#
++# So x86_64 and aarch64 are the only platforms where this can be built at
++# all.  Both lines below are needed to say that, for different reasons.
++# ONLY_FOR_PLATFORM names the two positively, because NOT_FOR_PLATFORM on
++# its own would claim sparc64 and powerpc64 work; they have no JDK, so the
++# build would stop later with a confusing "no acceptable JVM found".
++#
++# Only x86_64 has been built.  aarch64 is listed because the JDK and the
++# 64-bit requirement are both satisfied, not because anyone has built it.
++#
++# NOT_FOR_PLATFORM is not redundant with the line above and must not be
++# tidied away.  java-vm.mk appends to ONLY_FOR_PLATFORM rather than
++# replacing it:
++#
++#	mk/java-vm.mk:199
++#	.for _jvm_ in ${PKG_JVMS_ACCEPTED}
++#	ONLY_FOR_PLATFORM+=	${_ONLY_FOR_PLATFORMS.${_jvm_}}
++#
++# and _ONLY_FOR_PLATFORMS.openjdk21 names i386.  The list is a union, so
++# i386 matches through that entry and the line above never excludes it.
++# Read the file and it looks right; run
++#
++#	make show-var VARNAME=ONLY_FOR_PLATFORM
++#
++# and i386 is in the value.  NOT_FOR_PLATFORM is subtractive, so it is what
++# actually keeps a 32-bit build from starting and running as far as
++# singlejar before it stops.  lang/go/version.mk assigns NOT_FOR_PLATFORM
++# with "=", so ours has to be appended after that include (below), not set
++# here where it would be overwritten.
++ONLY_FOR_PLATFORM=	NetBSD-*-x86_64 NetBSD-*-aarch64
++
++# What breaks on -current is not bazel but the abseil it fetches: the
++# __NetBSD__ branch in absl/debugging/internal/elf_mem_image.cc dereferences
++# version_symbol->vs_vers, and NetBSD changed Elf_Versym from a struct to an
++# Elf_Half.  6.4.0 excluded -current for the same reason, and
++# devel/abseil already carries the fix, keyed on _SYS_EXEC_ELF_H_ rather than
++# on __NetBSD_Version__.
++BROKEN_ON_PLATFORM=	NetBSD-11.99.*-*
+ 
+ WRKSRC=		${WRKDIR}
+-USE_TOOLS+=	bash:run pkg-config unzip zip
++NO_CONFIGURE=	yes
+ USE_LANGUAGES=	c c++
+-
+-CHECK_PIE_SUPPORTED=	no
++USE_TOOLS+=	bash:run pkg-config unzip zip
+ 
+ USE_JAVA=		yes
+-USE_JAVA2=		11
+-PKG_JVMS_ACCEPTED=	openjdk11
++USE_JAVA2=		21
++# No PKG_JVMS_ACCEPTED here on purpose: any JDK from 21 on will do.  The
++# bootstrap did need 21 or 22, because javac 23 stopped running annotation
++# processors found on the classpath, but patch-scripts_bootstrap_compile.sh
++# asks for them and the build no longer cares which JDK it gets.
++
++# rules_go fetches a Go SDK to match go.mod, and no Go SDK is distributed
++# for NetBSD.  The patches make it use the host Go instead, so that is
++# needed at build time.
++TOOL_DEPENDS+=	go-[0-9]*:../../lang/go
++
++# rules_go looks for a Go SDK to build the toolchain from.  There is no
++# published SDK for NetBSD, so //toolchain_local points it at the one
++# installed here, which means GOROOT has to be passed.  lang/go is a meta
++# package; the directory is named for the version it points at.
++.include "../../lang/go/version.mk"
++GOROOT=		${TOOLBASE}/go${GOVERSSUFFIX}
++
++# Keep 32-bit out (see the ONLY_FOR_PLATFORM note above): append rather than
++# assign, so this survives lang/go/version.mk having just set it.
++NOT_FOR_PLATFORM+=	${LP32PLATFORMS}
++
++# cwrappers appends -pie to anything it takes for a link of an executable
++# (mk/cwrappers.mk, append_executable), and it cannot see inside the @params
++# files bazel writes.  Every shared library is therefore linked with both the
++# -shared that is in the params and a -pie appended after it; -pie wins and
++# the link stops at
++#
++#	ld: /usr/lib/crt0.o: in function `___start':
++#	undefined reference to `main'
++#
++# lang/go/version.mk happens to set this too, but relying on that would make
++# the build depend on an include that is here for GOROOT.
++# The scripts in the distribution archive start with #!/bin/bash, which the
++# git tree does not (it uses /usr/bin/env bash), and NetBSD has no /bin/bash.
++# Only the ones a build actually runs are listed; the rest are for the test
++# suite.
++#
++# REPLACE_BASH cannot be used here.  It hangs off do-configure-pre-hook, and
++# mk/configure/bsd.configure.mk wraps the configure machinery in
++# .if !defined(NO_CONFIGURE), so with NO_CONFIGURE=yes the replacement is
++# never reached and the variable is silently ignored.  The shebangs survive
++# into the build and the first genrule that runs one dies with
++#
++#	/usr/pkg/bin/bash: src/main/cpp/generate_jvm_module_options.sh:
++#	    /bin/bash: bad interpreter: No such file or directory
++#
++# 5,132 actions in.  Do the replacement at pre-build instead, where the other
++# two SUBST classes here already run.
++SUBST_CLASSES+=		bash
++SUBST_STAGE.bash=	pre-build
++SUBST_MESSAGE.bash=	Pointing the scripts at ${TOOLS_PATH.bash}
++SUBST_FILES.bash+=	src/main/cpp/generate_jvm_module_options.sh
++SUBST_FILES.bash+=	tools/buildstamp/get_workspace_status
++SUBST_FILES.bash+=	scripts/packages/bazel.sh
++SUBST_SED.bash=		-e '1s,/bin/bash,${TOOLS_PATH.bash},'
+ 
+-REPLACE_BASH+=	*.sh
+-REPLACE_BASH+=	scripts/*.sh
+-REPLACE_BASH+=	tools/*.sh
+-REPLACE_BASH+=	tools/*/*.sh
+-
+-SUBST_CLASSES+=		prefix
+-SUBST_STAGE.prefix=	pre-configure
+-SUBST_MESSAGE.prefix=	Setting PREFIX
+-SUBST_FILES.prefix+=	tools/cpp/bsd_cc_toolchain_config.bzl
+-SUBST_VARS.prefix+=	PREFIX
++CHECK_PIE_SUPPORTED=		no
++CHECK_PORTABILITY_SKIP+=	*
+ 
++INSTALLATION_DIRS+=	bin
++
++.include "../../mk/bsd.prefs.mk"
++
++# New files come from files/ rather than from a patch.
++post-extract:
++	${CP} -R ${FILESDIR}/toolchain_local ${WRKSRC}/toolchain_local
++	${CP} ${FILESDIR}/md5_netbsd.sh ${WRKSRC}/src/md5_netbsd.sh
++	${CHMOD} +x ${WRKSRC}/src/md5_netbsd.sh
++
++# The patches above name the JDK and bash by placeholder rather than by
++# path, because pkglint rejects a patch that writes ${PREFIX} into the
++# source and because LOCALBASE is not always /usr/pkg.  Both are paths to
++# other packages, so they follow LOCALBASE, and the JDK is whichever one
++# java-vm.mk settled on.
++SUBST_CLASSES+=		paths
++SUBST_STAGE.paths=	pre-build
++SUBST_MESSAGE.paths=	Setting the paths to the JDK and to bash
++SUBST_FILES.paths+=	scripts/bootstrap/buildenv.sh
++SUBST_FILES.paths+=	scripts/packages/template_bin.sh
++SUBST_FILES.paths+=	src/BUILD
++SUBST_FILES.paths+=	src/main/cpp/blaze_util_bsd.cc
++SUBST_FILES.paths+=	src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java
++SUBST_VARS.paths+=	LOCALBASE
++SUBST_VARS.paths+=	PKG_JAVA_HOME
++
++SUBST_CLASSES+=		python
++SUBST_STAGE.python=	pre-build
++SUBST_MESSAGE.python=	Pointing the python toolchain at ${PYTHONBIN}
++SUBST_FILES.python+=	toolchain_local/BUILD
++SUBST_VARS.python+=	PYTHONBIN
++
++MAKE_ENV+=	BAZEL_SH=${TOOLS_PATH.bash}
++MAKE_ENV+=	JAVA_HOME=${PKG_JAVA_HOME}
++MAKE_ENV+=	JAVA_VERSION=21
++MAKE_ENV+=	EMBED_LABEL=${PKGVERSION_NOREV}
++MAKE_ENV+=	BAZEL_DEV_VERSION_OVERRIDE=${PKGVERSION_NOREV}
++MAKE_ENV+=	TMPDIR=${WRKDIR}/bazel_tmp
++
++# Do not set LD_LIBRARY_PATH.  With it set, the OpenJDK launcher tries to
++# re-exec itself, and on NetBSD it cannot work out its own path and dies.
++
++# On a 2 GB machine javac runs out of memory with the default -Xmx.
++BAZEL_JAVAC_OPTS=	-J-Xmx1g -J-Xms128m
++MAKE_ENV+=		BAZEL_JAVAC_OPTS=${BAZEL_JAVAC_OPTS:Q}
++
++# patch-scripts_bootstrap_compile.sh puts -proc:full on the javac that builds
++# the bootstrap bazel.  That is not the only javac in the build.  Once the
++# bootstrap bazel runs, tools/build_rules/java_rules_skylark.bzl builds the
++# VanillaJavaBuilder with a genrule that calls the JDK's javac directly:
++#
++#	cmd += "%s/bin/javac" % java_runtime.java_home
++#	cmd += " " + " ".join(ctx.fragments.java.default_javac_flags)
++#
++# so on JDK 23 and later the AutoValue processor does not run there either and
++# the build stops 1,778 actions in with
++#
++#	JarOwner.java:37: error: cannot find symbol
++#	  symbol: class AutoValue_JarOwner
++#	... 4 errors
++#
++# default_javac_flags is exactly --javacopt (JavaConfiguration.java's
++# commandLineJavacFlags), so the flag reaches it without a patch.  The genrule
++# runs in the exec configuration, hence --host_javacopt as well.
++#
++# Harmless before 23: -proc:full exists from 21 on and is the default there,
++# and this package asks for 21 at the least.
++EXTRA_BAZEL_ARGS+=	--javacopt=-proc:full
++EXTRA_BAZEL_ARGS+=	--host_javacopt=-proc:full
+ EXTRA_BAZEL_ARGS+=	--tool_java_runtime_version=local_jdk
+-EXTRA_BAZEL_ARGS+=	--subcommands
++EXTRA_BAZEL_ARGS+=	--java_language_version=21
++EXTRA_BAZEL_ARGS+=	--tool_java_language_version=21
++EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:netbsd_python3_toolchain
++EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_runtime
++EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_bootstrap
++EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_runtime_v
++EXTRA_BAZEL_ARGS+=	--extra_toolchains=//toolchain_local:local_jdk_21_bootstrap_v
++EXTRA_BAZEL_ARGS+=	--repo_env=GOROOT=${GOROOT}
++# bazel runs every action with "env -" and hands it PATH and nothing else.
++# pkgsrc compiles through a wrapper that reads its configuration from the
++# environment, so the first compile stops with
++#
++#	gcc: CWRAPPERS_CONFIG_DIR is missing from environment
++#
++# The exec configuration needs it too, and --action_env does not reach
++# there, hence both spellings.
++# --repo_env as well as --action_env.  cc_configure probes the compiler
++# from a repository rule, which does not see --action_env, and a probe that
++# fails is not an error: the feature is simply recorded as unsupported.
++# Without it the toolchain decides the linker cannot make shared objects and
++# links libzstd-jni.so as a program, which stops at
++#
++#	ld: /usr/lib/crt0.o: undefined reference to `main'
++EXTRA_BAZEL_ARGS+=	--repo_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR}
++EXTRA_BAZEL_ARGS+=	--repo_env=PATH=${PATH:Q}
++EXTRA_BAZEL_ARGS+=	--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR}
++EXTRA_BAZEL_ARGS+=	--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR}
++EXTRA_BAZEL_ARGS+=	--action_env=PATH=${PATH:Q}
++EXTRA_BAZEL_ARGS+=	--host_action_env=PATH=${PATH:Q}
+ EXTRA_BAZEL_ARGS+=	--jobs=${MAKE_JOBS:U1}
+ MAKE_ENV+=		EXTRA_BAZEL_ARGS=${EXTRA_BAZEL_ARGS:Q}
+ 
+-INSTALLATION_DIRS+=	bin
+-
+-do-patch:
+-	# TEMPORARY EXTRA PATCH until ryoon@ regenerates this distfile
+-	${CP} ${FILESDIR}/upb-bazel-clang.patch ${WRKDIR}/third_party/upb/upb-bazel-clang.patch
+-	# Do not perform patching. The tarball includes all patches.
+-
+-pre-configure:
+-	${FIND} ${WRKSRC} | ${GREP} '\.orig$$' | xargs ${RM}
+-	# Do not use wrapped toolchain after installation
+-	${RM} -r ${WRKDIR}/.cwrapper
+-
+ do-build:
+-	cd ${WRKSRC} \
+-	&& env ${MAKE_ENV} \
+-		${BASH} ./compile.sh
++	${MKDIR} ${WRKDIR}/bazel_tmp
++	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${TOOLS_PATH.bash} ./compile.sh
+ 
+ do-install:
+-	# Do not strip bazel binary. It includes .zip archive.
+-	${INSTALL_SCRIPT} ${WRKSRC}/output/bazel \
+-		${DESTDIR}${PREFIX}/bin
++	# The bazel binary is an ELF with a zip appended, so do not strip it.
++	${INSTALL_SCRIPT} ${WRKSRC}/output/bazel ${DESTDIR}${PREFIX}/bin/bazel
+ 
+-# GCC generates unexpected .d files when -MD is specified.
+-.include "../../lang/clang/buildlink3.mk"
+ .include "../../lang/python/tool.mk"
+ .include "../../mk/java-vm.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -urN -x CVS -x '*.orig' old/bazel/PLIST new/bazel/PLIST
+--- devel/bazel/PLIST	2026-09-24 05:18:31.745403284 +0000
++++ devel/bazel/PLIST	2026-09-24 05:18:31.707378898 +0000
+@@ -1,2 +1,2 @@
+-@comment $NetBSD: PLIST,v 1.3 2024/01/01 12:00:58 ryoon Exp $
++@comment $NetBSD$
+ bin/bazel
+diff -urN -x CVS -x '*.orig' old/bazel/distinfo new/bazel/distinfo
+--- devel/bazel/distinfo	2026-09-24 05:18:31.744663246 +0000
++++ devel/bazel/distinfo	2026-09-24 05:18:31.708115864 +0000
+@@ -1,56 +1,33 @@
+-$NetBSD: distinfo,v 1.5 2026/02/24 20:48:20 christos Exp $
++$NetBSD$
+ 
+-BLAKE2s (bazel-6.4.0-dist-netbsd.tar.gz) = a740abafc058fe6569dd181611fa6521f82dfc8aea26897a6349709842f388dc
+-SHA512 (bazel-6.4.0-dist-netbsd.tar.gz) = 0f1edab7673148a4c5d077de0435d05ca8f25abc280416261d05ee2c3a79d028485d60e046babec23757d0b3b90576e9467b2fdc41b6f5c03ce6e805a00cb5ee
+-Size (bazel-6.4.0-dist-netbsd.tar.gz) = 198661065 bytes
+-SHA1 (patch-distdir__deps.bzl) = 83dead7d5c7374ae7ada4feec5ec3bbd18d9112b
+-SHA1 (patch-scripts_bootstrap_buildenv.sh) = 7590cf62b1b7abe722addeddd3d4f0595ebc2a1f
+-SHA1 (patch-scripts_packages_BUILD) = 9cbd73caefe9f7b1b23cbbedf3657ee849d4dfdc
+-SHA1 (patch-scripts_packages_template__bin.sh) = 8e5c504041bd7a74c3f83177c58844428fc03c07
+-SHA1 (patch-src_BUILD) = cd8858313bec19f56c148944eea0962c9ef83d98
+-SHA1 (patch-src_conditions_BUILD) = 5e099200f294e5905a09d323d95161784586e91c
+-SHA1 (patch-src_conditions_BUILD.tools) = aec0d6cb07d19229a0e29827b4716c35816c4a7e
+-SHA1 (patch-src_main_cpp_BUILD) = f14c549105eeba47593842569822fb2f65a01479
+-SHA1 (patch-src_main_cpp_blaze__util__bsd.cc) = 1495bac14b4644e5317c4866bcfa2941eb99af34
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java) = 2030b61056c3919b68dfa22a133e2c66f14ad3c7
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java) = 2e4158f0c25afab27abf4316f0580ba99cbbd1eb
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java) = fb8e2c15b99af685daffa23577da09223fc8cd4b
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java) = 1cd3916bd1d46a4a3f138abced90d935d5efe0fe
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java) = 67bd0f3c49b4578788f7915a66e289f9eff811e6
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java) = f4a3ee5d9a2cbb59f0523c8eb4b040e9b1f5b67b
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java) = 88d0fa5f4ba3ce24f4ff5ccdae8733928ce7ae31
+-SHA1 (patch-src_main_java_com_google_devtools_build_lib_util_OS.java) = c6a3cbbfad7ed93c98b5c3ff1a7180896e9bec47
+-SHA1 (patch-src_main_native_BUILD) = 6c836b178c62086912f5d04f3033ac3ddd6e54fc
+-SHA1 (patch-src_main_native_unix__jni.h) = c400b1c16e24bc4aa6d3bed9b3deab06b070bd59
+-SHA1 (patch-src_main_native_unix__jni__bsd.cc) = 609401cf5a5d7c1aa51857325975d725c86604f2
+-SHA1 (patch-src_main_tools_BUILD) = b3367d262baeaf11270adf2d07bca8a454c34d18
+-SHA1 (patch-src_main_tools_process-tools-darwin.cc) = 1dbd651db7168d1d271b35360563a093c4b9c93c
+-SHA1 (patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java) = 7864beee5b5578306a5658dda2fb208e3bd96b88
+-SHA1 (patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java) = 32f502ee4a7e8544d756549eb731e4729295f116
+-SHA1 (patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java) = 2e5f30990b416e38fdce6880dc4d62a9efe43bd7
+-SHA1 (patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java) = c319becdb97dc2f943f4efab4dee5f2111335249
+-SHA1 (patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java) = 0ba888236aa71b178b5c4ad25d8467699fdaf0e8
+-SHA1 (patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java) = 2277335022ef5f48671f41fab58c791bdd752fe3
+-SHA1 (patch-src_test_shell_bazel_remote_remote__execution__test.sh) = c397b0bff97b6e13017e0b87c049e741860aab1d
+-SHA1 (patch-src_test_shell_bazel_unicode__filenames__test.sh) = 72e74231ccec777abc78afdd7e851be72364753b
+-SHA1 (patch-src_test_shell_shell__utils.sh) = c8de670f9f210adbbf7963bea61d98ac7fde8dde
+-SHA1 (patch-src_tools_singlejar_BUILD) = ea7fa7f12c4e5b209f556cbbd2bfa35a74bc7c50
+-SHA1 (patch-src_tools_singlejar_diag.h) = a008b77283d31a63ee13edc9259cd8eeaed5498c
+-SHA1 (patch-src_tools_singlejar_mapped__file__posix.inc) = fc9d9407d173ad95984cf53ac8bb44e23c37a9f0
+-SHA1 (patch-src_tools_singlejar_port.h) = ef1e7ad8eb101aa76e794f95f6b4eb20155146d8
+-SHA1 (patch-src_tools_singlejar_zip__headers.h) = 0f2f98f4677118214c7b93cbfeb9399c3d0939b1
+-SHA1 (patch-third__party_BUILD) = 05d665afc9d1697867102b3737467241f4b2b610
+-SHA1 (patch-third__party_abseil-cpp_netbsd-sunos.patch) = 0d9ab7340776cb367c2e8eadc03263a0b46cc0a5
+-SHA1 (patch-third__party_grpc_netbsd-config.patch) = ea14e800a118a3541356c00df5d8edb1aed309fa
+-SHA1 (patch-third__party_upb_upb-bazel-clang.patch) = e0de19a8117adddf2a87fb49acecf089536106d0
+-SHA1 (patch-third__party_zstd-jni_zstd-jni.BUILD) = 338d636638b429da3f8a695cc15010174651dd23
+-SHA1 (patch-tools_cpp_BUILD.static.bsd) = af9e8cf9f2f069bc4264f4ab3e57aa1e8686946a
+-SHA1 (patch-tools_cpp_bsd__cc__toolchain__config.bzl) = febdaa93ed9de3863403fc3c629c7c71df9228d8
+-SHA1 (patch-tools_cpp_cc__configure.bzl) = 24cd5bb7b7a09d12853a7b19a8c41b875a51a30f
+-SHA1 (patch-tools_cpp_lib__cc__configure.bzl) = 02a5c867e61f7f59fa2fd61e70548c25448aa366
+-SHA1 (patch-tools_cpp_unix__cc__configure.bzl) = a5d181c89fd032e02032d27d0189a8db6a936de4
+-SHA1 (patch-tools_jdk_BUILD.java__tools) = 5b7e1e2c0db74afe7fd8dfbd71cd9c218943c9af
+-SHA1 (patch-tools_jdk_BUILD.tools) = 6d885bb5735ece725b8aaa89cdea7ccd3e52f4fa
+-SHA1 (patch-tools_jdk_jdk__build__file.bzl) = ba8efebeca29d66ab84915b94fd3edfb69319880
+-SHA1 (patch-tools_platforms_BUILD) = 11fe48b55a3211b92a80e7e914ee3c4e9880444a
+-SHA1 (patch-tools_platforms_BUILD.tools) = 07d198d96000982bce176ab24a45c55270d7d4e6
++BLAKE2s (bazel-9.2.0-dist.zip) = 89db603e4ccb211e1cb4d2e72d231de3d2a0bcb3e2cc7ee730686b66edc51225
++SHA512 (bazel-9.2.0-dist.zip) = 40af06a2ca95ddf6dc92099a17c72ed330168284051d8ebc29a652d5d308edd0fc049a5c0c0aeaa7b285e86db0563bf2f52a27651255580254c8b097f1647fe9
++Size (bazel-9.2.0-dist.zip) = 221376908 bytes
++SHA1 (patch-MODULE.bazel) = fe640f920d55ec2b58b05031784f0f0622204baa
++SHA1 (patch-scripts_bootstrap_buildenv.sh) = 4d902926e792e764747ed82c67699b4da23ca859
++SHA1 (patch-scripts_bootstrap_compile.sh) = fa56b8c7631f74a74a6f84b4881b25a9bbeabdd2
++SHA1 (patch-scripts_packages_BUILD) = 768db2a0ceacc4eaec8cb0530b4685dad6176339
++SHA1 (patch-scripts_packages_template__bin.sh) = 0fe206329a8bf3a4adad7c23f4d1923bdaf78281
++SHA1 (patch-src_BUILD) = fa47133811ce7ab07706ce3dd9187aedebed3ab0
++SHA1 (patch-src_conditions_BUILD) = 40f0bea8a8267cb98cdb531818039eaa22d5b26b
++SHA1 (patch-src_conditions_BUILD.tools) = 1474190b607e0ff9b92df34edd779f5fc40dfd60
++SHA1 (patch-src_main_cpp_BUILD) = 68fbd675faf8a9c52fda2791fe600247240ca0a7
++SHA1 (patch-src_main_cpp_blaze__util__bsd.cc) = bbdb95ec4f9b4f70b77cde621f71e4d266294bfc
++SHA1 (patch-src_main_cpp_option__processor.cc) = ba543db5f4f283da1f9a290fc19f8f2aec0ce301
++SHA1 (patch-src_main_cpp_util_md5.h) = bc0eee983beb2549a57380cae8a5447d65db414e
++SHA1 (patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java) = be82f846b8fbfc4e7c9d7138c95193e17fd2d15b
++SHA1 (patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java) = 3b48559ac332928c36568ba5211a6ffa08e7d1c7
++SHA1 (patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java) = cffb09ee71a135e456433a799aa9001e70a97602
++SHA1 (patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java) = 1e1bb1199dfc4cd8c4e884a78779977eaf0ed633
++SHA1 (patch-src_main_java_com_google_devtools_build_lib_util_OS.java) = 9066b2766f921d1345acd62862c54eb58840388b
++SHA1 (patch-src_main_native_BUILD) = a850e3314033f3592f2df7f90575b1f159abe577
++SHA1 (patch-src_main_native_unix__jni.h) = df5b16ecf84879d191c29d5fd62828597c78ccc1
++SHA1 (patch-src_main_native_unix__jni__bsd.cc) = a9cb8c51835b62e3fee3ec57de7b539bdb8a2bbe
++SHA1 (patch-src_main_tools_BUILD) = 06ea9fe45355a88de9cb22d206ac8dbe5692d7b2
++SHA1 (patch-src_main_tools_process-tools-darwin.cc) = b8f134fc9b98f71ba2212a5a08b21969777c2648
++SHA1 (patch-src_tools_singlejar_diag.h) = 4f36de6df9817ca15d8da4fe7da49f798de1dce8
++SHA1 (patch-src_tools_singlejar_mapped__file__posix.inc) = f7bf3af01a0aeacd2ad8d866a57d552549939a23
++SHA1 (patch-src_tools_singlejar_port.h) = 1e28188d9cb1ac0f88663267fcce735e1aa675ed
++SHA1 (patch-src_tools_singlejar_zip__headers.h) = 9571be520e6b844ff198c2e601550892bf22d8c6
++SHA1 (patch-third__party_BUILD) = 1ccd262ee5df05b7c642687c1cdac641d3a29a11
++SHA1 (patch-tools_jdk_BUILD.tools) = 3f948f2a040016dfb4daa19789335fd484f1592d
+diff -urN -x CVS -x '*.orig' old/bazel/files/md5_netbsd.sh new/bazel/files/md5_netbsd.sh
+--- devel/bazel/files/md5_netbsd.sh	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/files/md5_netbsd.sh	2026-09-24 05:18:31.710345477 +0000
+@@ -0,0 +1,17 @@
++#!/usr/bin/env bash
++#
++# Copyright 2025 The Bazel Authors. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++/usr/bin/md5 "$@" | /usr/bin/md5 | head -c 32
+diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/BUILD new/bazel/files/toolchain_local/BUILD
+--- devel/bazel/files/toolchain_local/BUILD	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/files/toolchain_local/BUILD	2026-09-24 05:18:31.712208842 +0000
+@@ -0,0 +1,80 @@
++load("@rules_python//python:py_runtime.bzl", "py_runtime")
++load("@rules_python//python:py_runtime_pair.bzl", "py_runtime_pair")
++
++package(default_visibility = ["//visibility:public"])
++
++# These are the module patches applied through single_version_override in
++# MODULE.bazel.  The name carries the upstream pull request, so that when one
++# lands the patch stops applying and the build says so, instead of the fix
++# being carried twice.
++#
++#   platforms-pr142-pr143  bazelbuild/platforms#142 (netbsd in _translate_os)
++#                          bazelbuild/platforms#143 (dragonfly, and os/BUILD)
++#   rules_java-pr381       bazelbuild/rules_java#381 (jni_md_header)
++#   rules_go-pr4711        bazel-contrib/rules_go#4711, merged 2026-09-09;
++#                          drop this when the pinned version carries it
++#   zstd_jni-netbsd        no upstream pull request
++exports_files([
++    "platforms-pr142-pr143.patch",
++    "rules_java-pr381.patch",
++    "rules_go-pr4711.patch",
++    "zstd_jni-netbsd.patch",
++])
++
++# There is no remote JDK for NetBSD, so whichever remote JDK the build asks
++# for has to resolve to the one installed on this machine.
++config_setting(
++    name = "remotejdk_21_setting",
++    values = {"java_runtime_version": "remotejdk_21"},
++)
++
++config_setting(
++    name = "jdk_21_setting",
++    values = {"java_runtime_version": "21"},
++)
++
++toolchain(
++    name = "local_jdk_21_runtime",
++    target_settings = [":remotejdk_21_setting"],
++    toolchain = "@local_jdk//:jdk",
++    toolchain_type = "@bazel_tools//tools/jdk:runtime_toolchain_type",
++)
++
++toolchain(
++    name = "local_jdk_21_bootstrap",
++    target_settings = [":remotejdk_21_setting"],
++    toolchain = "@local_jdk//:jdk",
++    toolchain_type = "@bazel_tools//tools/jdk:bootstrap_runtime_toolchain_type",
++)
++
++toolchain(
++    name = "local_jdk_21_runtime_v",
++    target_settings = [":jdk_21_setting"],
++    toolchain = "@local_jdk//:jdk",
++    toolchain_type = "@bazel_tools//tools/jdk:runtime_toolchain_type",
++)
++
++toolchain(
++    name = "local_jdk_21_bootstrap_v",
++    target_settings = [":jdk_21_setting"],
++    toolchain = "@local_jdk//:jdk",
++    toolchain_type = "@bazel_tools//tools/jdk:bootstrap_runtime_toolchain_type",
++)
++
++py_runtime(
++    name = "netbsd_py3_runtime",
++    interpreter_path = "@PYTHONBIN@",
++    python_version = "PY3",
++    stub_shebang = "#!@PYTHONBIN@",
++)
++
++py_runtime_pair(
++    name = "netbsd_py_runtime_pair",
++    py3_runtime = ":netbsd_py3_runtime",
++)
++
++toolchain(
++    name = "netbsd_python3_toolchain",
++    toolchain = ":netbsd_py_runtime_pair",
++    toolchain_type = "@rules_python//python:toolchain_type",
++)
+diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/platforms-pr142-pr143.patch new/bazel/files/toolchain_local/platforms-pr142-pr143.patch
+--- devel/bazel/files/toolchain_local/platforms-pr142-pr143.patch	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/files/toolchain_local/platforms-pr142-pr143.patch	2026-09-24 05:18:31.712918709 +0000
+@@ -0,0 +1,29 @@
++diff -u -r a/host/extension.bzl b/host/extension.bzl
++--- a/host/extension.bzl
+++++ b/host/extension.bzl
++@@ -22,6 +22,10 @@
++ def _translate_os(os):
++     if os.startswith("mac os"):
++         return "osx"
+++    if os.startswith("netbsd"):
+++        return "netbsd"
+++    if os.startswith("dragonfly"):
+++        return "dragonfly"
++     if os.startswith("freebsd"):
++         return "freebsd"
++     if os.startswith("openbsd"):
++diff -u -r a/os/BUILD b/os/BUILD
++--- a/os/BUILD
+++++ b/os/BUILD
++@@ -14,6 +14,11 @@
++ constraint_setting(name = "os")
++ 
++ constraint_value(
+++    name = "dragonfly",
+++    constraint_setting = ":os",
+++)
+++
+++constraint_value(
++     name = "freebsd",
++     constraint_setting = ":os",
++ )
+diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/rules_go-pr4711.patch new/bazel/files/toolchain_local/rules_go-pr4711.patch
+--- devel/bazel/files/toolchain_local/rules_go-pr4711.patch	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/files/toolchain_local/rules_go-pr4711.patch	2026-09-24 05:18:31.713614048 +0000
+@@ -0,0 +1,16 @@
++diff -u -r a/MODULE.bazel b/MODULE.bazel
++--- a/MODULE.bazel	2026-08-26 09:16:10.854960335 +0000
+++++ b/MODULE.bazel	2026-08-26 09:45:31.310093878 +0000
++@@ -16,12 +16,6 @@
++ 
++ go_sdk = use_extension("//go:extensions.bzl", "go_sdk")
++ 
++-# Don't depend on this repo by name, use toolchains instead.
++-# See https://github.com/bazel-contrib/rules_go/blob/master/go/toolchains.rst
++-go_sdk.from_file(
++-    name = "go_default_sdk",
++-    go_mod = "//:go.mod",
++-)
++ use_repo(
++     go_sdk,
++     "go_host_compatible_sdk_label",
+diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/rules_java-pr381.patch new/bazel/files/toolchain_local/rules_java-pr381.patch
+--- devel/bazel/files/toolchain_local/rules_java-pr381.patch	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/files/toolchain_local/rules_java-pr381.patch	2026-09-24 05:18:31.714288156 +0000
+@@ -0,0 +1,38 @@
++diff -u -r a/toolchains/BUILD b/toolchains/BUILD
++--- a/toolchains/BUILD
+++++ b/toolchains/BUILD
++@@ -129,6 +129,16 @@
++     srcs = ["include/openbsd/jni_md.h"],
++ )
++ 
+++java_runtime_files(
+++    name = "jni_md_header-dragonfly",
+++    srcs = ["include/dragonfly/jni_md.h"],
+++)
+++
+++java_runtime_files(
+++    name = "jni_md_header-netbsd",
+++    srcs = ["include/netbsd/jni_md.h"],
+++)
+++
++ # The Java native interface. Depend on this package if you #include <jni.h>.
++ #
++ # See test_jni in third_party/bazel/src/test/shell/bazel/bazel_java_test.sh for
++@@ -146,6 +156,8 @@
++         "@bazel_tools//src/conditions:linux_riscv64": [":jni_md_header-linux"],
++         "@bazel_tools//src/conditions:linux_s390x": [":jni_md_header-linux"],
++         "@bazel_tools//src/conditions:linux_x86_64": [":jni_md_header-linux"],
+++        "@bazel_tools//src/conditions:netbsd": [":jni_md_header-netbsd"],
+++        "@bazel_tools//src/conditions:dragonfly": [":jni_md_header-dragonfly"],
++         "@bazel_tools//src/conditions:openbsd": [":jni_md_header-openbsd"],
++         "@bazel_tools//src/conditions:windows": [":jni_md_header-windows"],
++         "//conditions:default": [],
++@@ -159,6 +171,8 @@
++         "@bazel_tools//src/conditions:linux_riscv64": ["include/linux"],
++         "@bazel_tools//src/conditions:linux_s390x": ["include/linux"],
++         "@bazel_tools//src/conditions:linux_x86_64": ["include/linux"],
+++        "@bazel_tools//src/conditions:netbsd": ["include/netbsd"],
+++        "@bazel_tools//src/conditions:dragonfly": ["include/dragonfly"],
++         "@bazel_tools//src/conditions:openbsd": ["include/openbsd"],
++         "@bazel_tools//src/conditions:windows": ["include/win32"],
++         "//conditions:default": [],
+diff -urN -x CVS -x '*.orig' old/bazel/files/toolchain_local/zstd_jni-netbsd.patch new/bazel/files/toolchain_local/zstd_jni-netbsd.patch
+--- devel/bazel/files/toolchain_local/zstd_jni-netbsd.patch	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/files/toolchain_local/zstd_jni-netbsd.patch	2026-09-24 05:18:31.715090772 +0000
+@@ -0,0 +1,11 @@
++diff -u -r a/BUILD.bazel b/BUILD.bazel
++--- a/BUILD.bazel	2026-08-26 09:57:42.012449625 +0000
+++++ b/BUILD.bazel	2026-08-26 09:58:38.292605902 +0000
++@@ -6,6 +6,7 @@
++     srcs = select({
++         "@bazel_tools//src/conditions:darwin": ["@bazel_tools//tools/jdk:jni_md_header-darwin"],
++         "@bazel_tools//src/conditions:freebsd": ["@bazel_tools//tools/jdk:jni_md_header-freebsd"],
+++        "@bazel_tools//src/conditions:netbsd": ["@bazel_tools//tools/jdk:jni_md_header-netbsd"],
++         "@bazel_tools//src/conditions:openbsd": ["@bazel_tools//tools/jdk:jni_md_header-openbsd"],
++         "@bazel_tools//src/conditions:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
++         "//conditions:default": ["@bazel_tools//tools/jdk:jni_md_header-linux"],
+diff -urN -x CVS -x '*.orig' old/bazel/files/upb-bazel-clang.patch new/bazel/files/upb-bazel-clang.patch
+--- devel/bazel/files/upb-bazel-clang.patch	2026-09-24 05:18:31.751299005 +0000
++++ devel/bazel/files/upb-bazel-clang.patch	1970-01-01 00:00:00.000000000 +0000
+@@ -1,19 +0,0 @@
+---- bazel/build_defs.bzl.orig	2023-12-14 07:54:10.464989126 +0000
+-+++ bazel/build_defs.bzl
+-@@ -36,6 +36,8 @@ _DEFAULT_CPPOPTS.extend([
+-     # "-Wshorten-64-to-32",  # not in GCC (and my Kokoro images doesn't have Clang)
+-     "-Werror",
+-     "-Wno-long-long",
+-+    "-Wno-deprecated-copy",
+-+    "-Wno-deprecated-builtins",
+- ])
+- _DEFAULT_COPTS.extend([
+-     "-std=c99",
+-@@ -43,6 +45,7 @@ _DEFAULT_COPTS.extend([
+-     "-Werror=pedantic",
+-     "-Wall",
+-     "-Wstrict-prototypes",
+-+    "-Wno-gnu-offsetof-extensions", "-Wno-c23-extensions",
+-     # GCC (at least) emits spurious warnings for this that cannot be fixed
+-     # without introducing redundant initialization (with runtime cost):
+-     #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80635
+diff -urN -x CVS -x '*.orig' old/bazel/hacks.mk new/bazel/hacks.mk
+--- devel/bazel/hacks.mk	2026-09-24 05:18:31.752041837 +0000
++++ devel/bazel/hacks.mk	1970-01-01 00:00:00.000000000 +0000
+@@ -1,15 +0,0 @@
+-# $NetBSD: hacks.mk,v 1.1 2024/06/08 08:05:14 nia Exp $
+-
+-.if !defined(BAZEL_HACKS_MK)
+-BAZEL_HACKS_MK=		# defined
+-
+-### [Sat Jun  8 09:59:16 CEST 2024 : nia]
+-### NetBSD 9.x does not expose all standard C++ functions with default
+-### source visibility.
+-###
+-.if ${OPSYS} == "NetBSD" && ${OPSYS_VERSION} < 100000
+-PKG_HACKS+=		netbsd-source
+-CXXFLAGS+=		-D_NETBSD_SOURCE
+-.endif
+-
+-.endif
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-MODULE.bazel new/bazel/patches/patch-MODULE.bazel
+--- devel/bazel/patches/patch-MODULE.bazel	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/patches/patch-MODULE.bazel	2026-09-24 05:18:31.717108627 +0000
+@@ -0,0 +1,70 @@
++$NetBSD$
++
++Teach the module graph about NetBSD.
++
++None of platforms, rules_java or rules_go knows this system.  platforms
++returns no @platforms//os value for it, so every select() on
++//src/conditions:netbsd would fall through to the default; rules_java has
++no jni_md.h to offer; and rules_go goes looking for a Go SDK that is not
++published for NetBSD.  Patch the three where they are fetched, and use the
++Go that is already installed.
++
++--- MODULE.bazel.orig
+++++ MODULE.bazel
++@@ -59,7 +59,7 @@
++ bazel_dep(name = "rules_apple", version = "4.3.1", repo_name = None)
++ bazel_dep(name = "google_benchmark", version = "1.9.4", repo_name = None)
++ bazel_dep(name = "onetbb", version = "2022.2.0", repo_name = None)
++-bazel_dep(name = "rules_go", version = "0.59.0", repo_name = None)  # Required for loads of CcInfo
+++bazel_dep(name = "rules_go", version = "0.59.0")  # Required for loads of CcInfo
++ 
++ # bazel_dep overrides
++ single_version_override(
++@@ -84,7 +84,10 @@
++ single_version_override(
++     module_name = "zstd-jni",
++     patch_strip = 1,
++-    patches = ["//third_party:zstd-jni.patch"],
+++    patches = [
+++        "//third_party:zstd-jni.patch",
+++        "//toolchain_local:zstd_jni-netbsd.patch",
+++    ],
++ )
++ 
++ single_version_override(
++@@ -137,6 +140,35 @@
++     path = "./third_party/remoteapis",
++ )
++ 
+++# NetBSD is not among the platforms these modules know about.
+++#   platforms   host detection returns no @platforms//os value, so every
+++#               select() on //src/conditions:netbsd would miss.
+++#   rules_java  has no jni_md_header for NetBSD.
+++#   rules_go    downloads a Go SDK that is not published for NetBSD; use the
+++#               one installed on this machine instead.
+++single_version_override(
+++    module_name = "platforms",
+++    patch_strip = 1,
+++    patches = ["//toolchain_local:platforms-pr142-pr143.patch"],
+++)
+++
+++single_version_override(
+++    module_name = "rules_java",
+++    patch_strip = 1,
+++    patches = ["//toolchain_local:rules_java-pr381.patch"],
+++)
+++
+++single_version_override(
+++    module_name = "rules_go",
+++    patch_strip = 1,
+++    patches = ["//toolchain_local:rules_go-pr4711.patch"],
+++    version = "0.59.0",
+++)
+++
+++go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+++go_sdk.host(name = "go_default_sdk")
+++
+++
++ # =========================================
++ # Java dependencies
++ # =========================================
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-distdir__deps.bzl new/bazel/patches/patch-distdir__deps.bzl
+--- devel/bazel/patches/patch-distdir__deps.bzl	2026-09-24 05:18:31.793677576 +0000
++++ devel/bazel/patches/patch-distdir__deps.bzl	1970-01-01 00:00:00.000000000 +0000
+@@ -1,22 +0,0 @@
+-$NetBSD: patch-distdir__deps.bzl,v 1.1 2024/01/01 12:00:58 ryoon Exp $
+-
+---- distdir_deps.bzl.orig	1979-12-31 15:00:00.000000000 +0000
+-+++ distdir_deps.bzl
+-@@ -123,6 +123,7 @@ DIST_DEPS = {
+-         "patches": [
+-             "//third_party/grpc:grpc_1.47.0.patch",
+-             "//third_party/grpc:grpc_1.47.0.win_arm64.patch",
+-+            "//third_party/grpc:netbsd-config.patch",
+-         ],
+-         "used_in": [
+-             "additional_distfiles",
+-@@ -240,6 +241,9 @@ DIST_DEPS = {
+-             "test_WORKSPACE_files",
+-         ],
+-         "strip_prefix": "abseil-cpp-20211102.0",
+-+        "patches": [
+-+            "//third_party:abseil-cpp/netbsd-sunos.patch",
+-+        ],
+-     },
+-     "zstd-jni": {
+-         "archive": "v1.5.2-3.zip",
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_buildenv.sh new/bazel/patches/patch-scripts_bootstrap_buildenv.sh
+--- devel/bazel/patches/patch-scripts_bootstrap_buildenv.sh	2026-09-24 05:18:31.794352522 +0000
++++ devel/bazel/patches/patch-scripts_bootstrap_buildenv.sh	2026-09-24 05:18:31.717814582 +0000
+@@ -1,14 +1,19 @@
+-$NetBSD: patch-scripts_bootstrap_buildenv.sh,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- scripts/bootstrap/buildenv.sh.orig	2023-11-28 16:39:24.563015783 +0000
++Point the bootstrap at the JDK pkgsrc installs.
++
++Each system names its own default here.  Without an entry the bootstrap
++runs with an empty JAVA_HOME and fails looking for javac.
++
++--- scripts/bootstrap/buildenv.sh.orig
+ +++ scripts/bootstrap/buildenv.sh
+-@@ -93,6 +93,11 @@ freebsd)
++@@ -93,6 +93,11 @@
+    JAVA_HOME="${JAVA_HOME:-/usr/local/openjdk11}"
+    ;;
+  
+ +netbsd)
+ +  # JAVA_HOME must point to a Java installation.
+-+  JAVA_HOME="${JAVA_HOME:-/usr/pkg/java/openjdk11}"
+++  JAVA_HOME="${JAVA_HOME:-@PKG_JAVA_HOME@}"
+ +  ;;
+ +
+  openbsd)
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_bootstrap_compile.sh new/bazel/patches/patch-scripts_bootstrap_compile.sh
+--- devel/bazel/patches/patch-scripts_bootstrap_compile.sh	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/patches/patch-scripts_bootstrap_compile.sh	2026-09-24 05:18:31.718492601 +0000
+@@ -0,0 +1,45 @@
++$NetBSD$
++
++Keep the bootstrap working on JDK 23 and newer.
++
++javac stopped running annotation processors it finds on the classpath
++unless it is asked to, so the AutoValue and AutoService processors never
++run and none of the generated classes exist:
++
++	DependencyError.java:135: error: cannot find symbol
++	  symbol: variable AutoOneOf_DependencyError
++	... 178 errors
++
++-proc:full asks for the old behaviour back.  It is only passed from 23
++onwards, because the option does not exist before 21 and the default is
++already what we want up to 22.
++
++Upstream solved this after 9.2.0 by naming the processors explicitly
++(-processor) and splitting the compilation in two, which is a larger
++change than belongs in a patch here.
++
++--- scripts/bootstrap/compile.sh.orig
+++++ scripts/bootstrap/compile.sh
++@@ -131,6 +131,14 @@ function java_compilation() {
++
++   check_unzip_wont_create_long_paths "${output}/classes" "$library_jars"
++
+++  # javac 23 and later do not run annotation processors found on the
+++  # classpath unless asked; without this the AutoValue processor never
+++  # runs and the build stops on missing AutoValue_/AutoOneOf_ classes.
+++  local proc_full=""
+++  case "${JAVAC_VERSION}" in
+++    1.2[3-9]|1.[3-9][0-9]) proc_full="-proc:full" ;;
+++  esac
+++
++   # Use BAZEL_JAVAC_OPTS to pass additional arguments to javac, e.g.,
++   # export BAZEL_JAVAC_OPTS="-J-Xmx2g -J-Xms200m"
++   # Useful if your system chooses too small of a max heap for javac.
++@@ -139,6 +147,7 @@ function java_compilation() {
++   run "${JAVAC}" -classpath "${classpath}" -sourcepath "${sourcepath}" \
++       -d "${output}/classes" -source "$JAVA_VERSION" -target "$JAVA_VERSION" \
++       -encoding UTF-8 --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED \
+++      ${proc_full} \
++       --add-exports=java.base/jdk.internal.vm=ALL-UNNAMED \
++       ${BAZEL_JAVAC_OPTS} "@${paramfile}"
++
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_packages_BUILD new/bazel/patches/patch-scripts_packages_BUILD
+--- devel/bazel/patches/patch-scripts_packages_BUILD	2026-09-24 05:18:31.794920751 +0000
++++ devel/bazel/patches/patch-scripts_packages_BUILD	2026-09-24 05:18:31.719210011 +0000
+@@ -1,12 +1,18 @@
+-$NetBSD: patch-scripts_packages_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- scripts/packages/BUILD.orig	2023-11-28 16:36:12.390418705 +0000
++Add the NetBSD arm of a select() that has one arm per system.
++
++Every other BSD is listed with an empty list; without an entry of its own
++NetBSD takes the default arm, which builds the Debian and RPM packaging
++targets that make no sense here.
++
++--- scripts/packages/BUILD.orig
+ +++ scripts/packages/BUILD
+-@@ -23,6 +23,7 @@ filegroup(
++@@ -24,6 +24,7 @@
+              ":zip-bazel-exe_nojdk",
+          ],
+          "//src/conditions:freebsd": [],
+ +        "//src/conditions:netbsd": [],
+          "//src/conditions:openbsd": [],
+          "//src/conditions:darwin": [
+-             ":with-jdk/install.sh",
++             ":generate-package-info",
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-scripts_packages_template__bin.sh new/bazel/patches/patch-scripts_packages_template__bin.sh
+--- devel/bazel/patches/patch-scripts_packages_template__bin.sh	2026-09-24 05:18:31.795537030 +0000
++++ devel/bazel/patches/patch-scripts_packages_template__bin.sh	2026-09-24 05:18:31.719936919 +0000
+@@ -1,13 +1,20 @@
+-$NetBSD: patch-scripts_packages_template__bin.sh,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- scripts/packages/template_bin.sh.orig	2023-11-28 16:39:59.898140894 +0000
++Name the JDK in the self-extracting installer.
++
++This template becomes the shell installer bazel ships for people who do
++not use a package manager.  pkgsrc does not run it, but leaving NetBSD out
++of a list that names FreeBSD and OpenBSD would be an odd thing to hand
++upstream.
++
++--- scripts/packages/template_bin.sh.orig
+ +++ scripts/packages/template_bin.sh
+-@@ -115,6 +115,10 @@ if [ -z "${JAVA_HOME-}" ]; then
++@@ -115,6 +115,10 @@
+        JAVA_HOME="/usr/local/openjdk8"
+        BASHRC="~/.bashrc"
+        ;;
+ +    netbsd)
+-+      JAVA_HOME="/usr/pkg/java/openjdk8"
+++      JAVA_HOME="@PKG_JAVA_HOME@"
+ +      BASHRC="~/.bashrc"
+ +      ;;
+      openbsd)
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_BUILD new/bazel/patches/patch-src_BUILD
+--- devel/bazel/patches/patch-src_BUILD	2026-09-24 05:18:31.796115875 +0000
++++ devel/bazel/patches/patch-src_BUILD	2026-09-24 05:18:31.720610468 +0000
+@@ -1,20 +1,28 @@
+-$NetBSD: patch-src_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/BUILD.orig	2023-11-29 11:57:08.056842619 +0000
++Use an md5 command that exists, and a bash that exists.
++
++NetBSD's md5(1) prints only the digest, with no "MD5 (file) = " prefix and
++no -r flag, so neither md5_darwin_freebsd.sh nor md5_openbsd.sh parses its
++output; files/md5_netbsd.sh is added for it.  The packaging script is
++rewritten to run the bash pkgsrc installs, because there is none in base.
++
++--- src/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/BUILD
+-@@ -34,6 +34,7 @@ md5_cmd = "set -e -o pipefail && %s $(SR
+-     cmd = select({
+-         "//src/conditions:darwin": md5_cmd % ("/sbin/md5", "/sbin/md5", "head -c 32"),
+-         "//src/conditions:freebsd": md5_cmd % ("/sbin/md5", "/sbin/md5", "head -c 32"),
+-+        "//src/conditions:netbsd": md5_cmd % ("/usr/bin/md5", "/usr/bin/md5", "head -c 32"),
+-         # We avoid using the `head` tool's `-c` option, since it does not exist
+-         # on OpenBSD.
+-         "//src/conditions:openbsd": md5_cmd % ("/bin/md5", "/bin/md5", "dd bs=32 count=1"),
+-@@ -349,6 +350,7 @@ genrule(
+-     srcs = ["package-bazel.sh"],
++@@ -21,6 +21,8 @@ sh_binary(
++     srcs = select({
++         "//src/conditions:darwin": ["md5_darwin_freebsd.sh"],
++         "//src/conditions:freebsd": ["md5_darwin_freebsd.sh"],
+++        "//src/conditions:netbsd": ["md5_netbsd.sh"],
+++        "//src/conditions:dragonfly": ["md5_darwin_freebsd.sh"],
++         "//src/conditions:openbsd": ["md5_openbsd.sh"],
++         "//conditions:default": ["md5_default.sh"],
++     }),
++@@ -329,6 +331,7 @@ genrule(
+      outs = ["package-bazel-on-host-platform.sh"],
+      cmd = select({
+-+        "//src/conditions:netbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/pkg/bin/bash@' > $@",
++         "//src/conditions:freebsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/local/bin/bash@' > $@",
+++        "//src/conditions:netbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!@LOCALBASE@/bin/bash@' > $@",
+          "//src/conditions:openbsd": "cat $(SRCS) | sed -e 's@#!/bin/bash@#!/usr/local/bin/bash@' > $@",
+          "//conditions:default": "cp $(SRCS) $@",
+      }),
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_conditions_BUILD new/bazel/patches/patch-src_conditions_BUILD
+--- devel/bazel/patches/patch-src_conditions_BUILD	2026-09-24 05:18:31.797240040 +0000
++++ devel/bazel/patches/patch-src_conditions_BUILD	2026-09-24 05:18:31.721292678 +0000
+@@ -1,11 +1,23 @@
+-$NetBSD: patch-src_conditions_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/conditions/BUILD.orig	2023-11-29 00:17:37.410068236 +0000
++Define the config_setting the select()s in this package refer to.
++
++The other patches switch on //src/conditions:netbsd; this is where that
++name comes from.  It matches on the @platforms//os:netbsd constraint,
++which platforms already defines and which the host detection patched into
++that module now reports.
++
++--- src/conditions/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/conditions/BUILD
+-@@ -160,6 +160,12 @@ config_setting(
++@@ -160,6 +160,17 @@ config_setting(
+  )
+  
+  config_setting(
+++    name = "dragonfly",
+++    constraint_values = ["@platforms//os:dragonfly"],
+++)
+++
+++config_setting(
+ +    name = "netbsd",
+ +    constraint_values = ["@platforms//os:netbsd"],
+ +    visibility = ["//visibility:public"],
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_conditions_BUILD.tools new/bazel/patches/patch-src_conditions_BUILD.tools
+--- devel/bazel/patches/patch-src_conditions_BUILD.tools	2026-09-24 05:18:31.798085119 +0000
++++ devel/bazel/patches/patch-src_conditions_BUILD.tools	2026-09-24 05:18:31.722057580 +0000
+@@ -1,11 +1,22 @@
+-$NetBSD: patch-src_conditions_BUILD.tools,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/conditions/BUILD.tools.orig	2023-11-28 16:36:42.721951524 +0000
++Define //src/conditions:netbsd for the embedded tools too.
++
++BUILD.tools is the copy that ships inside the bazel binary and is used
++when building the tools that come with it, so it needs the same setting as
++src/conditions/BUILD.
++
++--- src/conditions/BUILD.tools.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/conditions/BUILD.tools
+-@@ -7,6 +7,12 @@ config_setting(
++@@ -5,6 +5,17 @@ config_setting(
+  )
+  
+  config_setting(
+++    name = "dragonfly",
+++    constraint_values = ["@platforms//os:dragonfly"],
+++)
+++
+++config_setting(
+ +    name = "netbsd",
+ +    constraint_values = ["@platforms//os:netbsd"],
+ +    visibility = ["//visibility:public"],
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_BUILD new/bazel/patches/patch-src_main_cpp_BUILD
+--- devel/bazel/patches/patch-src_main_cpp_BUILD	2026-09-24 05:18:31.798979367 +0000
++++ devel/bazel/patches/patch-src_main_cpp_BUILD	2026-09-24 05:18:31.722688107 +0000
+@@ -1,8 +1,15 @@
+-$NetBSD: patch-src_main_cpp_BUILD,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/cpp/BUILD.orig	2023-11-28 16:40:47.721393251 +0000
++Build the client from the BSD sources.
++
++blaze_util_bsd.cc is what FreeBSD and OpenBSD use and it is the right file
++here as well.  The link options stay empty: -lprocstat in the FreeBSD arm
++is for libprocstat, which NetBSD does not have, and nothing else in that
++arm is needed.
++
++--- src/main/cpp/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/cpp/BUILD
+-@@ -26,6 +26,10 @@ cc_library(
++@@ -29,6 +29,14 @@ cc_library(
+              "blaze_util_bsd.cc",
+              "blaze_util_posix.cc",
+          ],
+@@ -10,24 +17,32 @@
+ +            "blaze_util_bsd.cc",
+ +            "blaze_util_posix.cc",
+ +        ],
+++        "//src/conditions:dragonfly": [
+++            "blaze_util_bsd.cc",
+++            "blaze_util_posix.cc",
+++        ],
+          "//src/conditions:openbsd": [
+              "blaze_util_bsd.cc",
+              "blaze_util_posix.cc",
+-@@ -49,6 +53,8 @@ cc_library(
++@@ -52,6 +60,10 @@ cc_library(
+          ],
+          "//src/conditions:freebsd": [
+          ],
+ +        "//src/conditions:netbsd": [
+ +        ],
+++        "//src/conditions:dragonfly": [
+++        ],
+          "//src/conditions:openbsd": [
+          ],
+          "//src/conditions:windows": WIN_LINK_OPTS,
+-@@ -110,6 +116,8 @@ cc_binary(
++@@ -116,6 +128,10 @@ cc_binary(
+              "-lprocstat",
+              "-lm",
+          ],
+ +        "//src/conditions:netbsd": [
+ +        ],
+++        "//src/conditions:dragonfly": [
+++        ],
+          "//src/conditions:openbsd": [
+          ],
+          "//src/conditions:windows": [
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc new/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc
+--- devel/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc	2026-09-24 05:18:31.799820815 +0000
++++ devel/bazel/patches/patch-src_main_cpp_blaze__util__bsd.cc	2026-09-24 05:18:31.723384285 +0000
+@@ -1,41 +1,45 @@
+-$NetBSD: patch-src_main_cpp_blaze__util__bsd.cc,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/cpp/blaze_util_bsd.cc.orig	2023-11-29 06:03:37.228876616 +0000
++Make the BSD client source build on NetBSD.
++
++Three things differ.  The JDK lives under a different prefix.  statfs(2)
++was removed in NetBSD 10; statvfs(2) carries the f_fstypename this code
++wants, so use it.  And there is no way for a process to learn the path to
++its own executable that is available this early, which is the same
++situation OpenBSD is in, so share that arm.
++
++--- src/main/cpp/blaze_util_bsd.cc.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/cpp/blaze_util_bsd.cc
+ @@ -15,6 +15,8 @@
+  #if defined(__FreeBSD__)
+  # define HAVE_PROCSTAT
+  # define STANDARD_JAVABASE "/usr/local/openjdk8"
+-+#elif defined(__NetBSD__)
+-+# define STANDARD_JAVABASE "/usr/pkg/java/openjdk11"
+++#elif defined(__NetBSD__) || defined(__DragonFly__)
+++# define STANDARD_JAVABASE "@PKG_JAVA_HOME@"
+  #elif defined(__OpenBSD__)
+  # define STANDARD_JAVABASE "/usr/local/jdk-17"
+  #else
+-@@ -36,6 +38,7 @@
+- #include <sys/param.h>
+- #include <sys/queue.h>
+- #include <sys/socket.h>
+-+#include <sys/statvfs.h>
+- #include <sys/sysctl.h>
+- #include <sys/types.h>
+- #include <sys/un.h>
+-@@ -74,8 +77,8 @@ string GetOutputRoot() {
++@@ -81,8 +83,14 @@ string GetCacheDir() {
+  }
+  
+  void WarnFilesystemType(const blaze_util::Path &output_base) {
+--  struct statfs buf = {};
+--  if (statfs(output_base.AsNativePath().c_str(), &buf) < 0) {
+++#if defined(__NetBSD__) || defined(__DragonFly__)
+++  // NetBSD dropped statfs(2); statvfs(2) carries f_fstypename all the same.
+ +  struct statvfs buf = {};
+ +  if (statvfs(output_base.AsNativePath().c_str(), &buf) < 0) {
+++#else
++   struct statfs buf = {};
++   if (statfs(output_base.AsNativePath().c_str(), &buf) < 0) {
+++#endif
+      BAZEL_LOG(WARNING) << "couldn't get file system type information for '"
+                         << output_base.AsPrintablePath()
+                         << "': " << strerror(errno);
+-@@ -112,7 +115,7 @@ string GetSelfPath(const char* argv0) {
++@@ -119,7 +127,7 @@ string GetSelfPath(const char* argv0) {
+    }
+    procstat_close(procstat);
+    return string(buffer);
+ -#elif defined(__OpenBSD__)
+-+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+++#elif defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+    // OpenBSD does not provide a way for a running process to find a path to its
+    // own executable, so we try to figure out a path by inspecting argv[0]. In
+    // theory this is inadequate, since the parent process can set argv[0] to
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_option__processor.cc new/bazel/patches/patch-src_main_cpp_option__processor.cc
+--- devel/bazel/patches/patch-src_main_cpp_option__processor.cc	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/patches/patch-src_main_cpp_option__processor.cc	2026-09-24 05:18:31.723996094 +0000
+@@ -0,0 +1,18 @@
++$NetBSD$
++
++Read the netbsd arm of .bazelrc.
++
++bazel picks a platform_config name here and then honours "build:netbsd"
++lines in the rc files.  Without an entry, no such line is ever selected.
++
++--- src/main/cpp/option_processor.cc.orig	1980-01-01 00:00:00.000000000 +0000
+++++ src/main/cpp/option_processor.cc
++@@ -628,6 +628,8 @@ blaze_exit_code::ExitCode OptionProcesso
++   platform_config = "windows";
++ #elif defined(__FreeBSD__)
++   platform_config = "freebsd";
+++#elif defined(__NetBSD__) || defined(__DragonFly__)
+++  platform_config = "netbsd";
++ #elif defined(__OpenBSD__)
++   platform_config = "openbsd";
++ #endif
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_cpp_util_md5.h new/bazel/patches/patch-src_main_cpp_util_md5.h
+--- devel/bazel/patches/patch-src_main_cpp_util_md5.h	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/patches/patch-src_main_cpp_util_md5.h	2026-09-24 05:18:31.724669085 +0000
+@@ -0,0 +1,18 @@
++$NetBSD$
++
++Get the byte-order macros from where NetBSD keeps them.
++
++<endian.h> is a glibc header.  The BSDs put htole32 and friends in
++<sys/endian.h>, and NetBSD belongs with them.
++
++--- src/main/cpp/util/md5.h.orig	1980-01-01 00:00:00.000000000 +0000
+++++ src/main/cpp/util/md5.h
++@@ -26,7 +26,7 @@
++ 
++ #if defined(__linux__)
++ #include <endian.h>
++-#elif defined(__FreeBSD__) || defined(__OpenBSD__)
+++#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
++ #include <sys/endian.h>
++ #elif defined(__APPLE__) || defined(_WIN32)
++ // Hopefully OSX and Windows will keep running solely on little endian CPUs, so:
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java	2026-09-24 05:18:31.800929894 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,16 +0,0 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_analysis_ShellConfiguration.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
+-
+---- src/main/java/com/google/devtools/build/lib/analysis/ShellConfiguration.java.orig	2023-11-28 16:42:24.000271398 +0000
+-+++ src/main/java/com/google/devtools/build/lib/analysis/ShellConfiguration.java
+-@@ -84,6 +84,11 @@ public class ShellConfiguration extends 
+-                   OS_CONSTRAINT_SETTING,
+-                   Label.parseAbsoluteUnchecked("@platforms//os:freebsd")))
+-           .put(
+-+              OS.NETBSD,
+-+              ConstraintValueInfo.create(
+-+                  OS_CONSTRAINT_SETTING,
+-+                  Label.parseAbsoluteUnchecked("@platforms//os:netbsd")))
+-+          .put(
+-               OS.OPENBSD,
+-               ConstraintValueInfo.create(
+-                   OS_CONSTRAINT_SETTING,
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java	2026-09-24 05:18:31.802292358 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java	2026-09-24 05:18:31.725548247 +0000
+@@ -1,22 +1,18 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_analysis_config_AutoCpuConverter.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java.orig	2023-11-28 16:41:36.908346594 +0000
++Name the auto-detected CPU consistently with the other BSDs.
++
++This is what --cpu resolves to when it is not given.  FreeBSD and OpenBSD
++each use their own name rather than a CPU name; do the same.
++
++--- src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/java/com/google/devtools/build/lib/analysis/config/AutoCpuConverter.java
+-@@ -44,6 +44,8 @@ public class AutoCpuConverter extends Co
+-           }
+-         case FREEBSD:
+-           return "freebsd";
+-+        case NETBSD:
+-+          return "netbsd";
+-         case OPENBSD:
+-           return "openbsd";
+-         case WINDOWS:
+-@@ -98,6 +100,8 @@ public class AutoCpuConverter extends Co
+-       return Pair.of(CPU.getCurrent(), OS.DARWIN);
+-     } else if (input.startsWith("freebsd")) {
+-       return Pair.of(CPU.getCurrent(), OS.FREEBSD);
+-+    } else if (input.startsWith("netbsd")) {
+-+      return Pair.of(CPU.getCurrent(), OS.NETBSD);
+-     } else if (input.startsWith("openbsd")) {
+-       return Pair.of(CPU.getCurrent(), OS.OPENBSD);
+-     } else if (input.startsWith("x64_windows")) {
++@@ -39,6 +39,8 @@ public class AutoCpuConverter extends Co
++               default -> "unknown";
++             };
++         case FREEBSD -> "freebsd";
+++        case NETBSD -> "netbsd";
+++        case DRAGONFLY -> "dragonfly";
++         case OPENBSD -> "openbsd";
++         case WINDOWS ->
++             switch (CPU.getCurrent()) {
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java	1970-01-01 00:00:00.000000000 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_analysis_constraints_ConstraintConstants.java	2026-09-24 05:18:31.726225148 +0000
+@@ -0,0 +1,26 @@
++$NetBSD$
++
++Map OS.NETBSD to @platforms//os:netbsd.
++
++The map is constraint value to OS, not the other way round, so the label
++is written before the enum it belongs to.  Without an entry, a target
++built on NetBSD gets no os constraint and every platform-specific
++toolchain fails to resolve.
++
++--- src/main/java/com/google/devtools/build/lib/analysis/constraints/ConstraintConstants.java.orig	1980-01-01 00:00:00.000000000 +0000
+++++ src/main/java/com/google/devtools/build/lib/analysis/constraints/ConstraintConstants.java
++@@ -60,6 +60,14 @@ public final class ConstraintConstants {
++           OS.FREEBSD,
++           ConstraintValueInfo.create(
++               OS_CONSTRAINT_SETTING,
+++              Label.parseCanonicalUnchecked("@platforms//os:netbsd")),
+++          OS.NETBSD,
+++          ConstraintValueInfo.create(
+++              OS_CONSTRAINT_SETTING,
+++              Label.parseCanonicalUnchecked("@platforms//os:dragonfly")),
+++          OS.DRAGONFLY,
+++          ConstraintValueInfo.create(
+++              OS_CONSTRAINT_SETTING,
++               Label.parseCanonicalUnchecked("@platforms//os:openbsd")),
++           OS.OPENBSD,
++           ConstraintValueInfo.create(
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java	2026-09-24 05:18:31.803000828 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunction.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
+-
+---- src/main/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunction.java.orig	2023-11-28 16:37:24.063463278 +0000
+-+++ src/main/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunction.java
+-@@ -135,6 +135,8 @@ public class LocalConfigPlatformFunction
+-         return "@platforms//os:osx";
+-       case FREEBSD:
+-         return "@platforms//os:freebsd";
+-+      case NETBSD:
+-+        return "@platforms//os:netbsd";
+-       case OPENBSD:
+-         return "@platforms//os:openbsd";
+-       case LINUX:
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java	2026-09-24 05:18:31.803548663 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java	2026-09-24 05:18:31.727078330 +0000
+@@ -1,12 +1,18 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProvider.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java.orig	2023-11-30 05:47:44.632845320 +0000
++Point genrules at a bash that exists.
++
++This is the shell genrule commands run under when BAZEL_SH is not set.
++NetBSD has no bash in base.
++
++--- src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java
+-@@ -173,6 +173,7 @@ public class BazelRuleClassProvider {
++@@ -94,6 +94,8 @@ public class BazelRuleClassProvider {
+        ImmutableMap.<OS, PathFragment>builder()
+-           .put(OS.WINDOWS, PathFragment.create("c:/tools/msys64/usr/bin/bash.exe"))
++           .put(OS.WINDOWS, PathFragment.create("c:/msys64/usr/bin/bash.exe"))
+            .put(OS.FREEBSD, PathFragment.create("/usr/local/bin/bash"))
+-+          .put(OS.NETBSD, PathFragment.create("/usr/pkg/bin/bash"))
+++          .put(OS.NETBSD, PathFragment.create("@LOCALBASE@/bin/bash"))
+++          .put(OS.DRAGONFLY, PathFragment.create("@LOCALBASE@/bin/bash"))
+            .put(OS.OPENBSD, PathFragment.create("/usr/local/bin/bash"))
+-           .put(OS.UNKNOWN, FALLBACK_SHELL)
+-           .buildOrThrow();
++           .put(OS.LINUX, PathFragment.create("/bin/bash"))
++           .put(OS.DARWIN, PathFragment.create("/bin/bash"))
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java	2026-09-24 05:18:31.804200422 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java	2026-09-24 05:18:31.727836806 +0000
+@@ -1,12 +1,18 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_jni_JniLoader.java,v 1.1 2024/01/01 12:00:58 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/java/com/google/devtools/build/lib/jni/JniLoader.java.orig	2023-11-30 05:46:49.398016529 +0000
++Load the JNI library built for this system.
++
++The Unix arm covers Linux, FreeBSD and OpenBSD and is right for NetBSD as
++well; the file being loaded is the one src/main/native/BUILD just built.
++
++--- src/main/java/com/google/devtools/build/lib/jni/JniLoader.java.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/java/com/google/devtools/build/lib/jni/JniLoader.java
+-@@ -39,6 +39,7 @@ public final class JniLoader {
++@@ -39,6 +39,8 @@ public final class JniLoader {
+        switch (OS.getCurrent()) {
+          case LINUX:
+          case FREEBSD:
+ +        case NETBSD:
+++        case DRAGONFLY:
+          case OPENBSD:
+          case UNKNOWN:
+            loadLibrary("main/native/libunix_jni.so");
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java	2026-09-24 05:18:31.804921742 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_runtime_CommonCommandOptions.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/main/java/com/google/devtools/build/lib/runtime/CommonCommandOptions.java.orig	2023-11-28 16:44:31.844523584 +0000
+-+++ src/main/java/com/google/devtools/build/lib/runtime/CommonCommandOptions.java
+-@@ -51,7 +51,7 @@ public class CommonCommandOptions extend
+-           "If true, Bazel picks up host-OS-specific config lines from bazelrc files. For example, "
+-               + "if the host OS is Linux and you run bazel build, Bazel picks up lines starting "
+-               + "with build:linux. Supported OS identifiers are linux, macos, windows, freebsd, "
+--              + "and openbsd. Enabling this flag is equivalent to using --config=linux on Linux, "
+-+              + "netbsd and openbsd. Enabling this flag is equivalent to using --config=linux on Linux, "
+-               + "--config=windows on Windows, etc.")
+-   public boolean enablePlatformSpecificConfig;
+- 
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java	2026-09-24 05:18:31.806530047 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_runtime_ConfigExpander.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/main/java/com/google/devtools/build/lib/runtime/ConfigExpander.java.orig	2023-11-28 16:45:00.372600192 +0000
+-+++ src/main/java/com/google/devtools/build/lib/runtime/ConfigExpander.java
+-@@ -48,6 +48,8 @@ final class ConfigExpander {
+-         return "windows";
+-       case FREEBSD:
+-         return "freebsd";
+-+      case NETBSD:
+-+        return "netbsd";
+-       case OPENBSD:
+-         return "openbsd";
+-       default:
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java new/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java
+--- devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java	2026-09-24 05:18:31.807096321 +0000
++++ devel/bazel/patches/patch-src_main_java_com_google_devtools_build_lib_util_OS.java	2026-09-24 05:18:31.728596679 +0000
+@@ -1,19 +1,27 @@
+-$NetBSD: patch-src_main_java_com_google_devtools_build_lib_util_OS.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/java/com/google/devtools/build/lib/util/OS.java.orig	1979-12-31 15:00:00.000000000 +0000
++Add NetBSD to the systems bazel knows.
++
++OS.getCurrent() maps the JVM's os.name onto this enum, and everything that
++switches on the operating system reads it.  Without an entry NetBSD is
++UNKNOWN, which is not POSIX-compatible as far as the rest of the code is
++concerned, and the client refuses to run.
++
++--- src/main/java/com/google/devtools/build/lib/util/OS.java.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/java/com/google/devtools/build/lib/util/OS.java
+-@@ -21,12 +21,13 @@ import java.util.EnumSet;
++@@ -21,12 +21,14 @@ import java.util.EnumSet;
+  public enum OS {
+    DARWIN("osx", "Mac OS X"),
+    FREEBSD("freebsd", "FreeBSD"),
+ +  NETBSD("netbsd", "NetBSD"),
+++  DRAGONFLY("dragonfly", "DragonFly"),
+    OPENBSD("openbsd", "OpenBSD"),
+    LINUX("linux", "Linux"),
+    WINDOWS("windows", "Windows"),
+    UNKNOWN("unknown", "");
+  
+ -  private static final EnumSet<OS> POSIX_COMPATIBLE = EnumSet.of(DARWIN, FREEBSD, OPENBSD, LINUX);
+-+  private static final EnumSet<OS> POSIX_COMPATIBLE = EnumSet.of(DARWIN, FREEBSD, NETBSD, OPENBSD, LINUX);
+++  private static final EnumSet<OS> POSIX_COMPATIBLE = EnumSet.of(DARWIN, FREEBSD, NETBSD, DRAGONFLY, OPENBSD, LINUX);
+  
+    private final String canonicalName;
+    private final String detectionName;
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_BUILD new/bazel/patches/patch-src_main_native_BUILD
+--- devel/bazel/patches/patch-src_main_native_BUILD	2026-09-24 05:18:31.805488015 +0000
++++ devel/bazel/patches/patch-src_main_native_BUILD	2026-09-24 05:18:31.729405720 +0000
+@@ -1,20 +1,28 @@
+-$NetBSD: patch-src_main_native_BUILD,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/native/BUILD.orig	2023-11-28 16:45:20.409299941 +0000
++Build the JNI library from the BSD sources.
++
++unix_jni_bsd.cc is shared with FreeBSD and OpenBSD.  The jni_md.h comes
++from rules_java, which needed a NetBSD entry of its own; see the
++//toolchain_local patch named in MODULE.bazel.
++
++--- src/main/native/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/native/BUILD
+-@@ -3,6 +3,7 @@ genrule(
++@@ -6,6 +6,8 @@ genrule(
+      srcs = select({
+-         "//src/conditions:darwin": ["@bazel_tools//tools/jdk:jni_md_header-darwin"],
+-         "//src/conditions:freebsd": ["@bazel_tools//tools/jdk:jni_md_header-freebsd"],
+-+        "//src/conditions:netbsd": ["@bazel_tools//tools/jdk:jni_md_header-netbsd"],
+-         "//src/conditions:openbsd": ["@bazel_tools//tools/jdk:jni_md_header-openbsd"],
+-         "//src/conditions:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
+-         "//conditions:default": ["@bazel_tools//tools/jdk:jni_md_header-linux"],
+-@@ -38,6 +39,7 @@ filegroup(
++         "//src/conditions:darwin": ["@rules_java//toolchains:jni_md_header-darwin"],
++         "//src/conditions:freebsd": ["@rules_java//toolchains:jni_md_header-freebsd"],
+++        "//src/conditions:netbsd": ["@rules_java//toolchains:jni_md_header-netbsd"],
+++        "//src/conditions:dragonfly": ["@rules_java//toolchains:jni_md_header-dragonfly"],
++         "//src/conditions:openbsd": ["@rules_java//toolchains:jni_md_header-openbsd"],
++         "//src/conditions:windows": ["@rules_java//toolchains:jni_md_header-windows"],
++         "//conditions:default": ["@rules_java//toolchains:jni_md_header-linux"],
++@@ -41,6 +43,8 @@ filegroup(
+              "darwin/util.h",
+          ],
+          "//src/conditions:freebsd": ["unix_jni_bsd.cc"],
+ +        "//src/conditions:netbsd": ["unix_jni_bsd.cc"],
+++        "//src/conditions:dragonfly": ["unix_jni_bsd.cc"],
+          "//src/conditions:openbsd": ["unix_jni_bsd.cc"],
+          "//conditions:default": ["unix_jni_linux.cc"],
+      }),
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_unix__jni.h new/bazel/patches/patch-src_main_native_unix__jni.h
+--- devel/bazel/patches/patch-src_main_native_unix__jni.h	2026-09-24 05:18:31.807640244 +0000
++++ devel/bazel/patches/patch-src_main_native_unix__jni.h	2026-09-24 05:18:31.730265327 +0000
+@@ -1,13 +1,19 @@
+-$NetBSD: patch-src_main_native_unix__jni.h,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/native/unix_jni.h.orig	2023-11-29 05:49:36.312797541 +0000
++Use plain stat, not stat64.
++
++The large-file variants are a glibc transition artefact.  Every BSD, this
++one included, has had a 64-bit off_t in struct stat all along.
++
++--- src/main/native/unix_jni.h.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/native/unix_jni.h
+-@@ -25,7 +25,7 @@
++@@ -26,7 +26,8 @@
+  
+  namespace blaze_jni {
+  
+ -#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+-+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+++#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || \
+++    defined(__NetBSD__) || defined(__DragonFly__)
+  // stat64 is deprecated on OS X/BSD.
+  typedef struct stat portable_stat_struct;
+  #define portable_stat ::stat
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_native_unix__jni__bsd.cc new/bazel/patches/patch-src_main_native_unix__jni__bsd.cc
+--- devel/bazel/patches/patch-src_main_native_unix__jni__bsd.cc	2026-09-24 05:18:31.808185565 +0000
++++ devel/bazel/patches/patch-src_main_native_unix__jni__bsd.cc	2026-09-24 05:18:31.730960108 +0000
+@@ -1,13 +1,25 @@
+-$NetBSD: patch-src_main_native_unix__jni__bsd.cc,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/native/unix_jni_bsd.cc.orig	2023-11-28 16:43:12.878427212 +0000
++Say which of the optional interfaces NetBSD has.
++
++This file is written for whichever BSD is compiling it and expects each to
++declare what it offers.  NetBSD has neither extattr(2) nor
++sysctlbyname(3), which is the same answer OpenBSD gives.
++
++--- src/main/native/unix_jni_bsd.cc.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/native/unix_jni_bsd.cc
+-@@ -15,6 +15,8 @@
++@@ -15,6 +15,14 @@
+  #if defined(__FreeBSD__)
+  # define HAVE_EXTATTR
+  # define HAVE_SYSCTLBYNAME
+++#elif defined(__DragonFly__)
+++// sys/extattr.h declares the whole extattr(2) family, but libc on 6.4
+++// defines only the _file variants; the _link ones called below are
+++// missing, so HAVE_EXTATTR would leave libunix_jni.so with an undefined
+++// symbol.  sysctlbyname(3) is present.
+++# define HAVE_SYSCTLBYNAME
+ +#elif defined(__NetBSD__)
+-+// XXX
+++// No sys/extattr.h or sysctlbyname on this platform.
+  #elif defined(__OpenBSD__)
+  // No sys/extattr.h or sysctlbyname on this platform.
+  #else
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_tools_BUILD new/bazel/patches/patch-src_main_tools_BUILD
+--- devel/bazel/patches/patch-src_main_tools_BUILD	2026-09-24 05:18:31.808752956 +0000
++++ devel/bazel/patches/patch-src_main_tools_BUILD	2026-09-24 05:18:31.731572476 +0000
+@@ -1,8 +1,15 @@
+-$NetBSD: patch-src_main_tools_BUILD,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/tools/BUILD.orig	2023-11-28 16:45:59.477101665 +0000
++Build the sandbox stub and the sysctl flavour of process-tools.
++
++There is no Linux-style sandbox here, so dummy-sandbox.c is the right
++source, as it is on the other BSDs.  process-tools-darwin.cc is the
++version that waits on a process group through sysctl(3) and kqueue rather
++than cgroups; despite the name it is what OpenBSD uses too.
++
++--- src/main/tools/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/tools/BUILD
+-@@ -15,6 +15,7 @@ cc_library(
++@@ -22,6 +22,7 @@ cc_library(
+      name = "process-tools",
+      srcs = ["process-tools.cc"] + select({
+          "//src/conditions:darwin": ["process-tools-darwin.cc"],
+@@ -10,23 +17,16 @@
+          "//src/conditions:openbsd": ["process-tools-darwin.cc"],
+          "//conditions:default": ["process-tools-linux.cc"],
+      }),
+-@@ -40,6 +41,7 @@ cc_binary(
+-     }),
+-     linkopts = select({
+-         "//src/conditions:darwin": ["-lm"],
+-+        "//src/conditions:netbsd": [],
+-         "//src/conditions:openbsd": [],
+-         "//src/conditions:windows": [],
+-         "//conditions:default": [
+-@@ -73,6 +75,7 @@ cc_binary(
++@@ -68,6 +69,8 @@ cc_binary(
+      srcs = select({
+          "//src/conditions:darwin": ["dummy-sandbox.c"],
+          "//src/conditions:freebsd": ["dummy-sandbox.c"],
+ +        "//src/conditions:netbsd": ["dummy-sandbox.c"],
+++        "//src/conditions:dragonfly": ["dummy-sandbox.c"],
+          "//src/conditions:openbsd": ["dummy-sandbox.c"],
+          "//src/conditions:windows": ["dummy-sandbox.c"],
+          "//conditions:default": [
+-@@ -87,6 +90,7 @@ cc_binary(
++@@ -82,6 +85,7 @@ cc_binary(
+      linkopts = select({
+          "//src/conditions:darwin": [],
+          "//src/conditions:freebsd": [],
+@@ -34,7 +34,7 @@
+          "//src/conditions:openbsd": [],
+          "//src/conditions:windows": [],
+          "//conditions:default": [
+-@@ -97,6 +101,7 @@ cc_binary(
++@@ -92,6 +96,7 @@ cc_binary(
+      deps = select({
+          "//src/conditions:darwin": [],
+          "//src/conditions:freebsd": [],
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_main_tools_process-tools-darwin.cc new/bazel/patches/patch-src_main_tools_process-tools-darwin.cc
+--- devel/bazel/patches/patch-src_main_tools_process-tools-darwin.cc	2026-09-24 05:18:31.809371470 +0000
++++ devel/bazel/patches/patch-src_main_tools_process-tools-darwin.cc	2026-09-24 05:18:31.732504159 +0000
+@@ -1,24 +1,67 @@
+-$NetBSD: patch-src_main_tools_process-tools-darwin.cc,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/main/tools/process-tools-darwin.cc.orig	2023-11-30 00:21:24.455150308 +0000
++Ask NetBSD's kernel for a process group the way it expects.
++
++NetBSD declares struct kinfo_proc for kernel use only.  Userland uses
++KERN_PROC2 and gets struct kinfo_proc2, which carries the pid in p_pid
++rather than in the nested kp_proc.p_pid the Darwin layout has.  The mib is
++longer as well: KERN_PROC2 takes the record size and the record count as
++two further elements, so it is six ints where KERN_PROC is four.
++
++--- src/main/tools/process-tools-darwin.cc.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/main/tools/process-tools-darwin.cc
+-@@ -24,6 +24,10 @@
++@@ -24,6 +24,12 @@
+  #include "src/main/tools/logging.h"
+  #include "src/main/tools/process-tools.h"
+  
+-+#if defined(__NetBSD__)
+++#if defined(__NetBSD__) || defined(__DragonFly__)
+++// NetBSD declares struct kinfo_proc for the kernel only.  Userland asks
+++// KERN_PROC2 instead and gets struct kinfo_proc2, whose pid lives in p_pid.
+ +#define kinfo_proc kinfo_proc2
+ +#endif
+ +
+- int WaitForProcessToTerminate(pid_t pid) {
+-   int kq;
+-   if ((kq = kqueue()) == -1) {
+-@@ -93,7 +97,7 @@ int WaitForProcessGroupToTerminate(pid_t
++ namespace {
++ 
++ int WaitForProcessToTerminate(uintptr_t ident) {
++@@ -72,7 +78,15 @@ int WaitForProcessToTerminate(pid_t pid)
++ }
++ 
++ int WaitForProcessGroupToTerminate(pid_t pgid) {
+++#if defined(__NetBSD__) || defined(__DragonFly__)
+++  // KERN_PROC2 takes the record size and the record count in the mib itself.
+++  int name[] = {CTL_KERN, KERN_PROC2, KERN_PROC_PGRP, pgid,
+++                static_cast<int>(sizeof(struct kinfo_proc)), 0};
+++  const unsigned int name_len = 6;
+++#else
++   int name[] = {CTL_KERN, KERN_PROC, KERN_PROC_PGRP, pgid};
+++  const unsigned int name_len = 4;
+++#endif
++ 
++   for (;;) {
++     // Query the list of processes in the group by using sysctl(3).
++@@ -84,11 +98,14 @@ int WaitForProcessGroupToTerminate(pid_t
++     size_t nprocs = 0;
++     do {
++       size_t len;
++-      if (sysctl(name, 4, 0, &len, nullptr, 0) == -1) {
+++      if (sysctl(name, name_len, 0, &len, nullptr, 0) == -1) {
++         return -1;
++       }
+++#if defined(__NetBSD__) || defined(__DragonFly__)
+++      name[5] = len / sizeof(struct kinfo_proc);
+++#endif
++       procs = (struct kinfo_proc *)malloc(len);
++-      if (sysctl(name, 4, procs, &len, nullptr, 0) == -1) {
+++      if (sysctl(name, name_len, procs, &len, nullptr, 0) == -1) {
++         if (errno != ENOMEM) {
++           DIE("Unexpected error code %d", errno);
++         }
++@@ -105,7 +122,7 @@ int WaitForProcessGroupToTerminate(pid_t
+      if (nprocs == 1) {
+        // Found only one process, which must be the leader because we have
+        // purposely expect it as a zombie with WaitForProcess.
+ -#if defined(__OpenBSD__)
+-+#if defined(__OpenBSD__) || defined(__NetBSD__)
+++#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+        if (procs->p_pid != pgid) {
+  #else
+        if (procs->kp_proc.p_pid != pgid) {
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java	2026-09-24 05:18:31.809967356 +0000
++++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,12 +0,0 @@
+-$NetBSD: patch-src_test_java_com_google_devtools_build_lib_bazel_repository_LocalConfigPlatformFunctionTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunctionTest.java.orig	2023-11-28 16:47:43.460647791 +0000
+-+++ src/test/java/com/google/devtools/build/lib/bazel/repository/LocalConfigPlatformFunctionTest.java
+-@@ -87,6 +87,7 @@ public class LocalConfigPlatformFunction
+-           new Object[] {OS.LINUX, "@platforms//os:linux"},
+-           new Object[] {OS.DARWIN, "@platforms//os:osx"},
+-           new Object[] {OS.FREEBSD, "@platforms//os:freebsd"},
+-+          new Object[] {OS.NETBSD, "@platforms//os:netbsd"},
+-           new Object[] {OS.OPENBSD, "@platforms//os:openbsd"},
+-           new Object[] {OS.WINDOWS, "@platforms//os:windows"});
+-     }
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java	2026-09-24 05:18:31.811864245 +0000
++++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,22 +0,0 @@
+-$NetBSD: patch-src_test_java_com_google_devtools_build_lib_bazel_rules_BazelRuleClassProviderTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProviderTest.java.orig	2023-11-30 05:50:35.115838020 +0000
+-+++ src/test/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProviderTest.java
+-@@ -218,6 +218,8 @@ public class BazelRuleClassProviderTest 
+-         .isEqualTo(PathFragment.create("/bin/bash"));
+-     assertThat(determineShellExecutable(OS.FREEBSD, null))
+-         .isEqualTo(PathFragment.create("/usr/local/bin/bash"));
+-+    assertThat(determineShellExecutable(OS.NETBSD, null))
+-+        .isEqualTo(PathFragment.create("/usr/pkg/bin/bash"));
+-     assertThat(determineShellExecutable(OS.OPENBSD, null))
+-         .isEqualTo(PathFragment.create("/usr/local/bin/bash"));
+-     assertThat(determineShellExecutable(OS.WINDOWS, null))
+-@@ -231,6 +233,8 @@ public class BazelRuleClassProviderTest 
+-         .isEqualTo(PathFragment.create("/bin/bash"));
+-     assertThat(determineShellExecutable(OS.FREEBSD, binBash))
+-         .isEqualTo(PathFragment.create("/bin/bash"));
+-+    assertThat(determineShellExecutable(OS.NETBSD, binBash))
+-+        .isEqualTo(PathFragment.create("/bin/bash"));
+-     assertThat(determineShellExecutable(OS.OPENBSD, binBash))
+-         .isEqualTo(PathFragment.create("/bin/bash"));
+-     assertThat(determineShellExecutable(OS.WINDOWS, binBash))
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java	2026-09-24 05:18:31.812443928 +0000
++++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,15 +0,0 @@
+-$NetBSD: patch-src_test_java_com_google_devtools_build_lib_packages_util_MockPlatformSupport.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/java/com/google/devtools/build/lib/packages/util/MockPlatformSupport.java.orig	2023-11-28 16:47:15.246726723 +0000
+-+++ src/test/java/com/google/devtools/build/lib/packages/util/MockPlatformSupport.java
+-@@ -136,6 +136,10 @@ public class MockPlatformSupport {
+-         "    constraint_setting = ':os',",
+-         ")",
+-         "constraint_value(",
+-+        "    name = 'netbsd',",
+-+        "    constraint_setting = ':os',",
+-+        ")",
+-+        "constraint_value(",
+-         "    name = 'openbsd',",
+-         "    constraint_setting = ':os',",
+-         ")");
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java	2026-09-24 05:18:31.813032829 +0000
++++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,12 +0,0 @@
+-$NetBSD: patch-src_test_java_com_google_devtools_build_lib_platform_SleepPreventionModuleTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/java/com/google/devtools/build/lib/platform/SleepPreventionModuleTest.java.orig	2023-11-30 05:51:43.180401312 +0000
+-+++ src/test/java/com/google/devtools/build/lib/platform/SleepPreventionModuleTest.java
+-@@ -32,6 +32,7 @@ public final class SleepPreventionModule
+-         return true;
+-       case LINUX:
+-       case FREEBSD:
+-+      case NETBSD:
+-       case OPENBSD:
+-       case UNKNOWN:
+-         return false;
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java	2026-09-24 05:18:31.813621452 +0000
++++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,32 +0,0 @@
+-$NetBSD: patch-src_test_java_com_google_devtools_build_lib_runtime_BlazeOptionHandlerTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/java/com/google/devtools/build/lib/runtime/BlazeOptionHandlerTest.java.orig	2023-11-28 16:50:58.267394320 +0000
+-+++ src/test/java/com/google/devtools/build/lib/runtime/BlazeOptionHandlerTest.java
+-@@ -117,6 +117,7 @@ public class BlazeOptionHandlerTest {
+-     structuredArgs.put("c0:windows", new RcChunkOfArgs("rc1", ImmutableList.of("command_windows")));
+-     structuredArgs.put("c0:macos", new RcChunkOfArgs("rc1", ImmutableList.of("command_macos")));
+-     structuredArgs.put("c0:freebsd", new RcChunkOfArgs("rc1", ImmutableList.of("command_freebsd")));
+-+    structuredArgs.put("c0:netbsd", new RcChunkOfArgs("rc1", ImmutableList.of("command_netbsd")));
+-     structuredArgs.put("c0:openbsd", new RcChunkOfArgs("rc1", ImmutableList.of("command_openbsd")));
+-     structuredArgs.put(
+-         "c0:platform_config",
+-@@ -283,6 +284,9 @@ public class BlazeOptionHandlerTest {
+-       case FREEBSD:
+-         assertThat(parser.getResidue()).containsExactly("command_freebsd");
+-         break;
+-+      case NETBSD:
+-+        assertThat(parser.getResidue()).containsExactly("command_netbsd");
+-+        break;
+-       case OPENBSD:
+-         assertThat(parser.getResidue()).containsExactly("command_openbsd");
+-         break;
+-@@ -311,6 +315,9 @@ public class BlazeOptionHandlerTest {
+-       case FREEBSD:
+-         assertThat(parser.getResidue()).containsExactly("command_freebsd");
+-         break;
+-+      case NETBSD:
+-+        assertThat(parser.getResidue()).containsExactly("command_netbsd");
+-+        break;
+-       case OPENBSD:
+-         assertThat(parser.getResidue()).containsExactly("command_openbsd");
+-         break;
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java new/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java
+--- devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java	2026-09-24 05:18:31.814211471 +0000
++++ devel/bazel/patches/patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java	1970-01-01 00:00:00.000000000 +0000
+@@ -1,20 +0,0 @@
+-$NetBSD: patch-src_test_java_com_google_devtools_build_lib_runtime_commands_CleanCommandRecommendsAsyncTest.java,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/java/com/google/devtools/build/lib/runtime/commands/CleanCommandRecommendsAsyncTest.java.orig	2023-11-30 05:52:55.919903525 +0000
+-+++ src/test/java/com/google/devtools/build/lib/runtime/commands/CleanCommandRecommendsAsyncTest.java
+-@@ -51,6 +51,7 @@ public class CleanCommandRecommendsAsync
+-           {/* asyncOnCommandLine= */ true, OS.WINDOWS, false},
+-           {/* asyncOnCommandLine= */ true, OS.DARWIN, false},
+-           {/* asyncOnCommandLine= */ true, OS.FREEBSD, false},
+-+          {/* asyncOnCommandLine= */ true, OS.NETBSD, false},
+-           {/* asyncOnCommandLine= */ true, OS.OPENBSD, false},
+-           {/* asyncOnCommandLine= */ true, OS.UNKNOWN, false},
+- 
+-@@ -59,6 +60,7 @@ public class CleanCommandRecommendsAsync
+-           {/* asyncOnCommandLine= */ false, OS.WINDOWS, false},
+-           {/* asyncOnCommandLine= */ false, OS.DARWIN, true},
+-           {/* asyncOnCommandLine= */ false, OS.FREEBSD, true},
+-+          {/* asyncOnCommandLine= */ false, OS.NETBSD, true},
+-           {/* asyncOnCommandLine= */ false, OS.OPENBSD, true},
+-           {/* asyncOnCommandLine= */ false, OS.UNKNOWN, false},
+-         });
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh new/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh
+--- devel/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh	2026-09-24 05:18:31.815549629 +0000
++++ devel/bazel/patches/patch-src_test_shell_bazel_remote_remote__execution__test.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -1,22 +0,0 @@
+-$NetBSD: patch-src_test_shell_bazel_remote_remote__execution__test.sh,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/shell/bazel/remote/remote_execution_test.sh.orig	2023-11-28 16:48:56.932298505 +0000
+-+++ src/test/shell/bazel/remote/remote_execution_test.sh
+-@@ -197,7 +197,7 @@ EOF
+- # TODO(b/211478955): Deflake and re-enable.
+- function DISABLED_test_remote_grpc_via_unix_socket_proxy() {
+-   case "$PLATFORM" in
+--  darwin|freebsd|linux|openbsd)
+-+  darwin|freebsd|linux|openbsd|netbsd)
+-     ;;
+-   *)
+-     return 0
+-@@ -236,7 +236,7 @@ EOF
+- # TODO(b/211478955): Deflake and re-enable.
+- function DISABLED_test_remote_grpc_via_unix_socket_direct() {
+-   case "$PLATFORM" in
+--  darwin|freebsd|linux|openbsd)
+-+  darwin|freebsd|linux|openbsd|netbsd)
+-     ;;
+-   *)
+-     return 0
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh new/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh
+--- devel/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh	2026-09-24 05:18:31.816242455 +0000
++++ devel/bazel/patches/patch-src_test_shell_bazel_unicode__filenames__test.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-src_test_shell_bazel_unicode__filenames__test.sh,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/shell/bazel/unicode_filenames_test.sh.orig	2023-11-28 16:49:24.316954368 +0000
+-+++ src/test/shell/bazel/unicode_filenames_test.sh
+-@@ -142,7 +142,7 @@ function test_traditional_encoding_sourc
+-   # the traditional BSDs typically don't, so their paths can contain arbitrary
+-   # non-NUL bytes.
+-   case "$(uname -s | tr [:upper:] [:lower:])" in
+--  linux|freebsd)
+-+  linux|freebsd|netbsd)
+-     ;;
+-   *)
+-     echo "Skipping test." && return
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_test_shell_shell__utils.sh new/bazel/patches/patch-src_test_shell_shell__utils.sh
+--- devel/bazel/patches/patch-src_test_shell_shell__utils.sh	2026-09-24 05:18:31.810711305 +0000
++++ devel/bazel/patches/patch-src_test_shell_shell__utils.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-src_test_shell_shell__utils.sh,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/test/shell/shell_utils.sh.orig	2023-11-28 16:48:06.068223021 +0000
+-+++ src/test/shell/shell_utils.sh
+-@@ -110,7 +110,7 @@ function get_real_path() {
+- function md5_file() {
+-   if [ $# -gt 0 ]; then
+-     local result=""
+--    if [[ ${PLATFORM} == "darwin" ]] || [[ ${PLATFORM} == "freebsd" ]] || [[ ${PLATFORM} == "openbsd" ]]; then
+-+    if [[ ${PLATFORM} == "darwin" ]] || [[ ${PLATFORM} == "freebsd" ]] || [[ ${PLATFORM} == "netbsd" ]] || [[ ${PLATFORM} == "openbsd" ]]; then
+-       result=$(md5 -q $@ || echo)
+-     else
+-       result=$(md5sum $@ | awk '{print $1}' || echo)
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_BUILD new/bazel/patches/patch-src_tools_singlejar_BUILD
+--- devel/bazel/patches/patch-src_tools_singlejar_BUILD	2026-09-24 05:18:31.817090887 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_BUILD	1970-01-01 00:00:00.000000000 +0000
+@@ -1,20 +0,0 @@
+-$NetBSD: patch-src_tools_singlejar_BUILD,v 1.1 2024/01/01 12:00:59 ryoon Exp $
+-
+---- src/tools/singlejar/BUILD.orig	2023-11-28 16:49:45.631463476 +0000
+-+++ src/tools/singlejar/BUILD
+-@@ -76,6 +76,7 @@ cc_binary(
+-     ],
+-     linkopts = select({
+-         "//src/conditions:freebsd": ["-lm"],
+-+        "//src/conditions:netbsd": ["-lm"],
+-         "//src/conditions:openbsd": ["-lm"],
+-         "//conditions:default": [],
+-     }),
+-@@ -95,6 +96,7 @@ cc_binary(
+-     ],
+-     linkopts = select({
+-         "//src/conditions:freebsd": ["-lm"],
+-+        "//src/conditions:netbsd": ["-lm"],
+-         "//src/conditions:openbsd": ["-lm"],
+-         "//conditions:default": [],
+-     }),
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_diag.h new/bazel/patches/patch-src_tools_singlejar_diag.h
+--- devel/bazel/patches/patch-src_tools_singlejar_diag.h	2026-09-24 05:18:31.817944068 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_diag.h	2026-09-24 05:18:31.733177149 +0000
+@@ -1,13 +1,18 @@
+-$NetBSD: patch-src_tools_singlejar_diag.h,v 1.1 2024/01/01 12:00:59 ryoon Exp $
++$NetBSD$
+ 
+---- src/tools/singlejar/diag.h.orig	2023-11-29 01:42:21.128823620 +0000
++Use err(3) rather than the fallback.
++
++The list is of systems that have <err.h>; NetBSD is one of them, and the
++replacement below it exists only for the systems that are not.
++
++--- src/tools/singlejar/diag.h.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/tools/singlejar/diag.h
+ @@ -20,7 +20,7 @@
+   * for portability.
+   */
+  #if defined(__APPLE__) || defined(__linux__) || defined(__FreeBSD__) || \
+ -    defined(__OpenBSD__)
+-+    defined(__OpenBSD__) || defined(__NetBSD__)
+++    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  
+  #include <err.h>
+  #define diag_err(...) err(__VA_ARGS__)
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc new/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc
+--- devel/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc	2026-09-24 05:18:31.818869325 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_mapped__file__posix.inc	2026-09-24 05:18:31.733855727 +0000
+@@ -1,13 +1,19 @@
+-$NetBSD: patch-src_tools_singlejar_mapped__file__posix.inc,v 1.1 2024/01/01 12:01:00 ryoon Exp $
++$NetBSD$
+ 
+---- src/tools/singlejar/mapped_file_posix.inc.orig	2023-11-29 01:55:21.101251891 +0000
++Let singlejar build on 64-bit NetBSD.
++
++The guard is a list of systems this mmap-based implementation has been
++written for, and NetBSD behaves as the others do.  The 64-bit requirement
++is left alone: it is why bazel cannot be built for i386 at all.
++
++--- src/tools/singlejar/mapped_file_posix.inc.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/tools/singlejar/mapped_file_posix.inc
+ @@ -26,7 +26,7 @@
+  
+  // The implementation is specific to 64-bit Linux / OS X / BSD.
+  #if !((defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
+ -       defined(__OpenBSD__)) &&                                            \
+-+       defined(__OpenBSD__) || defined(__NetBSD__)) &&                                            \
+++       defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)) &&                     \
+        __SIZEOF_POINTER__ == 8)
+  #error This code for 64 bit Unix.
+  #endif
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_port.h new/bazel/patches/patch-src_tools_singlejar_port.h
+--- devel/bazel/patches/patch-src_tools_singlejar_port.h	2026-09-24 05:18:31.819735916 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_port.h	2026-09-24 05:18:31.734530115 +0000
+@@ -1,13 +1,17 @@
+-$NetBSD: patch-src_tools_singlejar_port.h,v 1.1 2024/01/01 12:01:00 ryoon Exp $
++$NetBSD$
+ 
+---- src/tools/singlejar/port.h.orig	2023-11-29 01:53:34.029841579 +0000
++Take the same off64_t definition as the other BSDs.
++
++off_t is already 64 bits here, so the typedef is the whole of it.
++
++--- src/tools/singlejar/port.h.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/tools/singlejar/port.h
+ @@ -32,7 +32,7 @@
+  typedef off_t off64_t;
+  #elif defined(_WIN32)
+  typedef __int64 off64_t;
+ -#elif defined(__OpenBSD__)
+-+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+++#elif defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  typedef int64_t off64_t;
+  #endif
+  static_assert(sizeof(off64_t) == 8, "File offset type must be 64-bit");
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-src_tools_singlejar_zip__headers.h new/bazel/patches/patch-src_tools_singlejar_zip__headers.h
+--- devel/bazel/patches/patch-src_tools_singlejar_zip__headers.h	2026-09-24 05:18:31.820607256 +0000
++++ devel/bazel/patches/patch-src_tools_singlejar_zip__headers.h	2026-09-24 05:18:31.735193886 +0000
+@@ -1,13 +1,17 @@
+-$NetBSD: patch-src_tools_singlejar_zip__headers.h,v 1.1 2024/01/01 12:01:00 ryoon Exp $
++$NetBSD$
+ 
+---- src/tools/singlejar/zip_headers.h.orig	2023-11-29 01:51:37.732181412 +0000
++Get the byte-order macros from <sys/endian.h>.
++
++Same reason as src/main/cpp/util/md5.h: <endian.h> is glibc's spelling.
++
++--- src/tools/singlejar/zip_headers.h.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ src/tools/singlejar/zip_headers.h
+ @@ -27,7 +27,7 @@
+  
+  #if defined(__linux__)
+  #include <endian.h>
+ -#elif defined(__FreeBSD__) || defined(__OpenBSD__)
+-+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+++#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  #include <sys/endian.h>
+  #elif defined(__APPLE__) || defined(_WIN32)
+  // Hopefully OSX and Windows will keep running solely on little endian CPUs, so:
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_BUILD new/bazel/patches/patch-third__party_BUILD
+--- devel/bazel/patches/patch-third__party_BUILD	2026-09-24 05:18:31.821532792 +0000
++++ devel/bazel/patches/patch-third__party_BUILD	2026-09-24 05:18:31.735886153 +0000
+@@ -1,24 +1,17 @@
+-$NetBSD: patch-third__party_BUILD,v 1.1 2024/01/01 12:01:00 ryoon Exp $
++$NetBSD$
+ 
+---- third_party/BUILD.orig	2023-11-28 16:50:15.975516749 +0000
++Add the NetBSD arm of a select() that has one arm per system.
++
++Without an entry the default arm is taken, which is the Linux one.
++
++--- third_party/BUILD.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ third_party/BUILD
+-@@ -625,6 +625,7 @@ UNNECESSARY_DYNAMIC_LIBRARIES = select({
+-     "//src/conditions:linux_ppc": "*.so *.jnilib *.dll",
+-     "//src/conditions:linux_s390x": "*.so *.jnilib *.dll",
+-     "//src/conditions:freebsd": "*.so *.jnilib *.dll",
+-+    "//src/conditions:netbsd": "*.so *.jnilib *.dll",
+-     "//src/conditions:openbsd": "*.so *.jnilib *.dll",
++@@ -520,6 +520,8 @@ UNNECESSARY_DYNAMIC_LIBRARIES = select({
++     "//src/conditions:linux_aarch64": "*.so *.jnilib *.dll *.pyd",
++     "//src/conditions:linux_ppc": "*.so *.jnilib *.dll *.pyd",
++     "//src/conditions:freebsd": "*.so *.jnilib *.dll *.pyd",
+++    "//src/conditions:netbsd": "*.so *.jnilib *.dll *.pyd",
+++    "//src/conditions:dragonfly": "*.so *.jnilib *.dll *.pyd",
++     "//src/conditions:openbsd": "*.so *.jnilib *.dll *.pyd",
+      # Default is to play it safe -- better have a big binary than a slow binary
+      #   The empty string means nothing is to be removed from the library;
+-@@ -899,6 +900,11 @@ config_setting(
+- )
+- 
+- config_setting(
+-+    name = "netbsd",
+-+    values = {"host_cpu": "netbsd"},
+-+)
+-+
+-+config_setting(
+-     name = "openbsd",
+-     values = {"host_cpu": "openbsd"},
+- )
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch new/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch
+--- devel/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch	2026-09-24 05:18:31.822470900 +0000
++++ devel/bazel/patches/patch-third__party_abseil-cpp_netbsd-sunos.patch	1970-01-01 00:00:00.000000000 +0000
+@@ -1,90 +0,0 @@
+-$NetBSD: patch-third__party_abseil-cpp_netbsd-sunos.patch,v 1.2 2026/02/24 20:48:20 christos Exp $
+-
+---- third_party/abseil-cpp/netbsd-sunos.patch.orig	2023-11-29 10:06:39.399538673 +0000
+-+++ third_party/abseil-cpp/netbsd-sunos.patch
+-@@ -0,0 +1,85 @@
+-+--- absl/debugging/internal/vdso_support.cc	2021-11-04 00:26:14.000000000 +0900
+-++++ absl/debugging/internal/vdso_support.cc	2023-11-29 18:58:33.941707708 +0900
+-+@@ -50,8 +50,14 @@
+-+ #define AT_SYSINFO_EHDR 33  // for crosstoolv10
+-+ #endif
+-+ 
+-++#if defined(__NetBSD__)
+-++using Elf32_auxv_t = Aux32Info;
+-++using Elf64_auxv_t = Aux64Info;
+-++#endif
+-+ #if defined(__FreeBSD__)
+-++#if defined(__ELF_WORD_SIZE) && __ELF_WORD_SIZE == 64
+-+ using Elf64_auxv_t = Elf64_Auxinfo;
+-++#endif
+-+ using Elf32_auxv_t = Elf32_Auxinfo;
+-+ #endif
+-+ 
+-+@@ -93,6 +101,9 @@
+-+     }
+-+   }
+-+ #endif  // ABSL_HAVE_GETAUXVAL
+-++#if defined(__sun)
+-++      return nullptr;
+-++#else // !__sun
+-+   if (vdso_base_.load(std::memory_order_relaxed) == kInvalidBase) {
+-+     int fd = open("/proc/self/auxv", O_RDONLY);
+-+     if (fd == -1) {
+-+@@ -104,8 +115,13 @@
+-+     ElfW(auxv_t) aux;
+-+     while (read(fd, &aux, sizeof(aux)) == sizeof(aux)) {
+-+       if (aux.a_type == AT_SYSINFO_EHDR) {
+-++#if defined(__NetBSD__)
+-++        vdso_base_.store(reinterpret_cast<void *>(aux.a_v),
+-++                         std::memory_order_relaxed);
+-++#else
+-+         vdso_base_.store(reinterpret_cast<void *>(aux.a_un.a_val),
+-+                          std::memory_order_relaxed);
+-++#endif
+-+         break;
+-+       }
+-+     }
+-+@@ -127,6 +143,7 @@
+-+   // from assigning to getcpu_fn_ more than once.
+-+   getcpu_fn_.store(fn, std::memory_order_relaxed);
+-+   return vdso_base_.load(std::memory_order_relaxed);
+-++#endif // __sun
+-+ }
+-+ 
+-+ const void *VDSOSupport::SetBase(const void *base) {
+-+
+-+--- absl/debugging/internal/elf_mem_image.cc	2021-11-04 00:26:14.000000000 +0900
+-++++ absl/debugging/internal/elf_mem_image.cc	2023-09-18 23:40:01.000000000 +0900
+-+@@ -351,7 +350,11 @@
+-+   const ElfW(Versym) *version_symbol = image->GetVersym(index_);
+-+   ABSL_RAW_CHECK(symbol && version_symbol, "");
+-+   const char *const symbol_name = image->GetDynstr(symbol->st_name);
+-++#if defined(__NetBSD__) && (_SYS_EXEC_ELF_H_ + 0) < 2
+-++  const int version_index = version_symbol->vs_vers & VERSYM_VERSION;
+-++#else
+-+   const ElfW(Versym) version_index = version_symbol[0] & VERSYM_VERSION;
+-++#endif
+-+   const ElfW(Verdef) *version_definition = nullptr;
+-+   const char *version_name = "";
+-+   if (symbol->st_shndx == SHN_UNDEF) {
+-+
+-+--- absl/base/config.h.orig	2023-11-29 11:18:01.165394118 +0000
+-++++ absl/base/config.h
+-+@@ -414,7 +414,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMES
+-+     defined(_AIX) || defined(__ros__) || defined(__native_client__) ||    \
+-+     defined(__asmjs__) || defined(__wasm__) || defined(__Fuchsia__) ||    \
+-+     defined(__sun) || defined(__ASYLO__) || defined(__myriad2__) ||       \
+-+-    defined(__HAIKU__)
+-++    defined(__HAIKU__) || defined(__NetBSD__)
+-+ #define ABSL_HAVE_MMAP 1
+-+ #endif
+-+ 
+-+@@ -425,7 +425,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMES
+-+ #ifdef ABSL_HAVE_PTHREAD_GETSCHEDPARAM
+-+ #error ABSL_HAVE_PTHREAD_GETSCHEDPARAM cannot be directly set
+-+ #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
+-+-    defined(_AIX) || defined(__ros__)
+-++    defined(_AIX) || defined(__ros__) || defined(__NetBSD__)
+-+ #define ABSL_HAVE_PTHREAD_GETSCHEDPARAM 1
+-+ #endif
+-+ 
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_grpc_netbsd-config.patch new/bazel/patches/patch-third__party_grpc_netbsd-config.patch
+--- devel/bazel/patches/patch-third__party_grpc_netbsd-config.patch	2026-09-24 05:18:31.824726215 +0000
++++ devel/bazel/patches/patch-third__party_grpc_netbsd-config.patch	1970-01-01 00:00:00.000000000 +0000
+@@ -1,546 +0,0 @@
+-$NetBSD: patch-third__party_grpc_netbsd-config.patch,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- third_party/grpc/netbsd-config.patch.orig	2023-11-30 14:45:15.969407560 +0000
+-+++ third_party/grpc/netbsd-config.patch
+-@@ -0,0 +1,541 @@
+-+diff -urN grpc-1.47.0.orig/third_party/cares/BUILD grpc-1.47.0/third_party/cares/BUILD
+-+--- grpc-1.47.0.orig/third_party/cares/BUILD	2022-06-22 05:39:47.000000000 +0900
+-++++ grpc-1.47.0/third_party/cares/BUILD	2023-11-30 22:06:53.041336686 +0900
+-+@@ -7,4 +7,5 @@
+-+     "config_linux/ares_config.h",
+-+     "config_openbsd/ares_config.h",
+-+     "config_windows/ares_config.h",
+-++    "config_netbsd/ares_config.h",
+-+ ])
+-+diff -urN grpc-1.47.0.orig/third_party/cares/cares.BUILD grpc-1.47.0/third_party/cares/cares.BUILD
+-+--- grpc-1.47.0.orig/third_party/cares/cares.BUILD	2022-06-22 05:39:47.000000000 +0900
+-++++ grpc-1.47.0/third_party/cares/cares.BUILD	2023-11-30 23:45:01.919685194 +0900
+-+@@ -88,6 +88,11 @@
+-+     values = {"cpu": "watchos_arm64_32"}
+-+ )
+-+ 
+-++config_setting(
+-++    name = "netbsd",
+-++    values = {"cpu": "netbsd"},
+-++)
+-++
+-+ copy_file(
+-+     name = "ares_build_h",
+-+     src = "@com_github_grpc_grpc//third_party/cares:ares_build.h",
+-+@@ -113,6 +118,7 @@
+-+         ":darwin_arm64e": "@com_github_grpc_grpc//third_party/cares:config_darwin/ares_config.h",
+-+         ":windows": "@com_github_grpc_grpc//third_party/cares:config_windows/ares_config.h",
+-+         ":android": "@com_github_grpc_grpc//third_party/cares:config_android/ares_config.h",
+-++        ":netbsd": "@com_github_grpc_grpc//third_party/cares:config_netbsd/ares_config.h",
+-+         "//conditions:default": "@com_github_grpc_grpc//third_party/cares:config_linux/ares_config.h",
+-+     }),
+-+     out = "ares_config.h",
+-+diff -urN grpc-1.47.0.orig/third_party/cares/config_netbsd/ares_config.h grpc-1.47.0/third_party/cares/config_netbsd/ares_config.h
+-+--- grpc-1.47.0.orig/third_party/cares/config_netbsd/ares_config.h	1970-01-01 09:00:00.000000000 +0900
+-++++ grpc-1.47.0/third_party/cares/config_netbsd/ares_config.h	2023-11-30 23:08:42.228971343 +0900
+-+@@ -0,0 +1,505 @@
+-++/* ares_config.h.  Generated from ares_config.h.in by configure.  */
+-++/* ares_config.h.in.  Generated from configure.ac by autoheader.  */
+-++
+-++/* Define if building universal (internal helper macro) */
+-++/* #undef AC_APPLE_UNIVERSAL_BUILD */
+-++
+-++/* define this if ares is built for a big endian system */
+-++/* #undef ARES_BIG_ENDIAN */
+-++
+-++/* when building as static part of libcurl */
+-++/* #undef BUILDING_LIBCURL */
+-++
+-++/* Defined for build that exposes internal static functions for testing. */
+-++/* #undef CARES_EXPOSE_STATICS */
+-++
+-++/* Defined for build with symbol hiding. */
+-++#define CARES_SYMBOL_HIDING 1
+-++
+-++/* Definition to make a library symbol externally visible. */
+-++#define CARES_SYMBOL_SCOPE_EXTERN __attribute__ ((__visibility__ ("default")))
+-++
+-++/* the signed version of size_t */
+-++#define CARES_TYPEOF_ARES_SSIZE_T ssize_t
+-++
+-++/* Use resolver library to configure cares */
+-++/* #undef CARES_USE_LIBRESOLV */
+-++
+-++/* if a /etc/inet dir is being used */
+-++/* #undef ETC_INET */
+-++
+-++/* Define to the type of arg 2 for gethostname. */
+-++#define GETHOSTNAME_TYPE_ARG2 size_t
+-++
+-++/* Define to the type qualifier of arg 1 for getnameinfo. */
+-++#define GETNAMEINFO_QUAL_ARG1 const
+-++
+-++/* Define to the type of arg 1 for getnameinfo. */
+-++#define GETNAMEINFO_TYPE_ARG1 struct sockaddr *
+-++
+-++/* Define to the type of arg 2 for getnameinfo. */
+-++#define GETNAMEINFO_TYPE_ARG2 socklen_t
+-++
+-++/* Define to the type of args 4 and 6 for getnameinfo. */
+-++#define GETNAMEINFO_TYPE_ARG46 size_t
+-++
+-++/* Define to the type of arg 7 for getnameinfo. */
+-++#define GETNAMEINFO_TYPE_ARG7 int
+-++
+-++/* Specifies the number of arguments to getservbyport_r */
+-++#define GETSERVBYPORT_R_ARGS 4
+-++
+-++/* Specifies the size of the buffer to pass to getservbyport_r */
+-++#define GETSERVBYPORT_R_BUFSIZE sizeof(struct servent_data)
+-++
+-++/* Define to 1 if you have AF_INET6. */
+-++#define HAVE_AF_INET6 1
+-++
+-++/* Define to 1 if you have the <arpa/inet.h> header file. */
+-++#define HAVE_ARPA_INET_H 1
+-++
+-++/* Define to 1 if you have the <arpa/nameser_compat.h> header file. */
+-++/* #undef HAVE_ARPA_NAMESER_COMPAT_H */
+-++
+-++/* Define to 1 if you have the <arpa/nameser.h> header file. */
+-++#define HAVE_ARPA_NAMESER_H 1
+-++
+-++/* Define to 1 if you have the <assert.h> header file. */
+-++#define HAVE_ASSERT_H 1
+-++
+-++/* Define to 1 if you have the `bitncmp' function. */
+-++/* #undef HAVE_BITNCMP */
+-++
+-++/* Define to 1 if bool is an available type. */
+-++#define HAVE_BOOL_T 1
+-++
+-++/* Define to 1 if you have the clock_gettime function and monotonic timer. */
+-++#define HAVE_CLOCK_GETTIME_MONOTONIC 1
+-++
+-++/* Define to 1 if you have the closesocket function. */
+-++/* #undef HAVE_CLOSESOCKET */
+-++
+-++/* Define to 1 if you have the CloseSocket camel case function. */
+-++/* #undef HAVE_CLOSESOCKET_CAMEL */
+-++
+-++/* Define to 1 if you have the connect function. */
+-++#define HAVE_CONNECT 1
+-++
+-++/* define if the compiler supports basic C++11 syntax */
+-++/* #undef HAVE_CXX11 */
+-++
+-++/* Define to 1 if you have the <dlfcn.h> header file. */
+-++#define HAVE_DLFCN_H 1
+-++
+-++/* Define to 1 if you have the <errno.h> header file. */
+-++#define HAVE_ERRNO_H 1
+-++
+-++/* Define to 1 if you have the fcntl function. */
+-++#define HAVE_FCNTL 1
+-++
+-++/* Define to 1 if you have the <fcntl.h> header file. */
+-++#define HAVE_FCNTL_H 1
+-++
+-++/* Define to 1 if you have a working fcntl O_NONBLOCK function. */
+-++#define HAVE_FCNTL_O_NONBLOCK 1
+-++
+-++/* Define to 1 if you have the freeaddrinfo function. */
+-++#define HAVE_FREEADDRINFO 1
+-++
+-++/* Define to 1 if you have a working getaddrinfo function. */
+-++#define HAVE_GETADDRINFO 1
+-++
+-++/* Define to 1 if the getaddrinfo function is threadsafe. */
+-++/* #undef HAVE_GETADDRINFO_THREADSAFE */
+-++
+-++/* Define to 1 if you have the getenv function. */
+-++#define HAVE_GETENV 1
+-++
+-++/* Define to 1 if you have the gethostbyaddr function. */
+-++#define HAVE_GETHOSTBYADDR 1
+-++
+-++/* Define to 1 if you have the gethostbyname function. */
+-++#define HAVE_GETHOSTBYNAME 1
+-++
+-++/* Define to 1 if you have the gethostname function. */
+-++#define HAVE_GETHOSTNAME 1
+-++
+-++/* Define to 1 if you have the getnameinfo function. */
+-++#define HAVE_GETNAMEINFO 1
+-++
+-++/* Define to 1 if you have the getservbyport_r function. */
+-++/* #undef HAVE_GETSERVBYPORT_R */
+-++
+-++/* Define to 1 if you have the `gettimeofday' function. */
+-++#define HAVE_GETTIMEOFDAY 1
+-++
+-++/* Define to 1 if you have the `if_indextoname' function. */
+-++#define HAVE_IF_INDEXTONAME 1
+-++
+-++/* Define to 1 if you have a IPv6 capable working inet_net_pton function. */
+-++/* #undef HAVE_INET_NET_PTON */
+-++
+-++/* Define to 1 if you have a IPv6 capable working inet_ntop function. */
+-++#define HAVE_INET_NTOP 1
+-++
+-++/* Define to 1 if you have a IPv6 capable working inet_pton function. */
+-++#define HAVE_INET_PTON 1
+-++
+-++/* Define to 1 if you have the <inttypes.h> header file. */
+-++#define HAVE_INTTYPES_H 1
+-++
+-++/* Define to 1 if you have the ioctl function. */
+-++#define HAVE_IOCTL 1
+-++
+-++/* Define to 1 if you have the ioctlsocket function. */
+-++/* #undef HAVE_IOCTLSOCKET */
+-++
+-++/* Define to 1 if you have the IoctlSocket camel case function. */
+-++/* #undef HAVE_IOCTLSOCKET_CAMEL */
+-++
+-++/* Define to 1 if you have a working IoctlSocket camel case FIONBIO function.
+-++   */
+-++/* #undef HAVE_IOCTLSOCKET_CAMEL_FIONBIO */
+-++
+-++/* Define to 1 if you have a working ioctlsocket FIONBIO function. */
+-++/* #undef HAVE_IOCTLSOCKET_FIONBIO */
+-++
+-++/* Define to 1 if you have a working ioctl FIONBIO function. */
+-++#define HAVE_IOCTL_FIONBIO 1
+-++
+-++/* Define to 1 if you have a working ioctl SIOCGIFADDR function. */
+-++#define HAVE_IOCTL_SIOCGIFADDR 1
+-++
+-++/* Define to 1 if you have the `resolve' library (-lresolve). */
+-++/* #undef HAVE_LIBRESOLVE */
+-++
+-++/* Define to 1 if you have the <limits.h> header file. */
+-++#define HAVE_LIMITS_H 1
+-++
+-++/* if your compiler supports LL */
+-++#define HAVE_LL 1
+-++
+-++/* Define to 1 if the compiler supports the 'long long' data type. */
+-++#define HAVE_LONGLONG 1
+-++
+-++/* Define to 1 if you have the malloc.h header file. */
+-++/* #undef HAVE_MALLOC_H */
+-++
+-++/* Define to 1 if you have the memory.h header file. */
+-++#define HAVE_MEMORY_H 1
+-++
+-++/* Define to 1 if you have the MSG_NOSIGNAL flag. */
+-++#define HAVE_MSG_NOSIGNAL 1
+-++
+-++/* Define to 1 if you have the <netdb.h> header file. */
+-++#define HAVE_NETDB_H 1
+-++
+-++/* Define to 1 if you have the <netinet/in.h> header file. */
+-++#define HAVE_NETINET_IN_H 1
+-++
+-++/* Define to 1 if you have the <netinet/tcp.h> header file. */
+-++#define HAVE_NETINET_TCP_H 1
+-++
+-++/* Define to 1 if you have the <net/if.h> header file. */
+-++#define HAVE_NET_IF_H 1
+-++
+-++/* Define to 1 if you have PF_INET6. */
+-++#define HAVE_PF_INET6 1
+-++
+-++/* Define to 1 if you have the recv function. */
+-++#define HAVE_RECV 1
+-++
+-++/* Define to 1 if you have the recvfrom function. */
+-++#define HAVE_RECVFROM 1
+-++
+-++/* Define to 1 if you have the send function. */
+-++#define HAVE_SEND 1
+-++
+-++/* Define to 1 if you have the setsockopt function. */
+-++#define HAVE_SETSOCKOPT 1
+-++
+-++/* Define to 1 if you have a working setsockopt SO_NONBLOCK function. */
+-++/* #undef HAVE_SETSOCKOPT_SO_NONBLOCK */
+-++
+-++/* Define to 1 if you have the <signal.h> header file. */
+-++#define HAVE_SIGNAL_H 1
+-++
+-++/* Define to 1 if sig_atomic_t is an available typedef. */
+-++#define HAVE_SIG_ATOMIC_T 1
+-++
+-++/* Define to 1 if sig_atomic_t is already defined as volatile. */
+-++/* #undef HAVE_SIG_ATOMIC_T_VOLATILE */
+-++
+-++/* Define to 1 if your struct sockaddr_in6 has sin6_scope_id. */
+-++#define HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID 1
+-++
+-++/* Define to 1 if you have the socket function. */
+-++#define HAVE_SOCKET 1
+-++
+-++/* Define to 1 if you have the <socket.h> header file. */
+-++/* #undef HAVE_SOCKET_H */
+-++
+-++/* Define to 1 if you have the <stdbool.h> header file. */
+-++#define HAVE_STDBOOL_H 1
+-++
+-++/* Define to 1 if you have the <stdint.h> header file. */
+-++#define HAVE_STDINT_H 1
+-++
+-++/* Define to 1 if you have the <stdlib.h> header file. */
+-++#define HAVE_STDLIB_H 1
+-++
+-++/* Define to 1 if you have the strcasecmp function. */
+-++#define HAVE_STRCASECMP 1
+-++
+-++/* Define to 1 if you have the strcmpi function. */
+-++/* #undef HAVE_STRCMPI */
+-++
+-++/* Define to 1 if you have the strdup function. */
+-++#define HAVE_STRDUP 1
+-++
+-++/* Define to 1 if you have the stricmp function. */
+-++/* #undef HAVE_STRICMP */
+-++
+-++/* Define to 1 if you have the <strings.h> header file. */
+-++#define HAVE_STRINGS_H 1
+-++
+-++/* Define to 1 if you have the <string.h> header file. */
+-++#define HAVE_STRING_H 1
+-++
+-++/* Define to 1 if you have the strncasecmp function. */
+-++#define HAVE_STRNCASECMP 1
+-++
+-++/* Define to 1 if you have the strncmpi function. */
+-++/* #undef HAVE_STRNCMPI */
+-++
+-++/* Define to 1 if you have the strnicmp function. */
+-++/* #undef HAVE_STRNICMP */
+-++
+-++/* Define to 1 if you have the <stropts.h> header file. */
+-++/* #undef HAVE_STROPTS_H */
+-++
+-++/* Define to 1 if you have struct addrinfo. */
+-++#define HAVE_STRUCT_ADDRINFO 1
+-++
+-++/* Define to 1 if you have struct in6_addr. */
+-++#define HAVE_STRUCT_IN6_ADDR 1
+-++
+-++/* Define to 1 if you have struct sockaddr_in6. */
+-++#define HAVE_STRUCT_SOCKADDR_IN6 1
+-++
+-++/* if struct sockaddr_storage is defined */
+-++#define HAVE_STRUCT_SOCKADDR_STORAGE 1
+-++
+-++/* Define to 1 if you have the timeval struct. */
+-++#define HAVE_STRUCT_TIMEVAL 1
+-++
+-++/* Define to 1 if you have the <sys/ioctl.h> header file. */
+-++#define HAVE_SYS_IOCTL_H 1
+-++
+-++/* Define to 1 if you have the <sys/param.h> header file. */
+-++#define HAVE_SYS_PARAM_H 1
+-++
+-++/* Define to 1 if you have the <sys/select.h> header file. */
+-++#define HAVE_SYS_SELECT_H 1
+-++
+-++/* Define to 1 if you have the <sys/socket.h> header file. */
+-++#define HAVE_SYS_SOCKET_H 1
+-++
+-++/* Define to 1 if you have the <sys/stat.h> header file. */
+-++#define HAVE_SYS_STAT_H 1
+-++
+-++/* Define to 1 if you have the <sys/time.h> header file. */
+-++#define HAVE_SYS_TIME_H 1
+-++
+-++/* Define to 1 if you have the <sys/types.h> header file. */
+-++#define HAVE_SYS_TYPES_H 1
+-++
+-++/* Define to 1 if you have the <sys/uio.h> header file. */
+-++#define HAVE_SYS_UIO_H 1
+-++
+-++/* Define to 1 if you have the <time.h> header file. */
+-++#define HAVE_TIME_H 1
+-++
+-++/* Define to 1 if you have the <unistd.h> header file. */
+-++#define HAVE_UNISTD_H 1
+-++
+-++/* Define to 1 if you have the windows.h header file. */
+-++/* #undef HAVE_WINDOWS_H */
+-++
+-++/* Define to 1 if you have the winsock2.h header file. */
+-++/* #undef HAVE_WINSOCK2_H */
+-++
+-++/* Define to 1 if you have the winsock.h header file. */
+-++/* #undef HAVE_WINSOCK_H */
+-++
+-++/* Define to 1 if you have the writev function. */
+-++#define HAVE_WRITEV 1
+-++
+-++/* Define to 1 if you have the ws2tcpip.h header file. */
+-++/* #undef HAVE_WS2TCPIP_H */
+-++
+-++/* Define if __system_property_get exists. */
+-++/* #undef HAVE___SYSTEM_PROPERTY_GET */
+-++
+-++/* Define to the sub-directory where libtool stores uninstalled libraries. */
+-++#define LT_OBJDIR ".libs/"
+-++
+-++/* Define to 1 if you need the malloc.h header file even with stdlib.h */
+-++/* #undef NEED_MALLOC_H */
+-++
+-++/* Define to 1 if you need the memory.h header file even with stdlib.h */
+-++/* #undef NEED_MEMORY_H */
+-++
+-++/* Define to 1 if _REENTRANT preprocessor symbol must be defined. */
+-++/* #undef NEED_REENTRANT */
+-++
+-++/* Define to 1 if _THREAD_SAFE preprocessor symbol must be defined. */
+-++/* #undef NEED_THREAD_SAFE */
+-++
+-++/* cpu-machine-OS */
+-++#define OS "x86_64--netbsd"
+-++
+-++/* Name of package */
+-++#define PACKAGE "c-ares"
+-++
+-++/* Define to the address where bug reports for this package should be sent. */
+-++#define PACKAGE_BUGREPORT "c-ares mailing list: http://cool.haxx.se/mailman/listinfo/c-ares"
+-++
+-++/* Define to the full name of this package. */
+-++#define PACKAGE_NAME "c-ares"
+-++
+-++/* Define to the full name and version of this package. */
+-++#define PACKAGE_STRING "c-ares 1.13.0"
+-++
+-++/* Define to the one symbol short name of this package. */
+-++#define PACKAGE_TARNAME "c-ares"
+-++
+-++/* Define to the home page for this package. */
+-++#define PACKAGE_URL ""
+-++
+-++/* Define to the version of this package. */
+-++#define PACKAGE_VERSION "1.13.0"
+-++
+-++/* a suitable file/device to read random data from */
+-++#define RANDOM_FILE "/dev/urandom"
+-++
+-++/* Define to the type qualifier pointed by arg 5 for recvfrom. */
+-++#define RECVFROM_QUAL_ARG5 
+-++
+-++/* Define to the type of arg 1 for recvfrom. */
+-++#define RECVFROM_TYPE_ARG1 int
+-++
+-++/* Define to the type pointed by arg 2 for recvfrom. */
+-++#define RECVFROM_TYPE_ARG2 void
+-++
+-++/* Define to 1 if the type pointed by arg 2 for recvfrom is void. */
+-++#define RECVFROM_TYPE_ARG2_IS_VOID 1
+-++
+-++/* Define to the type of arg 3 for recvfrom. */
+-++#define RECVFROM_TYPE_ARG3 size_t
+-++
+-++/* Define to the type of arg 4 for recvfrom. */
+-++#define RECVFROM_TYPE_ARG4 int
+-++
+-++/* Define to the type pointed by arg 5 for recvfrom. */
+-++#define RECVFROM_TYPE_ARG5 struct sockaddr
+-++
+-++/* Define to 1 if the type pointed by arg 5 for recvfrom is void. */
+-++/* #undef RECVFROM_TYPE_ARG5_IS_VOID */
+-++
+-++/* Define to the type pointed by arg 6 for recvfrom. */
+-++#define RECVFROM_TYPE_ARG6 socklen_t
+-++
+-++/* Define to 1 if the type pointed by arg 6 for recvfrom is void. */
+-++/* #undef RECVFROM_TYPE_ARG6_IS_VOID */
+-++
+-++/* Define to the function return type for recvfrom. */
+-++#define RECVFROM_TYPE_RETV ssize_t
+-++
+-++/* Define to the type of arg 1 for recv. */
+-++#define RECV_TYPE_ARG1 int
+-++
+-++/* Define to the type of arg 2 for recv. */
+-++#define RECV_TYPE_ARG2 void *
+-++
+-++/* Define to the type of arg 3 for recv. */
+-++#define RECV_TYPE_ARG3 size_t
+-++
+-++/* Define to the type of arg 4 for recv. */
+-++#define RECV_TYPE_ARG4 int
+-++
+-++/* Define to the function return type for recv. */
+-++#define RECV_TYPE_RETV ssize_t
+-++
+-++/* Define as the return type of signal handlers (`int' or `void'). */
+-++#define RETSIGTYPE void
+-++
+-++/* Define to the type qualifier of arg 2 for send. */
+-++#define SEND_QUAL_ARG2 const
+-++
+-++/* Define to the type of arg 1 for send. */
+-++#define SEND_TYPE_ARG1 int
+-++
+-++/* Define to the type of arg 2 for send. */
+-++#define SEND_TYPE_ARG2 void *
+-++
+-++/* Define to the type of arg 3 for send. */
+-++#define SEND_TYPE_ARG3 size_t
+-++
+-++/* Define to the type of arg 4 for send. */
+-++#define SEND_TYPE_ARG4 int
+-++
+-++/* Define to the function return type for send. */
+-++#define SEND_TYPE_RETV ssize_t
+-++
+-++/* Define to 1 if you have the ANSI C header files. */
+-++#define STDC_HEADERS 1
+-++
+-++/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+-++#define TIME_WITH_SYS_TIME 1
+-++
+-++/* Define to disable non-blocking sockets. */
+-++/* #undef USE_BLOCKING_SOCKETS */
+-++
+-++/* Version number of package */
+-++#define VERSION "1.13.0"
+-++
+-++/* Define to avoid automatic inclusion of winsock.h */
+-++/* #undef WIN32_LEAN_AND_MEAN */
+-++
+-++/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+-++   significant byte first (like Motorola and SPARC, unlike Intel). */
+-++#if defined AC_APPLE_UNIVERSAL_BUILD
+-++# if defined __BIG_ENDIAN__
+-++#  define WORDS_BIGENDIAN 1
+-++# endif
+-++#else
+-++# ifndef WORDS_BIGENDIAN
+-++/* #  undef WORDS_BIGENDIAN */
+-++# endif
+-++#endif
+-++
+-++/* Define to 1 if OS is AIX. */
+-++#ifndef _ALL_SOURCE
+-++/* #  undef _ALL_SOURCE */
+-++#endif
+-++
+-++/* Enable large inode numbers on Mac OS X 10.5.  */
+-++#ifndef _DARWIN_USE_64_BIT_INODE
+-++# define _DARWIN_USE_64_BIT_INODE 1
+-++#endif
+-++
+-++/* Number of bits in a file offset, on hosts where this is settable. */
+-++/* #undef _FILE_OFFSET_BITS */
+-++
+-++/* Define for large files, on AIX-style hosts. */
+-++/* #undef _LARGE_FILES */
+-++
+-++/* Define to empty if `const' does not conform to ANSI C. */
+-++/* #undef const */
+-++
+-++/* Type to use in place of in_addr_t when system does not provide it. */
+-++/* #undef in_addr_t */
+-++
+-++/* Define to `unsigned int' if <sys/types.h> does not define. */
+-++/* #undef size_t */
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch new/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch
+--- devel/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch	2026-09-24 05:18:31.825387193 +0000
++++ devel/bazel/patches/patch-third__party_upb_upb-bazel-clang.patch	1970-01-01 00:00:00.000000000 +0000
+@@ -1,24 +0,0 @@
+-$NetBSD: patch-third__party_upb_upb-bazel-clang.patch,v 1.2 2025/12/15 03:37:01 maya Exp $
+-
+---- third_party/upb/upb-bazel-clang.patch.orig	2023-12-14 08:14:28.011171125 +0000
+-+++ third_party/upb/upb-bazel-clang.patch
+-@@ -0,0 +1,19 @@
+-+--- bazel/build_defs.bzl.orig	2023-12-14 07:54:10.464989126 +0000
+-++++ bazel/build_defs.bzl
+-+@@ -36,6 +36,8 @@ _DEFAULT_CPPOPTS.extend([
+-+     # "-Wshorten-64-to-32",  # not in GCC (and my Kokoro images doesn't have Clang)
+-+     "-Werror",
+-+     "-Wno-long-long",
+-++    "-Wno-deprecated-copy",
+-++    "-Wno-deprecated-builtins",
+-+ ])
+-+ _DEFAULT_COPTS.extend([
+-+     "-std=c99",
+-+@@ -43,6 +45,7 @@ _DEFAULT_COPTS.extend([
+-+     "-Werror=pedantic",
+-+     "-Wall",
+-+     "-Wstrict-prototypes",
+-++    "-Wno-gnu-offsetof-extensions", "-Wno-c23-extensions",
+-+     # GCC (at least) emits spurious warnings for this that cannot be fixed
+-+     # without introducing redundant initialization (with runtime cost):
+-+     #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80635
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD new/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD
+--- devel/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD	2026-09-24 05:18:31.825999561 +0000
++++ devel/bazel/patches/patch-third__party_zstd-jni_zstd-jni.BUILD	1970-01-01 00:00:00.000000000 +0000
+@@ -1,12 +0,0 @@
+-$NetBSD: patch-third__party_zstd-jni_zstd-jni.BUILD,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- third_party/zstd-jni/zstd-jni.BUILD.orig	2023-11-28 16:52:47.128150508 +0000
+-+++ third_party/zstd-jni/zstd-jni.BUILD
+-@@ -3,6 +3,7 @@ genrule(
+-     srcs = select({
+-         "@bazel_tools//src/conditions:darwin": ["@bazel_tools//tools/jdk:jni_md_header-darwin"],
+-         "@bazel_tools//src/conditions:freebsd": ["@bazel_tools//tools/jdk:jni_md_header-freebsd"],
+-+        "@bazel_tools//src/conditions:netbsd": ["@bazel_tools//tools/jdk:jni_md_header-netbsd"],
+-         "@bazel_tools//src/conditions:openbsd": ["@bazel_tools//tools/jdk:jni_md_header-openbsd"],
+-         "@bazel_tools//src/conditions:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
+-         "//conditions:default": ["@bazel_tools//tools/jdk:jni_md_header-linux"],
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_BUILD.static.bsd new/bazel/patches/patch-tools_cpp_BUILD.static.bsd
+--- devel/bazel/patches/patch-tools_cpp_BUILD.static.bsd	2026-09-24 05:18:31.826733174 +0000
++++ devel/bazel/patches/patch-tools_cpp_BUILD.static.bsd	1970-01-01 00:00:00.000000000 +0000
+@@ -1,57 +0,0 @@
+-$NetBSD: patch-tools_cpp_BUILD.static.bsd,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/cpp/BUILD.static.bsd.orig	2023-11-28 16:29:55.502670885 +0000
+-+++ tools/cpp/BUILD.static.bsd
+-@@ -34,9 +34,11 @@ cc_toolchain_suite(
+-     toolchains = {
+-         "armeabi-v7a|compiler": ":cc-compiler-armeabi-v7a",
+-         "freebsd|compiler": ":cc-compiler-freebsd",
+-+        "netbsd|compiler": ":cc-compiler-netbsd",
+-         "openbsd|compiler": ":cc-compiler-openbsd",
+-         "armeabi-v7a": ":cc-compiler-armeabi-v7a",
+-         "freebsd": ":cc-compiler-freebsd",
+-+        "netbsd": ":cc-compiler-netbsd",
+-         "openbsd": ":cc-compiler-openbsd",
+-     },
+- )
+-@@ -76,6 +78,40 @@ toolchain(
+- )
+- 
+- cc_toolchain(
+-+    name = "cc-compiler-netbsd",
+-+    all_files = ":empty",
+-+    ar_files = ":empty",
+-+    as_files = ":empty",
+-+    compiler_files = ":empty",
+-+    dwp_files = ":empty",
+-+    linker_files = ":empty",
+-+    objcopy_files = ":empty",
+-+    strip_files = ":empty",
+-+    supports_param_files = 0,
+-+    toolchain_config = ":local_netbsd",
+-+    toolchain_identifier = "local_netbsd",
+-+)
+-+
+-+cc_toolchain_config(
+-+    name = "local_netbsd",
+-+    cpu = "netbsd",
+-+)
+-+
+-+toolchain(
+-+    name = "cc-toolchain-netbsd",
+-+    exec_compatible_with = [
+-+        "@platforms//cpu:x86_64",
+-+        "@platforms//os:netbsd",
+-+    ],
+-+    target_compatible_with = [
+-+        "@platforms//cpu:x86_64",
+-+        "@platforms//os:netbsd",
+-+    ],
+-+    toolchain = ":cc-compiler-netbsd",
+-+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+-+)
+-+
+-+cc_toolchain(
+-     name = "cc-compiler-openbsd",
+-     all_files = ":empty",
+-     ar_files = ":empty",
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl new/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl
+--- devel/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl	2026-09-24 05:18:31.827427675 +0000
++++ devel/bazel/patches/patch-tools_cpp_bsd__cc__toolchain__config.bzl	1970-01-01 00:00:00.000000000 +0000
+@@ -1,59 +0,0 @@
+-$NetBSD: patch-tools_cpp_bsd__cc__toolchain__config.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+-* GCC 10.5.0 with -isystem, absolute path and symlink generates unexpected
+-  .d file when -MD is specified. Bazel would not accept such .d files.
+-
+---- tools/cpp/bsd_cc_toolchain_config.bzl.orig	2023-12-05 16:43:07.613565028 +0000
+-+++ tools/cpp/bsd_cc_toolchain_config.bzl
+-@@ -56,7 +56,7 @@ all_link_actions = [
+- 
+- def _impl(ctx):
+-     cpu = ctx.attr.cpu
+--    is_bsd = cpu == "freebsd" or cpu == "openbsd"
+-+    is_bsd = cpu == "freebsd" or cpu == "netbsd" or cpu == "openbsd"
+-     compiler = "compiler"
+-     toolchain_identifier = "local_{}".format(cpu) if is_bsd else "stub_armeabi-v7a"
+-     host_system_name = "local" if is_bsd else "armeabi-v7a"
+-@@ -241,17 +241,19 @@ def _impl(ctx):
+-     else:
+-         features = [supports_dynamic_linker_feature, supports_pic_feature]
+- 
+--    if (is_bsd):
+-+    if is_bsd and not (cpu == "netbsd"):
+-         cxx_builtin_include_directories = ["/usr/lib/clang", "/usr/local/include", "/usr/include"]
+-+    elif (cpu == "netbsd"):
+-+        cxx_builtin_include_directories = ["@PREFIX@/lib/clang", "@PREFIX@/include", "/usr/include"]
+-     else:
+-         cxx_builtin_include_directories = []
+- 
+--    if is_bsd:
+-+    if is_bsd and not (cpu == "netbsd"):
+-         tool_paths = [
+-             tool_path(name = "ar", path = "/usr/bin/ar"),
+-             tool_path(name = "cpp", path = "/usr/bin/cpp"),
+-             tool_path(name = "dwp", path = "/usr/bin/dwp"),
+--            tool_path(name = "gcc", path = "/usr/bin/clang"),
+-+            tool_path(name = "gcc", path = "/usr/bin/clang"),
+-             tool_path(name = "gcov", path = "/usr/bin/gcov"),
+-             tool_path(name = "ld", path = "/usr/bin/ld"),
+-             tool_path(name = "nm", path = "/usr/bin/nm"),
+-@@ -259,6 +261,19 @@ def _impl(ctx):
+-             tool_path(name = "objdump", path = "/usr/bin/objdump"),
+-             tool_path(name = "strip", path = "/usr/bin/strip"),
+-         ]
+-+    elif (cpu == "netbsd"):
+-+        tool_paths = [
+-+            tool_path(name = "ar", path = "/usr/bin/ar"),
+-+            tool_path(name = "cpp", path = "/usr/bin/cpp"),
+-+            tool_path(name = "dwp", path = "/usr/bin/dwp"),
+-+            tool_path(name = "gcc", path = "@PREFIX@/bin/clang"),
+-+            tool_path(name = "gcov", path = "/usr/bin/gcov"),
+-+            tool_path(name = "ld", path = "/usr/bin/ld"),
+-+            tool_path(name = "nm", path = "/usr/bin/nm"),
+-+            tool_path(name = "objcopy", path = "/usr/bin/objcopy"),
+-+            tool_path(name = "objdump", path = "/usr/bin/objdump"),
+-+            tool_path(name = "strip", path = "/usr/bin/strip"),
+-+        ]
+-     else:
+-         tool_paths = [
+-             tool_path(name = "ar", path = "/bin/false"),
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_cc__configure.bzl new/bazel/patches/patch-tools_cpp_cc__configure.bzl
+--- devel/bazel/patches/patch-tools_cpp_cc__configure.bzl	2026-09-24 05:18:31.828231130 +0000
++++ devel/bazel/patches/patch-tools_cpp_cc__configure.bzl	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-tools_cpp_cc__configure.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/cpp/cc_configure.bzl.orig	2023-11-28 16:35:29.548083456 +0000
+-+++ tools/cpp/cc_configure.bzl
+-@@ -102,7 +102,7 @@ def cc_autoconf_impl(repository_ctx, ove
+-         repository_ctx.template("BUILD", paths["@bazel_tools//tools/cpp:BUILD.empty.tpl"], {
+-             "%{cpu}": get_cpu_value(repository_ctx),
+-         })
+--    elif cpu_value == "freebsd" or cpu_value == "openbsd":
+-+    elif cpu_value == "freebsd" or cpu_value == "netbsd" or cpu_value == "openbsd":
+-         paths = resolve_labels(repository_ctx, [
+-             "@bazel_tools//tools/cpp:BUILD.static.bsd",
+-             "@bazel_tools//tools/cpp:bsd_cc_toolchain_config.bzl",
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl new/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl
+--- devel/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl	2026-09-24 05:18:31.828899930 +0000
++++ devel/bazel/patches/patch-tools_cpp_lib__cc__configure.bzl	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-tools_cpp_lib__cc__configure.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/cpp/lib_cc_configure.bzl.orig	2023-11-28 16:25:10.088639234 +0000
+-+++ tools/cpp/lib_cc_configure.bzl
+-@@ -192,6 +192,8 @@ def get_cpu_value(repository_ctx):
+-         return "darwin" + ("_arm64" if arch == "aarch64" else "")
+-     if os_name.find("freebsd") != -1:
+-         return "freebsd"
+-+    if os_name.find("netbsd") != -1:
+-+        return "netbsd"
+-     if os_name.find("openbsd") != -1:
+-         return "openbsd"
+-     if os_name.find("windows") != -1:
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl new/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl
+--- devel/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl	2026-09-24 05:18:31.829596666 +0000
++++ devel/bazel/patches/patch-tools_cpp_unix__cc__configure.bzl	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +0,0 @@
+-$NetBSD: patch-tools_cpp_unix__cc__configure.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/cpp/unix_cc_configure.bzl.orig	2023-11-28 16:29:01.387093015 +0000
+-+++ tools/cpp/unix_cc_configure.bzl
+-@@ -344,7 +344,7 @@ def configure_unix_toolchain(repository_
+- 
+-     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
+-     darwin = cpu_value.startswith("darwin")
+--    bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
+-+    bsd = cpu_value == "freebsd" or cpu_value == "netbsd" or cpu_value == "openbsd"
+- 
+-     cc = find_cc(repository_ctx, overriden_tools)
+-     is_clang = _is_clang(repository_ctx, cc)
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_BUILD.java__tools new/bazel/patches/patch-tools_jdk_BUILD.java__tools
+--- devel/bazel/patches/patch-tools_jdk_BUILD.java__tools	2026-09-24 05:18:31.830181377 +0000
++++ devel/bazel/patches/patch-tools_jdk_BUILD.java__tools	1970-01-01 00:00:00.000000000 +0000
+@@ -1,33 +0,0 @@
+-$NetBSD: patch-tools_jdk_BUILD.java__tools,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/jdk/BUILD.java_tools.orig	1979-12-31 15:00:00.000000000 +0000
+-+++ tools/jdk/BUILD.java_tools
+-@@ -130,6 +130,12 @@ config_setting(
+- )
+- 
+- config_setting(
+-+    name = "netbsd",
+-+    constraint_values = ["@platforms//os:netbsd"],
+-+    visibility = ["//visibility:public"],
+-+)
+-+
+-+config_setting(
+-     name = "openbsd",
+-     constraint_values = ["@platforms//os:openbsd"],
+-     visibility = ["//visibility:public"],
+-@@ -372,6 +378,7 @@ cc_binary(
+-     copts = SUPRESSED_WARNINGS,
+-     linkopts = select({
+-         ":freebsd": ["-lm"],
+-+        ":netbsd": ["-lm"],
+-         ":openbsd": ["-lm"],
+-         "//conditions:default": [],
+-     }),
+-@@ -397,6 +404,7 @@ cc_binary(
+-     copts = SUPRESSED_WARNINGS,
+-     linkopts = select({
+-         ":freebsd": ["-lm"],
+-+        ":netbsd": ["-lm"],
+-         ":openbsd": ["-lm"],
+-         "//conditions:default": [],
+-     }),
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_BUILD.tools new/bazel/patches/patch-tools_jdk_BUILD.tools
+--- devel/bazel/patches/patch-tools_jdk_BUILD.tools	2026-09-24 05:18:31.823432754 +0000
++++ devel/bazel/patches/patch-tools_jdk_BUILD.tools	2026-09-24 05:18:31.736572553 +0000
+@@ -1,32 +1,17 @@
+-$NetBSD: patch-tools_jdk_BUILD.tools,v 1.1 2024/01/01 12:01:00 ryoon Exp $
++$NetBSD$
+ 
+---- tools/jdk/BUILD.tools.orig	2023-11-28 16:54:25.564264937 +0000
++Add the NetBSD arm of a select() that has one arm per system.
++
++Without an entry the default arm is taken, which is the Linux one.
++
++--- tools/jdk/BUILD.tools.orig	1980-01-01 00:00:00.000000000 +0000
+ +++ tools/jdk/BUILD.tools
+-@@ -106,6 +106,11 @@ java_runtime_files(
+- )
+- 
+- java_runtime_files(
+-+    name = "jni_md_header-netbsd",
+-+    srcs = ["include/netbsd/jni_md.h"],
+-+)
+-+
+-+java_runtime_files(
+-     name = "jni_md_header-openbsd",
+-     srcs = ["include/openbsd/jni_md.h"],
+- )
+-@@ -127,6 +132,7 @@ cc_library(
+-         "//src/conditions:linux_x86_64": [":jni_md_header-linux"],
+-         "//src/conditions:darwin": [":jni_md_header-darwin"],
+-         "//src/conditions:freebsd": [":jni_md_header-freebsd"],
+-+        "//src/conditions:netbsd": [":jni_md_header-netbsd"],
+-         "//src/conditions:openbsd": [":jni_md_header-openbsd"],
+-         "//src/conditions:windows": [":jni_md_header-windows"],
+-         "//conditions:default": [],
+-@@ -140,6 +146,7 @@ cc_library(
+-         "//src/conditions:linux_x86_64": ["include/linux"],
+-         "//src/conditions:darwin": ["include/darwin"],
+-         "//src/conditions:freebsd": ["include/freebsd"],
+-+        "//src/conditions:netbsd": ["include/netbsd"],
+-         "//src/conditions:openbsd": ["include/openbsd"],
+-         "//src/conditions:windows": ["include/win32"],
+-         "//conditions:default": [],
++@@ -164,6 +164,8 @@ TARGET_NAMES = [
++     "jni_md_header-darwin",
++     "jni_md_header-freebsd",
++     "jni_md_header-linux",
+++    "jni_md_header-netbsd",
+++    "jni_md_header-dragonfly",
++     "jni_md_header-openbsd",
++     "jni_md_header-windows",
++     "platformclasspath",
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_jdk_jdk__build__file.bzl new/bazel/patches/patch-tools_jdk_jdk__build__file.bzl
+--- devel/bazel/patches/patch-tools_jdk_jdk__build__file.bzl	2026-09-24 05:18:31.830790673 +0000
++++ devel/bazel/patches/patch-tools_jdk_jdk__build__file.bzl	1970-01-01 00:00:00.000000000 +0000
+@@ -1,17 +0,0 @@
+-$NetBSD: patch-tools_jdk_jdk__build__file.bzl,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/jdk/jdk_build_file.bzl.orig	2023-11-28 16:34:15.542839919 +0000
+-+++ tools/jdk/jdk_build_file.bzl
+-@@ -49,6 +49,12 @@ filegroup(
+- )
+- 
+- filegroup(
+-+    name = "jni_md_header-netbsd",
+-+    srcs = ["include/netbsd/jni_md.h"],
+-+    deprecation = DEPRECATION_MESSAGE,
+-+)
+-+
+-+filegroup(
+-     name = "jni_md_header-openbsd",
+-     srcs = ["include/openbsd/jni_md.h"],
+-     deprecation = DEPRECATION_MESSAGE,
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_platforms_BUILD new/bazel/patches/patch-tools_platforms_BUILD
+--- devel/bazel/patches/patch-tools_platforms_BUILD	2026-09-24 05:18:31.831915397 +0000
++++ devel/bazel/patches/patch-tools_platforms_BUILD	1970-01-01 00:00:00.000000000 +0000
+@@ -1,32 +0,0 @@
+-$NetBSD: patch-tools_platforms_BUILD,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/platforms/BUILD.orig	1979-12-31 15:00:00.000000000 +0000
+-+++ tools/platforms/BUILD
+-@@ -84,6 +84,11 @@ alias(
+- )
+- 
+- alias(
+-+    name = "netbsd",
+-+    actual = "@platforms//os:netbsd",
+-+)
+-+
+-+alias(
+-     name = "openbsd",
+-     actual = "@platforms//os:openbsd",
+- )
+-@@ -126,6 +131,7 @@ platform(
+-     os_constraints = [
+-         "@platforms//os:osx",
+-         "@platforms//os:freebsd",
+-+        "@platforms//os:netbsd",
+-         "@platforms//os:openbsd",
+-         "@platforms//os:linux",
+-         "@platforms//os:windows",
+-@@ -149,6 +155,7 @@ platform(
+-     os_constraints = [
+-         "@platforms//os:osx",
+-         "@platforms//os:freebsd",
+-+        "@platforms//os:netbsd",
+-         "@platforms//os:openbsd",
+-         "@platforms//os:linux",
+-         "@platforms//os:windows",
+diff -urN -x CVS -x '*.orig' old/bazel/patches/patch-tools_platforms_BUILD.tools new/bazel/patches/patch-tools_platforms_BUILD.tools
+--- devel/bazel/patches/patch-tools_platforms_BUILD.tools	2026-09-24 05:18:31.832573860 +0000
++++ devel/bazel/patches/patch-tools_platforms_BUILD.tools	1970-01-01 00:00:00.000000000 +0000
+@@ -1,32 +0,0 @@
+-$NetBSD: patch-tools_platforms_BUILD.tools,v 1.1 2024/01/01 12:01:00 ryoon Exp $
+-
+---- tools/platforms/BUILD.tools.orig	1979-12-31 15:00:00.000000000 +0000
+-+++ tools/platforms/BUILD.tools
+-@@ -72,6 +72,11 @@ alias(
+- )
+- 
+- alias(
+-+    name = "netbsd",
+-+    actual = "@platforms//os:netbsd",
+-+)
+-+
+-+alias(
+-     name = "openbsd",
+-     actual = "@platforms//os:openbsd",
+- )
+-@@ -114,6 +119,7 @@ platform(
+-     os_constraints = [
+-         "@platforms//os:osx",
+-         "@platforms//os:freebsd",
+-+        "@platforms//os:netbsd",
+-         "@platforms//os:openbsd",
+-         "@platforms//os:linux",
+-         "@platforms//os:windows",
+-@@ -137,6 +143,7 @@ platform(
+-     os_constraints = [
+-         "@platforms//os:osx",
+-         "@platforms//os:freebsd",
+-+        "@platforms//os:netbsd",
+-         "@platforms//os:openbsd",
+-         "@platforms//os:linux",
+-         "@platforms//os:windows",
