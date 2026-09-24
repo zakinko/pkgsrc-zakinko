@@ -43,9 +43,12 @@ fi
 # 既知の入力で、self-id が落ち本当の依存が残ることを見る。
 _in=$(mktemp "${TMPDIR:-/tmp}/selfid-in.XXXXXX")
 printf 'x/libfoo.dylib:\n\t@rpath/libfoo.dylib (compatibility version 0.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0)\nx/bin/prog:\n\t@rpath/libbar.dylib (compatibility version 0.0.0)\n' > "$_in"
-_got=$(awk -f "$_a" "$_in" | sort | tr '\n' ' ')
+# 並びは LC_ALL=C で固定する。固定せずに比べたら、手元の macOS は
+# /usr/... を先に、runner は @rpath/... を先に並べて、中身が同じなのに
+# 「期待どおり動かない」と鳴った。C locale では / (0x2F) < @ (0x40)。
+_got=$(LC_ALL=C; export LC_ALL; awk -f "$_a" "$_in" | sort | tr '\n' ' ')
 rm -f "$_a" "$_in"
-_want="/usr/lib/libSystem.B.dylib @rpath/libbar.dylib "
+_want="/usr/lib/libSystem.B.dylib @rpath/libbar.dylib "	# LC_ALL=C の並び
 if [ "$_got" != "$_want" ]; then
 	echo "!! metadata.mk: 埋め込んだ awk が期待どおり動かない" >&2
 	echo "   得た:   $_got" >&2
