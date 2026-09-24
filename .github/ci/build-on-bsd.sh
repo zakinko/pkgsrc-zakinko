@@ -415,23 +415,6 @@ fi
 # 一回の実行で知りたい。
 stage "組んで確かめる"
 rc=0
-for p in $PKGS; do
-	echo
-	echo "########## $p ##########"
-	if [ "${VERIFY:-full}" != basic ] && [ -f "$WS/.github/ci/verify-$p.sh" ]; then
-		sh "$WS/.github/ci/verify-$p.sh" "$OPTS" || rc=1
-	else
-		sh "$WS/.github/ci/verify-pkg.sh" "$p" || rc=1
-	fi
-done
-
-# 上流ツリーのパッケージを名指しで組みたいときの口。TREE_PKGS に
-# <カテゴリ>/<パッケージ> を並べる。zakinko/ の写しではなく素の pkgsrc が
-# どうなるかを見るのに使う (anthy-linux.yml の「当て物なし」がこれ)。
-#
-# 検査は名前で引く。verify-<パッケージ名>.sh があればそれを、無ければ
-# verify-pkg.sh は使えない (あちらは zakinko/ 配下を見る) ので、組めた
-# かどうかだけを見て終わる。
 # 走る時間に上限を持たせる。job の timeout は「cancel」なので
 # actions/cache の save が走らない。実際 FreeBSD aarch64 の log には
 # restore の "Cache not found for input keys: gobin-..." は在るのに
@@ -441,6 +424,11 @@ done
 #
 # BUILD_DEADLINE は timeout(1) に渡す値 (例 300m)。timeout(1) が無い箱では
 # 上限なしで走る。そこは今までと同じ。
+#
+# 定義はここ、PKGS の輪の前に置く。最初は TREE_PKGS の輪の直前に置いていて、
+# **PKGS の輪には一度も掛かっていなかった。**go-bin は PKGS なので、期限は
+# 効かず OpenBSD の二箱は 350 分の job timeout に当たって cancel され、cache も
+# 残らなかった。効いているつもりで効いていない仕掛けだった。
 DEADLINE_HIT=0
 run_bounded() {
 	if [ -n "${BUILD_DEADLINE:-}" ] && command -v timeout > /dev/null 2>&1; then
@@ -456,6 +444,25 @@ run_bounded() {
 	"$@"
 }
 
+for p in $PKGS; do
+	# 一つが期限を使い切ったら残りは始めない。
+	[ "$DEADLINE_HIT" = 1 ] && { echo "  (期限切れのため $p は始めない)"; rc=1; continue; }
+	echo
+	echo "########## $p ##########"
+	if [ "${VERIFY:-full}" != basic ] && [ -f "$WS/.github/ci/verify-$p.sh" ]; then
+		run_bounded sh "$WS/.github/ci/verify-$p.sh" "$OPTS" || rc=1
+	else
+		run_bounded sh "$WS/.github/ci/verify-pkg.sh" "$p" || rc=1
+	fi
+done
+
+# 上流ツリーのパッケージを名指しで組みたいときの口。TREE_PKGS に
+# <カテゴリ>/<パッケージ> を並べる。zakinko/ の写しではなく素の pkgsrc が
+# どうなるかを見るのに使う (anthy-linux.yml の「当て物なし」がこれ)。
+#
+# 検査は名前で引く。verify-<パッケージ名>.sh があればそれを、無ければ
+# verify-pkg.sh は使えない (あちらは zakinko/ 配下を見る) ので、組めた
+# かどうかだけを見て終わる。
 for p in ${TREE_PKGS:-}; do
 	# 一つが期限を使い切ったら残りは始めない。始めると次の run で
 	# 何が済んでいるのかが読めなくなる。

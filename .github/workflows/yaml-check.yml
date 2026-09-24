@@ -66,3 +66,26 @@ jobs:
       # 直した物で 0 件になることを確かめてから木を見る。
       - name: -E 無しの grep に移植性の無い escape が無いか
         run: sh .github/ci/check-grep-portability.sh
+      # BUILD_DEADLINE は run_bounded を通したときだけ効く。最初 TREE_PKGS の
+      # 輪にしか掛けておらず、PKGS の輪 (go-bin はこちら) には一度も効いて
+      # いなかった。OpenBSD の二箱が 350 分の job timeout に当たって cancel
+      # され、cache も残らなかった。効いているつもりで効いていない仕掛けは、
+      # 緑と同じ顔で出る。
+      - name: 検査の呼び出しが run_bounded を通っているか
+        run: |
+          bad=$(grep -n 'sh "$WS/.github/ci/verify-' .github/ci/build-on-bsd.sh |
+                grep -v 'run_bounded sh' || true)
+          if [ -n "$bad" ]; then
+            echo "!! run_bounded を通らない検査の呼び出しが在る:"
+            printf '%s\n' "$bad" | sed 's/^/   /'
+            echo "   BUILD_DEADLINE が効かず、job timeout で cache ごと消える。"
+            exit 1
+          fi
+          n=$(grep -c 'run_bounded sh' .github/ci/build-on-bsd.sh)
+          echo "run_bounded を通る呼び出し: $n 件"
+          [ "$n" -ge 3 ] || { echo "!! 少なすぎる。輪が抜けている"; exit 1; }
+          # 定義が最初の使用より前に在るか。後ろに在ると command not found。
+          d=$(grep -n '^run_bounded() {' .github/ci/build-on-bsd.sh | cut -d: -f1)
+          u=$(grep -n 'run_bounded sh' .github/ci/build-on-bsd.sh | head -1 | cut -d: -f1)
+          echo "定義 $d 行、最初の使用 $u 行"
+          [ "$d" -lt "$u" ] || { echo "!! 定義が使用より後ろに在る"; exit 1; }
