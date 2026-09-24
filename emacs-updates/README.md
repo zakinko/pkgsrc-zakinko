@@ -123,3 +123,22 @@ in the version the tree has: CVE-2008-4952 (emacs-jabber 0.7.91's
 (emacspeak 26/28's extract-table.pl; 60.0's writes to stdout),
 CVE-2007-2833 (an Emacs 21 image bug reported through vm).  The
 emacs20 and xemacs entries are in emacs-patches.
+
+## 当てたあとに消す当て物
+
+`diff` は file を消せない。中身を全部削る hunk として出るので、当てた側には
+0 byte の `patch-*` が残る。pkgsrc はそれを当て物として拾い、`distinfo` に
+行が無いと止まる。当てたあと一度
+
+	find <pkgdir>/patches -name 'patch-*' -size 0 -delete
+
+を走らせる。この一巡で消えるのは次の九つ。
+
+	devel/sml-mode		patch-aa
+	inputmethod/skk		patch-ccc.el
+	math/ess		patch-aa, patch-ab
+	print/auctex		patch-configure
+	textproc/psgml-mode	patch-psgml-dtd.el, patch-psgml-edit.el,
+				patch-psgml-parse.el, patch-psgml.el
+
+CVS へ入れるときは `cvs rm` が要る。
