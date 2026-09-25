@@ -315,7 +315,18 @@ _EMACS_INFODIR.emacs=		${PKGINFODIR}
 # Put the lisp under the version directory of the Emacs it was built
 # for.  Emacs already searches share/emacs/<version>/site-lisp, so what
 # lands there is seen by that Emacs and by no other.
-_EMACS_LISPDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
+# Where an elisp package puts its files.  It has to be the tree the Emacs
+# it is built for actually reads, so it follows the same tag the editor
+# package used.  For the plain build that is the version and nothing
+# moves; a variant (the nox build kept beside the X one) carries its
+# suffix here too, because its whole tree lives under
+# share/emacs-<tag>/emacs/<version>.
+#
+# Set EMACS_VARIANT.<type> for a type whose editor package relocates.
+# Leave it empty and the layout is what it has always been.
+_EMACS_LISPDIR.emacs=		${_EMACS_DATADIR.emacs}/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
+_EMACS_DATADIR.emacs=		${empty(EMACS_VARIANT):?share:share/emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}-${EMACS_VARIANT}}
+EMACS_VARIANT?=
 _EMACS_PKGNAME_PREFIX.emacs=
 
 _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
@@ -566,7 +577,10 @@ EMACS_FLAVOR=		${_EMACS_FLAVOR}
 # pkg_alternatives wrapper: a whole run labelled 21.5 was compiled by
 # 21.4 before anyone noticed.  A fallback that is right only when one
 # Emacs is installed is what this framework exists to remove.
-_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
+# The binary carries the variant too: a relocated build installs
+# bin/emacs-<version>-<variant>, and byte-compiling with the plain one
+# would write .elc into the variant's tree using the wrong Emacs.
+_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}${empty(EMACS_VARIANT):?:-${EMACS_VARIANT}}
 _EMACS_BIN_NAME.xemacs=	xemacs
 _EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
 EMACS_BIN=		${PREFIX}/bin/${_EMACS_BIN_NAME}
@@ -608,6 +622,10 @@ EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
 # has the two packages that separate them.
 .if ${_EMACS_FLAVOR} == "xemacs"
 EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.xemacs}
+.elif !empty(EMACS_VARIANT)
+# A variant reads its own tree, so its elisp is a different package from
+# the plain build's and must not share the name.
+EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-${EMACS_VARIANT}-
 .elif !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
 EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
 .else

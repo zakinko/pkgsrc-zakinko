@@ -170,3 +170,62 @@ transform を 5 本の名前に限れば消せるが、man page と icon も tra
 `EMACS_TAG` だけ書くと、値は使われないのに `CONFLICTS` が消えて
 **衝突するのに衝突しないと宣言する**状態になる。建てて確かめていないので
 入れていない。31 に広げるときは `Makefile.common` を先に揃えること。
+
+## 動作確認 (2026-09-26)
+
+file 一覧が重ならないことと、実際に動くことは別なので、入れて起動させた。
+
+	GNU Emacs 30.2 が起動
+	data=/usr/pkg/share/emacs-30.2-nox11/emacs/30.2/etc/
+	exec=/usr/pkg/libexec/emacs-30.2-nox11/emacs/30.2/x86_64--netbsd/
+	doc =/usr/pkg/share/emacs-30.2-nox11/emacs/30.2/etc/
+	subr=/usr/pkg/share/emacs-30.2-nox11/emacs/30.2/lisp/subr.elc
+	(cl-remove-if #'cl-evenp '(1 2 3 4 5)) -> (1 3 5)
+
+`doc-directory` も移した先を指す。`etcdocdir` に option が無いので当て物が
+要ると見ていたが、`--datadir` を動かせば追随する。**当て物は不要だった。**
+
+### そこで見つかった穴 — elisp が届かない
+
+移した Emacs の `load-path` は
+
+	share/emacs-30.2-nox11/emacs/30.2/site-lisp
+
+を見るのに、elisp package は `modules.mk` の `EMACS_LISPPREFIX` が版だけで
+決まるので
+
+	share/emacs/30.2/site-lisp
+
+へ入る。`require 'elisp-compat` が NG になった。「elisp package が二通りに
+なる」と書いておきながら、その仕掛けを入れていなかった。
+
+`modules.mk` を三箇所直した。`EMACS_VARIANT` が空なら何も変わらない。
+
+	_EMACS_LISPDIR.emacs	変種の木の下の site-lisp を指す
+	_EMACS_BIN_NAME.emacs	emacs-30.2-nox11 を呼ぶ (でないと別の
+				Emacs が .elc を作って変種の木に置く)
+	EMACS_PKGNAME_PREFIX	emacs30-nox11- を名乗る (でないと同じ
+				名前の package が二つになる)
+
+直したあとの値。
+
+	VARIANT 無し   PKGNAME=emacs30-elisp-compat
+	               BIN=bin/emacs-30.2
+	               LISP=share/emacs/30.2/site-lisp
+	VARIANT=nox11  PKGNAME=emacs30-nox11-elisp-compat
+	               BIN=bin/emacs-30.2-nox11
+	               LISP=share/emacs-30.2-nox11/emacs/30.2/site-lisp
+
+変種として建てて入れ、移した Emacs で `require 'elisp-compat` が OK に
+なるところまで見た。
+
+### 途中で二度壊した
+
+`EMACS_VARIANT?= # empty` と書いたら "# empty" が値になり、`:D` が真に
+なって変種無しでも `bin/emacs-30.2-` を指した。`:M*:S/^/-/` も空に効いて
+同じ結果。`${empty(EMACS_VARIANT):?:-${EMACS_VARIANT}}` で直した。
+
+emacs30-nox11 を移した build に入れ替えたままにしたので、`bin/emacs-30.2`
+が箱から消え、そこへ依存する 30 本余りの elisp package が読めなくなった。
+9/22 の binary package から戻した。**実験のために入れ替えたものは、確かめ
+たらその場で戻すこと。**
