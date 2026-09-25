@@ -168,40 +168,44 @@ int main(int argc, char **argv) {
                 return 77;
         }
 
-        /* 肯定: 継ぎ目を通して、渡した address が出るか */
-        n = socket_udp_send_from(sk, &chosen, &dest, "x", 1);
-        if (n != 1) {
-                printf("★ socket_udp_send_from -> %zd (%s)\n", n, strerror(errno));
-                return 1;
-        }
-        if (catch_src(bpf, blen, &got) < 0) {
-                printf("★ 線で捕まえられなかった\n");
-                return 1;
-        }
-        printf("  継ぎ目を通した一本の送り元: %s ", inet_ntoa(got));
-        if (got.s_addr == chosen.s_addr) {
-                printf("(渡した %s と一致)\n", CHOSEN);
-        } else {
-                printf("★ 期待は %s\n", CHOSEN);
-                fail = 1;
-        }
-
-        /* 否定: cmsg を付けなければ束縛した側が出るか */
+        /*
+         * 対照を先にやる。cmsg を付けない普通の sendto() すら線に出ない箱は、
+         * tap へ送り出せないということで、継ぎ目の話ではない。DragonFly が
+         * 実際にそうだった (run 36025998074)。そこを「落ちた」と言うと、
+         * 測れなかったことを欠陥として数えることになる。
+         */
         n = sendto(sk, "x", 1, 0, (struct sockaddr *)&dest, sizeof(dest));
         if (n != 1) {
                 printf("★ sendto -> %zd (%s)\n", n, strerror(errno));
                 return 1;
         }
         if (catch_src(bpf, blen, &got) < 0) {
-                printf("★ 対照を線で捕まえられなかった\n");
-                return 1;
+                printf("  普通の sendto() すら線に出ない。この箱では測れない\n");
+                return 77;
         }
         printf("  cmsg 無しの一本の送り元: %s ", inet_ntoa(got));
         if (got.s_addr == bind_addr.sin_addr.s_addr) {
                 printf("(束縛した %s と一致)\n", BOUND);
         } else {
-                printf("★ 期待は %s。継ぎ目を通さなくても同じ答が出るなら、"
-                       "上の一致は何も測っていない\n", BOUND);
+                printf("★ 期待は %s\n", BOUND);
+                fail = 1;
+        }
+
+        /* 本題: 継ぎ目を通すと、渡した address が出るか */
+        n = socket_udp_send_from(sk, &chosen, &dest, "x", 1);
+        if (n != 1) {
+                printf("★ socket_udp_send_from -> %zd (%s)\n", n, strerror(errno));
+                return 1;
+        }
+        if (catch_src(bpf, blen, &got) < 0) {
+                printf("★ 継ぎ目を通した一本が線に出ない (対照は出ている)\n");
+                return 1;
+        }
+        printf("  継ぎ目を通した一本の送り元: %s ", inet_ntoa(got));
+        if (got.s_addr == chosen.s_addr) {
+                printf("(渡した %s と一致)\n", CHOSEN);
+        } else {
+                printf("★ 期待は %s。束縛した側が出ているなら cmsg が効いていない\n", CHOSEN);
                 fail = 1;
         }
 

@@ -39,11 +39,18 @@
  */
 #include "packet-bsd.c"
 
-#ifdef __NetBSD__
-#  include <net/if_ether.h>
-#else
-#  include <net/ethernet.h>
-#endif
+/*
+ * struct ether_header と ETHERTYPE_IP。<net/ethernet.h> は FreeBSD と
+ * DragonFly の綴りで、NetBSD にも OpenBSD にも無い。四つとも持っている
+ * <netinet/if_ether.h> に寄せる。あれは sockaddr と in_addr を、OpenBSD では
+ * さらに arphdr を必要とするのに自分では連れてこないので、順に読む。
+ * package 側の当て物と同じ形にしてある。
+ */
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if_arp.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
 
 uint16_t packet_internet_checksum(const uint8_t *data, size_t len);
 
