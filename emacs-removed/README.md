@@ -8,11 +8,11 @@ pkgsrc から取り除かれたが、こちらでは emacs20 や XEmacs で使�
 | `misc/bbdb2` | 2026-09-12 emacs21 と一緒に | emacs20 で建つ |
 | `editors/jde` | 同上 | 建たない (下記) |
 | `textproc/nxml-mode` | 同上 | emacs20 で建つ。12 の feature 中 10 が load |
-| `editors/emacs21` | 2026-09-12 | 保存 |
-| `editors/emacs21-nox11` | 同上 | 保存 |
 
 三本とも Makefile が emacs21 しか受け付けていなかったために、emacs21 が
 消えたとき一緒に消えた。どれも emacs20 で動く。
+
+emacs21 そのものは拾っていない。
 
 ## misc/bbdb2
 
