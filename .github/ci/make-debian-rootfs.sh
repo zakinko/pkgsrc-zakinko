@@ -41,16 +41,12 @@ R="$W/rootfs"
 KEY=
 case $MIRROR in
 *debian-ports*)
+	# 取り出す手は fetch-debian-ports-keyring.sh に在る。出来合いの
+	# loongarch64 の image の中の apt にも同じ鍵が要るので、二箇所から
+	# 呼べるように分けてある。
 	KD=$(mktemp -d)
-	deb=$(curl -sf "http://deb.debian.org/debian/pool/main/d/debian-ports-archive-keyring/" |
-		sed -n 's/.*\(debian-ports-archive-keyring_[0-9.]*_all\.deb\).*/\1/p' |
-		sort -u | tail -1)
-	[ -n "$deb" ] || { echo "!! 現行の keyring が見つからない"; exit 1; }
-	echo "  keyring: $deb"
-	curl -sfo "$KD/k.deb" "http://deb.debian.org/debian/pool/main/d/debian-ports-archive-keyring/$deb"
-	( cd "$KD" && ar x k.deb && tar xf data.tar.* )
-	K="$KD/usr/share/keyrings/debian-ports-archive-keyring.gpg"
-	[ -f "$K" ] || { echo "!! keyring の中身が取り出せない"; ls -R "$KD" | head -20; exit 1; }
+	K="$KD/debian-ports-archive-keyring.gpg"
+	sh "$(dirname "$0")/fetch-debian-ports-keyring.sh" "$K"
 	KEY="--keyring=$K"
 	;;
 *archive.debian.org*) KEY="--no-check-gpg" ;;

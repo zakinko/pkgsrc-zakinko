@@ -21,9 +21,10 @@
 #	ppc64		ppc64			ppc64
 #	powerpc64	powerpc64		ppc64
 #	powerpc64le	ppc64le			ppc64le
-#	mips64el	mips64el		mips64le
-#	mips64		mips64 (mips64eb elsewhere)  mips64
-#	mipsel		mipsel			mipsle
+#	mipseb		mips			mips
+#	mipsel		mips			mipsle
+#	mips64eb	mips64			mips64
+#	mips64el	mips64			mips64le
 #	loongarch64	loongarch64		loong64
 #	s390x		s390x			s390x
 #	riscv64		riscv64			riscv64
@@ -31,6 +32,19 @@
 # Linux passes uname -m through untouched apart from i?86 and ppc64le, so
 # ppc64 stays ppc64 there while OpenBSD's arch -s says powerpc64.  Both
 # are listed.
+#
+# mips is the exception, and the reason the four rows above do not read
+# the way uname -m does.  Linux says "mips" on both a big-endian and a
+# little-endian 32-bit box, and "mips64" on both 64-bit ones, so uname
+# alone cannot pick an archive.  pkgsrc does not accept those two names:
+# bsd.own.mk refuses MACHINE_ARCH=mips outright, and the canonical names
+# are mipseb, mipsel, mips64eb and mips64el (mk/bsd.prefs.mk's
+# _BIGENDIANCPUS and _LITTLEENDIANCPUS).  bootstrap's --machine-arch is
+# how one says which it is.  Matching on the bare names instead would
+# hand a little-endian box the big-endian archive, which installs and
+# even answers "go version", then dies with SIGBUS on the first real
+# build; leaving them out means such a box reports no binary Go for its
+# platform, which is the better of the two.
 #
 # Deliberately absent, and why:
 #
@@ -75,10 +89,10 @@ GO_BIN_PLATFORMS=	# empty
 	Linux-*-*arm*        linux-armv6l \
 	Linux-*-aarch64      linux-arm64 \
 	Linux-*-loongarch64  linux-loong64 \
-	Linux-*-mips         linux-mips \
-	Linux-*-mips64       linux-mips64 \
-	Linux-*-mips64el     linux-mips64le \
+	Linux-*-mipseb       linux-mips \
 	Linux-*-mipsel       linux-mipsle \
+	Linux-*-mips64eb     linux-mips64 \
+	Linux-*-mips64el     linux-mips64le \
 	Linux-*-ppc64        linux-ppc64 \
 	Linux-*-powerpc64le  linux-ppc64le \
 	Linux-*-riscv64      linux-riscv64 \

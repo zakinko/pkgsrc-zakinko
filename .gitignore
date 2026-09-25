@@ -7,3 +7,4 @@ work.*
 .broken
 *.core
 .DS_Store
+.ci-keys/

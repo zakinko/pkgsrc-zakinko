@@ -235,6 +235,65 @@ else
 	fi
 fi
 
+# ------------------------------------------------------------------
+# pkgsrc の fetch が https を引けるかを測る。
+#
+# pkgsrc は FETCH_CMD で引く。NetBSD なら base の ftp(1) で、あれは自前の CA
+# を持たず /etc/openssl/certs を見る。vmactions の焼きたての image はそこが
+# 空のことがあり、https の master site が**全部無言で落ちる**。dl() は curl を
+# 先に使い、curl は自分の CA を持っているので driver の download は通る。
+# だから「driver は取れているのに pkgsrc だけ取れない」という形になる。
+#
+# 落ち方が紛らわしい。rust-bin の NetBSD/aarch64 は
+#     fetch: Unable to fetch expected file rust-1.96.1-aarch64-unknown-netbsd.tar.xz
+#     ftp: Error retrieving file `404 Not Found'
+# を交互に出した。404 は LOCAL_PORTS を持たない backup site のもので、
+# 本来の SITES (cdn.NetBSD.org の LOCAL_PORTS/rust/) は無言で落ちていた。
+# 上流の Makefile も distinfo も正しく、file は在る (Content-Length が
+# distinfo と一致する) ことを確かめてある。**site の綴りの問題に見えて、
+# 箱の証明書の問題だった。**
+#
+# 以前これを cache が隠していた。.bsdcache に配布物が在る限り fetch は
+# 呼ばれないので、cache が当たっている間ずっと緑だった。cache miss で
+# 初めて出た。
+stage "pkgsrc の fetch が https を引けるか"
+# sudo には -n を付ける。付けないと password を訊いて、端末の無い箱で
+# そのまま止まる。求められた時点で打てないのだから、待つ意味が無い。
+if [ "$(id -u)" = 0 ]; then SUDO=
+elif command -v sudo > /dev/null 2>&1; then SUDO="sudo -n"
+else SUDO=
+fi
+_https_probe=https://cdn.NetBSD.org/pub/pkgsrc/distfiles/LOCAL_PORTS/rust/
+_ftp_ok=
+if command -v ftp > /dev/null 2>&1; then
+	if ftp -o /dev/null "$_https_probe" > /dev/null 2>&1; then
+		_ftp_ok=yes
+	fi
+	if [ -n "$_ftp_ok" ]; then
+		echo "    ftp(1) で https が引ける"
+	else
+		echo "    !! ftp(1) で https が引けない。pkgsrc の fetch も落ちる"
+		# NetBSD 10 以降は base に certctl が在る。rehash すると
+		# /etc/openssl/certs が base の CA から作り直される。
+		if command -v certctl > /dev/null 2>&1; then
+			echo "    certctl rehash を打つ"
+			$SUDO certctl rehash 2>&1 | sed 's/^/      /' || true
+			if ftp -o /dev/null "$_https_probe" > /dev/null 2>&1; then
+				_ftp_ok=yes
+				echo "    -> 直った。ftp で https が引ける"
+			else
+				echo "    -> rehash しても引けない" >&2
+			fi
+		else
+			echo "    certctl が無い箱なので手当てできない" >&2
+		fi
+	fi
+else
+	echo "    ftp(1) が無い箱 (pkgsrc は別の FETCH_CMD を使う)"
+fi
+# 落とさない。https を要らない package は通るので、通る所まで進める方が
+# 情報が多い。落ちたときにこの行を読めば理由がすぐ分かる。
+
 stage "置き場所を決める"
 # OpenBSD は既定で /usr や /home を別区画に切って入る。pkgsrc のツリー
 # だけで 1.3GB、それに WRKOBJDIR が乗るので、/usr に置くと途中で
@@ -330,12 +389,29 @@ elif [ ! -x "$PREFIX/bin/bmake" ]; then
 	*)	ABI= ;;
 	esac
 
+	# Debian の mips は uname -m が endian を落とす。mipsel の箱でも
+	# mips、mips64el の箱でも mips64 が返る。pkgsrc の正規化表 (bootstrap
+	# の "Fix up MACHINE_ARCH" の case) には mips の項が一つも無いので、
+	# その値がそのまま MACHINE_ARCH になり、
+	#   bsd.own.mk.in: Must set MACHINE_ARCH to one of mipseb or mipsel
+	# で bootstrap が止まる。mips64 はこの検査に無いので**通ってしまい**、
+	# その先で big-endian の書庫が入って go が SIGBUS で落ちた。止まる方が
+	# まだ親切で、通る方が危ない。
+	#
+	# bootstrap は --machine-arch を持っているので、箱の綴りを呼ぶ側から
+	# 渡せるようにする。pkgsrc が使う綴りは mipseb/mipsel/mips64eb/mips64el
+	# (mk/bsd.prefs.mk の _BIGENDIANCPUS と _LITTLEENDIANCPUS)。
+	MARCH=
+	if [ -n "${MACHINE_ARCH:-}" ]; then
+		MARCH="--machine-arch $MACHINE_ARCH"
+		echo "MACHINE_ARCH を $MACHINE_ARCH に固定する (uname -m は $(uname -m))"
+	fi
 	cd "$TREE/bootstrap"
 	./bootstrap \
 		--prefix="$PREFIX" \
 		--workdir="$REAL/bootstrap-work" \
 		--make-jobs "$JOBS" \
-		$ABI \
+		$ABI $MARCH \
 		--gzip-binary-kit="$CACHE/bootstrap-kit.tar.gz"
 	rm -rf "$REAL/bootstrap-work"
 fi
@@ -373,6 +449,11 @@ DEPENDS_TARGET=	package-install
 EOF
 # job ごとの追記。改行区切りでそのまま足す。OpenBSD の croc が
 # GOROOT_BOOTSTRAP をここから渡す。
+# bootstrap kit が cache から来たときは上の --machine-arch を通らないので、
+# mk.conf にも書く。両方に在っても同じ値なので害は無い。
+if [ -n "${MACHINE_ARCH:-}" ]; then
+	echo "MACHINE_ARCH=	$MACHINE_ARCH" >> "$MKCONF"
+fi
 if [ -n "${MKCONF_EXTRA:-}" ]; then
 	printf '%s\n' "$MKCONF_EXTRA" >> "$MKCONF"
 fi

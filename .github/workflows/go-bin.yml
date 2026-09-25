@@ -80,8 +80,15 @@ jobs:
           - { name: 'glibc riscv64',     platform: 'linux/riscv64',     image: 'riscv64/debian:13' }
           - { name: 'glibc ppc64le',     platform: 'linux/ppc64le',     image: 'ppc64le/debian:13' }
           - { name: 'glibc s390x',       platform: 'linux/s390x',       image: 's390x/debian:13' }
-          - { name: 'glibc mips64le',    platform: 'linux/mips64le',    image: 'mips64le/debian:bookworm' }
-          - { name: 'glibc loongarch64', platform: 'linux/loong64',     image: 'loongarch64/debian:latest' }
+          # uname -m が mips64 を返す箱。pkgsrc の綴りは mips64el なので
+          # 明示する。渡さないと big-endian の書庫が入り、go は起動して
+          # version まで答えたうえで最初の build で SIGBUS で落ちる。
+          - { name: 'glibc mips64le',    platform: 'linux/mips64le',    image: 'mips64le/debian:bookworm',
+              march: mips64el }
+          # debian-ports を指す image。今の署名鍵を持っていないので
+          # 外から入れる。
+          - { name: 'glibc loongarch64', platform: 'linux/loong64',     image: 'loongarch64/debian:latest',
+              ports: true }
     steps:
       - uses: actions/checkout@v4
       # binfmt の登録。これが無いと foreign の image は exec format error。
@@ -92,25 +99,42 @@ jobs:
           echo "uname -m: $got"
           # 翻訳が効いていないと host の x86_64 が返る。それを緑にしない。
           [ "$got" != "x86_64" ] || { echo "!! host の arch が返っている。qemu が効いていない"; exit 1; }
+      # debian-ports の鍵は container の中の apt が要るが、鍵を取るには
+      # curl と ar が要り、image にはまだ何も入っていない。runner 側で
+      # 取り出して、既に mount してある作業場所に置いて渡す。
+      #
+      # 以前は container の中で apt に insecure な option を渡して鍵の
+      # package を入れようとしていた。あれは効かなかった。署名を見ない
+      # update は W で通るが、その後の update が E で落ちて package の
+      # 一覧が空になり、build-essential が「見つからない」と出ていた。
+      # 症状が「鍵が無い」から「package が無い」へずれるので、原因の所を
+      # 見ていなかった。
+      - name: debian-ports の鍵を取り出す
+        if: matrix.ports
+        run: sh .github/ci/fetch-debian-ports-keyring.sh .ci-keys/debian-ports.gpg
       - name: 建てて動かす
         env:
           BUILD_DEADLINE: 270m
+          # 空なら driver は何もしない。uname -m で endian が分からない箱
+          # にだけ値が入る。
+          MACHINE_ARCH: ${{ matrix.march }}
         run: |
           docker run --rm --platform ${{ matrix.platform }} \
             -v "$PWD:/w" -w /w \
             -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
+            -e MACHINE_ARCH \
             -e PKGSRC_BASE=/tmp \
             ${{ matrix.image }} sh -c '
-              # loongarch64 の image は debian-ports を指す。runner にも image にも
-              # 今の署名鍵が無く、apt-get update が
-              #   GPG error: ... public key is not available
-              # で exit 100 になる。鍵を入れるには apt が要るので、一度だけ
-              # 署名を見ない形で鍵そのものを入れてから、普通に update し直す。
-              apt-get update -qq -o Acquire::AllowInsecureRepositories=true \
-                -o Acquire::AllowDowngradeToInsecureRepositories=true || true
-              apt-get install -y -qq --allow-unauthenticated \
-                debian-ports-archive-keyring || true
-              apt-get update -qq || true
+              # runner 側で取り出した debian-ports の鍵を apt に見せる。
+              # 無い箱では何もしない。
+              if [ -f /w/.ci-keys/debian-ports.gpg ]; then
+                mkdir -p /etc/apt/trusted.gpg.d
+                cp /w/.ci-keys/debian-ports.gpg /etc/apt/trusted.gpg.d/
+                echo "debian-ports の鍵を入れた"
+              fi
+              # && で繋ぐ。update が落ちたまま install に進むと
+              # 「package が見つからない」に化けて、鍵の話が見えなくなる。
+              apt-get update -qq &&
               apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch util-linux &&
               exec sh .github/ci/build-on-bsd.sh'
 
@@ -135,10 +159,14 @@ jobs:
         include:
           - { name: 'glibc ppc64',  arch: ppc64,  suite: unstable,
               mirror: 'http://deb.debian.org/debian-ports', platform: 'linux/ppc64' }
+          # uname -m が mips を返す。pkgsrc は MACHINE_ARCH=mips を
+          # bsd.own.mk で撥ねるので bootstrap がそこで止まる。
           - { name: 'glibc mipsle', arch: mipsel, suite: bullseye,
-              mirror: 'http://archive.debian.org/debian', platform: 'linux/mipsle' }
+              mirror: 'http://archive.debian.org/debian', platform: 'linux/mipsle',
+              march: mipsel }
           - { name: 'glibc mips',   arch: mips,   suite: stretch,
-              mirror: 'http://archive.debian.org/debian', platform: 'linux/mips' }
+              mirror: 'http://archive.debian.org/debian', platform: 'linux/mips',
+              march: mipseb }
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -150,6 +178,9 @@ jobs:
       - name: 建てて動かす
         env:
           BUILD_DEADLINE: 270m
+          # 空なら driver は何もしない。uname -m で endian が分からない箱
+          # にだけ値が入る。
+          MACHINE_ARCH: ${{ matrix.march }}
         # --platform は付けない。docker import は image に platform を書かない
         # ので、指定すると一致せず「image が無い」と言って pull しに行き
         #   pull access denied for pkgsrc-ci/mipsel
@@ -160,6 +191,7 @@ jobs:
           docker run --rm \
             -v "$PWD:/w" -w /w \
             -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
+            -e MACHINE_ARCH \
             -e PKGSRC_BASE=/tmp \
             'pkgsrc-ci/${{ matrix.arch }}:latest' /bin/sh -c '
               apt-get update -qq || true
