@@ -6,6 +6,7 @@ Size (NetworkManager-1.58.1.tar.bz2) = 8812900 bytes
 SHA1 (patch-meson.build) = de899c6e7c54cbc3c24353a15c2d3ab5c7d9d30c
 SHA1 (patch-src_c-stdaux_src_c-stdaux-generic.h) = ab4e7a2599158e596f036a3accb739dac0b5129f
 SHA1 (patch-src_c-stdaux_src_c-stdaux.h) = 27df916ca86947e159ce68eb861b09dac665f66a
+SHA1 (patch-src_libnm-std-aux_nm-std-aux.h) = c8772c9745e5ef60d75a4f65e3be0501f9207cf3
 SHA1 (patch-src_meson.build) = 396623eaf583b40023f9a8c29f811e59b7f7a652
 SHA1 (patch-src_n-acd_src_n-acd-bpf-fallback.c) = b069cddbdb687d02912595759f8a196696862e8a
 SHA1 (patch-src_n-acd_src_n-acd-os-bsd.c) = c5f79d2ae6bdba32730422fc518ba4a3e3e95cb9
