@@ -430,9 +430,36 @@ rc=0
 # 効かず OpenBSD の二箱は 350 分の job timeout に当たって cancel され、cache も
 # 残らなかった。効いているつもりで効いていない仕掛けだった。
 DEADLINE_HIT=0
+# 期限は **この script が始まった時点から** 数える。最初は timeout に
+# BUILD_DEADLINE をそのまま渡していたが、timeout はその呼び出しの時点から
+# 数えるので、VM の起動と木の取得と bootstrap に使った分が期限の外に出る。
+# bootstrap が一時間かかれば 320m の期限は t=380 分になり、job の 350 分を
+# 超えて一度も鳴らない。実際 FreeBSD aarch64 と OpenBSD の二箱は三度とも
+# ちょうど 350 分で cancel され、期限の文言は出ていなかった。
+_T0=$(date +%s 2>/dev/null || echo 0)
+# BUILD_DEADLINE は 320m のような形で来る。秒に直す。
+_deadline_secs() {
+	case ${BUILD_DEADLINE:-} in
+	*m)	echo $(( ${BUILD_DEADLINE%m} * 60 )) ;;
+	*h)	echo $(( ${BUILD_DEADLINE%h} * 3600 )) ;;
+	*s)	echo "${BUILD_DEADLINE%s}" ;;
+	"")	echo 0 ;;
+	*)	echo "$BUILD_DEADLINE" ;;
+	esac
+}
 run_bounded() {
-	if [ -n "${BUILD_DEADLINE:-}" ] && command -v timeout > /dev/null 2>&1; then
-		timeout "$BUILD_DEADLINE" "$@"
+	if [ -n "${BUILD_DEADLINE:-}" ] && command -v timeout > /dev/null 2>&1 &&
+	   [ "$_T0" != 0 ]; then
+		_tot=$(_deadline_secs)
+		_now=$(date +%s)
+		_left=$(( _tot - (_now - _T0) ))
+		if [ "$_left" -le 60 ]; then
+			echo "  !! 期限 $BUILD_DEADLINE のうち残り ${_left}s。始めずに降りる" >&2
+			DEADLINE_HIT=1
+			return 124
+		fi
+		echo "  (期限まで残り $(( _left / 60 )) 分)"
+		timeout "${_left}s" "$@"
 		_r=$?
 		# GNU/BSD の timeout はどちらも期限切れを 124 で返す。
 		if [ "$_r" -eq 124 ]; then
