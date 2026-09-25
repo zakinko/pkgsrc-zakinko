@@ -162,3 +162,11 @@ PLIST は `make print-PLIST` で取り直した。`${EMACS_TAG}` と
 
 transform を 5 本の名前に限れば消せるが、man page と icon も transform に
 乗っているので、そちらの追従を確かめてからにする。
+
+### emacs31 には入れていない
+
+`emacs31-nox11-A` は別の `Makefile.common` (`netbsd-i386-3e/emacs31-A` の
+もの) を読んでいて、`EMACS_TAG` の仕掛けが入っていない。そこへ
+`EMACS_TAG` だけ書くと、値は使われないのに `CONFLICTS` が消えて
+**衝突するのに衝突しないと宣言する**状態になる。建てて確かめていないので
+入れていない。31 に広げるときは `Makefile.common` を先に揃えること。
