@@ -1,0 +1,17 @@
+$NetBSD$
+
+Same as patch-aj: drop the hand-written "extern int errno".  errno is a macro
+over a per-thread location on any modern system, and the declaration hides it.
+
+--- src/process.c.orig	2005-12-29 13:33:52.000000000 +0000
++++ src/process.c
+@@ -147,9 +147,6 @@ Lisp_Object Qlast_nonmenu_event;
+ 
+ extern void set_waiting_for_input P_ ((EMACS_TIME *));
+ 
+-#ifndef USE_CRT_DLL
+-extern int errno;
+-#endif
+ #ifdef VMS
+ extern char *sys_errlist[];
+ #endif

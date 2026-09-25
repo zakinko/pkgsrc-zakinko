@@ -1,0 +1,28 @@
+$NetBSD$
+
+Two things.  copy_row_except_pointers is used only in this file, so make it
+static -- without that, INLINE leaves an external definition in every object
+that includes the header and the link fails on duplicate symbols.  And drop the
+"extern int errno" as in patch-aj.
+
+--- src/dispnew.c.orig	2002-03-31 17:08:22.000000000 +0000
++++ src/dispnew.c
+@@ -1256,7 +1256,7 @@ swap_glyph_pointers (a, b)
+ /* Copy glyph row structure FROM to glyph row structure TO, except
+    that glyph pointers in the structures are left unchanged.  */
+ 
+-INLINE void
++static INLINE void
+ copy_row_except_pointers (to, from)
+      struct glyph_row *to, *from;
+ {
+@@ -5820,9 +5820,6 @@ window_change_signal (signalnum) /* If w
+      int signalnum;		/* some compilers complain in signal calls.  */
+ {
+   int width, height;
+-#ifndef USE_CRT_DLL
+-  extern int errno;
+-#endif
+   int old_errno = errno;
+ 
+   get_frame_size (&width, &height);

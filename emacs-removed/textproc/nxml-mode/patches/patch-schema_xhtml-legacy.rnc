@@ -1,0 +1,17 @@
+$NetBSD$
+
+The align attribute of the XHTML legacy module takes left, center, right
+and justify; the schema listed "all" and "none", which are the values of
+clear.  From Debian.
+
+--- schema/xhtml-legacy.rnc.orig
++++ schema/xhtml-legacy.rnc
+@@ -88,7 +88,7 @@
+ ul.attlist &=
+   attribute type { text }?,
+   attribute compact { "compact" }?
+-align.attrib = attribute align { "left" | "all" | "right" | "none" }?
++align.attrib = attribute align { "left" | "center" | "right" | "justify" }?
+ Color.datatype = text
+ Inline.class |= font | basefont | s | strike | u
+ Block.class |= center | isindex
