@@ -375,6 +375,11 @@ else
 	cc $DF -I"$DS"/util -o "$W/t-srcaddr" "$CI/../n-dhcp4/t-srcaddr.c" \
 		"$DS/util/socket-bsd.c" 2> "$W/t-srcaddr.log" || {
 		echo "★ t-srcaddr が建たない"; head -12 "$W/t-srcaddr.log"; LFAIL=1; }
+	cc $DF -I"$DS"/util -o "$W/t-bpfrx" "$CI/../n-dhcp4/t-bpfrx.c" \
+		"$DS/util/packet.c" "$DS/util/packet-bsd.c" "$DS/util/socket-bsd.c" \
+		"$DS/n-dhcp4-incoming.c" "$DS/n-dhcp4-outgoing.c" \
+		"$S/c-siphash/src/c-siphash.c" 2> "$W/t-bpfrx.log" || {
+		echo "★ t-bpfrx が建たない"; head -12 "$W/t-bpfrx.log"; LFAIL=1; }
 
 	if [ $LFAIL = 0 ]; then
 		echo "--- t-wire (DISCOVER が線に出るか)"
@@ -385,6 +390,12 @@ else
 		"$W/t-lease" "$TAP" decline || LFAIL=1
 		# socket_udp_send_from() は継ぎ目の中で唯一 t-lease が踏まない。
 		# 上流の test-socket.c はこれを呼ぶが Linux の netns を使う。
+		# t-lease が FreeBSD と GhostBSD で OFFER を読めずに止まっていた。
+		# 線に出ていないのか filter が落としているのかを分ける。
+		echo "--- t-bpfrx (BPF から BPF へ、filter の有無で)"
+		"$W/t-bpfrx" "$TAP"
+		br=$?
+		[ $br = 0 ] || [ $br = 77 ] || LFAIL=1
 		echo "--- t-srcaddr (socket_udp_send_from が送り元を選ぶか)"
 		"$W/t-srcaddr" "$TAP"
 		sr=$?
