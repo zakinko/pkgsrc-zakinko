@@ -18,6 +18,11 @@ on:
     paths:
       - '.github/workflows/lang-type.yml'
       - '.github/ci/verify-lang-type.sh'
+      # 箱の中で走る driver。ここに無いと driver だけを直したときに
+      # 一本も走り直さない。https の手当てを入れたのに rust-bin が
+      # 立たず、直したものが測られないままだった (go-bin.yml は
+      # 最初から挙げている)。
+      - '.github/ci/build-on-bsd.sh'
       - '.github/ci/tree-go-type.diff'
       - '.github/ci/tree-rust-type.diff'
       - '.github/ci/tree-patch-go-type.sh'
