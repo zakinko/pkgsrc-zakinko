@@ -1,0 +1,164 @@
+# X と nox も並べて入れる (2026-09-25)
+
+`README.md` は版違いの同居を扱う。こちらはその先、**同じ版の X 版と nox
+版**を並べる話と、XEmacs の elisp を一組で済ませる話。
+
+## 測ったこと
+
+`editors/emacs30` と `editors/emacs30-nox11` は `PKGDIR` を共有していて、
+PLIST が同一である。つまり **4341 の path が全部ぶつかる**。X か nox かは
+configure の引数だけの違いで、上流はそれを `CONFLICTS` で表している。
+
+版違いのほうは、展開してから数えると衝突はごく僅かだった。
+
+	emacs29 × emacs30        93 件   bin/ 5 本, info/ 66 本, man, icon, include
+	emacs20 × emacs30         4 件
+	xemacs  × xemacs-current 15 件
+	emacs30 × xemacs          0 件   ← Emacs と XEmacs は元から同居できる
+
+`share/emacs/${PKGVERSION}/…` を展開せずに比べると 4210 件に見えるが、
+これは PLIST の文字列が同じなだけの偽の重なり。
+
+## 何が本当に X/nox で変わるのか
+
+入っている nox 版と配布物の tarball を突き合わせると、`share/emacs/30.2`
+の 4341 件は
+
+	2644 件  配布物と byte 単位で同一   ← 変わりようがない
+	1689 件  build が圧縮しただけ       ← 変わりようがない
+	   5 件  tramp 系 .elc              ← pkgsrc の当て物が触った file
+	   1 件  info/dir
+	   1 件  etc/DOC                    ← binary から docstring を抜く
+
+Emacs は `.elc` を配布物に同梱していて (lisp の .el 1654 本に対し .elc
+1621 本)、build が作り直すのは `.el` が新しくなった物だけ。pkgsrc が当てる
+のは tramp 系 4 本だけなので、作り直されるのもその 4 + 1 本に限られる。
+
+その当て物は CVE-2026-79992 の修正で、正規表現の `bol`/`eol` を
+`bos`/`eos` に直しているだけ。`x11` `window-system` `featurep 'x`
+`display-graphic` の出現数はいずれも 0 なので、**X の有無で違う .elc に
+なる理由が無い**。
+
+つまり確実に変わるのは `bin/emacs-30.2`、`libexec/…/emacs.pdmp`、
+`etc/DOC`、`info/dir` の 4 件。
+
+## 実装
+
+`EMACS_TAG` を導入した。X 版では版そのもの、nox 版では版に変種を足す。
+
+	EMACS_TAG?=	${EMACS_VERSION}		A/emacs30-A
+	EMACS_TAG=	${EMACS_VERSION}-nox11		A/emacs30-nox11-A
+
+これが `--program-transform-name` と `--datadir` と `--libexecdir` と
+`--includedir` と infodir に渡る。Emacs の置き場はすべて `${datadir}`、
+`${libexecdir}`、program 名から導かれるので、**当て物は一枚も要らない**。
+
+	configure 6515: lispdir='${datadir}/emacs/'${lispdirrel}
+	configure 6520: etcdir='${datadir}/emacs/${version}/etc'
+	configure 6522: etcdocdir='${datadir}/emacs/${version}/etc'
+	configure 6523: archlibdir='${libexecdir}/emacs/${version}/${configuration}'
+
+`EMACS_TAG` を版のままにすれば、二つの変種は今までどおり衝突する。上流の
+既定はそちら。
+
+## 代償
+
+lisp の dir が変種ごとに分かれるので、**elisp package が
+`emacs30-foo` と `emacs30-nox11-foo` の二通りになる**。上流の新しい枠組みは
+逆に「X と nox は同じ lisp dir を使うから `emacs30-foo` 一つで足りる」と
+いう設計なので、そこは真っ向から違う。bulk build の量は倍になる。
+
+ディスクは一版あたり +162MB (lisp 90 / etc 16 / info 9)。14 版すべてで
+両方入れても +2.2GB。
+
+## 共通 package に切り出す案 (採らなかった)
+
+変わるのが 4 件なら、残り 4337 件を `emacs30-common` に切り出して両変種が
+共有する形が一番小さい (+2MB/版)。`lisp/` は一つで済み、elisp package も
+`emacs30-foo` 一つのまま。
+
+引っかかるのは `etc/DOC` で、`etcdocdir` には専用の option が無く
+(`--datadir` を動かすと lisp ごと動く)、当て物が一枚要る。実行時は
+`EMACSDOC` 環境変数で上書きできるが、package の解にはならない。
+
+`--enable-locallisppath` は `standardlisppath` より前に置かれるので、
+変種固有の `.elc` だけを先に見つけさせる余地はある。tramp の 5 本が本当に
+同一なら、その仕掛けも要らない。
+
+## XEmacs の elisp は一組で足りる
+
+`xemacs-21.5-b36` が byte-compile した `elisp-compat.elc` は
+`xemacs-21.4.25` で load でき、逆も成り立つ。25 本を両版で建てたところ
+**結果が完全に一致した** (各 7 OK / 18 NG、食い違い 0 件)。だから
+`xemacs-foo` 一本で 21.4 にも 21.5 にも出せる。
+
+GNU Emacs はそうならない。emacs30 が建てた `elisp-compat.elc` は emacs20 で
+`invalid-read-syntax` になる。逆向きは通る。両方の site-lisp に在る `.elc`
+7 件のうち 3 件が相手の版で load できない。
+
+	reader \ built   20.7   30.2
+	20.7             OK     NG
+	30.2             OK     OK
+
+上流 1.43 は XEmacs を `xemacs214-` / `xemacs215-` と版ごとに分けている。
+こちらは `xemacs-` 一本。置き場はどちらも
+`lib/xemacs/site-packages/lisp` で共通なので、名前だけの違い。
+
+## elisp-compat
+
+`devel/elisp-compat` は emacs20 から emacs31 と XEmacs 21.4/21.5 の
+すべてで同じ file が読めるように書いてある。古い Emacs に無いものだけを、
+無いときだけ定義する。
+
+2026-09-25 に欠陥を一つ直した。`elisp-compat.el` の中で
+
+	(provide 'e20-compat)
+	(provide 'emacs-compat)
+	(provide 'xemacs-compat)
+
+としていたが、`require` は**その名前の file を探す**ので
+
+	(file-missing "Cannot open load file" "No such file or directory"
+	              "emacs-compat")
+
+になる。置き換えた三つの package の名前で `require` している側は全部
+落ちる。同名の小さな file を三つ置いて本体を `require` させる形にし、
+emacs30 / emacs20 / xemacs215 の三つで四つの名前すべてが通ることを
+確かめた。
+
+`subr-x` は `provide` のままにしてある。`site-lisp` に `subr-x.el` を置くと
+自前で持っている新しい Emacs のものを隠す。
+
+## 測った結果 (2026-09-25)
+
+`emacs30-nox11-A` に `EMACS_TAG= ${EMACS_VERSION}-nox11` を与えて建て、
+`stage-install` まで通した。
+
+	stage-install rc=0
+	出来た path            4372 件
+	入っている emacs30-nox11  4372 件
+	重なり                    0 件
+
+当て物は使っていない。`post-install` と `SPECIAL_PERMS` と
+`CHECK_WRKREF_SKIP` が `libexec/emacs/...` を直書きしていたので、
+`_EMACS_ARCHLIB` を通すようにした。
+
+PLIST は `make print-PLIST` で取り直した。`${EMACS_TAG}` と
+`${EMACS_VERSION}` の二つが要る — 前者は dir 名、後者は Emacs 自身が
+自分の版として作る階層。
+
+	bin/emacs-${EMACS_TAG}
+	bin/emacs-${EMACS_VERSION}-${EMACS_TAG}
+	share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/lisp/...
+	libexec/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/${MACHINE_GNU_PLATFORM}/emacs.pdmp
+
+### 直っていない粗
+
+`bin/emacs-${EMACS_VERSION}-${EMACS_TAG}` は二重に名前が付いている。上流が
+`bin/emacs` と `bin/emacs-30.2` の両方を入れるところへ transform が一律に
+後置するため。既存の版違い同居でも同じ物 (`emacs-30.2-30.2`) が出来ていて、
+動作には影響しない (ALTERNATIVES が指すのは短いほう) が、版ごとに一つずつ
+無駄な複製が入る。
+
+transform を 5 本の名前に限れば消せるが、man page と icon も transform に
+乗っているので、そちらの追従を確かめてからにする。

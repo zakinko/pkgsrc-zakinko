@@ -45,12 +45,12 @@ CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/snake-scores \
 CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/tetris-scores \
 			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE}
 
-SPECIAL_PERMS+=		libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}/update-game-score ${SETGID_GAMES_PERMS}
+SPECIAL_PERMS+=		${_EMACS_ARCHLIB}/update-game-score ${SETGID_GAMES_PERMS}
 
 # build PATH in the dumped emacs is not a problem
 CHECK_WRKREF_SKIP+=	bin/emacs
-CHECK_WRKREF_SKIP+=	bin/emacs-${PKGVERSION_NOREV}
-CHECK_WRKREF_SKIP+=	libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}/emacs.pdmp
+CHECK_WRKREF_SKIP+=	bin/emacs-${EMACS_TAG}
+CHECK_WRKREF_SKIP+=	${_EMACS_ARCHLIB}/emacs.pdmp
 
 CHECK_PORTABILITY_SKIP+=	admin/download-android-deps.sh
 
@@ -83,7 +83,7 @@ post-extract:
 # by default the filename of the emacs dump contains a fingerprint of the corresponding emacs version
 # but this is not needed and makes the PLIST more simple
 post-install:
-	cd ${DESTDIR}${PREFIX}/libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM} && \
+	cd ${DESTDIR}${PREFIX}/${_EMACS_ARCHLIB} && \
 		mv emacs-*.pdmp emacs.pdmp
 	${RM} -f ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
 
@@ -91,14 +91,47 @@ post-install:
 .  include "../../devel/libgetopt/buildlink3.mk"
 .endif
 
-# Let two Emacs versions live in one prefix.  Everything upstream would
+# Let several Emacsen live in one prefix.  Everything upstream would
 # install under a name that carries no version gets one, and the bare
 # names come back through ALTERNATIVES.  configure does the renaming:
 # program_transform_name is honoured for the binaries, their man pages
 # and the icons, so no Makefile has to be patched.
-CONFIGURE_ARGS+=	--program-transform-name='s/$$/-${EMACS_VERSION}/'
-GNU_CONFIGURE_INFODIR=	${PREFIX}/share/emacs/${EMACS_VERSION}/info
-CONFIGURE_ARGS+=	--includedir=${PREFIX}/include/emacs-${EMACS_VERSION}
+#
+# EMACS_TAG, not EMACS_VERSION, is what goes into the names.  For the X
+# build it is the version; the nox build of the same version adds a
+# suffix, because the two are one version built two ways and would
+# otherwise land on the same 4341 paths.  Everything Emacs installs
+# hangs off ${datadir}, ${libexecdir} and the program names, and all
+# three take a value, so no source change is needed:
+#
+#	share/emacs/30.2/...        share/emacs/30.2-nox11/...
+#	libexec/emacs/30.2/...      libexec/emacs/30.2-nox11/...
+#	bin/emacs-30.2              bin/emacs-30.2-nox11
+#
+# The cost is that an elisp package no longer serves both: the lisp
+# directory differs, so emacs30-foo and emacs30-nox11-foo are two
+# builds.  Leave EMACS_TAG at the version and the two variants conflict
+# as before, which is what upstream does.
+EMACS_TAG?=		${EMACS_VERSION}
+CONFIGURE_ARGS+=	--program-transform-name='s/$$/-${EMACS_TAG}/'
+CONFIGURE_ARGS+=	--includedir=${PREFIX}/include/emacs-${EMACS_TAG}
+
+# Only a variant moves its tree.  When EMACS_TAG is the plain version the
+# layout is what it has always been, so the X build that is already
+# measured does not change.
+.if ${EMACS_TAG} != ${EMACS_VERSION}
+_EMACS_DATADIR=		share/emacs-${EMACS_TAG}
+_EMACS_LIBEXEC=		libexec/emacs-${EMACS_TAG}
+CONFIGURE_ARGS+=	--datadir=${PREFIX}/${_EMACS_DATADIR}
+CONFIGURE_ARGS+=	--libexecdir=${PREFIX}/${_EMACS_LIBEXEC}
+.else
+_EMACS_DATADIR=		share
+_EMACS_LIBEXEC=		libexec
+.endif
+_EMACS_ARCHLIB=		${_EMACS_LIBEXEC}/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}
+GNU_CONFIGURE_INFODIR=	${PREFIX}/${_EMACS_DATADIR}/emacs/${EMACS_VERSION}/info
 INFO_FILES=		# the info files are private to this Emacs now
 PLIST_SUBST+=		EMACS_VERSION=${EMACS_VERSION}
+PLIST_SUBST+=		EMACS_TAG=${EMACS_TAG}
+PRINT_PLIST_AWK+=	{ gsub(/${EMACS_TAG}/, "$${EMACS_TAG}"); }
 PRINT_PLIST_AWK+=	{ gsub(/${EMACS_VERSION}/, "$${EMACS_VERSION}"); }
