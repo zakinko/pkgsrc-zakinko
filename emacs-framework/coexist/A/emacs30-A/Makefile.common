@@ -37,7 +37,14 @@ USE_GAMESGROUP=		yes
 
 BUILD_DEFS+=		VARBASE
 BUILD_DEFS+=		GAMEDATAMODE
+# The nox build installs under its own EMACS_TAG, so its file list is
+# not the X one; it brings its own PLIST.  EMACS_TAG is only set this
+# early by a package that overrides it.
+.if defined(EMACS_TAG)
+PLIST_SRC+=		${.CURDIR}/PLIST
+.else
 PLIST_SRC+=		../../netbsd-i386-3e/emacs30-A/PLIST
+.endif
 
 MAKE_DIRS_PERMS+=	${VARBASE}/games/emacs ${GAMES_USER} ${GAMES_GROUP} ${GAMEDIRMODE}
 CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/snake-scores \
@@ -133,5 +140,6 @@ GNU_CONFIGURE_INFODIR=	${PREFIX}/${_EMACS_DATADIR}/emacs/${EMACS_VERSION}/info
 INFO_FILES=		# the info files are private to this Emacs now
 PLIST_SUBST+=		EMACS_VERSION=${EMACS_VERSION}
 PLIST_SUBST+=		EMACS_TAG=${EMACS_TAG}
+FILES_SUBST+=		EMACS_TAG=${EMACS_TAG}
 PRINT_PLIST_AWK+=	{ gsub(/${EMACS_TAG}/, "$${EMACS_TAG}"); }
 PRINT_PLIST_AWK+=	{ gsub(/${EMACS_VERSION}/, "$${EMACS_VERSION}"); }

@@ -326,7 +326,6 @@ _EMACS_INFODIR.emacs=		${PKGINFODIR}
 # Leave it empty and the layout is what it has always been.
 _EMACS_LISPDIR.emacs=		${_EMACS_DATADIR.emacs}/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
 _EMACS_DATADIR.emacs=		${empty(EMACS_VARIANT):?share:share/emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}-${EMACS_VARIANT}}
-EMACS_VARIANT?=
 _EMACS_PKGNAME_PREFIX.emacs=
 
 _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
@@ -495,6 +494,20 @@ _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
 
 .include "${_EMACS_PKGDIR}/version.mk"
 
+# The variant follows from the type, not from a separate knob.  A GNU
+# Emacs nox build keeps its own tree (share/emacs-<ver>-nox11/...) so it
+# can sit beside the X build, and everything that reads the tree has to
+# agree: where the lisp goes, which binary compiles it, and what the
+# package is called.  Deriving it here means the combination "nox type,
+# X tree" cannot be asked for.
+#
+# XEmacs is left alone.  Its two builds share lib/xemacs/site-packages,
+# and one .elc serves 21.4 and 21.5 alike (measured both ways).
+.if ${_EMACS_FLAVOR} == "emacs" && !empty(_EMACS_TYPE:M*nox)
+EMACS_VARIANT?=	nox11
+.endif
+EMACS_VARIANT?=
+
 # Info goes under the version exactly when the package's name does.
 # The name is what makes emacs29-foo and emacs30-foo two packages, and
 # two packages are what collide on info/foo.info; a package that keeps
@@ -541,7 +554,12 @@ _EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
 _EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
 .endif
 
-.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
+# Not for GNU Emacs here: its X and nox builds live in different trees,
+# so an elisp package made for one is useless to the other.  Widening
+# would let emacs30-foo be satisfied by emacs30-nox11 alone, install into
+# a tree nothing reads, and survive the removal of the Emacs it was made
+# for.  XEmacs builds share one tree and keep the wider dependency.
+.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER}) && ${_EMACS_FLAVOR} != "emacs"
 _EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
 .endif
 
