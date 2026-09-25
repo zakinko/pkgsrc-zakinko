@@ -158,10 +158,25 @@ if [ $rc -eq 0 ]; then
 	fi
 	[ -e "$PREFIX/bin/install" ] && { echo "!! bin/install が入っている"; rc=1; } \
 		|| echo "  ok bin/install は入らない"
-	[ -e "$PREFIX/bin/install" ] && { echo "!! bin/install が入っている (./... の名残)"; rc=1; }
 	_v=$("$PREFIX/bin/croc" --version 2>&1 | head -1)
 	echo "  $_v"
 	case $_v in *11.5.3*) : ;; *) echo "!! 版が違う"; rc=1 ;; esac
+	# どの Go で建ったかを、依存の名前ではなく出来た binary から読む。
+	# GO_VERSION_REQD を外して GO_VERSION_DEFAULT に任せたので、既定が
+	# go.mod の go 1.27.0 を満たしているかがここに出る。go-module.mk は
+	# GOTOOLCHAIN=local を渡すので、足りなければ降ろさずに build が落ちる。
+	_go=$(ls -d "$PREFIX"/go[0-9]* "$PREFIX"/go-bin 2>/dev/null | head -1)
+	if [ -n "$_go" ] && [ -x "$_go/bin/go" ]; then
+		_bg=$("$_go/bin/go" version -m "$PREFIX/bin/croc" 2>/dev/null |
+			awk '$1 == "mod" || /^[[:space:]]*go[[:space:]]/ { next }
+			     NR == 1 { print $NF }')
+		echo "  建てた Go: ${_bg:-(読めず)}"
+		case ${_bg:-} in
+		go1.2[7-9]*|go1.[3-9][0-9]*) : ;;
+		"") echo "  -- go version -m から読めなかった" ;;
+		*) echo "!! go.mod は go 1.27.0 を要求している"; rc=1 ;;
+		esac
+	fi
 fi
 
 echo

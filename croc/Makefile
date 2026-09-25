@@ -12,8 +12,6 @@ LICENSE=	mit
 
 USE_LANGUAGES=	c
 
-GO_VERSION_REQD=	127
-
 # go-module.mk builds ./... by default, which compiles internal/tailcat on
 # its own even though main only reaches it through src/tailcattransport,
 # whose build tags exclude NetBSD.  internal/tailcat carries no such tag and
