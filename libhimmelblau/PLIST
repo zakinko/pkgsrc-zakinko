@@ -1,7 +1,0 @@
-@comment $NetBSD$
-include/himmelblau/himmelblau.h
-lib/libhimmelblau.a
-lib/libhimmelblau.so
-lib/libhimmelblau.so.0
-lib/libhimmelblau.so.${PKGVERSION}
-lib/pkgconfig/himmelblau.pc
