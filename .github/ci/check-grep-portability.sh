@@ -22,6 +22,11 @@
 # ここは「どの箱で駄目か」ではなく「どの箱でも正しいのは -E」として見る。
 # 直し方が一つに決まるので、箱ごとの差を数える必要が無い。
 #
+# ただし「どの箱でも正しいのは -E」は**外れる**。Solaris 11.4 の /usr/bin/grep
+# には -E そのものが無く、grep: illegal option -- E で落ちる。落ちた exit 1 は
+# 「当たらなかった」exit 1 と区別が付かないので、-E に直したことで別の黙った
+# 誤答が生まれる。下の第二段がその側を見る。
+#
 # 箱が実際に何を解すかは別に測る。build-on-bsd.sh が起動時に印字する。
 set -e
 D=$(cd "$(dirname "$0")" && pwd)
@@ -90,11 +95,88 @@ n=$(printf '%s' "$out" | $G -c . || true)
 [ -n "$n" ] || n=0
 if [ "$n" -eq 0 ]; then
 	echo "移植性の無い escape を使う grep: 0 件"
-	exit 0
-fi
+else
 echo "!! 移植性の無い escape を使う grep が $n 件" >&2
 printf '%s\n' "$out" | sed 's/^/   /' >&2
 echo >&2
 echo "   POSIX BRE は \\| \\s \\S \\d \\w \\W \\+ \\? を定めない。grep -E に" >&2
-echo "   直して pattern 側は | と [[:space:]] で書く。" >&2
-exit 1
+echo "   直して pattern 側は | と [[:space:]] で書く。ただし SunOS で走る" >&2
+echo "   script では -E も使えない。下の第二段を見ること。" >&2
+# ここで exit しない。第一段で落とすと第二段が一度も走らず、二つある
+# うち片方しか見えないまま直しては撃ち直すことになる。最後にまとめて
+# 落とす。
+fi
+
+# ==================================================================
+# 第二段: SunOS の箱で走る script は -E も使えない。
+#
+# Solaris 11.4 の /usr/bin/grep には -E が無い。tree-patch-rust-bin.sh が
+# grep -qE で当て物の有無を見ていて、illegal option で落ちた exit 1 を
+# 「当たらなかった」と読み、「Darwin の深い -id が残っている」という測って
+# いない主張を出して job を落とした。上の第一段は -E を勧めるので、第一段
+# だけでは**この型は増える**。
+#
+# 対象を名前で書き並べない。SunOS の job が在る workflow から TREE_PATCH と
+# TREE_PKGS/PKGS を引いて、その当て物と verify を対象にする。package が
+# Solaris の matrix に増えたとき、黙って対象から外れないため。
+echo
+echo "SunOS の箱で走る script の -E を見る"
+G2=$G
+sun_scripts() {
+	find "$ROOT/.github/workflows" -name '*.yml' -print 2>/dev/null |
+	while read -r y; do
+		# SunOS 系の job を持つ workflow だけ
+		$G2 -qi -e 'solaris-vm' -e 'openindiana-vm' "$y" 2>/dev/null || continue
+		# TREE_PATCH に挙がっている applier
+		$G2 -h 'tree-patch-[a-z0-9-]*\.sh' "$y" 2>/dev/null |
+		tr ' ' '\n' | $G2 -o 'tree-patch-[a-z0-9-]*\.sh' 2>/dev/null ||
+		$G2 -h -o 'tree-patch-[a-z0-9-]*\.sh' "$y" 2>/dev/null
+		# TREE_PKGS / PKGS から verify-<pkg>.sh を組み立てる
+		$G2 -h -E '^[[:space:]]*(TREE_)?PKGS:' "$y" 2>/dev/null |
+		sed 's/^[^:]*://' | tr -d "'\"" | tr ' ' '\n' |
+		while read -r _p; do
+			# PKGS: '' のときに verify-.sh という無い名前が
+			# 出る。空は捨てる。
+			case $_p in "") continue ;; esac
+			case $_p in */*) ;; *) continue ;; esac
+			echo "verify-${_p##*/}.sh"
+		done
+		# 木を当てる側の driver 自身も箱の中で走る
+		echo build-on-bsd.sh
+	done | sort -u
+}
+# 呼び出しだけを数える。comment と echo の文面は除く。最初これを入れずに
+# 走らせて、build-on-bsd.sh の「-E 無い」という**説明文**を違反として
+# 挙げた。検査の側も自分が何を見ているか言えないといけない。
+#
+# probe の二行も除く。あれは -E が在るかを測るための呼び出しで、落ちたら
+# 「無い」が正しい答なので誤読が起きない唯一の場所。
+sun_hits() {
+	$G2 -n -e 'grep -[a-zA-Z]*[EP]' -e 'egrep' "$1" 2>/dev/null |
+	$G2 -v -E '^[0-9]+:[[:space:]]*#' |
+	$G2 -v -E "^[0-9]+:[[:space:]]*echo " |
+	$G2 -v "printf 'ab" || true
+}
+bad2=""
+for _f in $(sun_scripts); do
+	[ -f "$D/$_f" ] || continue
+	_hits=$(sun_hits "$D/$_f")
+	[ -n "$_hits" ] && bad2="$bad2
+$(printf '%s\n' "$_hits" | sed "s|^|$_f:|")"
+done
+bad2=$(printf '%s' "$bad2" | $G2 -c . || true)
+[ -n "$bad2" ] || bad2=0
+echo "  対象: $(sun_scripts | tr '\n' ' ')"
+if [ "$bad2" -eq 0 ]; then
+	echo "  SunOS で走る script の -E/-P/egrep: 0 件"
+else
+	echo "!! SunOS で走る script が -E/-P/egrep を $bad2 件使っている" >&2
+	for _f in $(sun_scripts); do
+		[ -f "$D/$_f" ] || continue
+		sun_hits "$D/$_f" | sed "s|^|   $_f:|" >&2
+	done
+	echo "   Solaris の /usr/bin/grep には -E が無い。pattern を素の BRE で" >&2
+	echo "   書くこと (bracket と * で足りることが多い)。" >&2
+	exit 1
+fi
+[ "$n" -eq 0 ] || exit 1

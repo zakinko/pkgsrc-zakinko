@@ -179,7 +179,11 @@ cc --version 2>/dev/null | head -1
 # 解されないと報せてきた。つまり「BSD だから \| が駄目」は箱によって外れる。
 # どの箱で何が生きているかを言えるようにしておく。
 #
-# 直し方は箱に依らず -E なので、この数字で分岐はしない。読むためだけに出す。
+# escape を六つ数えて、その隣にある -E 自体を数えていなかった。Solaris 11.4 の
+# /usr/bin/grep には -E が無く (illegal option -- E)、当て物の確認がその場で
+# 落ちた。grep が死んだ exit 1 と「当たらなかった」exit 1 は同じ顔なので、
+# 「Darwin の深い -id が残っている」という**測っていない主張**が出た。
+# 定義に並んでいるものを一覧にしてから書く、の一例。
 stage "この箱の grep が解す escape"
 # 版も出す。手元の macOS は "BSD grep, GNU compatible 2.6.0-FreeBSD" で
 # \d まで全部解し、techne の NetBSD は \| は解すが \s は解さない。
@@ -203,7 +207,33 @@ for _e in '\|' '\s' '\+' '\?' '\d' '\w'; do
 		echo "    $_e  解さない  (この箱では grep -q '$_p' が常に偽)"
 	fi
 done
-echo "    -> 直し方は箱に依らず grep -E と | / [[:space:]]"
+# -E 自体が在るかを数える。上の六つが全部「解さない」でも -E が在れば
+# pattern 側を | と [[:space:]] で書けば済むが、無ければそれも効かない。
+if printf 'ab\n' | grep -qE 'a|b' 2>/dev/null; then
+	echo "    -E  在る"
+else
+	echo "    -E  無い  (この箱では grep -E が illegal option で落ちる)"
+	# 箱が POSIX の grep を別の場所に持っていることがある。Solaris は
+	# /usr/xpg4/bin/grep が POSIX 準拠で -E を持つ。見付けたらそれを
+	# 先に置く。以降 verify-*.sh や tree-patch-*.sh の素の grep も
+	# そちらを引くので、pattern を五十箇所書き換えずに済む。
+	for _d in /usr/xpg4/bin /usr/gnu/bin /usr/local/bin; do
+		if [ -x "$_d/grep" ] && printf 'ab\n' |
+		   "$_d/grep" -qE 'a|b' 2>/dev/null; then
+			PATH="$_d:$PATH"; export PATH
+			echo "    -> $_d/grep を先に置いた"
+			break
+		fi
+	done
+	if printf 'ab\n' | grep -qE 'a|b' 2>/dev/null; then
+		echo "    -> いま grep は $(command -v grep) で -E が効く"
+	else
+		# 見付からなかった。落とさない。素の BRE だけで書いてある
+		# script は通るので、通る所まで進める方が情報が多い。
+		echo "    !! -E の在る grep がこの箱に見付からない。" \
+		     "pattern は素の BRE で書いてあることが前提になる" >&2
+	fi
+fi
 
 stage "置き場所を決める"
 # OpenBSD は既定で /usr や /home を別区画に切って入る。pkgsrc のツリー

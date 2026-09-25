@@ -145,8 +145,11 @@ if [ $rc = 0 ]; then
 		# 書けていなければ意味が無い。Solaris ではここで「書けているのに
 		# 実行できない」が出た。
 		echo "  --- 入った rustc の RUNPATH"
-		( elfdump -d "$RUSTC" 2>/dev/null | grep -iE 'RUNPATH|RPATH' \
-		  || readelf -d "$RUSTC" 2>/dev/null | grep -iE 'RUNPATH|RPATH' \
+		# -E を使わない。この script は Solaris でも走り、あちらの
+		# /usr/bin/grep には -E が無い。R[UN]*PATH は BRE で RPATH と
+		# RUNPATH の両方だけに当たる (PATH にも RZPATH にも当たらない)。
+		( elfdump -d "$RUSTC" 2>/dev/null | grep -i 'R[UN]*PATH' \
+		  || readelf -d "$RUSTC" 2>/dev/null | grep -i 'R[UN]*PATH' \
 		  || echo "(読めなかった)" ) | sed 's/^/      /'
 		if _v=$("$RUSTC" --version 2>&1); then
 			echo "  rustc: $_v"

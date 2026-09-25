@@ -47,7 +47,11 @@ for pair in \
 	_pat=${pair%%:*}; _name=${pair#*:}
 	grep -q "$_pat" "$M" || { echo "!! rust-bin: $_name が入っていない" >&2; exit 1; }
 done
-grep -qE '^\.  for lib in lib$' "$M" || {
+# -E を付けない。Solaris 11.4 の /usr/bin/grep には -E が無く、illegal option
+# で落ちた exit 1 を「当たらなかった」と読んで、この行が偽の失敗を出していた。
+# この pattern は BRE でも ERE でも同じものに当たる (\. 以外に metachar が
+# 無い) ので、-E は要らなかった。
+grep -q '^\.  for lib in lib$' "$M" || {
 	echo "!! rust-bin: Darwin の深い -id が残っている" >&2; exit 1; }
 grep -q 'PLATFORM_SUPPORTS_RUST_BIN' "$TREE/lang/rust/rust.mk" || {
 	echo "!! rust.mk が表を見ていない" >&2; exit 1; }
