@@ -19,6 +19,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <sys/event.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -124,6 +126,43 @@ static int try_once(int rd, unsigned int blen, int wr, const char *what) {
         return got;
 }
 
+/* 同じことを kqueue で待って見る */
+static int kqueue_once(int rd, unsigned int blen, int wr) {
+        uint8_t frame[1500];
+        size_t n = build_offer(frame);
+        struct kevent kev;
+        struct timespec ts = { .tv_sec = 2 };
+        char *buf;
+        int kq, got = 0;
+
+        buf = malloc(blen);
+        if (!buf)
+                return -1;
+        while (poll(&(struct pollfd){ .fd = rd, .events = POLLIN }, 1, 0) == 1)
+                (void)read(rd, buf, blen);
+
+        kq = kqueue();
+        if (kq < 0) { printf("  kqueue: %s\n", strerror(errno)); free(buf); return -1; }
+        EV_SET(&kev, rd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        if (kevent(kq, &kev, 1, NULL, 0, NULL) < 0) {
+                printf("  kevent(EV_ADD): %s\n", strerror(errno));
+                close(kq); free(buf); return -1;
+        }
+        if (write(wr, frame, n) != (ssize_t)n) {
+                printf("  kqueue: 書けない (%s)\n", strerror(errno));
+                close(kq); free(buf); return -1;
+        }
+        if (kevent(kq, NULL, 0, &kev, 1, &ts) == 1)
+                got = 1;
+        printf("  %-12s %s\n", "kqueue", got ? "報せた" : "報せない");
+        /* 報せなくても中身は届いているかを見る */
+        if (!got && poll(&(struct pollfd){ .fd = rd, .events = POLLIN }, 1, 0) == 1)
+                printf("               (poll では読める。kqueue だけが黙っている)\n");
+        close(kq);
+        free(buf);
+        return got;
+}
+
 int main(int argc, char **argv) {
         const char *ifname = argc > 1 ? argv[1] : "tap0";
         struct bpf_program prog = {
@@ -132,7 +171,7 @@ int main(int argc, char **argv) {
                 .bf_insns = n_dhcp4_bsd_client_filter,
         };
         unsigned int blen;
-        int rd, wr, a, b;
+        int rd, wr, a, b, c;
 
         setvbuf(stdout, NULL, _IONBF, 0);
         printf("%s で BPF から BPF へ DHCP OFFER を一本\n", ifname);
@@ -152,10 +191,18 @@ int main(int argc, char **argv) {
         }
         b = try_once(rd, blen, wr, "filter あり");
 
+        /*
+         * ここまでは poll(2) で見ている。n-dhcp4 の client は dispatch の中で
+         * kqueue を通るので、kqueue が BPF の読み可を報せるかは別の話である。
+         * FreeBSD と GhostBSD で t-lease だけが止まり、上の二つが届くのなら、
+         * 残るのはここしかない。
+         */
+        c = kqueue_once(rd, blen, wr);
+
         close(rd);
         close(wr);
 
-        if (a < 0 || b < 0)
+        if (a < 0 || b < 0 || c < 0)
                 return 1;
         if (!a) {
                 printf("\n=== 線に出ていない。filter の話ではない ===\n");
@@ -163,6 +210,10 @@ int main(int argc, char **argv) {
         }
         if (!b) {
                 printf("\n=== 線には出ているが filter が落としている ===\n");
+                return 1;
+        }
+        if (!c) {
+                printf("\n=== poll では読めるが kqueue が報せない ===\n");
                 return 1;
         }
         printf("\n=== 通った ===\n");
