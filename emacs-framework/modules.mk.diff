@@ -1,5 +1,5 @@
---- editors/emacs/modules.mk.orig
-+++ editors/emacs/modules.mk
+--- /usr/pkgsrc/editors/emacs/modules.mk	2026-09-18 05:45:56.802731822 +0000
++++ editors/emacs/modules.mk	2026-09-25 06:36:32.799139998 +0000
 @@ -61,15 +61,31 @@
  #		Default value:
  #			<undefined>
@@ -108,9 +108,15 @@
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -251,9 +298,24 @@
+@@ -247,13 +294,28 @@
+ 	emacs31@../../editors/emacs31 \
+ 	emacs31nox@../../editors/emacs31-nox11 \
+ 	xemacs214@../../editors/xemacs \
+-	xemacs214nox@../../editors/xemacs-nox11 \
++	xemacs214nox@../../editors/xemacs214-nox11 \
  	xemacs215@../../editors/xemacs-current \
- 	xemacs215nox@../../editors/xemacs-current-nox11
+-	xemacs215nox@../../editors/xemacs-current-nox11
++	xemacs215nox@../../editors/xemacs215-nox11
  
 -_EMACS_ETCDIR.emacs=		share
 +# Data installed beside the lisp moves with it.  mail/mew and math/ess
@@ -343,7 +349,7 @@
  DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
  
  EMACS_MODULES?=
-@@ -306,16 +548,81 @@
+@@ -306,16 +548,87 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -358,8 +364,14 @@
 +# GNU Emacs installs bin/emacs-29.4 and bin/emacs-30.2 and makes
 +# bin/emacs a symlink to one of them, so the name follows from the
 +# version.  XEmacs adds a beta suffix (bin/xemacs-21.5-b36) that does
-+# not, so it keeps the plain name until its version.mk can say; there is
-+# only ever one XEmacs of a series installed anyway.
++# not, so each XEmacs version.mk names its own binary.
++#
++# The plain name used to be left here on the grounds that only one
++# XEmacs of a series is ever installed.  That is not true on a machine
++# that keeps 21.4 and 21.5 side by side, and bin/xemacs is then the
++# pkg_alternatives wrapper: a whole run labelled 21.5 was compiled by
++# 21.4 before anyone noticed.  A fallback that is right only when one
++# Emacs is installed is what this framework exists to remove.
 +_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
 +_EMACS_BIN_NAME.xemacs=	xemacs
 +_EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
@@ -428,7 +440,7 @@
  
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
-@@ -325,7 +632,7 @@
+@@ -325,7 +638,7 @@
  _EMACS_PLIST_SUBST+=	FOR_${e}="@comment " NOTFOR_${e}=""
  .  endif
  .endfor
@@ -437,7 +449,7 @@
  _EMACS_PLIST_SUBST+=	FOR_emacs_x="" NOTFOR_emacs_x="@comment "
  _EMACS_PLIST_SUBST+=	FOR_emacs_nox="@comment " NOTFOR_emacs_nox=""
  .else
-@@ -338,6 +645,12 @@
+@@ -338,6 +651,12 @@
  _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
  _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
@@ -450,7 +462,7 @@
  
  _EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
  
-@@ -354,8 +667,14 @@
+@@ -354,8 +673,14 @@
  .if defined(EMACS_BUILDLINK)
  _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
  # A development version usually claims three digits, say, 27.0.50 etc.

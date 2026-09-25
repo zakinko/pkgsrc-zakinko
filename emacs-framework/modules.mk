@@ -294,9 +294,9 @@ _EMACS_PKGDIR_MAP= \
 	emacs31@../../editors/emacs31 \
 	emacs31nox@../../editors/emacs31-nox11 \
 	xemacs214@../../editors/xemacs \
-	xemacs214nox@../../editors/xemacs-nox11 \
+	xemacs214nox@../../editors/xemacs214-nox11 \
 	xemacs215@../../editors/xemacs-current \
-	xemacs215nox@../../editors/xemacs-current-nox11
+	xemacs215nox@../../editors/xemacs215-nox11
 
 # Data installed beside the lisp moves with it.  mail/mew and math/ess
 # are the two that use this, and both bake the path into the package at
@@ -558,8 +558,14 @@ EMACS_FLAVOR=		${_EMACS_FLAVOR}
 # GNU Emacs installs bin/emacs-29.4 and bin/emacs-30.2 and makes
 # bin/emacs a symlink to one of them, so the name follows from the
 # version.  XEmacs adds a beta suffix (bin/xemacs-21.5-b36) that does
-# not, so it keeps the plain name until its version.mk can say; there is
-# only ever one XEmacs of a series installed anyway.
+# not, so each XEmacs version.mk names its own binary.
+#
+# The plain name used to be left here on the grounds that only one
+# XEmacs of a series is ever installed.  That is not true on a machine
+# that keeps 21.4 and 21.5 side by side, and bin/xemacs is then the
+# pkg_alternatives wrapper: a whole run labelled 21.5 was compiled by
+# 21.4 before anyone noticed.  A fallback that is right only when one
+# Emacs is installed is what this framework exists to remove.
 _EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
 _EMACS_BIN_NAME.xemacs=	xemacs
 _EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
