@@ -111,7 +111,12 @@ jobs:
       # 見ていなかった。
       - name: debian-ports の鍵を取り出す
         if: matrix.ports
-        run: sh .github/ci/fetch-debian-ports-keyring.sh .ci-keys/debian-ports.gpg
+        # loong64 は debian-ports から本家の archive へ移った。ports の
+        # InRelease の Architectures にもう loong64 が無く、update は 0 で
+        # 返るのに package の一覧が空になる (Get は InRelease の二つだけ)。
+        # 本家の sid の Architectures には在る。image は ports を向いたまま
+        # なので、本家の鍵を渡し、中で sources を本家へ向け直す。
+        run: sh .github/ci/fetch-debian-ports-keyring.sh .ci-keys/debian-archive.gpg debian-archive-keyring
       - name: 建てて動かす
         env:
           BUILD_DEADLINE: 270m
@@ -127,10 +132,12 @@ jobs:
             ${{ matrix.image }} sh -c '
               # runner 側で取り出した debian-ports の鍵を apt に見せる。
               # 無い箱では何もしない。
-              if [ -f /w/.ci-keys/debian-ports.gpg ]; then
+              if [ -f /w/.ci-keys/debian-archive.gpg ]; then
                 mkdir -p /etc/apt/trusted.gpg.d
-                cp /w/.ci-keys/debian-ports.gpg /etc/apt/trusted.gpg.d/
-                echo "debian-ports の鍵を入れた"
+                cp /w/.ci-keys/debian-archive.gpg /etc/apt/trusted.gpg.d/
+                rm -f /etc/apt/sources.list.d/*
+                echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list
+                echo "本家の鍵を入れ、sources を本家の sid へ向けた"
               fi
               # && で繋ぐ。update が落ちたまま install に進むと
               # 「package が見つからない」に化けて、鍵の話が見えなくなる。
@@ -207,6 +214,17 @@ jobs:
               ls /tmp/rdprobe > /dev/null || echo "!! ls が落ちた"
               rm -rf /tmp/rdprobe
               apt-get update -qq || true
+              apt-get install -y -qq gcc > /dev/null 2>&1 || true
+              # readdir は 400/400 で健全だった (前の run)。次の疑い: 32bit
+              # の stat() は inode 番号が 32bit を超えると EOVERFLOW を返す。
+              # bmake が sys.mk を stat して「無い」と読んでいる形。
+              if command -v gcc > /dev/null; then
+                printf "%s\n" "#include <sys/stat.h>" "#include <stdio.h>" "#include <errno.h>" "#include <string.h>" \
+                  "int main(int c,char**v){struct stat s;for(int i=1;i<c;i++){int r=stat(v[i],&s);printf(\"stat %s r=%d %s\\n\",v[i],r,r?strerror(errno):\"ok\");}return 0;}" > /tmp/st.c
+                gcc -std=c99 -o /tmp/st32 /tmp/st.c && /tmp/st32 /w/.github/ci/build-on-bsd.sh /usr/bin /etc/passwd
+                gcc -std=c99 -D_FILE_OFFSET_BITS=64 -o /tmp/st64 /tmp/st.c && /tmp/st64 /w/.github/ci/build-on-bsd.sh
+                ls -i /w/.github/ci/build-on-bsd.sh
+              fi
               apt-get install -y -qq build-essential curl wget tar gzip perl patch || true
               exec /bin/sh .github/ci/build-on-bsd.sh'
 

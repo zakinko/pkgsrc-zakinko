@@ -13,18 +13,21 @@
 # loongarch64 のように出来合いの image の中の apt に渡すのと、二箇所で
 # 同じものが要る。二つに写すと片方だけ直る形になるので一本にした。
 set -e
-OUT=${1:?usage: $0 <out.gpg>}
-B=http://deb.debian.org/debian/pool/main/d/debian-ports-archive-keyring
+OUT=${1:?"usage: $0 <out.gpg> [keyring package]"}
+# 二つ目は package 名。既定は debian-ports のもの。loong64 は 2026 年に
+# debian-ports から本家の archive へ移ったので、本家の鍵も同じ手で引く。
+PKG=${2:-debian-ports-archive-keyring}
+B=http://deb.debian.org/debian/pool/main/d/$PKG
 KD=$(mktemp -d)
 trap 'rm -rf "$KD"' 0
 deb=$(curl -sf "$B/" |
-	sed -n 's/.*\(debian-ports-archive-keyring_[0-9.]*_all\.deb\).*/\1/p' |
+	sed -n "s/.*\\($PKG"'_[0-9.]*_all\.deb\).*/\1/p' |
 	sort -u | tail -1)
 [ -n "$deb" ] || { echo "!! 現行の keyring が見つからない ($B)" >&2; exit 1; }
 echo "  keyring: $deb"
 curl -sfo "$KD/k.deb" "$B/$deb"
 ( cd "$KD" && ar x k.deb && tar xf data.tar.* )
-K="$KD/usr/share/keyrings/debian-ports-archive-keyring.gpg"
+K="$KD/usr/share/keyrings/$PKG.gpg"
 [ -f "$K" ] || {
 	echo "!! keyring の中身が取り出せない" >&2
 	ls -R "$KD" | head -20 >&2
