@@ -10,8 +10,14 @@
 #
 # XEmacs への言及は el のどこにも無いので、受けるのは GNU Emacs だけ。
 # 一覧は devel/apel と同じにしてある。
+#
+# emacs20 も受ける。1.4.6 を emacs20 で使うために当てていた直し
+# (booleanp、三引数の add-to-list、elisp-compat の propertize) を移し、
+# 20180321 で新たに足りなくなる関数も当て物で補う
+# (patches/patch-elscreen.el)。
 
 DISTNAME=	elscreen-20180321
+PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
 CATEGORIES=	misc
 MASTER_SITES=	${MASTER_SITE_GITHUB:=knu/}
 GITHUB_PROJECT=	elscreen
@@ -39,7 +45,8 @@ USE_LANGUAGES=	# none
 # これまでどおり el だけ入れる。
 NO_BUILD=	yes
 
-EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox
+EMACS_VERSIONS_ACCEPTED=	emacs20
+EMACS_VERSIONS_ACCEPTED+=	emacs29 emacs29nox
 EMACS_VERSIONS_ACCEPTED+=	emacs30 emacs30nox
 EMACS_VERSIONS_ACCEPTED+=	emacs31 emacs31nox
 
@@ -55,4 +62,9 @@ do-install:
 	done
 
 .include "../../editors/emacs/modules.mk"
+
+.if ${EMACS_VERSION_MAJOR} == 20
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}elisp-compat-[0-9]*:../../zakinko/elisp-compat
+.endif
+
 .include "../../mk/bsd.pkg.mk"
