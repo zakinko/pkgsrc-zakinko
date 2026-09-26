@@ -1,0 +1,2 @@
+A queue data structure for Emacs Lisp: first in, first out, with
+constant-time insertion at either end.  Used by undo-tree.

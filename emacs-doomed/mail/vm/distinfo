@@ -1,0 +1,5 @@
+$NetBSD: distinfo,v 1.20 2021/10/26 10:54:33 nia Exp $
+
+BLAKE2s (vm-8.3.2.tar.gz) = f36ff61e75ba12716f778c5af1e85610782b0061eeb23e35eccb42c9b3644d57
+SHA512 (vm-8.3.2.tar.gz) = 55c485afe4230d657eb85594d7bf68e9cfe805b4d6ca290c25c2618e01e4296404c29fdb078fe414fb62d7a0d7787f49f6f2f9df8621b03b65eff51bce8b8d95
+Size (vm-8.3.2.tar.gz) = 840207 bytes
