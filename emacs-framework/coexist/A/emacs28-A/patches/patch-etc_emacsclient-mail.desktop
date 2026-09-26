@@ -1,0 +1,38 @@
+$NetBSD$
+
+The desktop file interpolates the mailto: URL straight into an --eval
+argument, so a URL containing a quote closes the string and the rest is read
+as Elisp.  Handing a crafted mailto: link to a mail client that honours this
+desktop file therefore runs code.  This is CVE-2023-27986.
+
+Upstream fixed it in 29.1 with
+
+	3c1693d08b  Fix Elisp code injection vulnerability in emacsclient-mail.desktop
+
+which builds on two earlier changes that moved the URL out of the command
+line and into a positional argument.  28.2 has neither, so what is applied
+here is the resulting 29.1 file rather than that one commit.
+
+--- etc/emacsclient-mail.desktop.orig
++++ etc/emacsclient-mail.desktop
+@@ -1,7 +1,10 @@
+ [Desktop Entry]
+ Categories=Network;Email;
+ Comment=GNU Emacs is an extensible, customizable text editor - and more
+-Exec=sh -c "exec emacsclient --alternate-editor= --display=\\"\\$DISPLAY\\" --eval \\\\(message-mailto\\\\ \\\\\\"%u\\\\\\"\\\\)"
++# We want to pass the following commands to the shell wrapper:
++# u=${1//\\/\\\\}; u=${u//\"/\\\"}; exec emacsclient --alternate-editor= --display="$DISPLAY" --eval "(message-mailto \"$u\")"
++# Special chars '"', '$', and '\' must be escaped as '\\"', '\\$', and '\\\\'.
++Exec=bash -c "u=\\${1//\\\\\\\\/\\\\\\\\\\\\\\\\}; u=\\${u//\\\\\\"/\\\\\\\\\\\\\\"}; exec emacsclient --alternate-editor= --display=\\"\\$DISPLAY\\" --eval \\"(message-mailto \\\\\\"\\$u\\\\\\")\\"" bash %u
+ Icon=emacs
+ Name=Emacs (Mail, Client)
+ MimeType=x-scheme-handler/mailto;
+@@ -13,7 +16,7 @@
+ 
+ [Desktop Action new-window]
+ Name=New Window
+-Exec=emacsclient --alternate-editor= --create-frame --eval "(message-mailto \\"%u\\")"
++Exec=bash -c "u=\\${1//\\\\\\\\/\\\\\\\\\\\\\\\\}; u=\\${u//\\\\\\"/\\\\\\\\\\\\\\"}; exec emacsclient --alternate-editor= --create-frame --eval \\"(message-mailto \\\\\\"\\$u\\\\\\")\\"" bash %u
+ 
+ [Desktop Action new-instance]
+ Name=New Instance

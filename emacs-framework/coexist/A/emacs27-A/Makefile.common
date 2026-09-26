@@ -1,0 +1,197 @@
+# $NetBSD$
+#
+# editors/emacs27 が pkgsrc から消えたので、消される直前の版をここへ引き取った。
+#
+#	CVS	pkgsrc/editors/emacs27  Makefile,v 1.64
+#	削除	2026-08-25 17:33:14 UTC  wiz  commitid UIVD8ABupUq3M2TG  (rev 1.65, state dead)
+#
+# PKGREVISION は CVS の最終値 58 に +1 した 59 で固定する。ここに手を入れても
+# 動かさない。上流の値より大きければ pkgin が入れ替えるので、それ以上に
+# 上げる意味が無い。同じ番号で入れ直すときは make replace を使う。
+#
+# emacs27-nox11 の側は 1 になる。上流のあちらは別に PKGREVISION を持って
+# いて、その最終値 0 に +1 したもの。番号が揃わないのは、もとの二つが
+# 揃っていなかったためである。
+#
+# 上流と違うところ:
+#
+#   - MAINTAINER をこちらへ移した。上流に居ないものを pkgsrc-users 宛のまま
+#     置いておくと、報告先が無い
+#   - $NetBSD$ は潰した。ここは CVS ではないので、あの番号は更新されない
+#   - EMACS_COEXIST を足した
+#   - 脆弱性の当て物を足した。何を当てたかは patches/ の各ヘッダにある
+#
+# used by zakinko/emacs27/Makefile
+# used by zakinko/emacs27-nox11/Makefile
+
+
+.include "../../mk/bsd.prefs.mk"
+
+DISTNAME=	emacs-${EMACS_VERSION}
+PKGNAME?=	${DISTNAME:S/emacs/emacs27/}
+CATEGORIES=	zakinko editors
+MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
+
+MAINTAINER=	zakinko@snowrabbit.org
+HOMEPAGE=	https://www.gnu.org/software/emacs/
+COMMENT=	GNU editing macros (editor)
+LICENSE=	gnu-gpl-v3
+
+WRKSRC=		${WRKDIR}/${DISTNAME:S/b$//}
+
+# use makeinfo from pkgsrc/deve/gtexinfo
+TEXINFO_REQD+=	4.13
+
+GNU_CONFIGURE=	yes
+INFO_FILES=	yes
+USE_TOOLS+=	autoconf automake gmake gzip makeinfo gm4 gsed
+
+REPLACE_SH+=	autogen.sh
+
+CONFIGURE_ARGS+=	--srcdir=${WRKSRC}
+CONFIGURE_ARGS+=	--localstatedir=${VARBASE}
+CONFIGURE_ARGS+=	--disable-autodepend
+CONFIGURE_ENV+=		GAMEOWN=${GAMES_USER}
+
+USE_GAMESGROUP=		yes
+
+BUILD_DEFS+=		VARBASE
+BUILD_DEFS+=		GAMEDATAMODE
+PLIST_SRC+=		../../netbsd-i386-3e/emacs27-A/PLIST
+
+.include "../../netbsd-i386-3e/emacs27-A/version.mk"
+
+#
+# EMACS_COEXIST
+#	yes にすると無印の bin/emacs を入れず、bin/emacs27 のように版付きの
+#	名前だけを置く。zakinko の emacs22 から emacs28 を並べて入れられる。
+#
+#	その代わり、この版に対して elisp パッケージは建たなくなる。
+#	emacs/modules.mk が EMACS_BIN を ${PREFIX}/bin/emacs と版によらず
+#	決め打ちしているためで、無印を置かない以上どうにもならない。日本語
+#	入力の検査のように elisp を建てる用途は既定の no 側で行う。
+#
+#	既定は no。そのときは上流とまったく同じものが入る。PKG_OPTIONS には
+#	しない。PKG_OPTIONS_VAR が全 emacs 版で共有の PKG_OPTIONS.emacs な
+#	ので、そこに知らない名前が入ると bsd.options.mk の PKG_FAIL_REASON で
+#	上流の emacs30 などが建たなくなる。
+#
+#	info はいずれも無印なので、共存時は --infodir ごと
+#	${PKGINFODIR}/emacs27 へ振る。desktop や icons のように版で分ける
+#	すべが無いものは、共存時は入れない。
+#
+# X 版と nox 版を並べるには版付きの名前が要るので、この branch では yes
+# を既定にする。上の「elisp が建たない」は modules.mk が版付きの
+# EMACS_BIN を引くようになったので、もう当たらない。
+EMACS_COEXIST?=		yes
+BUILD_DEFS+=		EMACS_COEXIST
+
+# EMACS_TAG は X 版では版そのもの、nox 版では -nox11 が付く。nox 版は
+# datadir と libexecdir も自分の場所へ移し、X 版と一つも path を共有
+# しない。emacs30-A と同じ形。
+EMACS_TAG?=		27.2
+_EMACS_TAGSFX=		${EMACS_TAG:S/^27.2//}
+.if !empty(EMACS_TAG:M*-nox11)
+_EMACS_DATADIR=		share/emacs-${EMACS_TAG}
+_EMACS_LIBEXEC=		libexec/emacs-${EMACS_TAG}
+CONFIGURE_ARGS+=	--datadir=${PREFIX}/${_EMACS_DATADIR}
+CONFIGURE_ARGS+=	--libexecdir=${PREFIX}/${_EMACS_LIBEXEC}
+# file の一覧も nox 版自身のもの。上の PLIST_SRC を置き換える。
+PLIST_SRC=		${.CURDIR}/PLIST
+.else
+_EMACS_DATADIR=		share
+_EMACS_LIBEXEC=		libexec
+.endif
+PLIST_SUBST+=		EMACS_TAG=${EMACS_TAG}
+FILES_SUBST+=		EMACS_TAG=${EMACS_TAG}
+
+PLIST_VARS+=		plain coexist
+.if ${EMACS_COEXIST} == "yes"
+PLIST.coexist=		yes
+EMACS_INFOSUB=		emacs27${_EMACS_TAGSFX}/
+# CONFIGURE_ARGS には足さない。pkgsrc が gnu-configure.mk で
+# --infodir=${GNU_CONFIGURE_INFODIR} を後ろに足すので、そちらが勝つ。
+GNU_CONFIGURE_INFODIR=	${PREFIX}/${PKGINFODIR}/emacs27${_EMACS_TAGSFX}
+
+# configure が改名する。Emacs は program_transform_name を binary、man、
+# icon に適用するので、名前を並べて mv する必要がない。上流が file を
+# 増やしても追従する。
+CONFIGURE_ARGS+=	--program-transform-name='s/$$/-${EMACS_TAG}/'
+CONFIGURE_ARGS+=	--includedir=${PREFIX}/include/emacs-${EMACS_TAG}
+PLIST_SUBST+=		EMACS_VERSION=27.2
+PRINT_PLIST_AWK+=	{ gsub(/${EMACS_TAG}/, "$${EMACS_TAG}"); }
+PRINT_PLIST_AWK+=	{ gsub(/27.2/, "$${EMACS_VERSION}"); }
+
+post-install: coexist-names
+
+.PHONY: coexist-names
+coexist-names:
+	# 版で分けようがないのはこれだけ。共有の site-lisp は版ごとの
+	# site-lisp が別に在るので消してよい。
+	${RM} -f ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/site-lisp/subdirs.el
+	${RM} -f ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/site-lisp/site-start.el
+
+.else
+PLIST.plain=		yes
+EMACS_INFOSUB=		# 無印のまま
+.endif
+PLIST_SUBST+=		EMACS_INFOSUB=${EMACS_INFOSUB:Q}
+
+BUILD_TARGET=		bootstrap
+EMACS_VERSION=		${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
+PLIST_SUBST+=		EMACS_VERSION=${EMACS_VERSION}
+
+MAKE_DIRS_PERMS+=	${VARBASE}/games/emacs ${GAMES_USER} ${GAMES_GROUP} ${GAMEDIRMODE}
+CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/snake-scores \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE}
+CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/tetris-scores \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE}
+
+SPECIAL_PERMS+=		${_EMACS_LIBEXEC}/emacs/${EMACS_VERSION}/${MACHINE_GNU_PLATFORM}/update-game-score ${SETGID_GAMES_PERMS}
+
+# build PATH in the dumped emacs is not a problem
+CHECK_WRKREF_SKIP+=	bin/emacs
+CHECK_WRKREF_SKIP+=	bin/emacs-${EMACS_TAG}
+CHECK_WRKREF_SKIP+=	${_EMACS_LIBEXEC}/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}/emacs.pdmp
+
+PRINT_PLIST_AWK+=	{ gsub(/${MACHINE_GNU_PLATFORM}/, "$${MACHINE_GNU_PLATFORM}"); }
+
+.if (${OPSYS} == "NetBSD") && \
+    !exists(/usr/lib/libgcc_s.so) && !exists(/usr/lib/libgcc.a)
+# NetBSD with native Clang doesn't provide libgcc, everything is in libc.
+pre-configure: fake-libgcc
+
+.PHONY: fake-libgcc
+fake-libgcc:
+	${AR} q ${BUILDLINK_DIR}/lib/libgcc.a
+.endif
+
+.if (${OPSYS} == "NetBSD") && exists(/usr/include/term.h)
+CPPFLAGS+=	-DTERMINFO
+.elif ${OPSYS} == "FreeBSD" || ${OPSYS} == "Linux" || ${OPSYS} == "OpenBSD"
+.include "../../mk/curses.buildlink3.mk"
+.else
+.include "../../mk/termcap.buildlink3.mk"
+.endif
+
+.include "../../mk/oss.buildlink3.mk"
+
+post-extract:
+	cp ${.CURDIR}/../../netbsd-i386-3e/emacs27-A/files/site-init.el ${WRKSRC}/lisp
+	${CHMOD} -R go-w ${WRKSRC}
+
+.include "../../devel/libgetopt/buildlink3.mk"
+
+# Emacs reads site-lisp/site-start.el at startup, before ~/.emacs, because
+# site-run-file is "site-start" and site-lisp is on load-path.  pkgsrc has had
+# no such file, so every elisp package told the user to paste autoloads into
+# their own .emacs by hand.  This one loads whatever packages left in
+# site-lisp/site-start.d, so they can register themselves instead.
+.if ${EMACS_COEXIST} != "yes"
+post-install: site-start
+.PHONY: site-start
+site-start:
+	${INSTALL_DATA} ${FILESDIR}/site-start.el \
+		${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/site-lisp/site-start.el
+.endif
+

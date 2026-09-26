@@ -45,6 +45,14 @@
 #			emacs31 emacs31nox
 #			emacs30 emacs30nox
 #			emacs29 emacs29nox
+#			emacs28 emacs28nox
+#			emacs27 emacs27nox
+#			emacs26 emacs26nox
+#			emacs25 emacs25nox
+#			emacs24 emacs24nox
+#			emacs23 emacs23nox
+#			emacs22 emacs22nox
+#			emacs21 emacs21nox
 #			emacs20 xemacs215 xemacs215nox
 #			xemacs214 xemacs214nox
 #		Default value:
@@ -90,6 +98,14 @@
 #			emacs31 emacs31nox
 #			emacs30 emacs30nox
 #			emacs29 emacs29nox
+#			emacs28 emacs28nox
+#			emacs27 emacs27nox
+#			emacs26 emacs26nox
+#			emacs25 emacs25nox
+#			emacs24 emacs24nox
+#			emacs23 emacs23nox
+#			emacs22 emacs22nox
+#			emacs21 emacs21nox
 #			emacs20 xemacs215 xemacs215nox
 #			xemacs214 xemacs214nox
 #
@@ -217,10 +233,10 @@
 #		Possible values:
 #			XXX
 #
-#	FOR_{emacs31,emacs31nox,emacs30,emacs30nox,emacs29,emacs29nox,emacs20,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
+#	FOR_{emacs31,emacs31nox,emacs30,emacs30nox,emacs29,emacs29nox,emacs28,emacs28nox,emacs27,emacs27nox,emacs26,emacs26nox,emacs25,emacs25nox,emacs24,emacs24nox,emacs23,emacs23nox,emacs22,emacs22nox,emacs21,emacs21nox,emacs20,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
 #	FOR_{emacs,xemacs}
 #	FOR_{emacs_x,emacs_nox}
-#	NOTFOR_{emacs31,emacs31nox,emacs30, emacs30nox,emacs29,emacs29nox,emacs20,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
+#	NOTFOR_{emacs31,emacs31nox,emacs30, emacs30nox,emacs29,emacs29nox,emacs28,emacs28nox,emacs27,emacs27nox,emacs26,emacs26nox,emacs25,emacs25nox,emacs24,emacs24nox,emacs23,emacs23nox,emacs22,emacs22nox,emacs21,emacs21nox,emacs20,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
 #	NOTFOR_{emacs,xemacs}
 #	NOTFOR_{emacs_x,emacs_nox}
 #		Description:
@@ -282,11 +298,29 @@ BUILD_DEFS_EFFECTS+=	${_SYS_VARS.emacs}
 # what counts.
 _EMACS_VERSIONS_ALL= \
 	emacs31 emacs31nox emacs30 emacs30nox \
-	emacs29 emacs29nox emacs20 \
+	emacs29 emacs29nox \
+	emacs28 emacs28nox emacs27 emacs27nox emacs26 emacs26nox emacs25 emacs25nox emacs24 emacs24nox emacs23 emacs23nox emacs22 emacs22nox emacs21 emacs21nox \
+	emacs20 \
 	xemacs215 xemacs215nox xemacs214 xemacs214nox
 
 _EMACS_PKGDIR_MAP= \
 	emacs20@../../editors/emacs20 \
+	emacs21@../../editors/emacs21 \
+	emacs21nox@../../editors/emacs21-nox11 \
+	emacs22@../../editors/emacs22 \
+	emacs22nox@../../editors/emacs22-nox11 \
+	emacs23@../../editors/emacs23 \
+	emacs23nox@../../editors/emacs23-nox11 \
+	emacs24@../../editors/emacs24 \
+	emacs24nox@../../editors/emacs24-nox11 \
+	emacs25@../../editors/emacs25 \
+	emacs25nox@../../editors/emacs25-nox11 \
+	emacs26@../../editors/emacs26 \
+	emacs26nox@../../editors/emacs26-nox11 \
+	emacs27@../../editors/emacs27 \
+	emacs27nox@../../editors/emacs27-nox11 \
+	emacs28@../../editors/emacs28 \
+	emacs28nox@../../editors/emacs28-nox11 \
 	emacs29@../../editors/emacs29 \
 	emacs29nox@../../editors/emacs29-nox11 \
 	emacs30@../../editors/emacs30 \
