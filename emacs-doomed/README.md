@@ -92,6 +92,9 @@ GNU ELPA の `queue` を求め、pkgsrc には無いので wip/queue-el (0.2、
 
 ## 測った機械
 
-NetBSD 11.0 amd64、emacs20 から emacs31 と xemacs214/215 が同居している木。
-上流 `editors/emacs/modules.mk` は 1.42 相当で、1.43 (2026-09-25) では
-確かめ直していない。
+NetBSD 11.0 amd64 (techne)。emacs20 から emacs31 と xemacs214/215 が同居
+している箱で、2026-09-26 に branch の file から建て直して測った。
+modules.mk は版付きの EMACS_BIN と lisp の置き場を返す枠組みのもの (上流の
+1.42 系)。package は make package まで建て、destdir の site-lisp を
+load-path の先頭に足し、package が案内する入口を読んでから provide される
+feature を一つずつ require した。site-start は読まない。
