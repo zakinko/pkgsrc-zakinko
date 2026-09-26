@@ -10,7 +10,7 @@
 # measured: "Invalid escape character syntax" and "Weird old-backquote
 # syntax").  And under the xemacs prefix emacs-compat would come out as
 # xemacs-emacs-compat.
-DISTNAME=	elisp-compat-20260924
+DISTNAME=	elisp-compat-20260927
 PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
 CATEGORIES=	devel editors
 MASTER_SITES=	# empty

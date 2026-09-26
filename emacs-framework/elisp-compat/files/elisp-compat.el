@@ -1,5 +1,23 @@
 ;;; elisp-compat.el --- what an older Emacs lacks  -*- coding: iso-2022-7bit -*-
 
+;; Copyright (C) 2026 Showta Ishizaki
+
+;; nbutlast and butlast below are GNU Emacs's own definitions, which are
+;; Copyright (C) Free Software Foundation, Inc.
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;; pkgsrc still carries editors/emacs20, and some of the elisp it packages
 ;; was written for Emacs 21 or later.  This file defines, only when they
 ;; are missing, the functions, macros and mechanisms those packages use:
@@ -18,6 +36,10 @@
 ;; that .elc failed with void-variable string-match.  The .el was fine;
 ;; only the compiled form broke, and only on the Emacs it was made for.
 (eval-and-compile
+  ;; defadvice must be known when this is compiled, or the compiler takes
+  ;; it for a function and string-match for a variable.  Emacs 20 has it
+  ;; autoloaded; XEmacs 21.4 only once xemacs-base's advice is loaded.
+  (or (fboundp 'defadvice) (condition-case nil (require 'advice) (error nil)))
   (defmacro e20-advise (fn)
   `(defadvice ,fn (around e20 activate)
   (if (and (not e20-translating) (stringp (ad-get-arg 0))
@@ -94,13 +116,77 @@
 ;; everything non-ASCII), and afterwards the match data is put back into
 ;; the numbering the caller expects.  Only regexps that contain one of
 ;; those constructs are touched, so the rest of Emacs is unaffected.
-(unless (condition-case nil (string-match "a\\(?:b\\)c" "abc") (error nil))
+(unless (or (and (condition-case nil (string-match "a\\(?:b\\)c" "abc") (error nil))
+		 ;; XEmacs 21.4 has shy groups but no [:alpha:] classes.
+		 (condition-case nil (string-match "[[:alpha:]]" "a") (error nil)))
+	    ;; On XEmacs advice comes with xemacs-base; without it, do nothing.
+	    (not (or (featurep 'advice) (locate-library "advice"))))
   (require 'advice)
+  ;; Each class as its ASCII members, and whether it also stands for every
+  ;; non-ASCII character.  Emacs 20 keeps non-ASCII characters above 255,
+  ;; out of reach of a range, so they are matched with [^\000-\177] in an
+  ;; alternative instead (see e20-bracket).
   (defconst e20-class-alist
-    '(("[:alpha:]" . "a-zA-Z\\200-\\377") ("[:alnum:]" . "0-9a-zA-Z\\200-\\377")
-      ("[:digit:]" . "0-9") ("[:xdigit:]" . "0-9a-fA-F") ("[:space:]" . " \t\n\r\f")
-      ("[:upper:]" . "A-Z") ("[:lower:]" . "a-z") ("[:nonascii:]" . "\\200-\\377")
-      ("[:blank:]" . " \t")))
+    '(("[:alpha:]" "a-zA-Z" t) ("[:alnum:]" "0-9a-zA-Z" t)
+      ("[:digit:]" "0-9" nil) ("[:xdigit:]" "0-9a-fA-F" nil)
+      ("[:space:]" " \t\n\r\f" nil) ("[:upper:]" "A-Z" nil) ("[:lower:]" "a-z" nil)
+      ("[:nonascii:]" "" t) ("[:blank:]" " \t" nil)))
+  (defun e20-int (c) (if (fboundp 'char-to-int) (char-to-int c) c))
+  (defun e20-char (n) (if (fboundp 'int-to-char) (int-to-char n) n))
+  (defun e20-mark-ranges (v spec)
+    "Set V's entries for the ASCII characters SPEC lists, as in a bracket."
+    (let ((k 0) (n (length spec)) a b)
+      (while (< k n)
+	(setq a (e20-int (aref spec k)))
+	(if (and (< (+ k 2) n) (eq (aref spec (1+ k)) ?-))
+	    (setq b (e20-int (aref spec (+ k 2))) k (+ k 3))
+	  (setq b a k (1+ k)))
+	(while (<= a (min b 127)) (aset v a t) (setq a (1+ a))))))
+  (defun e20-bracket (re i)
+    "Translate the bracket expression that holds a class, starting at I.
+Return (END TEXT GROUP-P): END is the index after it, TEXT the
+translation, GROUP-P non-nil when TEXT is a group of its own."
+    (let ((v (make-vector 128 nil)) (j (1+ i)) (n (length re))
+	  neg nonascii extra first)
+      (when (eq (aref re j) ?^) (setq neg t j (1+ j)))
+      (setq first t)
+      (while (and (< j n) (or first (not (eq (aref re j) ?\]))))
+	(setq first nil)
+	(cond
+	 ((and (eq (aref re j) ?\[) (< (1+ j) n) (eq (aref re (1+ j)) ?:))
+	  (let* ((e (string-match ":\\]" re j)) (c (assoc (substring re j (+ e 2)) e20-class-alist)))
+	    (or c (error "no class %s" (substring re j (+ e 2))))
+	    (e20-mark-ranges v (nth 1 c))
+	    (if (nth 2 c) (setq nonascii t))
+	    (setq j (+ e 2))))
+	 ((and (< (+ j 2) n) (eq (aref re (1+ j)) ?-) (not (eq (aref re (+ j 2)) ?\])))
+	  (if (> (e20-int (aref re (+ j 2))) 127)
+	      (setq extra (concat extra (substring re j (+ j 3))))
+	    (e20-mark-ranges v (substring re j (+ j 3))))
+	  (setq j (+ j 3)))
+	 (t (if (> (e20-int (aref re j)) 127)
+		(setq extra (concat extra (substring re j (1+ j))))
+	      (e20-mark-ranges v (substring re j (1+ j))))
+	    (setq j (1+ j)))))
+      (let ((k 0) (chars "") (dash nil) (close nil) (alts nil))
+	(while (< k 128)
+	  (when (if neg (not (aref v k)) (aref v k))
+	    (cond ((eq k 93) (setq close t))
+		  ((eq k 45) (setq dash t))
+		  ((eq k 94) (setq chars (concat chars "^")))
+		  (t (setq chars (concat (char-to-string (e20-char k)) chars)))))
+	  (setq k (1+ k)))
+	;; ] first, ^ not first, - last
+	(when (and (> (length chars) 0) (eq (aref chars 0) ?^))
+	  (setq chars (concat (substring chars 1) "^")))
+	(setq chars (concat (if close "]" "") chars (if dash "-" "")))
+	(if (> (length chars) 0) (setq alts (list (concat "[" chars "]"))))
+	(if (if neg (not nonascii) nonascii)
+	    (setq alts (append alts (list "[^\000-\177]")))
+	  (if (and extra (not neg)) (setq alts (append alts (list (concat "[" extra "]"))))))
+	(if (cdr alts)
+	    (list (1+ j) (concat "\\(" (mapconcat 'identity alts "\\|") "\\)") t)
+	  (list (1+ j) (or (car alts) "[^\000-\377]") nil)))))
   (defvar e20-regexp-cache nil)
   (defun e20-translate (re)
     "Return (TRANSLATED . GROUPS); GROUPS lists, per output group, the
@@ -150,17 +236,20 @@ original group number or nil for a shy group."
 		  (setq i (+ k 2))))
 	       (t (setq atoms (cons (length (apply 'concat (reverse out))) atoms))
 		  (setq out (cons (substring re i (+ i 2)) out)) (setq i (+ i 2))))))
+	   ((and (eq c ?\[) (let ((b (string-match "\\]" re (+ i 2))))
+				(and b (string-match "\\[:[a-z]+:\\]" (substring re i (1+ b))))))
+	    ;; a bracket expression holding a class
+	    (let ((b (e20-bracket re i)))
+	      (setq atoms (cons (length (apply 'concat (reverse out))) atoms))
+	      (if (nth 2 b) (setq groups (cons nil groups)))
+	      (setq out (cons (nth 1 b) out)) (setq i (car b))))
 	   ((eq c ?\[)
-	    ;; copy a bracket expression, expanding [:class:] inside it
+	    ;; any other bracket expression is copied as it is
 	    (let ((j (1+ i)) (buf "["))
 	      (when (and (< j n) (eq (aref re j) ?^)) (setq buf "[^") (setq j (1+ j)))
 	      (when (and (< j n) (eq (aref re j) ?\])) (setq buf (concat buf "]")) (setq j (1+ j)))
 	      (while (and (< j n) (not (eq (aref re j) ?\])))
-		(if (and (eq (aref re j) ?\[) (< (1+ j) n) (eq (aref re (1+ j)) ?:))
-		    (let* ((e (string-match ":\\]" re j)) (cls (substring re j (+ e 2))))
-		      (setq buf (concat buf (or (cdr (assoc cls e20-class-alist)) (error "no class %s" cls))))
-		      (setq j (+ e 2)))
-		  (setq buf (concat buf (char-to-string (aref re j)))) (setq j (1+ j))))
+		(setq buf (concat buf (char-to-string (aref re j)))) (setq j (1+ j)))
 	      (setq atoms (cons (length (apply 'concat (reverse out))) atoms))
 	      (setq out (cons (concat buf "]") out)) (setq i (1+ j))))
 	   (t (setq atoms (cons (length (apply 'concat (reverse out))) atoms))
@@ -223,7 +312,10 @@ original group number or nil for a shy group."
       (let ((v (if (consp (car spec)) (car spec) spec)))
 	(list 'let (list (list (car v) (car (cdr v))))
 	      (cons 'if (cons (car v) (cons then else)))))))
-(provide 'subr-x)
+;; Only where Emacs has no subr-x of its own.  Providing it unconditionally
+;; stopped (require 'subr-x) from loading the real one on 24.4 and later,
+;; and string-remove-prefix and the rest stayed undefined.
+(or (featurep 'subr-x) (locate-library "subr-x") (provide 'subr-x))
 
 ;;; cl and obsolescence, so that a package need not pull in APEL
 ;; devel/apel is marked incompatible with emacs20, so the poe it used to
@@ -259,6 +351,9 @@ WHEN and ACCESS-TYPE are accepted for Emacs 23 compatibility and ignored."
 	(e20-make-obsolete-variable obsolete-name current-name))))
 
 ;;; assorted functions from 22 to 26
+;; XEmacs 21.4 has no compare-strings.
+(defun e20-string-equal (a b ignore-case)
+  (if ignore-case (string= (downcase a) (downcase b)) (string= a b)))
 (or (fboundp 'file-local-name)
     (defun file-local-name (file)
       "Return the local name of FILE (no remote files on Emacs 20)."
@@ -267,12 +362,12 @@ WHEN and ACCESS-TYPE are accepted for Emacs 23 compatibility and ignored."
     (defun string-prefix-p (prefix string &optional ignore-case)
       (let ((l (length prefix)))
 	(and (<= l (length string))
-	     (eq t (compare-strings prefix 0 l string 0 l ignore-case))))))
+	     (e20-string-equal prefix (substring string 0 l) ignore-case)))))
 (or (fboundp 'string-suffix-p)
     (defun string-suffix-p (suffix string &optional ignore-case)
       (let ((sl (length string)) (l (length suffix)))
 	(and (<= l sl)
-	     (eq t (compare-strings suffix 0 l string (- sl l) sl ignore-case))))))
+	     (e20-string-equal suffix (substring string (- sl l)) ignore-case)))))
 (or (fboundp 'read-shell-command)
     (defun read-shell-command (prompt &optional initial hist &rest args)
       (read-string prompt initial hist)))
