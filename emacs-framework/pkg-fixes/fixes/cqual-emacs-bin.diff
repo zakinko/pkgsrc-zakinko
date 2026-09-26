@@ -1,0 +1,12 @@
+--- devel/cqual/Makefile.orig
++++ devel/cqual/Makefile
+@@ -12,6 +12,9 @@
+ MAKE_JOBS_SAFE=		no
+ USE_PKGLOCALEDIR=	yes
+ GNU_CONFIGURE=		yes
++# configure looks for "emacs" and then "xemacs" on PATH unless told, and
++# stops when neither name is there.
++CONFIGURE_ENV+=		EMACS=${EMACS_BIN:Q}
+ INSTALL_MAKE_FLAGS+=	lispdir=${EMACS_LISPPREFIX}/cqual
+ USE_TOOLS+=		gmake perl:run bison m4
+ 
