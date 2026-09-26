@@ -115,7 +115,9 @@ echo "ツリー: $PKGSRC_URL"
 TARBALL=$WORK/$(echo "$PKGSRC_URL" | sed 's|.*/\([^/]*\)/\([^/]*\)$|\1-\2|')
 if [ ! -s "$TARBALL" ]; then
 	echo "--- $PKGSRC_URL を落とす ---"
-	curl -fsSL -o "$TARBALL" "$PKGSRC_URL"
+	# cdn.netbsd.org は 503 を返したり途中で切ったりする (2026-09-26 に二回
+	# 続けて、run 36254023867 と 36254123306)。一度で段ごと落とさない。
+	curl -fsSL --retry 5 --retry-all-errors --retry-delay 30 -o "$TARBALL" "$PKGSRC_URL"
 fi
 echo "--- ツリー $(ls -lh "$TARBALL" | awk '{print $5}') をゲストへ送る ---"
 
