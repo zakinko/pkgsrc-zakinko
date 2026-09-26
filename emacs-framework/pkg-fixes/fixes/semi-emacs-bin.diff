@@ -1,0 +1,14 @@
+--- devel/semi/Makefile.orig
++++ devel/semi/Makefile
+@@ -39,7 +39,10 @@
+ BUILD_TARGET.xemacs=	package
+ INSTALL_TARGET.emacs=	install
+ INSTALL_TARGET.xemacs=	install-package
+-MAKEFLAGS.emacs+=
++# semi's Makefile defaults EMACS to "emacs", whichever Emacs PATH finds
++# first, and there is none when the one built for sits beside others
++# under its own name.  devel/flim passes it the same way.
++MAKEFLAGS.emacs+=	EMACS=${EMACS_BIN}
+ MAKEFLAGS.xemacs+=	PACKAGEDIR=${EMACS_LISPPREFIX:C|/lisp$||}
+ 
+ post-build:
