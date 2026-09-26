@@ -21,6 +21,11 @@
 # 書くと、必ず片方だけが古くなる。
 
 set -e
+# 期限はここから数える。以前は「組んで確かめる」の直前 (550 行目あたり)
+# で取っていて、bootstrap の二時間二十分が期限の外に出た。OpenBSD の
+# aarch64 と riscv64 は「期限まで残り 280 分」と印字したあと 350 分の
+# job timeout で cancel された。
+_T0=$(date +%s 2>/dev/null || echo 0)
 
 OPTS=${1:-"-canna -wnn4 -x11"}
 WS=$(cd "$(dirname "$0")/../.." && pwd)
@@ -220,8 +225,14 @@ else
 	for _d in /usr/xpg4/bin /usr/gnu/bin /usr/local/bin; do
 		if [ -x "$_d/grep" ] && printf 'ab\n' |
 		   "$_d/grep" -qE 'a|b' 2>/dev/null; then
-			PATH="$_d:$PATH"; export PATH
-			echo "    -> $_d/grep を先に置いた"
+			# dir ごと PATH の先に置くと sh まで替わる。Solaris の
+			# /usr/xpg4/bin/sh は ksh88 で、${1:?usage: $0 <tree>} の
+			# < を構文 error にし、当て物 script が全部その場で落ちた。
+			# grep だけを入れた dir を作って先に置く。
+			_gb=${TMPDIR:-/tmp}/grepbin.$$
+			mkdir -p "$_gb" && ln -sf "$_d/grep" "$_gb/grep"
+			PATH="$_gb:$PATH"; export PATH
+			echo "    -> $_d/grep だけを先に置いた"
 			break
 		fi
 	done
@@ -547,7 +558,7 @@ DEADLINE_HIT=0
 # bootstrap が一時間かかれば 320m の期限は t=380 分になり、job の 350 分を
 # 超えて一度も鳴らない。実際 FreeBSD aarch64 と OpenBSD の二箱は三度とも
 # ちょうど 350 分で cancel され、期限の文言は出ていなかった。
-_T0=$(date +%s 2>/dev/null || echo 0)
+# _T0 は script の頭で取る (下の set -e の直後)。
 # BUILD_DEADLINE は 320m のような形で来る。秒に直す。
 _deadline_secs() {
 	case ${BUILD_DEADLINE:-} in

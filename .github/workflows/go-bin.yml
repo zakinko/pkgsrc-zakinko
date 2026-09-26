@@ -134,7 +134,11 @@ jobs:
               fi
               # && で繋ぐ。update が落ちたまま install に進むと
               # 「package が見つからない」に化けて、鍵の話が見えなくなる。
-              apt-get update -qq &&
+              # 鍵を入れても package が見付からなかった。update は 0 で
+              # 返っていた。-qq が何を黙らせたかを見るために一度外す。
+              grep -h -v "^#" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null | grep . | head -20
+              apt-get update &&
+              apt-cache policy build-essential | head -5 &&
               apt-get install -y -qq build-essential curl git tar gzip xz-utils perl bash patch util-linux &&
               exec sh .github/ci/build-on-bsd.sh'
 
@@ -194,6 +198,14 @@ jobs:
             -e MACHINE_ARCH \
             -e PKGSRC_BASE=/tmp \
             'pkgsrc-ci/${{ matrix.arch }}:latest' /bin/sh -c '
+              # mipsle の bootstrap が「no system rules (sys.mk)」で止まる。
+              # sys.mk は入っているはずなので、32bit の guest で readdir が
+              # 64bit の d_off を受け取れない qemu-user の既知の形を疑う。
+              # 推測なので先に測る: 数百 file の dir を ls と find で数える。
+              mkdir -p /tmp/rdprobe && i=0 && while [ $i -lt 400 ]; do : > /tmp/rdprobe/f$i; i=$((i+1)); done
+              echo "readdir probe: ls=$(ls /tmp/rdprobe 2>&1 | wc -l) find=$(find /tmp/rdprobe -type f 2>&1 | wc -l) (400 が正)"
+              ls /tmp/rdprobe > /dev/null || echo "!! ls が落ちた"
+              rm -rf /tmp/rdprobe
               apt-get update -qq || true
               apt-get install -y -qq build-essential curl wget tar gzip perl patch || true
               exec /bin/sh .github/ci/build-on-bsd.sh'
