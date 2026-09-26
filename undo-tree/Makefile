@@ -16,7 +16,7 @@ MESSAGE_SUBST+=	LISPDIR=${EMACS_LISPPREFIX}
 
 # 0.8 needs Emacs 24.3 or later and the queue library from GNU ELPA.
 EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
-DEPENDS+=	${EMACS_PKGNAME_PREFIX}queue-el>=0.2:../../wip/queue-el
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}queue-el>=0.2:../../zakinko/queue-el
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} --no-init-file --no-site-file -batch \

@@ -7,7 +7,7 @@ BUILDLINK_TREE+=	semantic
 SEMANTIC_BUILDLINK3_MK:=
 
 BUILDLINK_API_DEPENDS.semantic+=	${EMACS_PKGNAME_PREFIX}semantic>=10
-BUILDLINK_PKGSRCDIR.semantic?=		../../devel/semantic
+BUILDLINK_PKGSRCDIR.semantic?=		../../zakinko/semantic
 
 BUILDLINK_CONTENTS_FILTER.semantic=	${EGREP} '.*\.el$$|.*\.elc$$'
 .endif # SEMANTIC_BUILDLINK3_MK

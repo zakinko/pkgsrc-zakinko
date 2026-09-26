@@ -7,7 +7,7 @@ BUILDLINK_TREE+=	lookup
 LOOKUP_BUILDLINK3_MK:=
 
 BUILDLINK_API_DEPENDS.lookup+=	${EMACS_PKGNAME_PREFIX}lookup>=1.4
-BUILDLINK_PKGSRCDIR.lookup?=	../../misc/lookup
+BUILDLINK_PKGSRCDIR.lookup?=	../../zakinko/lookup
 
 BUILDLINK_CONTENTS_FILTER.lookup=	${EGREP} '.*\.el$$|.*\.elc$$'
 .endif # LOOKUP_BUILDLINK3_MK

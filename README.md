@@ -80,7 +80,9 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
 | [calc/](calc/) | `math/calc` | **/tmp に予測できる名前で書いていたのを直す**。LICENSE が gnu-gpl-v1 (1989 年版)。site-start.d で autoload を登録。当て物の説明 |
+| [ecb/](ecb/) | `devel/ecb` | 2.52 へ上げる。2.50 は Emacs 29 で defmethod が eieio-compat へ移って止まる |
 | [emacs-ilisp/](emacs-ilisp/) | `devel/emacs-ilisp` | GPL でない独自許諾の文面を files/ に用意。当て物 4 本の説明 |
+| [emacs-jabber/](emacs-jabber/) | `chat/emacs-jabber` | Emacs 29 で autoload.el が obsolete/ へ移り、autoload を作る段で止まっていた |
 | [emacs20/](emacs20/) | `editors/emacs20` | LP64 で Lisp_Object を切り詰めていた宣言もれ。日本語入力が使えない。積み残しの CVE 二本も当てる |
 | [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
 | [croc/](croc/) | `net/croc` | 11.5.3 へ上げ、GO_BUILD_PATTERN で NetBSD と DragonFly でも建つようにする |
@@ -90,11 +92,16 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [leim20/](leim20/) | `editors/leim20` | 版を四箇所直書きしていたのを `${VERSION}` へ。LICENSE と当て物の説明 |
 | [leim21/](leim21/) | `editors/leim21` | LICENSE と当て物の説明 |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
+| [lookup/](lookup/) | `misc/lookup` | emacs20 で建つように。configure が PATH の emacs を拾っていたので版付きの binary を渡す |
 | [mule-ucs/](mule-ucs/) | `editors/mule-ucs` | LICENSE。MESSAGE を DESCR へ。当て物の説明 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
 | [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
+| [queue-el/](queue-el/) | (上流に無い) | GNU ELPA の queue 0.2。undo-tree 0.8 が求める |
+| [semantic/](semantic/) | `devel/semantic` | emacs20 で建つように。Emacs 20 同梱の speedbar 0.8 が先に読まれていた |
 | [tamago/](tamago/) | `editors/tamago` | LICENSE。12786 行の当て物が何かを書く |
+| [undo-tree/](undo-tree/) | `wip/undo-tree` (pkgsrc-wip) | GNU ELPA の 0.8.2 へ上げる |
+| [vm/](vm/) | `mail/vm` | 8.3.2 へ上げ、8.2.0b の当て物 4 本を外す。版付きの Emacs を configure に渡す |
 | [w3/](w3/) | `www/w3` | LICENSE と当て物 3 本の説明 |
 | [xemacs/](xemacs/) | `editors/xemacs` | MESSAGE を DESCR へ。COMMENT が package 名で始まるのを直す。効いていない PLIST_VARS+= debug |
 | [xemacs-current/](xemacs-current/) | `editors/xemacs-current` | 同上 |
