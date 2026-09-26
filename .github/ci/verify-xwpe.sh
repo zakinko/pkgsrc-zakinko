@@ -162,9 +162,22 @@ case " ${VERIFY_OPTS:-} " in
 *" compiler=clang "*)	PKGSRC_COMPILER=clang ;;
 *" compiler=gcc "*)	PKGSRC_COMPILER=gcc ;;
 esac
-if [ -n "${PKGSRC_COMPILER:-}" ]; then
+_asked=${PKGSRC_COMPILER:-}
+if [ -n "$_asked" ]; then
 	export PKGSRC_COMPILER
 	MKARGS="$MKARGS PKGSRC_COMPILER=$PKGSRC_COMPILER"
+fi
+# PKGSRC_COMPILER=clang は clang が既に在る前提で、自分では入れない。
+# 入っていない箱では configure が「C compiler cannot create executables」
+# で落ちる (run 36216793993 の clang 四本)。以前の手測りは箱に pkgsrc の
+# clang を入れてあったので出なかった。頼まれたら先に binary を入れる。
+# clang を建てるのに clang を使わせないよう、MKARGS は渡さず pkg_add で。
+if [ "$_asked" = clang ] && [ ! -x "$PREFIX/bin/clang" ]; then
+	if [ -n "${BINPKG_SITES:-}" ]; then
+		echo "--- clang を binary で入れる ($BINPKG_SITES) ---"
+		PKG_PATH=$BINPKG_SITES/All pkg_add clang 2>&1 | tail -3 || true
+	fi
+	[ -x "$PREFIX/bin/clang" ] || { echo "FAIL: clang を入れられなかった"; exit 1; }
 fi
 echo "--- コンパイラ ---"
 echo "  PKGSRC_COMPILER = ${PKGSRC_COMPILER:-(既定)}"
@@ -189,18 +202,30 @@ fi
 # 出力で見る。clang は -Wno-old-style-declaration を知らないので
 # unknown-warning-option を出し、gcc は出さない。Makefile.am が常に
 # その flag を渡すので、どちらで走ったかの印になる。
-_uwo=$(grep -c 'unknown-warning-option' /tmp/xwpe-patched.log 2>/dev/null || true)
-case ${PKGSRC_COMPILER:-gcc} in
+# 数えるのは clang 本人の診断「unknown warning option」(空白)。つなぎ字の
+# unknown-warning-option は configure の探り「checking whether C compiler
+# handles -Werror -Wunknown-warning-option」の行にも出るので、gcc の箱でも
+# 12 から 13 回数えてしまい、本物の gcc を「clang の印が在る」と落とした
+# (run 36216793993 の NetBSD 9.4 と Debian)。空白の方は gcc の log で 0、
+# clang の log (FreeBSD) で 66 だった。
+_uwo=$(grep -c 'unknown warning option' /tmp/xwpe-patched.log 2>/dev/null || true)
+# 突き合わせるのは compiler を明示したときだけ。既定に任せた箱では、
+# 既定が gcc とは限らない (FreeBSD も macOS も clang)。以前は既定を gcc と
+# 決めつけて、clang が既定の箱を「gcc を頼んだのに clang」と落としていた
+# (run 36216793993)。そこでは走った方を表示するだけにする。
+case $_asked in
 clang)	if [ "${_uwo:-0}" -gt 0 ]; then
 		echo "  ok clang で走った (unknown-warning-option ${_uwo} 回)"
 	else
 		echo "FAIL: clang を頼んだのに clang の印が無い"; rc=1
 	fi ;;
-*)	if [ "${_uwo:-0}" = 0 ]; then
+gcc)	if [ "${_uwo:-0}" = 0 ]; then
 		echo "  ok gcc で走った (unknown-warning-option 0 回)"
 	else
 		echo "FAIL: gcc を頼んだのに clang の印が ${_uwo} 回"; rc=1
 	fi ;;
+*)	[ "${_uwo:-0}" -gt 0 ] && echo "  (既定の compiler は clang だった: 印 ${_uwo} 回)" \
+		|| echo "  (既定の compiler は gcc だった: 印 0 回)" ;;
 esac
 if grep -q 'Ignoring patch file' /tmp/xwpe-patched.log; then
 	echo 'FAIL: 当て物が無視された。checksum が合っていない。'
