@@ -14,7 +14,9 @@ MAKE_JOBS_SAFE=	no
 
 DEPENDS+=	eblook>=1.4:../../textproc/eblook
 
-EMACS_VERSIONS_ACCEPTED=	# 
+# lookup 1.4.1 uses the old-style backquote, (` (...)), which Emacs 27
+# removed, so it cannot build on a current Emacs.
+EMACS_VERSIONS_ACCEPTED=	emacs20
 EMACS_BUILDLINK=		# defined
 
 GNU_CONFIGURE=	YES
@@ -22,6 +24,10 @@ MAKEFLAGS+=	lispdir=${EMACS_LISPPREFIX}/lookup
 INFO_FILES=	yes
 
 CONFIGURE_ARGS+=	${EMACS_FLAVOR}
+# configure looks for the flavour's name on PATH, which is whatever
+# bin/emacs points at (the newest Emacs installed), so an emacs20 build
+# was byte-compiled by another Emacs.  Hand it the one this package is for.
+CONFIGURE_ARGS+=	--with-emacs=${EMACS_BIN:Q}
 
 .include "../../editors/emacs/modules.mk"
 

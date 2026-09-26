@@ -44,6 +44,13 @@ elisp-compat から取り、`mapc` は別の distfile なので SUBST で `mapca
 「10 中 9」は、load-path に入れた destdir に `.elc` が無く、箱に入っていた
 別の elscreen を読んでいた測定の誤り。
 
+`misc/lookup` は emacs20 で建ち、24 の feature が全部 load できる
+(`stem` は `stem-english.el` が provide するので file 名で読む)。
+configure が PATH の `emacs` を拾うので、emacs20 向けの build を別の
+Emacs が byte-compile していた。`--with-emacs` で版付きの binary を
+渡す。1.4.1 は Emacs 27 で消えた古い backquote `(\` (...))` を使うので、
+今の Emacs では建たない。実行には eblook が要る。
+
 ## 途中まで直したもの
 
 `chat/emacs-jabber` は二つ直したが、まだ建たない。
@@ -68,7 +75,7 @@ elisp-compat から取り、`mapc` は別の distfile なので SUBST で `mapca
 加えていない木でも同じ落ち方をすることを対照で確かめた。`editors/jde` は
 この semantic に依存しているので、semantic が消えると道連れになる。
 
-`misc/lookup` は 2026-09-26 時点で建たない (別に記す)。
+
 
 ## 測った機械
 
