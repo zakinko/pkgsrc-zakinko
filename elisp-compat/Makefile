@@ -10,7 +10,7 @@
 # measured: "Invalid escape character syntax" and "Weird old-backquote
 # syntax").  And under the xemacs prefix emacs-compat would come out as
 # xemacs-emacs-compat.
-DISTNAME=	elisp-compat-20260924
+DISTNAME=	elisp-compat-20260927
 PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
 CATEGORIES=	devel editors
 MASTER_SITES=	# empty
@@ -38,16 +38,31 @@ WRKSRC=		${WRKDIR}
 
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}
 
+# The old names each need a file of their own: require looks for a file,
+# so a provide inside elisp-compat.el does not answer (require 'emacs-compat).
+_COMPAT_ALIASES=	e20-compat emacs-compat xemacs-compat
+
 do-extract:
 	${CP} ${FILESDIR}/elisp-compat.el ${WRKSRC}/
+.for _a_ in ${_COMPAT_ALIASES}
+	${CP} ${FILESDIR}/${_a_}.el ${WRKSRC}/
+.endfor
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} -batch -q ${_ELISP_COMPAT_BATCH} \
 		-f batch-byte-compile elisp-compat.el
+.for _a_ in ${_COMPAT_ALIASES}
+	cd ${WRKSRC} && ${EMACS_BIN} -batch -q ${_ELISP_COMPAT_BATCH} \
+		-f batch-byte-compile ${_a_}.el
+.endfor
 
 do-install:
 	${INSTALL_DATA} ${WRKSRC}/elisp-compat.el ${WRKSRC}/elisp-compat.elc \
 		${DESTDIR}${EMACS_LISPPREFIX}
+.for _a_ in ${_COMPAT_ALIASES}
+	${INSTALL_DATA} ${WRKSRC}/${_a_}.el ${WRKSRC}/${_a_}.elc \
+		${DESTDIR}${EMACS_LISPPREFIX}
+.endfor
 
 .include "../../editors/emacs/modules.mk"
 
