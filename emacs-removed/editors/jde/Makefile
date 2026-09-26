@@ -15,7 +15,7 @@ COMMENT=	Full-featured Java editing mode for emacs
 DEPENDS+=	${EMACS_PKGNAME_PREFIX}speedbar>=0.14rc2:../../editors/speedbar
 DEPENDS+=	${EMACS_PKGNAME_PREFIX}eieio>=0.17:../../lang/eieio
 DEPENDS+=	${EMACS_PKGNAME_PREFIX}semantic>=1.4rc13:../../devel/semantic
-DEPENDS+=	${EMACS_PKGNAME_PREFIX}elib>=1.0:../../devel/elib
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}elib>=1.0:../../devel/emacs20-elib
 
 USE_TOOLS+=	pax
 
@@ -26,7 +26,8 @@ EMACS_VERSIONS_ACCEPTED=	emacs20
 
 .include "../../editors/emacs/modules.mk"
 
-PKGSRC_MAKE_ENV+=	EMACS=${EMACS}
+# jde's makefile says EMACS = emacs, which is whatever bin/emacs points at.
+MAKE_FLAGS+=		EMACS=${EMACS_BIN:Q}
 MAKE_ENV+=		EMACS_LISPPREFIX=${EMACS_LISPPREFIX}
 
 NO_CONFIGURE=	yes

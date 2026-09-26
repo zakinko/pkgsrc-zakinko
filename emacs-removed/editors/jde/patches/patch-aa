@@ -1,6 +1,11 @@
 $NetBSD: patch-aa,v 1.2 2003/01/11 12:13:16 wiz Exp $
 
---- makefile.orig	Mon Dec 30 14:28:06 2002
+Find eieio, elib, semantic and speedbar under EMACS_LISPPREFIX.
+
+Do not ignore a failed byte-compile.  With the leading "-" the build went
+on and installed the .el files alone.
+
+--- makefile.orig
 +++ makefile
 @@ -9,10 +9,10 @@
  EMACS = emacs
@@ -17,12 +22,3 @@ $NetBSD: patch-aa,v 1.2 2003/01/11 12:13:16 wiz Exp $
  
  all:
  	test -d $(SEMANTIC) -a -d $(SPEEDBAR) -a -d $(ELIB) -a -d $(EIEIO)
-@@ -25,7 +25,7 @@
- 	echo "(setq debug-on-error t)" >> jde-compile-script-init
- 	echo "(require 'jde-compat)" >> jde-compile-script-init
- 	echo "(require 'jde)" >>jde-compile-script-init
--	$(EMACS) -batch -l jde-compile-script-init -f batch-byte-compile *.el
-+	-$(EMACS) -batch -l jde-compile-script-init -f batch-byte-compile *.el
- 	rm -f jde-compile-script-init
- 
- # 

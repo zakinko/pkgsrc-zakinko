@@ -6,7 +6,7 @@ pkgsrc から取り除かれたが、こちらでは emacs20 や XEmacs で使�
 | package | いつ消えたか | ここでの状態 |
 |---|---|---|
 | `misc/bbdb2` | 2026-09-12 emacs21 と一緒に | emacs20 で建つ。20 の feature 中 16 が load |
-| `editors/jde` | 同上 | 建たない (下記) |
+| `editors/jde` | 同上 | emacs20 で建つ。37 の feature 中 37 が load |
 | `textproc/nxml-mode` | 同上 | emacs20 で建つ。24 の feature 中 24 が load |
 
 三本とも Makefile が emacs21 しか受け付けていなかったために、emacs21 が
@@ -36,20 +36,26 @@ GNU Emacs では configure が `PATH` の emacs を拾っていた。木に emac
 
 ## editors/jde
 
-「emacs20 では compile できない」という注記は古く、37 file が speedbar,
-eieio, semantic, elib に対して byte-compile する — というのが以前の報告。
+2026-09-26 に emacs20 で建ち、37 の feature が全部 load できるように
+なった。以前の「37 file が byte-compile する」は確かめられない。jde の
+makefile は compile の行を `-$(EMACS)` と書いていて、失敗しても build が
+進み `.el` だけを入れていたので、そう見えただけの可能性が高い。
 
-**2026-09-25 の測定ではこれが再現しない。** `devel/semantic` が emacs20 で
+止まっていたのは四つ。devel/semantic が建たなかった (emacs-doomed 側で
+直した)。makefile の `EMACS = emacs` が PATH の Emacs を使っていたので
+`EMACS_BIN` を渡す。`jde-new-buffer-menu` の `:set` が batch では無い
+Files menu に項目を足そうとして `keymapp nil` で止まるので、当て物で
+menu が在るときだけにする。依存の path が `devel/elib` を指していたが、
+名前は `emacs20-elib` で、それは `devel/emacs20-elib` にある。
 
-	!! Symbol's value as variable is void ((speedbar-dynamic-tags-function-list))
+compile の失敗を無視しないよう makefile の `-` を外した。PLIST は版の
+無い `share/emacs/site-lisp/jde` を書いていて、建てた結果から取り直した。
 
-で落ち、jde はその先へ進めない。semantic 1.4.4 は speedbar 0.15 以降を
-求めるが、木には 0.14 しかない。手を加えていない木でも同じ落ち方をする
-ことを対照で確かめた。以前の報告と今日の測定のどちらが正しいか、外へ出す
-前に確かめる必要がある。
+木の devel/elib も `EMACS=${EMACS_FLAVOR}` で素の `emacs` を使うので、
+emacs20 向けを別の Emacs が compile する。測るときは emacs-20.7 を渡して
+建てた。これは elib 側の問題で、ここでは直していない。
 
-Debian の 2.3.5.1 向けの直しが二つ当たる、というのも以前の報告で、これも
-確かめ直していない。
+Java は PKG_JVM=openjdk21 で測った。
 
 ## textproc/nxml-mode
 
