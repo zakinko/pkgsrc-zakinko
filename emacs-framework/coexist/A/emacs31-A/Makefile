@@ -1,6 +1,7 @@
 # $NetBSD: Makefile,v 1.3 2026/09/02 19:01:48 wiz Exp $
 
-CONFLICTS+=	emacs31-nox11-[0-9]*
+# No CONFLICTS with emacs31-nox11: that build now keeps its own tree
+# (EMACS_TAG), so the two share no path.
 
 .include "../../netbsd-i386-3e/emacs31-A/Makefile.common"
 

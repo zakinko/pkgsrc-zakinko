@@ -57,7 +57,7 @@ SPECIAL_PERMS+=		${_EMACS_ARCHLIB}/update-game-score ${SETGID_GAMES_PERMS}
 # build PATH in the dumped emacs is not a problem
 CHECK_WRKREF_SKIP+=	bin/emacs
 CHECK_WRKREF_SKIP+=	bin/emacs-${EMACS_TAG}
-CHECK_WRKREF_SKIP+=	${_EMACS_ARCHLIB}/emacs.pdmp
+CHECK_WRKREF_SKIP+=	${_EMACS_ARCHLIB}/${_EMACS_PDMP}
 
 CHECK_PORTABILITY_SKIP+=	admin/download-android-deps.sh
 
@@ -90,8 +90,13 @@ post-extract:
 # by default the filename of the emacs dump contains a fingerprint of the corresponding emacs version
 # but this is not needed and makes the PLIST more simple
 post-install:
+	# A second install into the same DESTDIR (after check-files fails)
+	# finds the renamed dump beside the new one; the glob then names two
+	# files and mv refuses.
 	cd ${DESTDIR}${PREFIX}/${_EMACS_ARCHLIB} && \
-		mv emacs-*.pdmp emacs.pdmp
+		for f in emacs-*.pdmp; do \
+			[ "$$f" = ${_EMACS_PDMP} ] || ${MV} -f "$$f" ${_EMACS_PDMP}; \
+		done
 	${RM} -f ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
 
 .if ${OPSYS} != "Darwin"
@@ -137,6 +142,12 @@ _EMACS_LIBEXEC=		libexec
 .endif
 _EMACS_ARCHLIB=		${_EMACS_LIBEXEC}/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}
 GNU_CONFIGURE_INFODIR=	${PREFIX}/${_EMACS_DATADIR}/emacs/${EMACS_VERSION}/info
+
+# Emacs 29 and later look for <argv0>.pdmp and stop there; 27 and 28
+# also try emacs.pdmp.  The transform makes argv0 emacs-${EMACS_TAG}, so
+# a dump named emacs.pdmp is never found and every start loads the whole
+# of lisp from source (loadup.el).
+_EMACS_PDMP=		emacs-${EMACS_TAG}.pdmp
 INFO_FILES=		# the info files are private to this Emacs now
 PLIST_SUBST+=		EMACS_VERSION=${EMACS_VERSION}
 PLIST_SUBST+=		EMACS_TAG=${EMACS_TAG}
