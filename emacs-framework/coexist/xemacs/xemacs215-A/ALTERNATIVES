@@ -1,0 +1,6 @@
+bin/xemacs @PREFIX@/bin/xemacs-21.5-b36
+bin/gnuclient @PREFIX@/bin/gnuclient-21.5.36
+bin/gnuattach @PREFIX@/bin/gnuattach-21.5.36
+bin/gnudoit @PREFIX@/bin/gnudoit-21.5.36
+bin/ellcc @PREFIX@/bin/ellcc-21.5.36
+bin/ootags @PREFIX@/bin/ootags-21.5.36

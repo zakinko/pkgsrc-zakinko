@@ -1,0 +1,39 @@
+--- doc/pkg-vulnerabilities.orig
++++ doc/pkg-vulnerabilities
+@@ -13791,7 +13791,7 @@
+ evince<3.25.91		command-injection		https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-1000159
+ vim<8.0.1345		insecure-temporary-files	https://nvd.nist.gov/vuln/detail/CVE-2017-1000382
+ bzr<2.6.0nb1		arbitrary-command-execution	https://nvd.nist.gov/vuln/detail/CVE-2017-14176
+-emacs20-[0-9]*		insecure-temporary-files	https://nvd.nist.gov/vuln/detail/CVE-2017-1000383
++emacs20<20.7nb28		insecure-temporary-files	https://nvd.nist.gov/vuln/detail/CVE-2017-1000383
+ emacs21-[0-9]*		insecure-temporary-files	https://nvd.nist.gov/vuln/detail/CVE-2017-1000383
+ emacs21-nox11-[0-9]*		insecure-temporary-files	https://nvd.nist.gov/vuln/detail/CVE-2017-1000383
+ emacs25-[0-9]*		insecure-temporary-files	https://nvd.nist.gov/vuln/detail/CVE-2017-1000383
+@@ -23950,7 +23950,7 @@
+ xterm<375	remote-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45063
+ postgresql10-*	eol    	https://ftp.NetBSD.org/pub/NetBSD/packages/vulns/eol-packages
+ py{27,36,37,38,39,310}-sip<5	eol	https://ftp.NetBSD.org/pub/NetBSD/packages/vulns/eol-packages
+-emacs20-[0-9]*		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45939
++emacs20<20.7nb28		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45939
+ emacs21-[0-9]*		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45939
+ emacs21-nox11-[0-9]*		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45939
+ emacs25-[0-9]*		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2022-45939
+@@ -30449,3 +30449,18 @@
+ ruby33<3.3.12nb1		hostname-forgery	https://www.cve.org/CVERecord?id=CVE-2026-80213
+ ruby34<3.4.10nb2		hostname-forgery	https://www.cve.org/CVERecord?id=CVE-2026-80213
+ ruby40<4.0.7		hostname-forgery	https://www.cve.org/CVERecord?id=CVE-2026-80213
++emacs20<20.7nb28		symlink-attack		https://nvd.nist.gov/vuln/detail/CVE-2001-1301
++emacs29<29.4nb32		local-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2026-79992
++emacs29-nox11<29.4nb1		local-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2026-79992
++emacs30<30.2nb13		local-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2026-79992
++emacs30-nox11<30.2nb1		local-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2026-79992
++emacs29<29.4nb32		memory-corruption	https://nvd.nist.gov/vuln/detail/CVE-2026-6861
++emacs29-nox11<29.4nb1		memory-corruption	https://nvd.nist.gov/vuln/detail/CVE-2026-6861
++emacs30<30.2nb15		memory-corruption	https://nvd.nist.gov/vuln/detail/CVE-2026-6861
++emacs30-nox11<30.2nb2		memory-corruption	https://nvd.nist.gov/vuln/detail/CVE-2026-6861
++emacs29<29.4nb32		heap-over-read		https://nvd.nist.gov/vuln/detail/CVE-2026-77219
++emacs29-nox11<29.4nb1		heap-over-read		https://nvd.nist.gov/vuln/detail/CVE-2026-77219
++emacs30<30.2nb15		heap-over-read		https://nvd.nist.gov/vuln/detail/CVE-2026-77219
++emacs30-nox11<30.2nb2		heap-over-read		https://nvd.nist.gov/vuln/detail/CVE-2026-77219
++emacs29<29.4nb32		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2024-53920
++emacs29-nox11<29.4nb1		arbitrary-code-execution	https://nvd.nist.gov/vuln/detail/CVE-2024-53920

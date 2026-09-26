@@ -1,0 +1,6 @@
+@comment $NetBSD$
+Applications/Emacs.app/Contents/Info.plist
+Applications/Emacs.app/Contents/MacOS/Emacs
+Applications/Emacs.app/Contents/PkgInfo
+Applications/Emacs.app/Contents/Resources/Emacs.icns
+Applications/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings

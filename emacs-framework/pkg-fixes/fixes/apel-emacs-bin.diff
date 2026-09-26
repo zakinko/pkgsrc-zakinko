@@ -1,0 +1,14 @@
+--- devel/apel/Makefile.orig
++++ devel/apel/Makefile
+@@ -19,7 +19,10 @@
+ PLIST_SRC=	${PKGDIR}/PLIST.${EMACS_FLAVOR}
+ BUILD_TARGET=	${BUILD_TARGET.${EMACS_FLAVOR}}
+ INSTALL_TARGET=	${INSTALL_TARGET.${EMACS_FLAVOR}}
+-MAKE_FLAGS+=	EMACS=${EMACS_FLAVOR:Q}
++# The flavour is a word, not a program: "emacs" is whichever Emacs PATH
++# finds first, and there is none at all when the one built for sits
++# beside others under its own name.
++MAKE_FLAGS+=	EMACS=${EMACS_BIN:Q}
+ MAKE_FLAGS+=	LISPDIR=${EMACS_LISPPREFIX:Q}
+ MAKE_FLAGS+=	VERSION_SPECIFIC_LISPDIR=${EMACS_LISPPREFIX:Q}
+ MAKE_FLAGS+=	${MAKE_FLAGS.${EMACS_FLAVOR}}

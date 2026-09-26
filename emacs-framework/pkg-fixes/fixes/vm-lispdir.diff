@@ -1,0 +1,29 @@
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/mail/vm/Makefile mail/vm/Makefile
+--- mail/vm/Makefile.orig
++++ mail/vm/Makefile
+@@ -16,6 +16,11 @@
+ INFO_FILES=	yes
+ 
+ MAKEFLAGS+=	EMACS=${EMACS_BIN:Q}
++# configure decides lispdir and writes it into the generated Makefile, so
++# an environment variable does not reach it; the files then land in an
++# unversioned share/emacs/site-lisp/vm and two Emacs versions overwrite
++# each other there.  Tell configure directly.
++CONFIGURE_ARGS+=	--with-lispdir=${EMACS_LISPPREFIX}/vm
+ MAKE_ENV+=	LISPDIR=${EMACS_LISPPREFIX}/vm
+ MAKE_ENV+=	INFODIR=${INFODIR:Q}
+ MAKE_ENV+=	PIXMAPDIR=${PIXMAPDIR:Q}
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/mail/vm/PLIST mail/vm/PLIST
+--- mail/vm/PLIST.orig
++++ mail/vm/PLIST
+@@ -3,8 +3,8 @@
+ bin/base64-encode
+ bin/qp-decode
+ bin/qp-encode
+-info/vm-pcrisis.info
+-info/vm.info
++${EMACS_INFOPREFIX}/vm-pcrisis.info
++${EMACS_INFOPREFIX}/vm.info
+ share/doc/vm/CHANGES
+ share/doc/vm/COPYING
+ share/doc/vm/NEWS

@@ -1,0 +1,4 @@
+bin/emacs @PREFIX@/bin/emacs-@EMACS_TAG@
+bin/emacsclient @PREFIX@/bin/emacsclient-@EMACS_TAG@
+bin/etags @PREFIX@/bin/etags-@EMACS_TAG@
+bin/ebrowse @PREFIX@/bin/ebrowse-@EMACS_TAG@

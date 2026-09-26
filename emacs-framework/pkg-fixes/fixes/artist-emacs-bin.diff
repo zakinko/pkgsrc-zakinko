@@ -1,0 +1,11 @@
+--- graphics/artist/Makefile.orig
++++ graphics/artist/Makefile
+@@ -18,7 +18,7 @@
+ 
+ .include "../../editors/emacs/modules.mk"
+ 
+-MAKE_FLAGS+=	EMACS=${EMACS_FLAVOR} \
++MAKE_FLAGS+=	EMACS=${EMACS_BIN} \
+ 		lispdir=${DESTDIR}${EMACS_LISPPREFIX}/artist
+ 
+ DOCS=		BUGS COPYING ChangeLog INSTALL README TODO

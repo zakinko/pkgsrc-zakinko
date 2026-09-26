@@ -1,0 +1,112 @@
+# $NetBSD: Makefile.common,v 1.4 2026/02/24 07:13:49 triaxx Exp $
+#
+# used by editors/emacs30/Makefile
+# used by editors/emacs30-nox11/Makefile
+
+.include "../../mk/bsd.prefs.mk"
+
+DISTNAME=	emacs-${EMACS_VERSION}
+PKGNAME?=	${DISTNAME:S/emacs/emacs30/}
+CATEGORIES=	editors
+MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
+EXTRACT_SUFX=	.tar.xz
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://www.gnu.org/software/emacs/
+COMMENT=	GNU editing macros (editor)
+LICENSE=	gnu-gpl-v3
+
+.include "../../editors/emacs30/version.mk"
+EMACS_VERSION=	${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
+
+WRKSRC=		${WRKDIR}/${DISTNAME:S/b$//}
+
+AUTOCONF_REQD+=	2.65
+TEXINFO_REQD+=	4.13
+
+GNU_CONFIGURE=	yes
+INFO_FILES=	yes
+USE_TOOLS+=	gmake gzip makeinfo gm4 gsed
+
+CONFIGURE_ARGS+=	--srcdir=${WRKSRC}
+CONFIGURE_ARGS+=	--localstatedir=${VARBASE}
+CONFIGURE_ARGS+=	--disable-autodepend
+CONFIGURE_ENV+=		GAMEOWN=${GAMES_USER}
+
+USE_GAMESGROUP=		yes
+
+BUILD_DEFS+=		VARBASE
+BUILD_DEFS+=		GAMEDATAMODE
+PLIST_SRC+=		../../editors/emacs30/PLIST
+
+MAKE_DIRS_PERMS+=	${VARBASE}/games/emacs ${GAMES_USER} ${GAMES_GROUP} ${GAMEDIRMODE}
+CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/snake-scores \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE}
+CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/tetris-scores \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE}
+
+SPECIAL_PERMS+=		libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}/update-game-score ${SETGID_GAMES_PERMS}
+
+# build PATH in the dumped emacs is not a problem
+CHECK_WRKREF_SKIP+=	bin/emacs
+CHECK_WRKREF_SKIP+=	bin/emacs-${PKGVERSION_NOREV}
+CHECK_WRKREF_SKIP+=	libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}/emacs.pdmp
+
+CHECK_PORTABILITY_SKIP+=	admin/download-android-deps.sh
+
+PRINT_PLIST_AWK+=	{ gsub(/${MACHINE_GNU_PLATFORM}/, "$${MACHINE_GNU_PLATFORM}"); }
+
+.if (${OPSYS} == "NetBSD") && \
+    !exists(/usr/lib/libgcc_s.so) && !exists(/usr/lib/libgcc.a)
+# NetBSD with native Clang doesn't provide libgcc, everything is in libc.
+pre-configure: fake-libgcc
+
+.PHONY: fake-libgcc
+fake-libgcc:
+	${AR} q ${BUILDLINK_DIR}/lib/libgcc.a
+.endif
+
+.if (${OPSYS} == "NetBSD") && exists(/usr/include/term.h)
+CPPFLAGS+=	-DTERMINFO
+.elif ${OPSYS} == "FreeBSD" || ${OPSYS} == "Linux" || ${OPSYS} == "OpenBSD"
+.include "../../mk/curses.buildlink3.mk"
+.else
+.include "../../mk/termcap.buildlink3.mk"
+.endif
+
+.include "../../mk/oss.buildlink3.mk"
+
+post-extract:
+	# set auto-load for send-pr library
+	cp ${.CURDIR}/../../editors/emacs30/files/site-init.el ${WRKSRC}/lisp
+
+# by default the filename of the emacs dump contains a fingerprint of the corresponding emacs version
+# but this is not needed and makes the PLIST more simple
+post-install:
+	cd ${DESTDIR}${PREFIX}/libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM} && \
+		mv emacs-*.pdmp emacs.pdmp
+
+.if ${OPSYS} != "Darwin"
+.  include "../../devel/libgetopt/buildlink3.mk"
+.endif
+
+# Let two Emacs versions live in one prefix.  Upstream is not touched:
+# pkgsrc renames what it installed under a version-less name, and the
+# bare names come back through ALTERNATIVES.  This is the shape
+# editors/emacs20 already has, moved out of the Makefile.in patch.
+PLIST_SUBST+=		EMACS_VERSION=${EMACS_VERSION}
+PRINT_PLIST_AWK+=	{ gsub(/${EMACS_VERSION}/, "$${EMACS_VERSION}"); }
+INFO_FILES=		# the info files are private to this Emacs now
+
+post-install:
+	cd ${DESTDIR}${PREFIX}/bin && for f in emacs emacsclient etags ctags ebrowse; do \
+		test -f $$f || continue; ${MV} $$f $$f-${EMACS_VERSION}; \
+	done
+	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && for f in emacs emacsclient etags ctags ebrowse; do \
+		test -f $$f.1 || continue; ${MV} $$f.1 $$f-${EMACS_VERSION}.1; \
+	done
+	${MKDIR} ${DESTDIR}${PREFIX}/include/emacs-${EMACS_VERSION}
+	${MV} ${DESTDIR}${PREFIX}/include/emacs-module.h ${DESTDIR}${PREFIX}/include/emacs-${EMACS_VERSION}/
+	${MKDIR} ${DESTDIR}${PREFIX}/share/emacs/${EMACS_VERSION}/info
+	cd ${DESTDIR}${PREFIX}/${PKGINFODIR} && ${MV} *.info* ${DESTDIR}${PREFIX}/share/emacs/${EMACS_VERSION}/info/
+	${RM} -f ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el

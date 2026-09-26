@@ -1,0 +1,34 @@
+$NetBSD$
+
+rcs2log kept its two scratch files under $TMPDIR with predictable names
+(rcs2log<pid>l, rcs2log<pid>r), so a local user could plant symlinks and
+have the rlog output written over the caller's files (CVE-2001-1301,
+fixed in Emacs 21).  A private directory from mktemp -d holds them now,
+and is removed on every exit path.
+
+--- lib-src/rcs2log.orig
++++ lib-src/rcs2log
+@@ -300,10 +300,11 @@
+ 	esac
+ esac
+ 
+-llogout=$TMPDIR/rcs2log$$l
+-rlogout=$TMPDIR/rcs2log$$r
++tmpdir=`mktemp -d "${TMPDIR}/rcs2logXXXXXX"` || exit
++llogout=$tmpdir/l
++rlogout=$tmpdir/r
+ trap exit 1 2 13 15
+-trap "rm -f $llogout $rlogout; exit 1" 0
++trap "rm -fr $tmpdir; exit 1" 0
+ 
+ case $datearg in
+ ?*) $rlog $rlog_options "$datearg" ${1+"$@"} >$rlogout;;
+@@ -670,7 +671,7 @@
+ 
+ # Exit successfully.
+ 
+-exec rm -f $llogout $rlogout
++exec rm -fr $tmpdir
+ 
+ # Local Variables:
+ # tab-width:4

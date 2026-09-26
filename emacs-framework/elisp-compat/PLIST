@@ -1,0 +1,9 @@
+@comment $NetBSD$
+${EMACS_LISPPREFIX}/e20-compat.el
+${EMACS_LISPPREFIX}/e20-compat.elc
+${EMACS_LISPPREFIX}/elisp-compat.el
+${EMACS_LISPPREFIX}/elisp-compat.elc
+${EMACS_LISPPREFIX}/emacs-compat.el
+${EMACS_LISPPREFIX}/emacs-compat.elc
+${EMACS_LISPPREFIX}/xemacs-compat.el
+${EMACS_LISPPREFIX}/xemacs-compat.elc

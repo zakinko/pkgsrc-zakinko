@@ -1,0 +1,17 @@
+--- inputmethod/tamago-tsunagi/Makefile.orig
++++ inputmethod/tamago-tsunagi/Makefile
+@@ -21,5 +21,14 @@
+ GNU_CONFIGURE=		yes
+ INSTALL_MAKE_FLAGS+=	lispdir=${EMACS_LISPPREFIX}
+ 
++# configure runs "emacs" by name to ask whether JIS X 0213 is there, and
++# leaves its/aynu.el out when the answer is no.  That is the answer of
++# whatever Emacs PATH finds, not of the one being built for, and with no
++# "emacs" on PATH it is always no and the PLIST no longer matches.
++SUBST_CLASSES+=		emacs
++SUBST_STAGE.emacs=	pre-configure
++SUBST_FILES.emacs=	configure
++SUBST_SED.emacs=	-e 's|^if emacs -batch |if ${EMACS_BIN} -batch |'
++
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"

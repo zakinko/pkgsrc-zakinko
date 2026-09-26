@@ -1,0 +1,89 @@
+$NetBSD: patch-bg,v 1.4 2021/12/29 03:40:23 dholland Exp $
+
+--- configure.in.orig	2000-06-05 15:42:49.000000000 +0000
++++ configure.in
+@@ -66,6 +66,8 @@ Currently, \`yes', \`athena' and \`lucid
+ 	  esac
+ 	  with_x_toolkit=$val
+ ])
++AC_ARG_WITH(ipv6,
++[  --with-ipv6             support IPv6 stack])
+ 
+ #### Make srcdir absolute, if it isn't already.  It's important to
+ #### avoid running the path through pwd unnecessary, since pwd can
+@@ -152,15 +154,21 @@ case "${canonical}" in
+     opsys=netbsd
+     case "${canonical}" in
+       alpha*-*-netbsd*)	machine=alpha ;;
++      hppa*-*-netbsd*)	machine=hp800 ;;
+       i[3456]86-*-netbsd*) machine=intel386 ;;
+       m68k-*-netbsd*)
+ 			# This is somewhat bogus.
+ 			machine=hp9000s300 ;;
+-      powerpc-apple-netbsd*) machine=macppc ;;
+       mips-*-netbsd*)	machine=pmax ;;
++      mipsel-*-netbsd*)	machine=pmax ;;
++      mipsev-*-netbsd*)	machine=mips ;;		# HF: what else?
+       ns32k-*-netbsd*)	machine=ns32000 ;;
+-      sparc-*-netbsd*)	machine=sparc ;;
++      powerpc-*-netbsd*) machine=macppc ;;
++      sparc*-*-netbsd*)	machine=sparc ;;
+       vax-*-netbsd*)	machine=vax ;;
++      arm*-*-netbsd*)	machine=arm ;;
++      aarch64-*-netbsd*) machine=aarch64 ;;
++      x86_64-*-netbsd*)	machine=amd64 ;;
+     esac
+   ;;
+ 
+@@ -175,6 +183,7 @@ case "${canonical}" in
+       ns32k-*-openbsd*)	machine=ns32000 ;;
+       sparc-*-openbsd*)	machine=sparc ;;
+       vax-*-openbsd*)	machine=vax ;;
++      x86_64-*-openbsd*) machine=amd64 ;;
+     esac
+   ;;
+ 
+@@ -964,6 +973,17 @@ case "${canonical}" in
+     esac
+   ;;
+ 
++  ## AMD/Intel x86_64 machines where we don't care about the manufacturer
++  x86_64-*-* )
++    machine=amd64
++    case "${canonical}" in
++      *-linux-gnu* )		opsys=gnu-linux ;;
++      *-freebsd* )	        opsys=freebsd ;;
++      *-dragonfly* )		opsys=dragonfly ;;
++      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
++    esac
++  ;;
++
+   ## m68k Linux-based GNU system
+   m68k-*-linux-gnu* )
+     machine=m68k opsys=gnu-linux
+@@ -1594,6 +1614,14 @@ dnl tranle@intellicorp.com says libXmu.a
+     LIBS="-lXt $LIBS"
+   fi
+   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
++  if test x$HAVE_X11XTR6 = xyes; then
++dnl Check if Xaw needs Xpm
++    LIBS="$LIBS -lXpm"
++    AC_CHECK_LIB(Xaw, XawPixmapsInitialize, [ LIBXPM="-lXpm" ], [ LIBXPM=""])
++  else
++    LIBXPM=""
++  fi
++  AC_SUBST(LIBXPM)
+   LIBS="$OLDLIBS"
+ fi
+ 
+@@ -1747,6 +1775,10 @@ if test -f /usr/lpp/X11/bin/smt.exp; the
+   AC_DEFINE(HAVE_AIX_SMT_EXP)
+ fi
+ 
++if test "x$with_ipv6" = xyes; then
++  AC_CHECK_FUNCS(getaddrinfo)
++fi
++
+ # Set up the CFLAGS for real compilation, so we can substitute it.
+ CFLAGS="$REAL_CFLAGS"
+ 
