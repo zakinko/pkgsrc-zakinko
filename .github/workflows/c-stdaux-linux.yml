@@ -1,0 +1,47 @@
+name: c-stdaux (Linux)
+
+# 上流 c-util/c-stdaux へ出す C_OS_BSD の当て物が、Linux の側を変えないことを
+# 測る。当て物は c-stdaux.h の include の条件そのものを触るので、Linux は
+# 範囲の外ではない。BSD 側は継ぎ目の検査が測っている。
+#
+# 上流 main を取り、当てる前と後で test-api と test-basic を gcc と clang で
+# 建てて走らせ、C_OS_LINUX と C_MODULE_UNIX が立ち C_OS_BSD が立たないことを見る。
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/ci/c-stdaux/**'
+      - '.github/workflows/c-stdaux-linux.yml'
+
+concurrency:
+  group: c-stdaux-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 当てる前と後で測る
+        run: |
+          set -e
+          mkdir -p w/orig/src && cd w
+          for f in c-stdaux.h c-stdaux-generic.h c-stdaux-gnuc.h c-stdaux-unix.h test-api.c test-basic.c; do
+            curl -fsSL "https://raw.githubusercontent.com/c-util/c-stdaux/main/src/$f" -o "orig/src/$f"
+          done
+          cp -R orig new
+          (cd new && patch -p0 -F0 -f -i ../../.github/ci/c-stdaux/c-stdaux-bsd.diff < /dev/null)
+          printf '#include <c-stdaux.h>\nint main(void){\n#ifdef C_OS_BSD\nreturn 1;\n#endif\n#ifndef C_OS_LINUX\nreturn 2;\n#endif\n#ifndef C_MODULE_UNIX\nreturn 3;\n#endif\nreturn 0;}\n' > m.c
+          fail=0
+          for cc in gcc clang; do
+            echo "=== $cc $($cc --version | head -1)"
+            for t in orig new; do
+              for x in test-api test-basic; do
+                if $cc -Wall -I$t/src -o $x $t/src/$x.c && ./$x; then echo "  $t $x ok"; else echo "  ★ $t $x"; fail=1; fi
+              done
+              if $cc -I$t/src -o m m.c && ./m; then echo "  $t: C_OS_LINUX と C_MODULE_UNIX が立ち C_OS_BSD は立たない"; else echo "  ★ $t: 条件が違う (rc=$?)"; fail=1; fi
+            done
+          done
+          exit $fail
