@@ -51,22 +51,23 @@ Emacs が byte-compile していた。`--with-emacs` で版付きの binary を
 渡す。1.4.1 は Emacs 27 で消えた古い backquote `(\` (...))` を使うので、
 今の Emacs では建たない。実行には eblook が要る。
 
-## 途中まで直したもの
+## chat/emacs-jabber
 
-`chat/emacs-jabber` は二つ直したが、まだ建たない。
+emacs30 と emacs31 で建ち、70 の feature が全部 load できる。止まって
+いたのは autoload を作る段で、`batch-update-autoloads` は Emacs 29 で
+`lisp/obsolete/autoload.el` に移り、読まれなくなっていた。当て物で
+`-l autoload` を足す。Emacs 20 の autoload.el にも同じ関数がある。
 
-- `--without-gconf` は configure に存在しない option で、"unrecognized
-  options" を出しながら `gconftool-2` が呼ばれていた。
-  `GCONF_SCHEMA_INSTALL_SOURCE` を与えると呼ばれない
-- `jabber-util.el` の `cond` が Emacs 20 では
-  `error (("No implementation of \`jabber-replace-in-string' available"))`
-  で終わる。`devel/elisp-compat` が `replace-regexp-in-string` を供給する
-  ので、soft な `require` を足す当て物を入れた
+2026-09-25 は Emacs 20 で建てようとしていた。0.8.92 は `xml` `ewoc`
+`format-spec` `mailcap` `time-date` `sha1` `dns` `sasl` `tls` `auth-source`
+など、Emacs 20 に無い library を 20 近く求めるので、emacs20 は受け付けから
+外し、そのためだけの elisp-compat への依存も外した。
 
-その先で `xml` が無くて止まる。Emacs 20 に無く Emacs 21 にある library が
-`xml` `ewoc` `format-spec` `mailcap` `time-date` の 5 本、21 にも無いものが
-`sha1` (flim が持つ) と `dbus` (任意)。ここから先は Emacs 21 からの移植に
-なるので手を付けていない。
+emacs29 は木の editors/emacs29-nox11/version.mk が 29.1 のままで、lisp の
+置き場が 29.1 になって落ちる。jabber ではなく木の問題。XEmacs は
+測れていない。EMACS_MODULES=base が xemacs-packages を求め、それが上流の
+素の xemacs package を求めるが、この箱の XEmacs は別名で入っている。
+受け付けは上流どおり xemacs214 と xemacs215 を残した。
 
 ## devel/semantic
 

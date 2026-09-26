@@ -1,0 +1,17 @@
+$NetBSD$
+
+Load autoload before calling batch-update-autoloads.  Emacs 29 moved it
+to lisp/obsolete/autoload.el, which is not loaded by default, and the
+build stopped at void-function batch-update-autoloads.
+
+--- Makefile.in.orig
++++ Makefile.in
+@@ -1171,7 +1171,7 @@
+ # size, so we touch it with ancient timestamp.
+ jabber-autoloads.el: $(my_lisp_sources)
+ 	test -s $@ || cp -f $(srcdir)/jabber-autoloads.stub $@; touch -t 197001030000 $@
+-	$(EMACS) --batch --eval "(setq generated-autoload-file \"$(abs_builddir)/$@\")" -f batch-update-autoloads $(srcdir)
++	$(EMACS) --batch -l autoload --eval "(setq generated-autoload-file \"$(abs_builddir)/$@\")" -f batch-update-autoloads $(srcdir)
+ elpa: dist
+ 	rm -rf emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
+ 	$(AMTAR) xzf emacs-jabber-$(PACKAGE_VERSION).tar.gz

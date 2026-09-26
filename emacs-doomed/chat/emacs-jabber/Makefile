@@ -27,9 +27,10 @@ TEST_TARGET=		check
 
 MAKE_JOBS_SAFE=		no
 
-DEPENDS+=		${EMACS_PKGNAME_PREFIX}elisp-compat-[0-9]*:../../devel/elisp-compat
-
-EMACS_VERSIONS_ACCEPTED=	emacs20 xemacs214 xemacs215
+# jabber 0.8.92 wants xml, ewoc, format-spec, mailcap, time-date, sha1,
+# dns, sasl and more that Emacs 20 does not have, so emacs20 is not
+# offered.
+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox xemacs214 xemacs215
 
 # net-utils, mule-ucs for xemacs
 EMACS_MODULES=		base
