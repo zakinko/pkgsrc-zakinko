@@ -50,7 +50,7 @@ make makesum
 | パッケージ | 内容 |
 | --- | --- |
 | [anthy-unicode](anthy-unicode/) / [anthy-unicode-elisp](anthy-unicode-elisp/) | anthy の Unicode 版 fork。本家 pkgsrc にはまだ無い |
-| [elscreen](elscreen/) | ElScreen を 1.4.6 (2007) から knu/elscreen の 20180321 へ。本家は Emacs 24 以降に非対応のまま、作者のサイトも消えている |
+| [elscreen](elscreen/) | ElScreen を 1.4.6 (2007) から knu/elscreen の 20180321 へ。本家は Emacs 24 以降に非対応のまま、作者のサイトも消えている。当て物一本で emacs20 でも使える |
 | [emacs26](emacs26/) / [emacs26-nox11](emacs26-nox11/) | GNU Emacs 26.3。本家では 2026 年 8 月に削除済み |
 | [emacs27](emacs27/) / [emacs27-nox11](emacs27-nox11/) | GNU Emacs 27.2。本家では 2026 年 8 月に削除済み |
 | [emacs28](emacs28/) / [emacs28-nox11](emacs28-nox11/) | GNU Emacs 28.2。本家では 2026 年 8 月に削除済み |
@@ -79,6 +79,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
+| [bbdb2/](bbdb2/) | `misc/bbdb2` | emacs20 と emacs21 で建つように。configure が PATH の emacs を拾っていたので版付きの binary を渡す |
 | [calc/](calc/) | `math/calc` | **/tmp に予測できる名前で書いていたのを直す**。LICENSE が gnu-gpl-v1 (1989 年版)。site-start.d で autoload を登録。当て物の説明 |
 | [ecb/](ecb/) | `devel/ecb` | 2.52 へ上げる。2.50 は Emacs 29 で defmethod が eieio-compat へ移って止まる |
 | [emacs-ilisp/](emacs-ilisp/) | `devel/emacs-ilisp` | GPL でない独自許諾の文面を files/ に用意。当て物 4 本の説明 |
@@ -88,14 +89,14 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [croc/](croc/) | `net/croc` | 11.5.3 へ上げ、GO_BUILD_PATTERN で NetBSD と DragonFly でも建つようにする |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
 | [iiimecf/](iiimecf/) | `inputmethod/iiimecf` | LICENSE と category の順。shell を ${RUN} で書く |
-| [jde/](jde/) | `editors/jde` | 効いていなかった PKGSRC_MAKE_ENV+= EMACS=${EMACS} を直す。LICENSE |
+| [jde/](jde/) | `editors/jde` | emacs20 でも建つように。効いていなかった PKGSRC_MAKE_ENV+= EMACS=${EMACS} を直す。compile の失敗を無視しない。LICENSE |
 | [leim20/](leim20/) | `editors/leim20` | 版を四箇所直書きしていたのを `${VERSION}` へ。LICENSE と当て物の説明 |
 | [leim21/](leim21/) | `editors/leim21` | LICENSE と当て物の説明 |
 | [libuuid/](libuuid/) | `devel/libuuid` | DragonFly で util-linux が組めるように |
 | [lookup/](lookup/) | `misc/lookup` | emacs20 で建つように。configure が PATH の emacs を拾っていたので版付きの binary を渡す |
 | [mule-ucs/](mule-ucs/) | `editors/mule-ucs` | LICENSE。MESSAGE を DESCR へ。当て物の説明 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
-| [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
+| [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | emacs20 でも建つように。同梱の Makefile が PATH の emacs で compile していた。LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
 | [queue-el/](queue-el/) | (上流に無い) | GNU ELPA の queue 0.2。undo-tree 0.8 が求める |
 | [semantic/](semantic/) | `devel/semantic` | emacs20 で建つように。Emacs 20 同梱の speedbar 0.8 が先に読まれていた |
@@ -126,6 +127,232 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 ここに置くのはあくまで手元をすぐ直すためで、**本筋は pkgsrc 本体に入れる
 こと**です。上流が取り込んだら、ディレクトリごと消します。消し忘れると、
 上流が直したあとも古い写しを使い続けることになります。
+
+## 上流で消された・消される Emacs 向けの package
+
+2026 年 9 月に上流から消えた、あるいは消すと予告された Emacs 向けの package
+を引き取って直したものです。以前は上流の category ごとに分けた別の場所に
+置いていましたが、どれも一番上へ移し、同じ package が二つあったものは一つに
+まとめました (2026-09-27)。
+
+- 既に消えたもの: `bbdb2` `jde` `nxml-mode`。2026-09-12 に emacs21 と一緒に
+  消えた。三本とも Makefile が emacs21 しか受け付けていなかったために、
+  emacs21 が消えたとき一緒に消えた。どれも emacs20 で動く
+- 消すと予告されたもの: tech-pkg@ の "new emacs framework in tree, some
+  PKGNAMEs changed, some packages will be removed" で、どの (x)emacs 版でも
+  建たないとして一週間後に消すと予告された 10 本のうち、木にあった 6 本
+  (`vm` `ecb` `elscreen` `lookup` `emacs-jabber` `semantic`)。上流は
+  2026-09-25 の時点でどれも `EMACS_VERSIONS_ACCEPTED= # empty` にされて
+  いる。ここでは受け付け版を戻し、建たない原因を直した
+
+tech-pkg での 2026-09-25 の返信で、上流の維持者は「emacs 考古学にはあまり
+興味が無い」として dholland さんへ送るよう勧めています。
+
+### 測ったもの
+
+load は package が案内する入口 (`(require 'vm)` など) を読んでから、
+package が `provide` する feature を一つずつ `require` した数です。
+`-q --no-site-file` で、destdir の site-lisp を load-path の先頭に足し、
+feature がその destdir から読まれたことまで見ています。
+
+| package | Emacs | load | 読めないもの |
+|---|---|---|---|
+| `bbdb2` | 20.7, 21.4 | どちらも 20 中 16 | `reportmail` `gnuserv` `vm` を求める 3 つと、XEmacs 専用の `bbdb-xemacs` |
+| `jde` | 20.7, 21.4 | どちらも 37/37 | |
+| `nxml-mode` | 20.7 / 21.4 | 24/24 / 23/23 | (21 には `nxml-e20` が無いので一つ少ない) |
+| `elscreen` | 20.7 / 30.2 | 12 中 11 / 12 中 10 | `elscreen-wl` (Wanderlust)。30.2 では `elscreen-dnd` も。当て物を当てない 20180321 でも同じく invalid-function で落ちる |
+| `vm` | 30, 31 | 52 中 51 | `vm-w3m` (emacs-w3m) |
+| `ecb` | 30 | 3/3 | |
+| `lookup` | 20 | 24/24 | |
+| `emacs-jabber` | 30, 31 | 70/70 | |
+| `semantic` | 20 | 25/25 | |
+
+上の四本は 2026-09-27、下の五本は 2026-09-26 の数字です。
+
+### bbdb2
+
+2.35 は Emacs 23 より前の Emacs 向けの最後の BBDB で、今の Emacs には
+bbdb3 があります。emacs20 と emacs21 を受け付けます。
+
+Emacs 20 には当て物が二本要ります。`bbdb-hooks.el` が `mail-parse` を
+読むが、これは Gnus 5.8 のもので Emacs 20.7 は 5.7 を積んでいる。
+`bbdb-rmail.el` は `rmailsum` を require するが、Emacs 20 の `rmailsum.el`
+はそれを provide しない。どちらも Emacs 21 では何も変えません。
+
+2026-09-25 に二つ直しました。`--with-emacs` を xemacs の腕でしか渡して
+おらず、GNU Emacs では configure が `PATH` の emacs を拾っていた。木に
+emacs30 が入っていると emacs20 の package を建てているのに emacs30 が走り、
+その `2>&1` に混ざる起動メッセージが configure の出力ごと `lisp/Makefile`
+へ書き込まれて、bmake が `Invalid line "Loading site-init..."` で落ちる。
+併せて `bbdb-autoloads.elc` が PLIST に無かった。
+
+XEmacs は受け付けません。XEmacs を受け付けるのに
+`CONFLICTS+= xemacs-packages-[0-9]*` を持ち、XEmacs 向けに建てるのに要る
+`timezone` を配るのはその package だけなので、XEmacs では原理的に建た
+なかった。bbdb は xemacs-packages に入っているので、XEmacs ではそちらを
+使います。
+
+### jde
+
+emacs20 と emacs21 を受け付けます。Emacs 20 では elib が
+`devel/emacs20-elib` という別の package なので、依存をそこで分けています。
+
+止まっていたのは四つでした。semantic が建たなかった (下の semantic の節)。
+makefile の `EMACS = emacs` が PATH の Emacs を使っていた。上流の
+`PKGSRC_MAKE_ENV+= EMACS=${EMACS}` も、それを直したつもりの
+`MAKE_ENV+= EMACS=${EMACS_BIN}` も効いておらず、makefile の中の代入は環境に
+勝つので、`MAKE_FLAGS` で渡すほかない。`jde-new-buffer-menu` の `:set` が
+batch では無い Files menu に項目を足そうとして `keymapp nil` で止まるので、
+当て物で menu が在るときだけにする。依存の path が `devel/elib` を指して
+いたが、Emacs 20 向けの名前は `emacs20-elib` で、それは
+`devel/emacs20-elib` にある。
+
+compile の失敗を無視しないよう makefile の `-` を外しました。以前の
+「37 file が byte-compile する」は確かめられません。jde の makefile は
+compile の行を `-$(EMACS)` と書いていて、失敗しても build が進み `.el`
+だけを入れていたので、そう見えただけの可能性が高い。今は 20.7 でも 21.4
+でも 37 本全部が `.elc` になります。PLIST は版の無い
+`share/emacs/site-lisp/jde` を書いていて、建てた結果から取り直しました。
+
+木の devel/elib も `EMACS=${EMACS_FLAVOR}` で素の `emacs` を使うので、
+emacs20 向けを別の Emacs が compile します。これは elib 側の問題で、ここ
+では直していません。
+
+emacs21 で建てるには、木の editors/speedbar と lang/eieio と
+`zakinko/semantic` が emacs20 しか受け付けないので、そのままでは依存が
+通りません。21.4 の数字は、その三つと devel/elib を
+`EMACS_VERSIONS_ACCEPTED=emacs21nox` で建てて入れた上で測ったものです。
+jde 自身も受け付けは `emacs21` (X 付き) で、測ったのは emacs21-nox11 です。
+
+2026-09-26 の emacs20 の測定は、Java を PKG_JVM=openjdk21 にして行いました。
+
+### nxml-mode
+
+emacs20 と emacs21 を受け付けます。当て物は Emacs 20 のときだけ働く形に
+なっていて、Emacs 21 では何も変えません (`schema/xhtml-legacy.rnc` の
+一本は Debian からの schema の直しで、どちらにも効く)。
+
+Emacs 20 では、source が `#x` を 14,490 回使っていて、Emacs 20 の reader に
+その syntax が無いので、当て物ではなく `post-patch` の一手で十進に変えます。
+`elisp-compat` が Emacs 21 の関数を供給し、`mule-ucs` が `decode-char` を
+供給します。
+
+2026-09-26 に測り直すと、当て物 8 本がどれも distinfo に無く、
+"Ignoring patch file ... no checksum found" と言われて一本も当たって
+いなかった。案内どおり `rng-auto.el` を読むと "FSF GNU Emacs version 21
+or later required" で止まり、何も使えなかった。distinfo を直すと 24 の
+feature が全部 load できる。2026-09-25 の「12 中 10」は、入口を通さずに
+feature を直に読んだ数字だった。
+
+Emacs 21 では、同梱の Makefile が `EMACS=emacs` で compile するので、
+`bin/emacs` が指す別の Emacs が `.elc` を作っていました。`EMACS_BIN` を
+渡します。
+
+### elscreen
+
+knu/elscreen の 20180321 一つで、emacs20 と emacs29〜31 を受け付けます。
+以前は emacs20 向けに 1.4.6 を別に置いていました。
+
+1.4.6 は「apel が emacs20 を支えない」という理由で `BROKEN` にされていた。
+上流の `devel/apel` は 2020 年の版で、その年に落とされた Emacs 20 と
+XEmacs の互換層が入っていない。層を戻した apel なら建つが、建っても
+Emacs 20 では load できなかった。`booleanp` と `add-to-list` の三つ目の
+引数で止まり、`propertize` と `elscreen-dnd` の `mapc` も無い。2026-09-25
+の「10 中 9」は、load-path に入れた destdir に `.elc` が無く、箱に入って
+いた別の elscreen を読んでいた測定の誤りで、直したあとの 1.4.6 が 10 中 9
+だった (2026-09-26)。
+
+20180321 は apel を使わず、`Package-Requires` は Emacs 24 ですが、Emacs 20.7
+で止めるのは 1.4.6 と同じ二つに加えて、`mapc` `window-list`
+`called-interactively-p` `declare-function` `help-print-return-message`
+`apply-partially` が無いことと、`make-obsolete-variable` が三つ目の引数を
+取らないことだけでした。当て物で、無いときだけ定義します。`mapc` を
+elscreen の中で定義するので、1.4.6 の `elscreen-dnd` に当てていた SUBST
+は要りません。Emacs 20 には header line が無いので、tab は出ません。
+20.7 と 30.2 で、screen を作って移って消し、help を出すところまで動かしています。
+
+2026-09-27 に一つにまとめるとき、`PKGNAME` に `EMACS_PKGNAME_PREFIX` を
+付けました。emacs20 向けと emacs30 向けが同じ名前の別物にならないように
+するためで、1.4.6 は上流でもそうしていました。
+
+### vm
+
+2026-09-26 に 8.3.2 (2025-12-29、gitlab の emacs-vm) へ上げた。8.2.0b に
+足していた当て物 4 本 (info 2 本、vm-folder、vm-pcrisis) はどれも上流で
+直っていた。gitlab の tarball には生成済みの configure が無いので autoconf
+を回す。configure は Emacs を `--with-emacs` か PATH の `emacs` で決める
+ので、版付きの `EMACS_BIN` を渡す。8.3 の texinfo は NetBSD の makeinfo 4.8
+では node の検査で落ちるので texinfo 5 を求める。8.3 は bin/base64-encode
+などの補助 program を持たず、変換を Emacs の中でする。
+
+### ecb
+
+2.50 (GitHub の 1330a44) のままでは emacs30 で建たない。`defmethod` が
+Emacs 29 で `lisp/obsolete/eieio-compat` へ移り、その先も
+`button-release-event` など XEmacs の型で止まる。上流の 2.52 はどちらも
+直っていて、emacs-updates branch の直しをそのまま使った。2026-09-25 の
+「3/3」は 2.52 を測った数字で、当時の branch の 2.50 ではなかった。
+
+### lookup
+
+emacs20 で建ち、24 の feature が全部 load できる (`stem` は
+`stem-english.el` が provide するので file 名で読む)。configure が PATH の
+`emacs` を拾うので、emacs20 向けの build を別の Emacs が byte-compile して
+いた。`--with-emacs` で版付きの binary を渡す。1.4.1 は Emacs 27 で消えた
+古い backquote `(\` (...))` を使うので、今の Emacs では建たない。実行には
+eblook が要る。
+
+### emacs-jabber
+
+emacs30 と emacs31 で建ち、70 の feature が全部 load できる。止まって
+いたのは autoload を作る段で、`batch-update-autoloads` は Emacs 29 で
+`lisp/obsolete/autoload.el` に移り、読まれなくなっていた。当て物で
+`-l autoload` を足す。Emacs 20 の autoload.el にも同じ関数がある。
+
+2026-09-25 は Emacs 20 で建てようとしていた。0.8.92 は `xml` `ewoc`
+`format-spec` `mailcap` `time-date` `sha1` `dns` `sasl` `tls` `auth-source`
+など、Emacs 20 に無い library を 20 近く求めるので、emacs20 は受け付けから
+外し、そのためだけの elisp-compat への依存も外した。
+
+emacs29 は木の editors/emacs29-nox11/version.mk が 29.1 のままで、lisp の
+置き場が 29.1 になって落ちる。jabber ではなく木の問題。XEmacs は
+測れていない。EMACS_MODULES=base が xemacs-packages を求め、それが上流の
+素の xemacs package を求めるが、この箱の XEmacs は別名で入っている。
+受け付けは上流どおり xemacs214 と xemacs215 を残した。
+
+### semantic
+
+emacs20 で建ち、25 の feature が全部 load できる。2026-09-25 に
+「speedbar 0.15 の変数を求めるが木には 0.14 しかない」と書いたのは誤り
+だった。`speedbar-dynamic-tags-function-list` は入っている 0.14beta4 にも
+在る。build が `EMACSLOADPATH` で Emacs 自身の `lisp/` を site-lisp より
+前に置くので、Emacs 20 に同梱の speedbar 0.8 が先に見つかっていた。
+semantic の Makefile は `LOADPATH` の dir を `add-to-list` で足すが、
+site-lisp の下の dir は既に load-path の後ろに在るので何も起きない。
+当て物で `setq` と `cons` にして前へ置き、`LOADPATH` に入っている speedbar
+と eieio の dir を渡す。手を加えていない木でも落ちたのは同じ理由。
+
+### undo-tree と queue-el
+
+wip/undo-tree は 0.3 (2012) を 0.8.2 (2024-03-31、GNU ELPA) へ上げた。0.8 は
+GNU ELPA の `queue` を求め、pkgsrc には無いので queue-el (0.2、
+2024-03-31) を新しく作った。emacs30 と emacs31 で建ち、
+`global-undo-tree-mode` のもとで undo と redo が期待どおり動く (a、b と
+入れて undo で "a"、redo で "ab")。
+
+### 測った機械
+
+NetBSD 11.0 amd64 (techne)。
+
+2026-09-26 の数字は、emacs20 から emacs31 と xemacs214/215 が同居している
+箱で、当時の branch の file から建て直して測りました。modules.mk は版付きの
+EMACS_BIN と lisp の置き場を返す枠組みのもの (上流の 1.42 系)。
+
+2026-09-27 の四本は、箱の /usr/pkg を使わず、Emacs 20.7 と 21.4 と 30.2 を
+それぞれ別の私的な prefix に建てて、その中で依存ごと建てました。20.7 と
+30.2 は `/usr/pkgsrc` の modules.mk のまま、21.4 は上流の modules.mk が
+emacs21 を知らないので、ここの `emacs/modules.mk` を差し込んだ木で建てて
+います。jde の Java の依存 (java-vm.mk) は測定では外しました。
 
 ## anthy-unicode
 
