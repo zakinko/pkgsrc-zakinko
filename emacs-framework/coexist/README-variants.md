@@ -253,3 +253,25 @@ elisp-compat と data-directory を読むことを確かめた。既定を変え
 以上、分けると既定の emacs20 と中身の同じ nox 版が並ぶので、既定では
 入れていない。
 
+## 21 から 28 (2026-09-27)
+
+emacs21-A から emacs28-A と nox 版を netbsd-i386-3e から取り込み、30 と
+同じ EMACS_TAG の仕組みを入れた (ba4a7cf)。techne で 21、23 から 28 の
+X 版と nox 版、22 の nox 版、それぞれの elisp-compat を並べて入れ、15 の
+package の間で重なる path は 0。どちらを消しても残った方は起動して自分用の
+elisp-compat を読み、bin/emacs の候補は消した方だけ外れる。27 と 28 は
+emacs.pdmp を読む (27、28 は <argv0>.pdmp が無ければ emacs.pdmp も探す)。
+
+版ごとに要ったこと:
+
+- 21: install で prefix を DESTDIR 付きに上書きするので、datadir、
+  libexecdir、infodir を install にも渡し直す。変換式は $ を使わない形
+- 23: desktop file と icon を datarootdir に版無しで置くので、nox 版は
+  datarootdir ごと移す (X 版と 12 の path がぶつかっていた)
+- 26、27: nox 版の version.mk が 26.1、27.1 のままだった
+
+22 の X 版は建たない。unexec の dump が memcpy で落ちる。temacs の ASLR を
+切ると (paxctl +a) dump は通るが、出来た emacs が init_alloc から
+make_float で落ち、番地が dump 前と違う。-z nocombreloc は効かなかった。
+22 は nox 版だけにしてある。
+
