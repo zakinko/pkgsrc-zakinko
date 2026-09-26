@@ -19,6 +19,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <ifaddrs.h>
+#include <net/if_dl.h>
 #include <sys/event.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -65,13 +67,13 @@ static int bpf_open(const char *ifname, unsigned int *lenp) {
 }
 
 /* DHCP の OFFER を一本。server 67 -> client 68 の broadcast。 */
-static size_t build_offer(uint8_t *f) {
+static size_t build_offer_to(uint8_t *f, const uint8_t *dmac) {
         size_t dhcplen = 244;
         size_t n = E + 20 + 8 + dhcplen;
         uint16_t v;
 
         memset(f, 0, n);
-        memset(f, 0xff, 6);                     /* 宛先 broadcast */
+        if (dmac) memcpy(f, dmac, 6); else memset(f, 0xff, 6);
         memset(f + 6, 0xaa, 6);                 /* 送り元 */
         v = htons(0x0800); memcpy(f + 12, &v, 2);
 
@@ -98,6 +100,8 @@ static size_t build_offer(uint8_t *f) {
         return n;
 }
 
+static size_t build_offer(uint8_t *f) { return build_offer_to(f, NULL); }
+
 static int try_once(int rd, unsigned int blen, int wr, const char *what) {
         uint8_t frame[1500];
         size_t n = build_offer(frame);
@@ -122,6 +126,54 @@ static int try_once(int rd, unsigned int blen, int wr, const char *what) {
                         got = 1;
         }
         printf("  %-12s %s\n", what, got ? "届いた" : "届かない");
+        free(buf);
+        return got;
+}
+
+/* interface 自身の MAC */
+static int own_mac(const char *ifname, uint8_t *mac) {
+        struct ifaddrs *ifa, *i;
+        int r = -1;
+        if (getifaddrs(&ifa) < 0) return -1;
+        for (i = ifa; i; i = i->ifa_next) {
+                if (!i->ifa_addr || i->ifa_addr->sa_family != AF_LINK) continue;
+                if (strcmp(i->ifa_name, ifname)) continue;
+                memcpy(mac, LLADDR((struct sockaddr_dl *)i->ifa_addr), 6);
+                r = 0;
+                break;
+        }
+        freeifaddrs(ifa);
+        return r;
+}
+
+/*
+ * t-lease の偽 server は OFFER を client の MAC 宛てに出す。client も server も
+ * 同じ tap に居るので、それは tap 自身の MAC 宛ての unicast になる。上の腕は
+ * broadcast で見ている。自分宛ての unicast を送出せずに折り返す系では、BPF
+ * からは見えなくなるかもしれない。本物の DHCP server は client と同じ
+ * interface には居ないので、そうなら test の仕掛けの問題であって移植の欠陥
+ * ではない。そこを分ける。
+ */
+static int unicast_self_once(int rd, unsigned int blen, int wr, const char *ifname) {
+        uint8_t frame[1500], mac[6];
+        size_t n;
+        char *buf;
+        int got = 0;
+
+        if (own_mac(ifname, mac) < 0) { printf("  自分の MAC が取れない\n"); return -1; }
+        n = build_offer_to(frame, mac);
+        buf = malloc(blen);
+        if (!buf) return -1;
+        while (poll(&(struct pollfd){ .fd = rd, .events = POLLIN }, 1, 0) == 1)
+                (void)read(rd, buf, blen);
+        if (write(wr, frame, n) != (ssize_t)n) {
+                printf("  自分宛て: 書けない (%s)\n", strerror(errno));
+                free(buf); return -1;
+        }
+        if (poll(&(struct pollfd){ .fd = rd, .events = POLLIN }, 1, 2000) == 1 &&
+            read(rd, buf, blen) > 0)
+                got = 1;
+        printf("  %-12s %s\n", "自分宛て", got ? "届いた" : "届かない");
         free(buf);
         return got;
 }
@@ -171,7 +223,7 @@ int main(int argc, char **argv) {
                 .bf_insns = n_dhcp4_bsd_client_filter,
         };
         unsigned int blen;
-        int rd, wr, a, b, c;
+        int rd, wr, a, b, c, u;
 
         setvbuf(stdout, NULL, _IONBF, 0);
         printf("%s で BPF から BPF へ DHCP OFFER を一本\n", ifname);
@@ -198,11 +250,12 @@ int main(int argc, char **argv) {
          * 残るのはここしかない。
          */
         c = kqueue_once(rd, blen, wr);
+        u = unicast_self_once(rd, blen, wr, ifname);
 
         close(rd);
         close(wr);
 
-        if (a < 0 || b < 0 || c < 0)
+        if (a < 0 || b < 0 || c < 0 || u < 0)
                 return 1;
         if (!a) {
                 printf("\n=== 線に出ていない。filter の話ではない ===\n");
@@ -215,6 +268,11 @@ int main(int argc, char **argv) {
         if (!c) {
                 printf("\n=== poll では読めるが kqueue が報せない ===\n");
                 return 1;
+        }
+        if (!u) {
+                printf("\n=== broadcast は届くが、interface 自身の MAC 宛ては届かない ===\n"
+                       "    (client と server が同じ tap に居る test だけの話)\n");
+                return 77;
         }
         printf("\n=== 通った ===\n");
         return 0;
