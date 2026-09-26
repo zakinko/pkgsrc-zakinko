@@ -397,8 +397,25 @@ else
 		br=$?
 		[ $br = 0 ] || [ $br = 77 ] || LFAIL=1
 		echo "--- t-srcaddr (socket_udp_send_from が送り元を選ぶか)"
+		# DragonFly は対照は線に出るのに、IP_SENDSRCADDR の一本だけ出ない。
+		# sendmsg は成功を返す (udp_usrreq.c は送り元の検査に落ちれば error を
+		# 返す作り) ので、落としているのは IP の出口である。どの計数が動くかを
+		# 前後で取って、落ちたときだけ差を出す。
+		netstat -s -p ip > "$W/ip0" 2>/dev/null
+		netstat -s -p udp > "$W/udp0" 2>/dev/null
 		"$W/t-srcaddr" "$TAP"
 		sr=$?
+		if [ $sr = 1 ]; then
+			netstat -s -p ip > "$W/ip1" 2>/dev/null
+			netstat -s -p udp > "$W/udp1" 2>/dev/null
+			echo "  --- 動いた計数 (ip / udp)"
+			diff "$W/ip0" "$W/ip1" | grep '^>' | sed 's/^>/   /'
+			diff "$W/udp0" "$W/udp1" | grep '^>' | sed 's/^>/   /'
+			echo "  --- 経路と ARP"
+			netstat -rn -f inet 2>/dev/null | grep '10\.99\.' | sed 's/^/   /'
+			arp -an 2>/dev/null | grep '10\.99\.' | sed 's/^/   /'
+			ifconfig "$TAP" | grep 'inet ' | sed 's/^/   /'
+		fi
 		[ $sr = 0 ] || [ $sr = 77 ] || LFAIL=1
 	fi
 
