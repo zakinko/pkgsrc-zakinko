@@ -52,7 +52,7 @@ jobs:
   # xwpe: 当て物の要否がコンパイラで割れる。gcc と clang の両方を見る。
   xwpe-netbsd:
     if: inputs.target == 'all' || inputs.target == 'xwpe'
-    name: xwpe on NetBSD ${{ matrix.image }} (${{ matrix.options }})
+    name: xwpe on NetBSD ${{ matrix.image }} (${{ matrix.options }}) ${{ matrix.compiler }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     strategy:
@@ -64,6 +64,20 @@ jobs:
         # X の在る側と無い側。無い側は上流が --without-x として設計している
         # 道で、X を持たない箱に入るかどうかがここで決まる。
         options: ['x11 xft', '-x11 -xft']
+        compiler: ['gcc']
+        # 11.0 では二 option の四通り全部を、gcc と clang の両方で見る。
+        # 送る本文がそう書いているので、送る一式でそれを測る。以前は
+        # 09-01..09-03 に Vultr の箱で手で測っただけで、その後に当て物が
+        # 増えていた (we_unix.c、libXext の buildlink)。compiler の軸も
+        # 無く、コメントに「gcc と clang の両方を見る」とありながら CI は
+        # 一度も clang で建てていなかった。
+        include:
+          - { image: 'amd64-11.0', options: 'x11 -xft',  compiler: 'gcc' }
+          - { image: 'amd64-11.0', options: '-x11 xft',  compiler: 'gcc' }
+          - { image: 'amd64-11.0', options: 'x11 xft',   compiler: 'clang' }
+          - { image: 'amd64-11.0', options: 'x11 -xft',  compiler: 'clang' }
+          - { image: 'amd64-11.0', options: '-x11 xft',  compiler: 'clang' }
+          - { image: 'amd64-11.0', options: '-x11 -xft', compiler: 'clang' }
     steps:
       - uses: actions/checkout@v4
       - name: ディスクを空ける
@@ -106,6 +120,9 @@ jobs:
           UPSTREAM_PKG: zakinko/xwpe
           VERIFY_SCRIPT: verify-xwpe.sh
           XWPE_OPTIONS: ${{ matrix.options }}
+          # run-in-qemu.sh は他の workflow と共用なので触らず、既に
+          # ゲストへ運ばれている VERIFY_OPTS の口で compiler を渡す。
+          VERIFY_OPTS: compiler=${{ matrix.compiler }}
           # 四半期枝に留める。current を引くと公式のバイナリ集合と版が
           # 合わず、perl から全部素で組むことになる。実際それで
           # perl-5.44.0 の Errno_pm.PL が NetBSD 10.1 の <sys/cdefs_elf.h>

@@ -154,6 +154,18 @@ echo "--- $PKG ($OS $(uname -r) / $(uname -m)) ---"
 # base の cc を出しても意味が無い。pkgsrc は cwrappers を噛ませるので、
 # PKGSRC_COMPILER で選んだものが実際に走る。clang で組んだ回に
 # 「cc 12.5.0」と表示していて、記録としては嘘だった。
+# compiler は VERIFY_OPTS の compiler=<名> で受ける。run-in-qemu.sh は
+# PKGSRC_COMPILER をゲストへ運ばないので、環境で渡しても届かなかった。
+# CI は一度も clang で建てておらず、ここに PKGSRC_COMPILER を読む枝が在る
+# のに誰も通っていなかった。make の命令行に置く (mk.conf より強い)。
+case " ${VERIFY_OPTS:-} " in
+*" compiler=clang "*)	PKGSRC_COMPILER=clang ;;
+*" compiler=gcc "*)	PKGSRC_COMPILER=gcc ;;
+esac
+if [ -n "${PKGSRC_COMPILER:-}" ]; then
+	export PKGSRC_COMPILER
+	MKARGS="$MKARGS PKGSRC_COMPILER=$PKGSRC_COMPILER"
+fi
 echo "--- コンパイラ ---"
 echo "  PKGSRC_COMPILER = ${PKGSRC_COMPILER:-(既定)}"
 case ${PKGSRC_COMPILER:-} in
@@ -173,6 +185,23 @@ echo "--- 依存: バイナリ ${_bin:-0} 件 / その場で組んだの ${_src:
 if [ -n "${BINPKG_SITES:-}" ] && [ "${_bin:-0}" = 0 ]; then
 	echo "::warning::BINPKG_SITES を渡したのに一つも降ろせていない"
 fi
+# 選んだ compiler で本当に走ったかを、名前ではなく compiler 自身の
+# 出力で見る。clang は -Wno-old-style-declaration を知らないので
+# unknown-warning-option を出し、gcc は出さない。Makefile.am が常に
+# その flag を渡すので、どちらで走ったかの印になる。
+_uwo=$(grep -c 'unknown-warning-option' /tmp/xwpe-patched.log 2>/dev/null || true)
+case ${PKGSRC_COMPILER:-gcc} in
+clang)	if [ "${_uwo:-0}" -gt 0 ]; then
+		echo "  ok clang で走った (unknown-warning-option ${_uwo} 回)"
+	else
+		echo "FAIL: clang を頼んだのに clang の印が無い"; rc=1
+	fi ;;
+*)	if [ "${_uwo:-0}" = 0 ]; then
+		echo "  ok gcc で走った (unknown-warning-option 0 回)"
+	else
+		echo "FAIL: gcc を頼んだのに clang の印が ${_uwo} 回"; rc=1
+	fi ;;
+esac
 if grep -q 'Ignoring patch file' /tmp/xwpe-patched.log; then
 	echo 'FAIL: 当て物が無視された。checksum が合っていない。'
 	grep 'Ignoring patch file' /tmp/xwpe-patched.log | sed 's;.*patches/;  ;'
