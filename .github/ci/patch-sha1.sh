@@ -19,6 +19,11 @@
 # "digest: NSS_Init failed in directory /tmp" と言って何も出さない。だから
 # 出た値が 16 進 40 桁かまで見て、違えば次の道具へ移る。
 #
+# 呼ぶ側が set -e でも動くよう、道具ごとの失敗は || true で受ける。受けない
+# と、最初に試した道具が無い・違う物だっただけで呼ぶ側ごと止まる (macOS の
+# NSS の digest、cksum -a を持たない cksum)。出た値は下で 16 進 40 桁かを
+# 見るので、失敗を飲み込んでも誤った値は通らない。
+#
 # digest -p は使わない。あれは別の値を出す。NetBSD 11.0 で同じ file に
 # 対して digest sha1 が 5534509b…、digest -p sha1 が c82b12f0… だった。
 # distinfo に載っているのは前者である。
@@ -28,11 +33,11 @@ patch_sha1() {
 	for _ps_t in digest cksum sha1 sha1sum openssl; do
 		command -v "$_ps_t" > /dev/null 2>&1 || continue
 		case $_ps_t in
-		digest)  _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | digest sha1 2>/dev/null) ;;
-		cksum)   _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | cksum -a sha1 2>/dev/null) ;;
-		sha1)    _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | sha1 2>/dev/null) ;;
-		sha1sum) _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | sha1sum 2>/dev/null) ;;
-		openssl) _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | openssl dgst -sha1 2>/dev/null) ;;
+		digest)  _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | digest sha1 2>/dev/null || true) ;;
+		cksum)   _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | cksum -a sha1 2>/dev/null || true) ;;
+		sha1)    _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | sha1 2>/dev/null || true) ;;
+		sha1sum) _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | sha1sum 2>/dev/null || true) ;;
+		openssl) _ps_h=$(sed -e '/\$NetBSD.*\$/d' "$_ps_f" | openssl dgst -sha1 2>/dev/null || true) ;;
 		esac
 		_ps_h=$(echo "$_ps_h" | awk '{print $NF}')
 		case $_ps_h in

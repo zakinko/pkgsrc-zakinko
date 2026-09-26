@@ -32,7 +32,7 @@ concurrency:
 env:
   PKGS: ''
   TREE_PKGS: security/polkit
-  TREE_PATCH: .github/ci/tree-patch-docbook.sh
+  TREE_PATCH: .github/ci/tree-patch-polkit.sh
 
 jobs:
   freebsd:
