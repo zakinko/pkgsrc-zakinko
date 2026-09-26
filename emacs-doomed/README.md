@@ -15,17 +15,18 @@ package が案内する入口 (`(require 'vm)` など) を読んでから、pack
 
 | package | 版 | 直し | load |
 |---|---|---|---|
-| `mail/vm` | emacs30 | `--with-lispdir`、当て物 2 本 | 52 中 51 |
+| `mail/vm` | emacs30, 31 | 8.3.2 へ上げた | 52 中 51 |
 | `devel/ecb` | emacs30 | 2.52 へ上げた | 3/3 |
 | `misc/elscreen` | emacs20 | 当て物 1 本、SUBST、elisp-compat | 10 中 9 |
 
-`mail/vm` は `MAKE_ENV` で `LISPDIR` を渡していたが、`configure` が
-`lispdir` を決めて生成後の Makefile に書き込むので環境変数は届かない。
-file は版を含まない `share/emacs/site-lisp/vm` に入り、PLIST と合わずに
-落ちていた。`--with-lispdir` を直接渡す。`vm-folder` は load 時に呼ぶ
-`vm-add-write-file-hook` の定義元 `vm-misc` を compile 時にしか読んで
-いなかった。`vm-pcrisis` は `make-face` に XEmacs の二つ目の引数を渡して
-いた。読めない 1 つは `vm-w3m` で emacs-w3m を求める。
+`mail/vm` は 2026-09-26 に 8.3.2 (2025-12-29、gitlab の emacs-vm) へ
+上げた。8.2.0b に足していた当て物 4 本 (info 2 本、vm-folder、vm-pcrisis) は
+どれも上流で直っていた。gitlab の tarball には生成済みの configure が無いので
+autoconf を回す。configure は Emacs を `--with-emacs` か PATH の `emacs` で
+決めるので、版付きの `EMACS_BIN` を渡す。8.3 の texinfo は NetBSD の
+makeinfo 4.8 では node の検査で落ちるので texinfo 5 を求める。8.3 は
+bin/base64-encode などの補助 program を持たず、変換を Emacs の中でする。
+読めない 1 つは `vm-w3m` で emacs-w3m を求める。
 
 `devel/ecb` は 2.50 (GitHub の 1330a44) のままでは emacs30 で建たない。
 `defmethod` が Emacs 29 で `lisp/obsolete/eieio-compat` へ移り、その先も
@@ -80,6 +81,14 @@ semantic の Makefile は `LOADPATH` の dir を `add-to-list` で足すが、
 site-lisp の下の dir は既に load-path の後ろに在るので何も起きない。
 当て物で `setq` と `cons` にして前へ置き、`LOADPATH` に入っている speedbar
 と eieio の dir を渡す。手を加えていない木でも落ちたのは同じ理由。
+
+## wip/undo-tree と wip/queue-el
+
+wip/undo-tree は 0.3 (2012) を 0.8.2 (2024-03-31、GNU ELPA) へ上げた。0.8 は
+GNU ELPA の `queue` を求め、pkgsrc には無いので wip/queue-el (0.2、
+2024-03-31) を新しく作った。emacs30 と emacs31 で建ち、`global-undo-tree-mode`
+のもとで undo と redo が期待どおり動く (a、b と入れて undo で "a"、redo で
+"ab")。
 
 ## 測った機械
 
