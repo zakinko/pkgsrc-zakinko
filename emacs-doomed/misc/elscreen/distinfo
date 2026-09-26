@@ -30,3 +30,4 @@ Size (elscreen-w3m-0.2.2.tar.gz) = 1362 bytes
 BLAKE2s (elscreen-wl-0.8.0.tar.gz) = bde62eb69e216d46070719d93115014722b2e22abc1c286289194acaccc009c9
 SHA512 (elscreen-wl-0.8.0.tar.gz) = 95170f6a5e6c53d82ef0b38d8366ba2f342ad2482a6adb71dfb80cc14467949675d1145316f9d2f6889268eedd74308d4d79becc142bc50508d8c49b1b44a7fa
 Size (elscreen-wl-0.8.0.tar.gz) = 1921 bytes
+SHA1 (patch-elscreen.el) = 3f99b63146cdde85ad087cb79fdd418b13443845

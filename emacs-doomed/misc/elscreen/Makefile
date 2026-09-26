@@ -47,5 +47,14 @@ do-install:
 
 .include "../../editors/emacs/modules.mk"
 
+DEPENDS+=	${EMACS_PKGNAME_PREFIX}elisp-compat-[0-9]*:../../devel/elisp-compat
+
+# elscreen-dnd uses mapc, which Emacs 20 does not have; the result is
+# not used, so mapcar does the same.  The file comes from its own
+# distfile outside WRKSRC, hence SUBST rather than a patch.
+SUBST_CLASSES+=		mapc
+SUBST_STAGE.mapc=	post-extract
+SUBST_FILES.mapc=	${WRKDIR}/elscreen-dnd-0.0.0/elscreen-dnd.el
+SUBST_SED.mapc=		-e 's/^(mapc$$/(mapcar/'
 .include "../../devel/apel/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"

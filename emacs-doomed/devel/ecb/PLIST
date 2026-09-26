@@ -1,12 +1,11 @@
 @comment $NetBSD: PLIST,v 1.1 2020/01/21 11:56:48 pho Exp $
-info/ecb.info
+${EMACS_INFOPREFIX}/ecb.info
 ${EMACS_LISPPREFIX}/ecb/ecb-advice-test.el
 ${EMACS_LISPPREFIX}/ecb/ecb-advice-test.elc
 ${EMACS_LISPPREFIX}/ecb/ecb-analyse.el
 ${EMACS_LISPPREFIX}/ecb/ecb-analyse.elc
 ${EMACS_LISPPREFIX}/ecb/ecb-autogen.el
 ${EMACS_LISPPREFIX}/ecb/ecb-autogen.elc
-${EMACS_LISPPREFIX}/ecb/ecb-autoloads.el
 ${EMACS_LISPPREFIX}/ecb/ecb-buffertab.el
 ${EMACS_LISPPREFIX}/ecb/ecb-buffertab.elc
 ${EMACS_LISPPREFIX}/ecb/ecb-cedet-wrapper.el

@@ -5,4 +5,5 @@ SHA512 (vm-8.2.0b.tgz) = 37b642975e8fe7e350c0a648f83608b28d8616417d376d9888c89b3
 Size (vm-8.2.0b.tgz) = 839789 bytes
 SHA1 (patch-info_vm-pcrisis.texinfo) = 13369e08a17b392a3dd2259f8b5326f9286a4f7b
 SHA1 (patch-info_vm.texinfo) = 52debfbd4a73552e38e266579f82ea608e841702
-SHA1 (patch-lisp_vm-pcrisis.el) = e3214d8414434c981267aba2e8fc2401a4924a4b
+SHA1 (patch-lisp_vm-folder.el) = 0c7e4abb738f7c2a103a42256c975924e3e3cb24
+SHA1 (patch-lisp_vm-pcrisis.el) = e95de0f88570652eb3602121e313ee1c335a0dc2
