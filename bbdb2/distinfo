@@ -5,5 +5,7 @@ SHA512 (bbdb-2.35.tar.gz) = 28a7dcf8521e78621aad9369d346d942fe5b08d868f2286b1292
 Size (bbdb-2.35.tar.gz) = 767464 bytes
 SHA1 (patch-lisp_Makefile.in) = 4b9942a4b1f8e2675cdaca67777c80d6490d01ac
 SHA1 (patch-lisp_bbdb-com.el) = 1f6af496f53636da2d4fc893f033fda820bec07c
+SHA1 (patch-lisp_bbdb-hooks.el) = bfbc774e649e35fbc9dbdbbb3b5728c4bbb05ab6
 SHA1 (patch-lisp_bbdb-mhe.el) = f78ad5d1fb5a2ee00040d7975ff9bc6b1d1cac24
+SHA1 (patch-lisp_bbdb-rmail.el) = 80701be364d9ae08cedcb84f2614cf024b3812d3
 SHA1 (patch-lisp_bbdb-whois.el) = 4af0259e5cce56780405f42eb55c4ebf942097ac

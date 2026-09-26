@@ -12,6 +12,7 @@ SUBDIR+=	anthy-unicode-elisp
 SUBDIR+=	augeas
 SUBDIR+=	autogen
 SUBDIR+=	bazel
+SUBDIR+=	bbdb2
 SUBDIR+=	calc
 SUBDIR+=	ecb
 SUBDIR+=	elisp-compat
