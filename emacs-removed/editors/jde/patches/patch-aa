@@ -1,0 +1,24 @@
+$NetBSD: patch-aa,v 1.2 2003/01/11 12:13:16 wiz Exp $
+
+Find eieio, elib, semantic and speedbar under EMACS_LISPPREFIX.
+
+Do not ignore a failed byte-compile.  With the leading "-" the build went
+on and installed the .el files alone.
+
+--- makefile.orig
++++ makefile
+@@ -9,10 +9,10 @@
+ EMACS = emacs
+ 
+ # Default locations of the packages required to compile the JDE.
+-EIEIO = ../../eieio
+-ELIB  = ../../elib
+-SEMANTIC = ../../semantic
+-SPEEDBAR = ../../speedbar
++EIEIO = ${EMACS_LISPPREFIX}/eieio
++ELIB  = ${EMACS_LISPPREFIX}/elib
++SEMANTIC = ${EMACS_LISPPREFIX}/semantic
++SPEEDBAR = ${EMACS_LISPPREFIX}/speedbar
+ 
+ all:
+ 	test -d $(SEMANTIC) -a -d $(SPEEDBAR) -a -d $(ELIB) -a -d $(EIEIO)
