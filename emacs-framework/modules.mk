@@ -664,7 +664,13 @@ PRINT_PLIST_AWK+=	{ gsub(/${EMACS_LISPPREFIX:S|${PREFIX}/||:S|/|\\/|g}/, \
 #
 
 .if defined(EMACS_BUILDLINK)
+# A variant keeps its whole tree, its own lisp included, under
+# share/emacs-<tag>, and buildlink mirrors it there.
+.if ${_EMACS_FLAVOR} == "emacs"
+_EMACS_DIR=	${BUILDLINK_DIR}/${_EMACS_DATADIR.emacs}/emacs
+.else
 _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
+.endif
 # A development version usually claims three digits, say, 27.0.50 etc.
 # The lisp of other packages now lives under the version directory, so
 # the build-time load path has to name it too; ${_EMACS_DIR}/site-lisp

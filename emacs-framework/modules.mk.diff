@@ -228,3 +228,17 @@
  
  _EMACS_PLIST_SUBST+=	EMACS_FLAVOR=${EMACS_FLAVOR:Q}
  _EMACS_PLIST_SUBST+=	EMACS_VERSION=${_EMACS_VERSION_MAJOR:Q}.${_EMACS_VERSION_MINOR:Q}
+@@ -533,7 +664,13 @@
+ #
+ 
+ .if defined(EMACS_BUILDLINK)
++# A variant keeps its whole tree, its own lisp included, under
++# share/emacs-<tag>, and buildlink mirrors it there.
++.if ${_EMACS_FLAVOR} == "emacs"
++_EMACS_DIR=	${BUILDLINK_DIR}/${_EMACS_DATADIR.emacs}/emacs
++.else
+ _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
++.endif
+ # A development version usually claims three digits, say, 27.0.50 etc.
+ # The lisp of other packages now lives under the version directory, so
+ # the build-time load path has to name it too; ${_EMACS_DIR}/site-lisp
