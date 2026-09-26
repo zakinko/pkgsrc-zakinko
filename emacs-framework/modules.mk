@@ -45,7 +45,7 @@
 #			emacs31 emacs31nox
 #			emacs30 emacs30nox
 #			emacs29 emacs29nox
-#			emacs20 xemacs215 xemacs215nox
+#			emacs20 emacs20nox xemacs215 xemacs215nox
 #			xemacs214 xemacs214nox
 #		Default value:
 #			emacs29
@@ -90,7 +90,7 @@
 #			emacs31 emacs31nox
 #			emacs30 emacs30nox
 #			emacs29 emacs29nox
-#			emacs20 xemacs215 xemacs215nox
+#			emacs20 emacs20nox xemacs215 xemacs215nox
 #			xemacs214 xemacs214nox
 #
 #	EMACS_BUILDLINK
@@ -217,10 +217,10 @@
 #		Possible values:
 #			XXX
 #
-#	FOR_{emacs31,emacs31nox,emacs30,emacs30nox,emacs29,emacs29nox,emacs20,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
+#	FOR_{emacs31,emacs31nox,emacs30,emacs30nox,emacs29,emacs29nox,emacs20,emacs20nox,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
 #	FOR_{emacs,xemacs}
 #	FOR_{emacs_x,emacs_nox}
-#	NOTFOR_{emacs31,emacs31nox,emacs30, emacs30nox,emacs29,emacs29nox,emacs20,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
+#	NOTFOR_{emacs31,emacs31nox,emacs30, emacs30nox,emacs29,emacs29nox,emacs20,emacs20nox,xemacs215,xemacs215nox,xemacs214,xemacs214nox}
 #	NOTFOR_{emacs,xemacs}
 #	NOTFOR_{emacs_x,emacs_nox}
 #		Description:
@@ -282,11 +282,12 @@ BUILD_DEFS_EFFECTS+=	${_SYS_VARS.emacs}
 # what counts.
 _EMACS_VERSIONS_ALL= \
 	emacs31 emacs31nox emacs30 emacs30nox \
-	emacs29 emacs29nox emacs20 \
+	emacs29 emacs29nox emacs20 emacs20nox \
 	xemacs215 xemacs215nox xemacs214 xemacs214nox
 
 _EMACS_PKGDIR_MAP= \
 	emacs20@../../editors/emacs20 \
+	emacs20nox@../../editors/emacs20-nox11 \
 	emacs29@../../editors/emacs29 \
 	emacs29nox@../../editors/emacs29-nox11 \
 	emacs30@../../editors/emacs30 \
