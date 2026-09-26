@@ -10,11 +10,12 @@ HOMEPAGE=		https://sourceforge.net/projects/bbdb/
 COMMENT=		Insidious Big Brother DataBase, a rolodex-like database Emacs program
 LICENSE=		gnu-gpl-v1
 
-# bbdb is included in xemacs-packages
-# 2.35 is the last BBDB for the Emacsen before 23; modern ones use bbdb3
-EMACS_VERSIONS_ACCEPTED=	emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
+# 2.35 is the last BBDB for the Emacsen before 23; modern ones use bbdb3.
+# XEmacs is not offered: bbdb comes with xemacs-packages, and building
+# this one for XEmacs needs timezone.el, which only xemacs-packages
+# ships, while the two conflict.  It could never build there.
+EMACS_VERSIONS_ACCEPTED=	emacs20
 
-CONFLICTS+=		xemacs-packages-[0-9]*
 # in case old one exists
 CONFLICTS+=		bbdb-[0-9]*
 CONFLICTS+=		bbdb3-[0-9]*
@@ -36,10 +37,6 @@ post-extract:
 
 CONFIGURE_ARGS+=	--with-emacs=${EMACS_BIN}
 
-.if ${EMACS_FLAVOR} == "xemacs"
-CONFIGURE_ARGS+=	--with-package-dir=${PREFIX}/lib/xemacs/site-packages
-INSTALL_TARGET=		install-pkg
-.else
 do-install:
 	${MKDIR} ${DESTDIR}${LISPDIR}
 	${INSTALL_DATA} ${WRKSRC}/lisp/*.el ${DESTDIR}${LISPDIR}
@@ -48,6 +45,5 @@ do-install:
 		${TEST} ! -f "$$f" ||					\
 		${INSTALL_DATA} "$$f" ${DESTDIR}${PREFIX}/${PKGINFODIR};\
 	done
-.endif
 
 .include "../../mk/bsd.pkg.mk"

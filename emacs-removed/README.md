@@ -5,9 +5,9 @@ pkgsrc から取り除かれたが、こちらでは emacs20 や XEmacs で使�
 
 | package | いつ消えたか | ここでの状態 |
 |---|---|---|
-| `misc/bbdb2` | 2026-09-12 emacs21 と一緒に | emacs20 で建つ |
+| `misc/bbdb2` | 2026-09-12 emacs21 と一緒に | emacs20 で建つ。20 の feature 中 16 が load |
 | `editors/jde` | 同上 | 建たない (下記) |
-| `textproc/nxml-mode` | 同上 | emacs20 で建つ。12 の feature 中 10 が load |
+| `textproc/nxml-mode` | 同上 | emacs20 で建つ。24 の feature 中 24 が load |
 
 三本とも Makefile が emacs21 しか受け付けていなかったために、emacs21 が
 消えたとき一緒に消えた。どれも emacs20 で動く。
@@ -27,11 +27,12 @@ GNU Emacs では configure が `PATH` の emacs を拾っていた。木に emac
 書き込まれて、bmake が `Invalid line "Loading site-init..."` で落ちる。
 併せて `bbdb-autoloads.elc` が PLIST に無かった。
 
-**残っている問題**: XEmacs を受け付けるのに `CONFLICTS+=
-xemacs-packages-[0-9]*` を持つ。`timezone` を配るのはその package だけなので
-XEmacs では原理的に建たない。木の側で xemacs-packages と衝突を宣言して
-いるのは `misc/bbdb3` だけで、そちらは XEmacs を受け付けないので矛盾は
-していない。これはこちらの fork の欠陥。
+2026-09-26 に XEmacs を受け付けから外した。XEmacs を受け付けるのに
+`CONFLICTS+= xemacs-packages-[0-9]*` を持ち、XEmacs 向けに建てるのに要る
+`timezone` を配るのはその package だけなので、XEmacs では原理的に建た
+なかった。bbdb は xemacs-packages に入っているので、XEmacs ではそちらを
+使う。読めない 4 つは `reportmail` `gnuserv` `vm` を求めるものと、XEmacs
+専用の `bbdb-xemacs`。
 
 ## editors/jde
 
@@ -56,7 +57,12 @@ source が `#x` を 14,490 回使っていて、Emacs 20 の reader にその sy
 無い。当て物ではなく `post-patch` の一手で十進に変える。`elisp-compat` が
 Emacs 21 の関数を供給し、`mule-ucs` が `decode-char` を供給する。
 
-読めない 2 つは `nxml-outln` と `rng-cmpct`。
+2026-09-26 に測り直すと、当て物 8 本がどれも distinfo に無く、
+"Ignoring patch file ... no checksum found" と言われて一本も当たって
+いなかった。案内どおり `rng-auto.el` を読むと "FSF GNU Emacs version 21
+or later required" で止まり、何も使えなかった。distinfo を直すと 24 の
+feature が全部 load できる。2026-09-25 の「12 中 10」は、入口を通さずに
+feature を直に読んだ数字だった。
 
 ## 送り先
 
