@@ -1,8 +1,16 @@
 $NetBSD: patch-aa,v 1.4 2006/06/17 19:27:04 rillig Exp $
 
---- Makefile.orig	2003-04-22 16:01:27.000000000 +0200
-+++ Makefile	2006-06-17 21:15:48.000000000 +0200
-@@ -11,7 +11,6 @@ ede_FILES=Project.ede Makefile
+Let pkgsrc set EMACS and MAKEINFO.
+
+Put LOADPATH at the front of load-path with setq rather than add-to-list.
+Under EMACSLOADPATH the installed speedbar and eieio directories are
+already on load-path, after Emacs's own lisp/, so add-to-list leaves
+them there and Emacs 20's bundled speedbar 0.8 is found first.  It lacks
+speedbar-dynamic-tags-function-list and compiling stopped on it.
+
+--- Makefile.orig
++++ Makefile
+@@ -11,7 +11,6 @@
  
  example_MISC=semantic-skel.el skeleton.bnf semantic-example.el
  init_LISP=semantic-load.el
@@ -10,7 +18,7 @@ $NetBSD: patch-aa,v 1.4 2006/06/17 19:27:04 rillig Exp $
  LOADPATH=../speedbar/ ../eieio/ 
  semantic_LISP=semantic.el semantic-util.el semantic-bnf.el semantic-ctxt.el
  Languages_LISP=semantic-c.el semantic-el.el semantic-java.el semantic-make.el semantic-scm.el semantic-texi.el
-@@ -19,7 +18,6 @@ tools_LISP=semantic-imenu.el semantic-sb
+@@ -19,7 +18,6 @@
  senator_LISP=senator.el
  misc_AUX=INSTALL NEWS ChangeLog
  info_TEXINFOS=semantic.texi
@@ -18,3 +26,48 @@ $NetBSD: patch-aa,v 1.4 2006/06/17 19:27:04 rillig Exp $
  aux_AUX=c.bnf make.bnf java.bnf scheme.bnf
  VERSION=1.4.4
  DISTDIR=$(top)semantic-$(VERSION)
+@@ -35,7 +33,7 @@
+ init: $(init_LISP)
+ 	@echo "(add-to-list 'load-path nil)" > $@-compile-script
+ 	for loadpath in . ${LOADPATH}; do \
+-	   echo "(add-to-list 'load-path \"$$loadpath\")" >> $@-compile-script; \
++	   echo "(setq load-path (cons \"$$loadpath\" load-path))" >> $@-compile-script; \
+ 	done;
+ 	@echo "(setq debug-on-error t)" >> $@-compile-script
+ 	$(EMACS) -batch -l $@-compile-script -f batch-byte-compile $^
+@@ -44,7 +42,7 @@
+ semantic: $(semantic_LISP)
+ 	@echo "(add-to-list 'load-path nil)" > $@-compile-script
+ 	for loadpath in . ${LOADPATH}; do \
+-	   echo "(add-to-list 'load-path \"$$loadpath\")" >> $@-compile-script; \
++	   echo "(setq load-path (cons \"$$loadpath\" load-path))" >> $@-compile-script; \
+ 	done;
+ 	@echo "(setq debug-on-error t)" >> $@-compile-script
+ 	$(EMACS) -batch -l $@-compile-script -f batch-byte-compile $^
+@@ -53,7 +51,7 @@
+ Languages: $(Languages_LISP)
+ 	@echo "(add-to-list 'load-path nil)" > $@-compile-script
+ 	for loadpath in . ${LOADPATH}; do \
+-	   echo "(add-to-list 'load-path \"$$loadpath\")" >> $@-compile-script; \
++	   echo "(setq load-path (cons \"$$loadpath\" load-path))" >> $@-compile-script; \
+ 	done;
+ 	@echo "(setq debug-on-error t)" >> $@-compile-script
+ 	$(EMACS) -batch -l $@-compile-script -f batch-byte-compile $^
+@@ -62,7 +60,7 @@
+ tools: $(tools_LISP)
+ 	@echo "(add-to-list 'load-path nil)" > $@-compile-script
+ 	for loadpath in . ${LOADPATH}; do \
+-	   echo "(add-to-list 'load-path \"$$loadpath\")" >> $@-compile-script; \
++	   echo "(setq load-path (cons \"$$loadpath\" load-path))" >> $@-compile-script; \
+ 	done;
+ 	@echo "(setq debug-on-error t)" >> $@-compile-script
+ 	$(EMACS) -batch -l $@-compile-script -f batch-byte-compile $^
+@@ -71,7 +69,7 @@
+ senator: $(senator_LISP)
+ 	@echo "(add-to-list 'load-path nil)" > $@-compile-script
+ 	for loadpath in . ${LOADPATH}; do \
+-	   echo "(add-to-list 'load-path \"$$loadpath\")" >> $@-compile-script; \
++	   echo "(setq load-path (cons \"$$loadpath\" load-path))" >> $@-compile-script; \
+ 	done;
+ 	@echo "(setq debug-on-error t)" >> $@-compile-script
+ 	$(EMACS) -batch -l $@-compile-script -f batch-byte-compile $^

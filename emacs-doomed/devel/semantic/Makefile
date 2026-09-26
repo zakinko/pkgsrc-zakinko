@@ -17,8 +17,16 @@ USE_TOOLS+=	gmake
 INFO_FILES=	yes
 
 MAKE_FLAGS+=	EMACS=${EMACS_BIN}
+# The build puts ../speedbar/ and ../eieio/ (the CEDET tree layout) on
+# load-path, which do not exist here.  EMACSLOADPATH then finds Emacs 20's
+# own lisp/speedbar.el, speedbar 0.8, ahead of the installed 0.14 in
+# site-lisp, and compiling stopped at the void
+# speedbar-dynamic-tags-function-list, which 0.14 does define.
+MAKE_FLAGS+=	LOADPATH=${BUILDLINK_DIR:Q}${EMACS_LISPPREFIX:S,^${PREFIX},,:Q}/speedbar\ ${BUILDLINK_DIR:Q}${EMACS_LISPPREFIX:S,^${PREFIX},,:Q}/eieio
 
-EMACS_VERSIONS_ACCEPTED=	# empty
+# semantic 1.4 is CEDET before it went into Emacs 23.2; later Emacsen
+# carry their own.
+EMACS_VERSIONS_ACCEPTED=	emacs20
 
 # XXX cd ${WRKSRC}; ${MAKE} -V semantic_LISP
 SRCS=	semantic.el semantic-util.el semantic-bnf.el semantic-ctxt.el

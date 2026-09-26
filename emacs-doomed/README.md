@@ -68,14 +68,17 @@ Emacs が byte-compile していた。`--with-emacs` で版付きの binary を
 `sha1` (flim が持つ) と `dbus` (任意)。ここから先は Emacs 21 からの移植に
 なるので手を付けていない。
 
-## 直していないもの
+## devel/semantic
 
-`devel/semantic` は semantic 1.4.4 が `speedbar-dynamic-tags-function-list`
-を求めるが、これは speedbar 0.15 からのもので木には 0.14 しかない。手を
-加えていない木でも同じ落ち方をすることを対照で確かめた。`editors/jde` は
-この semantic に依存しているので、semantic が消えると道連れになる。
-
-
+emacs20 で建ち、25 の feature が全部 load できる。2026-09-25 に
+「speedbar 0.15 の変数を求めるが木には 0.14 しかない」と書いたのは誤り
+だった。`speedbar-dynamic-tags-function-list` は入っている 0.14beta4 にも
+在る。build が `EMACSLOADPATH` で Emacs 自身の `lisp/` を site-lisp より
+前に置くので、Emacs 20 に同梱の speedbar 0.8 が先に見つかっていた。
+semantic の Makefile は `LOADPATH` の dir を `add-to-list` で足すが、
+site-lisp の下の dir は既に load-path の後ろに在るので何も起きない。
+当て物で `setq` と `cons` にして前へ置き、`LOADPATH` に入っている speedbar
+と eieio の dir を渡す。手を加えていない木でも落ちたのは同じ理由。
 
 ## 測った機械
 
