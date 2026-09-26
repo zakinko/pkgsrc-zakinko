@@ -99,6 +99,8 @@ ${EMACS_LISPPREFIX}/nxml-mode/char-name/unicode/1D000-1D0FF.el
 ${EMACS_LISPPREFIX}/nxml-mode/char-name/unicode/1D100-1D1FF.el
 ${EMACS_LISPPREFIX}/nxml-mode/char-name/unicode/1D400-1D7FF.el
 ${EMACS_LISPPREFIX}/nxml-mode/char-name/unicode/E0000-E007F.el
+${FOR_emacs20}${EMACS_LISPPREFIX}/nxml-mode/nxml-e20.el
+${FOR_emacs20}${EMACS_LISPPREFIX}/nxml-mode/nxml-e20.elc
 ${EMACS_LISPPREFIX}/nxml-mode/nxml-enc.el
 ${EMACS_LISPPREFIX}/nxml-mode/nxml-enc.elc
 ${EMACS_LISPPREFIX}/nxml-mode/nxml-glyph.el
