@@ -1,0 +1,51 @@
+$NetBSD$
+
+Do not look for a converter when the documentation is already mdoc.
+
+The template unconditionally appends "2mdoc" to the source format and
+insists on finding the result, so a section declared as
+
+	ds-format = 'mdoc';
+
+sends it looking for a "mdoc2mdoc" converter.  autoopts/mk-tpl-config.sh
+does generate one -- find_cat_prog() writes all nine <from>2<to> scripts
+as "exec cat" stubs -- but the three identity converters have not been
+installed since 5.18.5, when commit eed23a59 dropped them from
+nodist_pkgdata_DATA.  Generating the manual pages of anything that
+writes its documentation in mdoc, such as net/ntp4, therefore dies with
+
+	Cannot locate converter for mdoc
+
+Taken from upstream git, commits 45199acd (2020-10-05, tagged v5.19.98)
+and 127e11da (2020-11-14), neither of which has appeared in a release:
+the newest is still 5.18.16 and the newest alpha tarball, 5.19.96, does
+not carry it either.  Verified by regenerating ntpd.1ntpdman from
+net/ntp4's definitions: the result matches the page shipped in the ntp
+4.2.8p15 tarball, which was generated with autogen 5.18.5, byte for
+byte apart from the embedded timestamp.
+
+Note that the option-format paths a little further down the same file
+have the same defect and are still unfixed upstream, but nothing in
+pkgsrc appears to use option-format = 'mdoc' yet.
+
+--- autoopts/tpl/cmd-doc.tlib.orig	2017-09-11 00:00:00.000000000 +0000
++++ autoopts/tpl/cmd-doc.tlib
+@@ -228,12 +228,14 @@ DEFINE doc-sections                   :+
+ FOR doc-section                       :+][+:
+   IF
+     (define sec-type (string-upcase (get "ds-type")))
++    (define sec-fmt  (string-downcase! (get "ds-format" "man")))
+     (define sec-name (name-to-fname sec-type))
+-    (define cvt-fn (find-file (string-append
+-         (get "ds-format" "man") "2mdoc")))
++    (define cvt-fn   "")
++    (if (not (= sec-fmt "mdoc"))
++        (set! cvt-fn (find-file (string-append sec-fmt "2mdoc")))
++	(set! cvt-fn (shell "command -v cat")) )
+     (if (not (defined? 'cvt-fn))
+-        (error (sprintf "Cannot locate converter for %s"
+-               (get "ds-format" "man"))))
++        (error (sprintf "Cannot locate %s to mdoc converter" sec-fmt)))
+
+     (define sec-file (string-append tmp-dir "/SEC/" sec-name))
+     (access? sec-file R_OK)           :+][+:

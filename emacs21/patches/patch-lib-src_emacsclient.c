@@ -1,0 +1,16 @@
+$NetBSD$
+
+errno is not an int any more; on any system with threads it is a macro over a
+per-thread location.  The old extern declaration shadows that and the value
+read is not the one the library set.
+
+--- lib-src/emacsclient.c.orig	2005-12-29 13:22:18.000000000 +0000
++++ lib-src/emacsclient.c
+@@ -226,7 +226,6 @@ main (argc, argv)
+ #include <errno.h>
+ 
+ extern char *strerror ();
+-extern int errno;
+ 
+ /* Three possibilities:
+    2 - can't be `stat'ed		(sets errno)

@@ -1,0 +1,51 @@
+$NetBSD: patch-configure,v 1.9 2024/12/28 14:10:23 wiz Exp $
+
+Add option for enabling/disabling mcookie.
+
+--- configure.orig	2024-07-04 08:01:06.791975965 +0000
++++ configure
+@@ -1440,6 +1440,7 @@ enable_lslogins
+ enable_wdctl
+ enable_cal
+ enable_logger
++enable_mcookie
+ enable_whereis
+ enable_pipesz
+ enable_waitpid
+@@ -2274,6 +2275,7 @@ Optional Features:
+   --disable-wdctl         do not build wdctl
+   --disable-cal           do not build cal
+   --disable-logger        do not build logger
++  --disable-mcookie       do not build mcookie
+   --disable-whereis       do not build whereis
+   --disable-pipesz        do not build pipesz
+   --disable-waitpid       do not build waitpid
+@@ -36220,17 +36222,23 @@ fi
+ 
+ 
+ 
++# Check whether --enable-mcookie was given.
++if test "${enable_mcookie+set}" = set; then :
++  enableval=$enable_mcookie;
++else
+ 
+   if test "x$ul_default_estate" != x; then
+   enable_mcookie=$ul_default_estate
+-  build_mcookie=yes
+-  if test "x$ul_default_estate" = xno; then
+-    build_mcookie=no
++  else
++    enable_mcookie=check
+   fi
+-else
+ 
++fi
++
++if test "x$enable_mcookie" = xno; then
++  build_mcookie=no
++else
+   build_mcookie=yes
+-  enable_mcookie=yes
+ fi
+ 
+  if test "x$build_mcookie" = xyes; then

@@ -1,0 +1,193 @@
+name: NetworkManager (Linux distros)
+
+# wip/NetworkManager を引き取って、Linux で実際に建つところまで持っていく。
+#
+# NetBSD/pkgsrc の issue #186 が発端。報告者は Linux From Scratch で pkgsrc を
+# 使っていて (#185 の bootstrap の質問でそう答えている)、欲しいのは Linux の
+# NetworkManager である。BSD の話ではない。
+#
+# wip には 2024-12-14 の import が一度あるきりで、COMMENT が
+# "TODO: Short description of the package" のまま、LICENSE は空、HOMEPAGE は
+# 配布物の置き場を指していた。libndp のほうは MASTER_SITES と HOMEPAGE が
+# 入れ替わっていて、http://libndp.org/libndp-1.9.tar.gz は 404 を返す
+# (/files/ の下が 200)。そこまで直したものがこの repo の NetworkManager と
+# libndp である。
+#
+# NetworkManager は Linux 専用。platform backend は
+# src/libnm-platform/nm-linux-platform.c ひとつきりで netlink を直に叩き、
+# 木の中に __NetBSD__ も __FreeBSD__ も __OpenBSD__ も一つも無い。依存の
+# sysutils/libudev (eudev) 自身が BROKEN_EXCEPT_ON_PLATFORM= Linux-*-* な
+# ので、BSD では compile error より前に依存で止まる。Makefile に
+# ONLY_FOR_PLATFORM= Linux-*-* と書いたのはそのため。
+#
+# Linux 向けの公式バイナリパッケージは配られていない
+# (pub/pkgsrc/packages/Linux/ は 404)。glib2 も gobject-introspection も
+# polkit も素から建つので長い。一回で終わらなくても .bsdcache が作りかけを
+# 持ち越すので、同じ相手をもう一度押せば続きから進む。
+#
+# 手で起動する。押すまで何もしない ... ただし当て物が動いたときだけは別で、
+# そこは自動で回す。NetworkManager の当て物には n-acd の移植が入っていて、
+# あれは Linux 側の code も動かしている (poll の登録を畳み、AT_RANDOM を
+# 継ぎ目の向こうへ移した)。BSD で動くようにした拍子に Linux を壊していない
+# ことは、誰かが思い出して押すのではなく、機械が止めるべきである。
+#
+# 押し忘れは comment では防げない。paths: を workflow の側に置いてあるので、
+# 当て物が動いたときにしか runner は起きない。
+
+on:
+  push:
+    paths:
+      - 'NetworkManager/patches/**'
+      - 'NetworkManager/distinfo'
+      - 'NetworkManager/Makefile'
+  workflow_dispatch:
+    inputs:
+      pkgs:
+        description: '何を建てるか'
+        type: choice
+        options: ['NetworkManager', 'libndp', 'libndp NetworkManager']
+        default: 'NetworkManager'
+      distros:
+        description: '回す相手 (空なら全部)'
+        required: false
+      pkgsrc:
+        description: 'pkgsrc の配布物'
+        type: choice
+        options: [current, stable]
+        default: current
+
+# cancel-in-progress は付けない。cache の鍵が run_id なので、途中で切ると
+# その回の作りかけが保存されないまま消え、次が素から建て直す。押しすぎを
+# 防ぐより、積み上がった物を守るほうが安い。
+concurrency:
+  group: networkmanager-linux-${{ github.ref }}
+
+env:
+  # NetworkManager は libndp を buildlink で引く。CARRY は「木へ写すが
+  # SUBDIR には入れない = それ自体は建てにいかない」口で、依存として
+  # 引かれたときだけ建つ。pkgs に libndp を並べたときは両方に出るが、
+  # 同じものを二度写すだけで害は無い。
+  PKGS: ${{ inputs.pkgs || 'NetworkManager' }}
+  CARRY: libndp
+  # 本家 textproc/xmlto が自分の build でネットを見に行って転ぶ。
+  # その直しを木に当ててから進む。詳細は script の頭に書いた。
+  TREE_PATCH: .github/ci/tree-patch-docbook.sh
+  PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/${{ inputs.pkgsrc || 'current' }}/pkgsrc.tar.gz
+
+jobs:
+  distro:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 報告者が LFS (glibc をソースから) なので、まず glibc の二つ。
+          # 通ってから musl や他を足す。
+          - name: Debian 13
+            image: debian:13
+            pm: apt
+          - name: Fedora 41
+            image: fedora:41
+            pm: dnf
+    container:
+      image: ${{ matrix.image }}
+      # NM は rtnetlink を開くので CAP_NET_ADMIN が要る。docker の既定の
+      # capability 集合には入っていない。渡さないと daemon が起動の時点で
+      # 落ち、「BSD でなくても動かない」という誤った結論になる。
+      options: --cap-add=NET_ADMIN --cap-add=NET_RAW
+    steps:
+      # 入れるものは pkgsrc/bootstrap/README.Linux に従う。加えて bzip2 —
+      # NetworkManager の配布物が .tar.bz2 なので、無いと extract で止まる。
+      - name: 道具を入れる
+        run: |
+          set -e
+          case '${{ matrix.pm }}' in
+          apt)
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends \
+              build-essential curl ca-certificates file perl patch \
+              tar gzip xz-utils bzip2 git sudo cvs libncurses-dev zlib1g-dev \
+              libssl-dev libudev-dev gawk
+            ;;
+          dnf)
+            # fedora の image は coreutils-single を積んでいる。install(1) が
+            # pkgsrc の要求に足りず、pkgsrc が自分の sysutils/coreutils を
+            # tool として建てにいく。それが bootstrap の最中に走ると
+            #
+            #   => Tool dependency coreutils>=5.2.1: NOT found
+            #   ERROR: [bsd.pkg.mk] Circular dependency detected
+            #
+            # で止まる。本物へ入れ替えておく。
+            dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
+              dnf -y install coreutils > /dev/null
+            # hostname は pkgsrc の既定の USE_TOOLS に入っていて、replace.mk の
+            # _TOOLS.coreutils の一員でもある。Fedora は hostname を coreutils と
+            # 別の rpm に分けていて image に入っていないので、無いと上と同じ輪に
+            # なる。dce20ee で一度突き止めてある。
+            dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
+              perl-core patch tar gzip xz bzip2 git diffutils findutils which \
+              sudo ncurses-devel zlib-devel openssl-devel libb2-devel \
+              libarchive-devel gawk hostname
+            # 本物の coreutils を入れても install(1) が /usr/sbin にしか
+            # 現れないことがある。pkgsrc は /usr/bin/install を探す。
+            [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
+            /usr/bin/install --version 2>&1 | head -1
+            # 見立てが外れたときに「どれが無いか」がそのまま出るようにする。
+            # 当てずっぽうで dnf に足すのをやめるための一覧。
+            echo '--- pkgsrc が Linux で探す道具 ---'
+            for t in install readlink realpath nproc seq env printf expr \
+                     tsort nice sha1sum sha512sum md5sum cut tr sort uniq \
+                     basename dirname mkdir rm cp mv ln chmod chown touch \
+                     head tail wc date id pwd echo test \
+                     hostname numfmt tee chgrp ls cat sleep rmdir true false; do
+              printf '  %-10s %s\n' "$t" "$(command -v $t || echo '無い')"
+            done
+            ;;
+          esac
+          cc --version | head -1
+
+      - uses: actions/checkout@v4
+
+      # actions/cache は job が失敗すると保存しない。持ち越したいのは
+      # まさに失敗したときなので、restore と save を分けて save を
+      # if: always() で回す。NetworkManager は依存の鎖が長く、一回で
+      # 終わらないことを前提にしないと、転ぶたびに依存の再構築で
+      # 一時間以上を捨てる。実際、最初の失敗の後の run は ~8MB しか
+      # 戻せず、gettext から建て直して xmlto まで 83 分かかった。
+      #
+      # 半端な package が混じる危険はあるが、build-on-bsd.sh は前回の
+      # package を pkg_add -U ... || true で入れるだけで、入らなければ
+      # pkgsrc が作り直す。distfile は checksum が守る。
+      - name: pkgsrc の作りかけを戻す
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .bsdcache
+          key: nm-${{ matrix.image }}-${{ github.run_id }}
+          restore-keys: nm-${{ matrix.image }}-
+
+      - name: 選ばれた相手か見る
+        id: pick
+        run: |
+          set -e
+          want='${{ inputs.distros }}'
+          if [ -z "$want" ]; then echo 'run=yes' >>"$GITHUB_OUTPUT"; exit 0; fi
+          case " $want " in
+          *" ${{ matrix.name }} "*) echo 'run=yes' >>"$GITHUB_OUTPUT" ;;
+          *) echo 'run=no' >>"$GITHUB_OUTPUT"; echo "飛ばす: ${{ matrix.name }}" ;;
+          esac
+
+      - name: 組んで確かめる
+        if: steps.pick.outputs.run == 'yes'
+        run: sh .github/ci/build-on-bsd.sh
+
+      # 転んでも作りかけを残す。次の run がここから続ける。
+      - name: pkgsrc の作りかけを持ち越す
+        if: always() && steps.pick.outputs.run == 'yes'
+        uses: actions/cache/save@v4
+        with:
+          path: .bsdcache
+          key: nm-${{ matrix.image }}-${{ github.run_id }}

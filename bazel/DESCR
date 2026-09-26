@@ -1,0 +1,8 @@
+Bazel is a build tool that builds code quickly and reliably. It is used
+to build the majority of Google's software.
+
+This is the LTS 9 series. pkgsrc's devel/bazel is 6.4.0, which cannot
+build projects that ask for a newer Bazel, such as mozc 3.x.
+
+Upstream does not support NetBSD; this package carries the patches that
+add it alongside the FreeBSD and OpenBSD cases already in the tree.

@@ -1,0 +1,366 @@
+$NetBSD: patch-src_term_c,v 1.2 2013/04/21 15:40:00 joerg Exp $
+
+Give the functions a declared return type and typed parameters, and
+declare the static ones before they are used.
+
+The header include is one line of this; the rest is the same conversion
+done to the other files in src.  The previous note here said only "use
+standard headers", which does not describe what is in the patch.
+
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+Pass and store pointers of the type the other side declares.
+
+gcc 14 turned a pointer type mismatch into an error, so what used to be a
+warning here now stops the build.  Where the declaration was simply wrong
+it is corrected; where the system call or the library has moved since 1995
+the value is converted at the call.
+
+--- src/term.c.orig
++++ src/term.c
+@@ -53,6 +53,7 @@
+ 
+ #include <config.h>
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <ctype.h>
+ #include "termchar.h"
+ #include "termopts.h"
+@@ -121,7 +122,7 @@
+ 
+ int (*clear_to_end_hook) ();
+ int (*clear_frame_hook) ();
+-int (*clear_end_of_line_hook) ();
++void (*clear_end_of_line_hook) ();
+ 
+ int (*ins_del_lines_hook) ();
+ 
+@@ -132,7 +133,7 @@
+ int (*write_glyphs_hook) ();
+ int (*delete_glyphs_hook) ();
+ 
+-int (*ring_bell_hook) ();
++void (*ring_bell_hook) ();
+ 
+ int (*reset_terminal_modes_hook) ();
+ int (*set_terminal_modes_hook) ();
+@@ -342,8 +343,11 @@
+ char *tparam ();
+ 
+ extern char *tgetstr ();
++
++static void clear_end_of_line_raw (int first_unused_hpos);
++static void background_highlight (void);
+ 
+-ring_bell ()
++void ring_bell(void)
+ {
+   if (! FRAME_TERMCAP_P (selected_frame))
+     {
+@@ -353,7 +357,7 @@
+   OUTPUT (TS_visible_bell && visible_bell ? TS_visible_bell : TS_bell);
+ }
+ 
+-set_terminal_modes ()
++void set_terminal_modes(void)
+ {
+   if (! FRAME_TERMCAP_P (selected_frame))
+     {
+@@ -366,7 +370,7 @@
+   losecursor ();
+ }
+ 
+-reset_terminal_modes ()
++void reset_terminal_modes(void)
+ {
+   if (! FRAME_TERMCAP_P (selected_frame))
+     {
+@@ -387,7 +391,7 @@
+   cmputc ('\r');
+ }
+ 
+-update_begin (f)
++int update_begin (f)
+      FRAME_PTR f;
+ {
+   updating_frame = f;
+@@ -395,8 +399,7 @@
+     (*update_begin_hook) (f);
+ }
+ 
+-update_end (f)
+-     FRAME_PTR f;
++void update_end (FRAME_PTR f)
+ {
+   if (! FRAME_TERMCAP_P (updating_frame))
+     {
+@@ -410,8 +413,7 @@
+   updating_frame = 0;
+ }
+ 
+-set_terminal_window (size)
+-     int size;
++void set_terminal_window (int size)
+ {
+   if (! FRAME_TERMCAP_P (updating_frame))
+     {
+@@ -424,7 +426,7 @@
+   set_scroll_region (0, specified_window);
+ }
+ 
+-set_scroll_region (start, stop)
++int set_scroll_region (start, stop)
+      int start, stop;
+ {
+   char *buf;
+@@ -448,14 +450,14 @@
+   losecursor ();
+ }
+ 
+-turn_on_insert ()
++int turn_on_insert ()
+ {
+   if (!insert_mode)
+     OUTPUT (TS_insert_mode);
+   insert_mode = 1;
+ }
+ 
+-turn_off_insert ()
++int turn_off_insert ()
+ {
+   if (insert_mode)
+     OUTPUT (TS_end_insert_mode);
+@@ -469,7 +471,7 @@
+    These functions are called on all terminals, but do nothing
+    on terminals whose standout mode does not work that way.  */
+ 
+-turn_off_highlight ()
++int turn_off_highlight ()
+ {
+   if (TN_standout_width < 0)
+     {
+@@ -479,7 +481,7 @@
+     }
+ }
+ 
+-turn_on_highlight ()
++int turn_on_highlight ()
+ {
+   if (TN_standout_width < 0)
+     {
+@@ -493,7 +495,7 @@
+    empty space inside windows.  What this is,
+    depends on the user option inverse-video.  */
+ 
+-background_highlight ()
++static void background_highlight (void)
+ {
+   if (TN_standout_width >= 0)
+     return;
+@@ -505,8 +507,8 @@
+ 
+ /* Set standout mode to the mode specified for the text to be output.  */
+ 
+-static
+-highlight_if_desired ()
++static void
++highlight_if_desired (void)
+ {
+   if (TN_standout_width >= 0)
+     return;
+@@ -527,7 +529,7 @@
+ /* Write a standout marker or end-standout marker at the front of the line
+    at vertical position vpos.  */
+ 
+-write_standout_marker (flag, vpos)
++int write_standout_marker (flag, vpos)
+      int flag, vpos;
+ {
+   if (flag || (TS_end_standout_mode && !TF_teleray && !se_is_so
+@@ -544,9 +546,7 @@
+    Call this when about to modify line at position VPOS
+    and not change whether it is highlighted.  */
+ 
+-reassert_line_highlight (highlight, vpos)
+-     int highlight;
+-     int vpos;
++void reassert_line_highlight(int highlight, int vpos)
+ {
+   if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
+     {
+@@ -565,8 +565,7 @@
+ /* Call this when about to modify line at position VPOS
+    and change whether it is highlighted.  */
+ 
+-change_line_highlight (new_highlight, vpos, first_unused_hpos)
+-     int new_highlight, vpos, first_unused_hpos;
++void change_line_highlight (int new_highlight, int vpos, int first_unused_hpos)
+ {
+   standout_requested = new_highlight;
+   if (! FRAME_TERMCAP_P (updating_frame))
+@@ -601,8 +600,7 @@
+ 
+ /* Move to absolute position, specified origin 0 */
+ 
+-cursor_to (row, col)
+-     int row, col;
++void cursor_to (int row, int col)
+ {
+   if (! FRAME_TERMCAP_P ((updating_frame
+ 			    ? updating_frame
+@@ -625,8 +623,7 @@
+ 
+ /* Similar but don't take any account of the wasted characters.  */
+ 
+-raw_cursor_to (row, col)
+-     int row, col;
++static void raw_cursor_to (int row, int col)
+ {
+   if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
+     {
+@@ -645,7 +642,7 @@
+ /* Erase operations */
+ 
+ /* clear from cursor to end of frame */
+-clear_to_end ()
++static void clear_to_end (void)
+ {
+   register int i;
+ 
+@@ -672,7 +669,7 @@
+ 
+ /* Clear entire frame */
+ 
+-clear_frame ()
++void clear_frame(void)
+ {
+   if (clear_frame_hook
+       && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
+@@ -701,7 +698,7 @@
+ 
+    Note that the cursor may be moved.  */
+ 
+-clear_end_of_line (first_unused_hpos)
++int clear_end_of_line (first_unused_hpos)
+      int first_unused_hpos;
+ {
+   static GLYPH buf = SPACEGLYPH;
+@@ -717,8 +714,7 @@
+ 
+    Note that the cursor may be moved, on terminals lacking a `ce' string.  */
+ 
+-clear_end_of_line_raw (first_unused_hpos)
+-     int first_unused_hpos;
++static void clear_end_of_line_raw (int first_unused_hpos)
+ {
+   register int i;
+ 
+@@ -818,7 +814,7 @@
+ static unsigned char *dest;
+ 
+ static
+-attr_cpy(ch)
++int attr_cpy(ch)
+      unsigned char ch;
+ {
+ 	*dest++ = ch;
+@@ -954,9 +950,7 @@
+ /* len = actual_column_length, len2 = converted_string_length
+    string2 = converted_string */
+ /* I gave up using TS_repeat...K.Handa */
+-write_glyphs (string, len)
+-     register GLYPH *string;
+-     register int len;
++void write_glyphs (GLYPH *string, int len)
+ {
+   register GLYPH g;
+   register int tlen = GLYPH_TABLE_LENGTH;
+@@ -1038,9 +1032,7 @@
+ 
+ /* If start is zero, insert blanks instead of a string at start */
+  
+-insert_glyphs (start, len)
+-     register GLYPH *start;
+-     register int len;
++void insert_glyphs (GLYPH *start, int len)
+ {
+   char *buf;
+   register GLYPH g;
+@@ -1112,8 +1104,7 @@
+       }
+ }
+ 
+-delete_glyphs (n)
+-     register int n;
++void delete_glyphs(int n)
+ {
+   char *buf;
+   register int i;
+@@ -1149,8 +1140,7 @@
+ 
+ /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
+ 
+-ins_del_lines (vpos, n)
+-     int vpos, n;
++void ins_del_lines (int vpos, int n)
+ {
+   char *multi = n > 0 ? TS_ins_multi_lines : TS_del_multi_lines;
+   char *single = n > 0 ? TS_ins_line : TS_del_line;
+@@ -1209,7 +1199,7 @@
+ 
+   if (TN_standout_width >= 0)
+     {
+-      register lower_limit
++      register int lower_limit
+ 	= (scroll_region_ok
+ 	   ? specified_window
+ 	   : FRAME_HEIGHT (selected_frame));
+@@ -1352,10 +1342,9 @@
+ extern int x_screen_planes;
+ #endif
+ 
+-extern do_line_insertion_deletion_costs ();
++extern int do_line_insertion_deletion_costs ();
+ 
+-calculate_costs (frame)
+-     FRAME_PTR frame;
++void calculate_costs(FRAME_PTR frame)
+ {
+   register char *f = TS_set_scroll_region ?
+                        TS_set_scroll_region
+@@ -1634,7 +1623,7 @@
+ }
+ 
+ 
+-term_init (terminal_type)
++int term_init (terminal_type)
+      char *terminal_type;
+ {
+   char *area;
+@@ -1930,7 +1919,7 @@
+ }
+ 
+ /* VARARGS 1 */
+-fatal (str, arg1, arg2)
++int fatal (str, arg1, arg2)
+      char *str;
+      Lisp_Object_Int arg1, arg2;
+ {
+@@ -1940,7 +1929,7 @@
+   exit (1);
+ }
+ 
+-syms_of_term ()
++int syms_of_term ()
+ {
+   DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+     "Non-nil means the system uses terminfo rather than termcap.\n\

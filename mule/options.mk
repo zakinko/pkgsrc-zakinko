@@ -1,0 +1,80 @@
+# $NetBSD: options.mk,v 1.1 2015/04/07 04:53:22 makoto Exp $
+
+PKG_OPTIONS_VAR=	PKG_OPTIONS.mule
+PKG_SUPPORTED_OPTIONS=	canna exclusive wnn4 x11
+PKG_SUGGESTED_OPTIONS=	canna wnn4 x11
+
+.include "../../mk/bsd.options.mk"
+
+PLIST_VARS+=	exclusive
+
+# Wnn and Canna are compiled into the dumped binary, and the tree carries
+# both: src/canna.c and lisp/canna.el are there, and src/mconfig.h-netbsd
+# ships with WNN4 defined and CANNA commented out.  Flip the two defines
+# from the options instead of keeping a patch per combination.  The paths
+# in those defines are already turned into @PREFIX@ by
+# patch-src_mconfig.h-netbsd.
+.if !empty(PKG_OPTIONS:Mwnn4)
+.include "../../inputmethod/ja-freewnn-lib/buildlink3.mk"
+.else
+# EGG has to go with it.  lisp/loadup.el, which builds the dumped image,
+# says: if EGG is defined then WNN4 or SJ3 must be too, and errors out
+# otherwise -- the dump dies with "You should define WNN4 or SJ3 in
+# mconfig.h."  CANNA is asked for separately on the line below that, so it
+# is unaffected.  ymakefile has carried a MULE_OBJ arm for the no-EGG case
+# since 1992.
+SUBST_CLASSES+=		wnn4
+SUBST_STAGE.wnn4=	pre-configure
+SUBST_MESSAGE.wnn4=	Turning Wnn and Egg support off
+SUBST_FILES.wnn4=	src/mconfig.h-${LOWER_OPSYS}
+SUBST_SED.wnn4=		-e 's,^\#define WNN4$$,/* \#define WNN4 */,'
+SUBST_SED.wnn4+=	-e 's,^\#define EGG$$,/* \#define EGG */,'
+.endif
+
+# X is on in src/config.h-netbsd; turn it off from the option rather than
+# leaving x11.buildlink3.mk unconditional in the Makefile.  Linux has no
+# native X for pkgsrc (X11_TYPE=native checks for a NetBSD xbase set and
+# always fails there), so an unconditional X means building modular X from
+# source before the editor is even reached.
+.if !empty(PKG_OPTIONS:Mx11)
+# libX11 だけでよい。18.59 の X 対応は素の Xlib で、Xt も Xaw も使わない
+# (2.3 は Lucid の toolkit を積むので libXaw を読む)。mk/x11.buildlink3.mk は
+# 読んではいけない。X11_TYPE が native 以外だと pkgsrc が
+#   Do not include x11.buildlink3.mk for X11_TYPE != "native".
+# で止める。
+.include "../../x11/libX11/buildlink3.mk"
+.else
+# The class is not called x11: the Makefile already has one by that
+# name, for rewriting /usr/X11R7 to ${X11BASE}.
+SUBST_CLASSES+=		nox11
+SUBST_STAGE.nox11=	pre-configure
+SUBST_MESSAGE.nox11=	Turning X support off
+SUBST_FILES.nox11=	src/config.h-${LOWER_OPSYS}
+SUBST_SED.nox11=	-e 's,^\#define HAVE_X_WINDOWS$$,/* \#define HAVE_X_WINDOWS */,'
+.endif
+
+# CANNA3_7 enables the APIs Canna grew in 3.7; pkgsrc ships 3.8.
+.if !empty(PKG_OPTIONS:Mcanna)
+.include "../../inputmethod/canna-lib/buildlink3.mk"
+SUBST_CLASSES+=		canna
+SUBST_STAGE.canna=	pre-configure
+SUBST_MESSAGE.canna=	Turning Canna support on
+SUBST_FILES.canna=	src/mconfig.h-${LOWER_OPSYS}
+SUBST_SED.canna=	-e 's,^/\* \#define CANNA \*/$$,\#define CANNA,'
+SUBST_SED.canna+=	-e 's,^/\* \#define CANNA3_7 \*/$$,\#define CANNA3_7,'
+.endif
+
+# Set the exclusive option only when no other emacsen is installed: it
+# keeps ctags, etags and emacsclient, which every emacs package installs
+# under the same names.  emacs2[0-9]-[0-9]* is not enough to catch them;
+# it misses emacs30 and emacs31, and it misses the names that carry
+# -nox11 in the middle.
+.if !empty(PKG_OPTIONS:Mexclusive)
+PLIST.exclusive=	YES
+CONFLICTS+=	emacs-[0-9]* emacs-nox11-[0-9]* emacs[0-9]*-[0-9]*
+.else
+post-install:
+	(cd ${DESTDIR}${PREFIX}; \
+	${RM} bin/emacsclient bin/ctags bin/etags; \
+	)
+.endif

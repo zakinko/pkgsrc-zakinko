@@ -1,0 +1,15 @@
+$NetBSD$
+
+- use mule path as recent emacs versions
+
+--- Makefile.orig	2017-04-08 21:52:23.000000000 +0000
++++ Makefile
+@@ -26,7 +26,7 @@ SHELL = /bin/sh
+ # Note that on system V you must change MANDIR to /use/local/man/man1.
+ # This got changed in late 1991 to say /usr/local/lib/emacs,
+ # but there was no explanation of why, so it seems better to keep this stable.
+-LIBDIR= /usr/local/mule
++LIBDIR= /usr/local/share/mule/@EMACSVERSION@
+ BINDIR= /usr/local/bin
+ MANDIR= /usr/local/man
+ MAN1DIR= ${MANDIR}/man1

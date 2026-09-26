@@ -1,0 +1,194 @@
+$NetBSD$
+
+Three things configure needs.
+
+Machines and systems it has never heard of: alpha, powerpc and x86_64 on
+NetBSD, and DragonFly and FreeBSD.
+
+DragonFly and FreeBSD need an arm of their own in the outer case.  Setting
+opsys further down is not enough on its own -- that only names the operating
+system, and without a machine the configuration is rejected as unported.  The
+machine rules cannot go in the NetBSD arm either, since that arm only runs
+for a NetBSD triple.  src/s/dragonfly.h has been in this package since 2006
+but nothing could reach it.
+
+Its test for whether the C preprocessor works checks that nothing came out
+on stderr.  A preprocessor that says anything at all -- a warning, a note --
+fails the test even though it works.  Check that the output holds what the
+input should have produced instead.
+
+That check went into both arms of the test, but the second one still sent the
+preprocessor's output to /dev/null while grepping conftest2.out, which the
+`rm -rf conftest*' between the two arms has just removed.  Its verdict then
+turned on whether grep could open a file rather than on whether
+-traditional-cpp works, so either answer was an accident.  Point it at the
+file it writes.
+
+The last resort is /lib/cpp, which none of the systems this builds on has
+had for decades.  config.status writes lib-src/Makefile and src/Makefile
+through $CPP, so when it is not there both come out without rules and the
+build dies much later with `No rule to make target "all"'.  That is what
+DragonFly was doing.  Keep the -traditional-cpp candidate already in hand
+unless /lib/cpp is really present.
+
+The machine table has no x86_64 arm outside the BSDs, so configure stops with
+"Emacs hasn't been ported to `x86_64--linux-gnu' systems" before it looks at
+anything else.  m/amd64.h is already here and says nothing about the operating
+system, so the arm is the same shape as the i386 one: pick the machine, then
+let the inner case pick the opsys.
+
+Check that the preprocessor configure picked really joins continued lines.
+
+Makefile.in continues the ALL_CFLAGS assignments with a backslash, and
+configure turns leading whitespace into a tab afterwards, so a preprocessor
+that leaves the continuation on its own line produces a Makefile whose first
+tab-indented line comes before any target.  GNU make stops there with
+"recipe commences before first target"; BSD make accepts it, which is why
+this only showed up on Linux.
+
+The test above tries cc -E, then cc -E -traditional-cpp, then /lib/cpp, but
+it takes /lib/cpp without testing it.  On Fedora that is the plain cpp,
+which does not join.  Test whatever came out of it and fall back to
+-traditional-cpp, which is the mode that joins.
+
+--- configure.orig
++++ configure
+@@ -581,13 +581,51 @@
+   *-*-netbsd* )
+     opsys=netbsd
+     case "${canonical}" in
++      alpha-*-netbsd*)	machine=alpha ;;
+       i[345]86-*-netbsd*) machine=intel386 ;;
+       m68k-*-netbsd*)
+ 			# This is somewhat bogus.
+ 			machine=hp9000s300 ;;
+       mips-*-netbsd*)	machine=pmax ;;
+       ns32k-*-netbsd*)	machine=ns32000 ;;
++      powerpc-*-netbsd*) machine=powerpc ;;
+       sparc-*-netbsd*)	machine=sparc ;;
++      x86_64-*-netbsd*) machine=amd64 ;;
++    esac
++  ;;
++
++  ## DragonFly ports.  Only ever ran on x86_64.
++  *-*-dragonfly* )
++    opsys=dragonfly
++    case "${canonical}" in
++      x86_64-*-dragonfly*) machine=amd64 ;;
++    esac
++  ;;
++
++  ## MidnightBSD forked from FreeBSD 6 and still tracks its libc, so the
++  ## FreeBSD description fits.  Only amd64 is built.
++  *-*-midnightbsd* )
++    opsys=freebsd
++    case "${canonical}" in
++      x86_64-*-midnightbsd*) machine=amd64 ;;
++    esac
++  ;;
++
++  ## FreeBSD ports
++  ## OpenBSD ports
++  *-*-openbsd* )
++    opsys=openbsd
++    case "${canonical}" in
++      i[345]86-*-openbsd*) machine=intel386 ;;
++      x86_64-*-openbsd*) machine=amd64 ;;
++    esac
++  ;;
++
++  *-*-freebsd* )
++    opsys=freebsd
++    case "${canonical}" in
++      i[345]86-*-freebsd*) machine=intel386 ;;
++      x86_64-*-freebsd*) machine=amd64 ;;
+     esac
+   ;;
+ 
+@@ -1177,11 +1206,21 @@
+       *-bsd386* | *-bsdi* )	opsys=bsd386 ;;
+       *-386bsd* )	        opsys=386bsd ;;
+       *-freebsd* )	        opsys=freebsd ;;
++      *-dragonfly* )		opsys=dragonfly ;;
+       *-nextstep* )             opsys=mach2 ;;
+       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
+     esac
+   ;;
+ 
++  ## x86_64 machines where we do not care about the manufacturer
++  x86_64-*-* )
++    machine=amd64
++    case "${canonical}" in
++      *-linux* )		opsys=linux ;;
++      ## Otherwise, we will fall through to the generic opsys code at the bottom.
++    esac
++  ;;
++
+   * )
+     unported=true
+   ;;
+@@ -1384,10 +1423,13 @@
+ #include "confdefs.h"
+ #include <stdio.h>
+ Syntax Error
++Should \\
++be one line.
+ EOF
+ # Some shells (Coherent) do redirections in the wrong order, so need
+ # the parens.
+-ac_err=`eval "($ac_cpp conftest.${ac_ext} >/dev/null) 2>&1"`
++ac_err=`eval "($ac_cpp conftest.${ac_ext} > conftest2.out) 2>&1 ; \
++grep -L \"Should  *be one line\" conftest2.out"`
+ if test -z "$ac_err"; then
+   :
+ else
+@@ -1397,15 +1439,20 @@
+ #include "confdefs.h"
+ #include <stdio.h>
+ Syntax Error
++Should \\
++be one line.
+ EOF
+ # Some shells (Coherent) do redirections in the wrong order, so need
+ # the parens.
+-ac_err=`eval "($ac_cpp conftest.${ac_ext} >/dev/null) 2>&1"`
++ac_err=`eval "($ac_cpp conftest.${ac_ext} > conftest2.out) 2>&1 ; \
++grep -L \"Should  *be one line\" conftest2.out"`
+ if test -z "$ac_err"; then
+   :
+ else
+   rm -rf conftest*
+-  CPP=/lib/cpp
++  if test -x /lib/cpp; then
++    CPP=/lib/cpp
++  fi
+ fi
+ rm -f conftest*
+ fi
+@@ -3926,6 +3973,26 @@
+     -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g' \
+ `"
+ 
++
++# ここまでで選んだ cpp が、\ で継いだ行を一行に繋ぐかどうかを確かめる。
++# Makefile.in は ALL_CFLAGS などの代入を \ で継いでいて、繋がない cpp を
++# 通すと続きの行がそのまま残る。configure はこの後 sed で行頭の空白を
++# TAB に直すので、GNU make はそれを recipe と読み、target より前に recipe
++# があると言って止まる。BSD make は通ってしまうので、気付くのが遅れる。
++#
++# 上の検査は cc -E, cc -E -traditional-cpp, /lib/cpp の順に試すが、最後の
++# /lib/cpp だけは繋ぐかどうかを見ずに採る。Linux では /lib/cpp が素の cpp
++# なので、そこに落ちると繋がないものを掴む。
++echo 'Should \' > conftest.cppjoin.c
++echo 'be one line.' >> conftest.cppjoin.c
++if $CPP conftest.cppjoin.c 2>/dev/null | grep "Should  *be one line" > /dev/null; then
++  :
++else
++  echo "$progname: $CPP does not join continued lines, using -traditional-cpp"
++  CPP="${CC-cc} -E -traditional-cpp"
++fi
++rm -f conftest.cppjoin.c
++
+ echo creating lib-src/Makefile
+ ( cd lib-src
+   rm -f junk.c junk1.c junk2.c

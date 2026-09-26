@@ -1,0 +1,39 @@
+$NetBSD$
+
+Two things in the bundled makefile.
+
+The packages the JDE compiles against are looked for at ../../eieio and
+friends, which is where they sit in the author's own tree.  Take them from
+EMACS_LISPPREFIX instead.
+
+byte-compiling stops the build on the first warning it treats as an error.
+The JDE does not compile cleanly against the Emacs versions here, and the
+.el files are installed either way, so let the compile fail without taking
+the build with it.
+
+--- makefile.orig	Mon Dec 30 14:28:06 2002
++++ makefile
+@@ -9,10 +9,10 @@
+ EMACS = emacs
+ 
+ # Default locations of the packages required to compile the JDE.
+-EIEIO = ../../eieio
+-ELIB  = ../../elib
+-SEMANTIC = ../../semantic
+-SPEEDBAR = ../../speedbar
++EIEIO = ${EMACS_LISPPREFIX}/eieio
++ELIB  = ${EMACS_LISPPREFIX}/elib
++SEMANTIC = ${EMACS_LISPPREFIX}/semantic
++SPEEDBAR = ${EMACS_LISPPREFIX}/speedbar
+ 
+ all:
+ 	test -d $(SEMANTIC) -a -d $(SPEEDBAR) -a -d $(ELIB) -a -d $(EIEIO)
+@@ -25,7 +25,7 @@
+ 	echo "(setq debug-on-error t)" >> jde-compile-script-init
+ 	echo "(require 'jde-compat)" >> jde-compile-script-init
+ 	echo "(require 'jde)" >>jde-compile-script-init
+-	$(EMACS) -batch -l jde-compile-script-init -f batch-byte-compile *.el
++	-$(EMACS) -batch -l jde-compile-script-init -f batch-byte-compile *.el
+ 	rm -f jde-compile-script-init
+ 
+ # 

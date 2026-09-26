@@ -1,0 +1,79 @@
+$NetBSD: patch-lib-src_sorted-doc_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
+
+- use standard headers
+- fix malloc usage
+
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- lib-src/sorted-doc.c.orig
++++ lib-src/sorted-doc.c
+@@ -6,10 +6,14 @@
+    */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <ctype.h>
+ 
+-extern char *malloc ();
+-char *xmalloc ();
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++extern int error ();
+ 
+ #define NUL	'\0'
+ #define MARKER '\037'
+@@ -37,7 +41,7 @@
+ 
+ /* Print error message and exit.  */
+ 
+-fatal (s1, s2)
++int fatal (s1, s2)
+      char *s1, *s2;
+ {
+   error (s1, s2);
+@@ -46,7 +50,7 @@
+ 
+ /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+ 
+-error (s1, s2)
++int error (s1, s2)
+      char *s1, *s2;
+ {
+   fprintf (stderr, "sorted-doc: ");
+@@ -56,9 +60,8 @@
+ 
+ /* Like malloc but get fatal error if memory is exhausted.  */
+ 
+-char *
+-xmalloc (size)
+-     int size;
++void *
++xmalloc (size_t size)
+ {
+   char *result = malloc ((unsigned)size);
+   if (result == NULL)
+@@ -98,7 +101,7 @@
+   "WAITING", "BEG_NAME", "NAME_GET", "BEG_DESC", "DESC_GET"
+ };
+     
+-main ()
++int main ()
+ {
+   register DOCSTR *dp = NULL;	/* allocated DOCSTR */
+   register LINE *lp = NULL;	/* allocated line */

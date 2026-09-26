@@ -1,0 +1,53 @@
+$NetBSD$
+
+Install the helper programs under emacs- names -- emacs-etags, emacs-ctags,
+emacs-b2m and so on -- because the base system has programs of the same name in
+the same bindir.  emacsclient keeps its name; nothing else claims it.
+patch-Makefile.in renames the manual pages to match.
+
+Use INSTALL_SCRIPT for the shell scripts rather than INSTALL_PROGRAM.  The
+latter strips, which turns a script into an empty file on some systems, and
+pkgsrc passes -s through it.  The variable was not defined here at all, so it
+is added at the top.
+
+The chmod a+rx lines go with the rename: the install already sets the mode, and
+the chmod was still naming the unprefixed path.
+
+--- lib-src/Makefile.in.orig	Fri Oct 19 02:31:27 2001
++++ lib-src/Makefile.in	Thu May  2 20:53:52 2002
+@@ -85,6 +85,7 @@
+ INSTALL = @INSTALL@
+ INSTALL_PROGRAM = @INSTALL_PROGRAM@
+ INSTALL_DATA = @INSTALL_DATA@
++INSTALL_SCRIPT = @INSTALL_SCRIPT@
+ # By default, we uphold the dignity of our programs.
+ INSTALL_STRIP =
+ 
+@@ -288,7 +289,7 @@
+         if [ `(cd ${archlibdir} && /bin/pwd)` \
+              != `(cd ${srcdir} && /bin/pwd)` ]; then \
+ 	  for file in ${SCRIPTS}; do \
+-	    $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file; \
++	    $(INSTALL_SCRIPT) ${srcdir}/$$file ${archlibdir}/$$file; \
+ 	  done ; \
+ 	fi
+ 
+@@ -296,12 +297,14 @@
+ 	@echo
+ 	@echo "Installing utilities for users to run."
+ 	for file in ${INSTALLABLES} ; do \
+-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/$${file} ; \
+-	  chmod a+rx ${bindir}/$${file}; \
++	  if [ $${file} = emacsclient ] ; then \
++	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/$${file} ; \
++	  else \
++	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} ${bindir}/emacs-$${file} ; \
++	  fi ; \
+ 	done
+ 	for file in ${INSTALLABLE_SCRIPTS} ; do \
+-	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file} ; \
+-	  chmod a+rx ${bindir}/$${file}; \
++	  $(INSTALL_SCRIPT) ${srcdir}/$${file} ${bindir}/emacs-$${file} ; \
+ 	done
+ 
+ uninstall:

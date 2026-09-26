@@ -1,0 +1,72 @@
+# $NetBSD$
+#
+# zakinko の自作パッケージを置くローカルカテゴリ。
+# 本家 pkgsrc ツリーと混ざらないように、独立したカテゴリとして切っている。
+
+COMMENT=	Local packages maintained by zakinko
+
+SUBDIR+=	anthy
+SUBDIR+=	anthy-elisp
+SUBDIR+=	anthy-unicode
+SUBDIR+=	anthy-unicode-elisp
+SUBDIR+=	augeas
+SUBDIR+=	autogen
+SUBDIR+=	bazel
+SUBDIR+=	calc
+SUBDIR+=	elisp-compat
+SUBDIR+=	elscreen
+SUBDIR+=	emacs-ilisp
+SUBDIR+=	emacs20
+SUBDIR+=	emacs21
+SUBDIR+=	emacs21-nox11
+SUBDIR+=	emacs22
+SUBDIR+=	emacs22-nox11
+SUBDIR+=	emacs23
+SUBDIR+=	emacs23-nox11
+SUBDIR+=	emacs24
+SUBDIR+=	emacs24-nox11
+SUBDIR+=	emacs25
+SUBDIR+=	emacs25-nox11
+SUBDIR+=	emacs26
+SUBDIR+=	emacs26-nox11
+SUBDIR+=	emacs27
+SUBDIR+=	emacs27-nox11
+SUBDIR+=	emacs28
+SUBDIR+=	emacs28-nox11
+SUBDIR+=	fail2ban
+SUBDIR+=	iiimecf
+SUBDIR+=	jde
+SUBDIR+=	leim20
+SUBDIR+=	leim21
+SUBDIR+=	libhimmelblau
+SUBDIR+=	libndp
+SUBDIR+=	libuuid
+SUBDIR+=	meibo
+SUBDIR+=	mozc-elisp
+SUBDIR+=	mozc-renderer
+SUBDIR+=	mozc-server
+SUBDIR+=	mozc-tool
+SUBDIR+=	mule
+SUBDIR+=	mule-ucs
+SUBDIR+=	mule2
+SUBDIR+=	NetworkManager
+SUBDIR+=	nss_stns
+SUBDIR+=	ntp4
+SUBDIR+=	nxml-mode
+SUBDIR+=	openjdk11
+SUBDIR+=	openjdk17
+SUBDIR+=	openjdk21
+SUBDIR+=	openjdk25
+SUBDIR+=	openjdk28
+SUBDIR+=	openjdk8
+SUBDIR+=	pcl-cvs
+SUBDIR+=	stnsd
+SUBDIR+=	tamago
+SUBDIR+=	w3
+SUBDIR+=	xemacs
+SUBDIR+=	xemacs-current
+SUBDIR+=	xemacs-packages
+SUBDIR+=	xwpe
+SUBDIR+=	zls
+
+.include "../mk/misc/category.mk"

@@ -1,0 +1,19 @@
+$NetBSD$
+
+Solaris declares index() and rindex() in <strings.h>, not <string.h>, and this
+file calls them.  Without the declaration the compiler assumes int, which is
+not the pointer they return.
+
+--- src/xfaces.c.orig	Wed Nov 18 02:36:41 1998
++++ src/xfaces.c	Sun Sep  1 15:35:41 2002
+@@ -20,6 +20,10 @@
+ 
+ /* This is derived from work by Lucid (some parts very loosely so).  */
+ 
++#ifdef __sun__
++#include <strings.h>
++#endif
++
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 

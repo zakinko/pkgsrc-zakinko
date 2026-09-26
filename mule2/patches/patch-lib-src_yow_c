@@ -1,0 +1,65 @@
+$NetBSD: patch-lib-src_yow_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
+
+- use time() correctly
+
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+Write the types this file leaves to the compiler to guess.
+
+C89 let a definition omit the return type, and a declaration omit the type
+altogether, and both meant int.  C99 removed that, and gcc 15 builds C23 by
+default, so every one of them is now an error:
+
+  error: return type defaults to 'int' [-Wimplicit-int]
+
+The compiler was already treating them as int, so writing int changes
+nothing about what is built.  Only what the source says out loud.
+
+--- lib-src/yow.c.orig
++++ lib-src/yow.c
+@@ -9,8 +9,16 @@
+ 
+ #include <stdio.h>
+ #include <ctype.h>
++#include <time.h>
+ #include <../src/paths.h>      /* For PATH_DATA.  */
+ 
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++
+ #define BUFSIZE  80
+ #define SEP      '\0'
+ 
+@@ -30,7 +38,7 @@
+     &res;})
+ #endif
+ 
+-main (argc, argv)
++int main (argc, argv)
+      int argc;
+      char *argv[];
+ {
+@@ -53,7 +61,7 @@
+   }
+ 
+   /* initialize random seed */
+-  srand((int) (getpid() + time((long *) 0)));
++  srand((int) (getpid() + time(NULL)));
+ 
+   setup_yow(fp);
+   yow(fp);
+@@ -104,7 +112,6 @@
+   int c, i = 0;
+   char *buf;
+   unsigned int bufsize;
+-  char *malloc(), *realloc();
+ 
+   offset = rand() % len + header_len;
+   if (fseek(fp, offset, 0) == -1) {

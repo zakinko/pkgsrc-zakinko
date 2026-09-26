@@ -1,0 +1,11 @@
+A comprehensive (X)Emacs interface for an embedded Common Lisp or
+Scheme process.
+
+To try it out, install one of the Lisp environments (lang/clisp for
+instance), then in Emacs:
+
+    M-x load-library ilisp RET
+    M-x ilisp-mode RET
+
+and select a dialect -- clisp-hs for clisp.  An interactive Lisp prompt
+should appear.

@@ -1,0 +1,19 @@
+# $NetBSD$
+# used by zakinko/anthy-unicode/Makefile
+# used by zakinko/anthy-unicode-elisp/Makefile
+
+ANTHY_UNICODE_VERSION=	1.0.0.20260213
+DISTNAME=		anthy-unicode-${ANTHY_UNICODE_VERSION}
+CATEGORIES=		inputmethod
+MASTER_SITES=		${MASTER_SITE_GITHUB:=fujiwarat/}
+GITHUB_PROJECT=		anthy-unicode
+GITHUB_RELEASE=		${ANTHY_UNICODE_VERSION}
+
+DISTINFO_FILE=		${.CURDIR}/../../zakinko/anthy-unicode/distinfo
+PATCHDIR=		${.CURDIR}/../../zakinko/anthy-unicode/patches
+
+HOMEPAGE=		https://github.com/fujiwarat/anthy-unicode/
+LICENSE=		gnu-gpl-v2
+
+GNU_CONFIGURE=		yes
+USE_LANGUAGES=		c

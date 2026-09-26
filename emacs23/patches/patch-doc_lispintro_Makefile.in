@@ -1,0 +1,33 @@
+$NetBSD$
+
+Pass --force to makeinfo, as the other three doc directories of this same
+release already do.
+
+23.4 ships four texinfo makefiles.  doc/emacs, doc/lispref and doc/misc all
+say "MAKEINFO = makeinfo --force"; doc/lispintro alone says just "makeinfo".
+The manual it builds has not been valid texinfo for a long time --
+
+	emacs-lisp-intro.texi:4626: @itemx must follow @item
+
+-- and a makeinfo strict enough to call that an error rather than a warning
+stops the whole bootstrap there:
+
+	gmake[3]: *** [Makefile:49: ../../info/eintr] Error 1
+
+texinfo 7.2 is strict enough.  With --force the same run produces
+../../info/eintr and exits 0, with the remaining complaints as warnings.
+
+Upstream did not fix the asymmetry; it went away in 24.1, where all four
+makefiles take MAKEINFO from configure instead of spelling it out.
+
+--- doc/lispintro/Makefile.in.orig
++++ doc/lispintro/Makefile.in
+@@ -34,7 +34,7 @@
+ INFO_TARGETS = ${infodir}/eintr
+ DVI_TARGETS = emacs-lisp-intro.dvi
+ 
+-MAKEINFO = makeinfo
++MAKEINFO = makeinfo --force
+ TEXI2DVI = texi2dvi
+ TEXI2PDF = texi2pdf
+ DVIPS = dvips

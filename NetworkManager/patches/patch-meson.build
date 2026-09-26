@@ -1,0 +1,41 @@
+$NetBSD$
+
+Do not insist on a separate libdl.
+
+meson.build has
+
+	# Checks for libdl - on certain platforms its part of libc
+	dl_dep = cc.find_library('dl')
+
+with no required: false, so configure stops on any system where dlopen()
+lives in libc rather than in its own library:
+
+	meson.build:330:12: ERROR: C shared or static library 'dl' not found
+
+That is every BSD.  The comment above the line says as much, and the
+lines that follow it are the portable version -- walking find_library,
+then dependency('dl'), then dependency('dld') -- except that they sit
+inside a ''' ... ''' string and never run.  Both 1.50.0 and 1.58.1 carry
+it that way.
+
+src/core/meson.build puts dl_dep straight into the nm_deps list, so a
+not-found dependency would not do; declare_dependency() gives an empty
+one that the list accepts.
+
+--- meson.build.orig
++++ meson.build
+@@ -367,7 +367,13 @@
+ config_h.set10('HAVE_WEXT', enable_wext)
+ 
+ # Checks for libdl - on certain platforms its part of libc
+-dl_dep = cc.find_library('dl')
++dl_dep = cc.find_library('dl', required: false)
++if not dl_dep.found()
++  # dlopen() and friends live in libc on the BSDs, so there is no separate
++  # library to find.  nm_deps in src/core/meson.build takes dl_dep by value,
++  # so hand it an empty dependency rather than a not-found one.
++  dl_dep = declare_dependency()
++endif
+ '''
+ dl_deps = []
+ 

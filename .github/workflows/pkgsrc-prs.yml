@@ -1,0 +1,416 @@
+name: pkgsrc PRs
+
+# NetBSD/pkgsrc の GitHub PR のうち、実機でしか決着しないものを確かめる。
+#
+# pkgsrc の正は CVS で、GitHub の NetBSD/pkgsrc は変換ミラーである。
+# あちらに出された PR は fork の trunk が作り直されるたび merge-base が
+# 腐るので、GitHub 側では原理的に取り込めない。放置されているものが
+# 「もう直っているのか」「まだ問題なのか」は、読んでも分からない。
+# 建てて見るしかない。
+#
+#   #173  lua-socket: SunOS does not have sun_len
+#         pkgsrc は 2026-02-26 に別の直し方で解消した (PR 60039) ように
+#         読めるが、PR が消せと言っている CFLAGS.SunOS の行は今も残って
+#         いる。illumos で当て物のありなしを建て分けて決める。
+#         中身は .github/ci/verify-lua-socket.sh を読むこと。
+#
+#   #164  devel/zls: zig 0.13.0 で壊れている
+#         PR は 0.13.0 用の当て物だが、pkgsrc の lang/zig はもう 0.16.0 で、
+#         zls も 0.16.0 が出ている。package は BROKEN を抱えたままなので
+#         公式のバイナリ集合にも zls は無い。版を合わせて BROKEN を外す。
+#         当て物は zakinko/zls に置いた。
+#
+#         zls だけでは足りない。lang/zig/application.mk の
+#         zig-vendor-packages が package のディレクトリのまま zig fetch を
+#         呼ぶので、build.zig を探すようになった 0.16.0 では post-extract が
+#         必ず落ちる。zig の package はどれも通らないはずで、直しは
+#         run-in-qemu.sh がツリーへ当てている。上流へはそちらも要る。
+#
+#   #175  security/fail2ban: update to 1.1.0
+#         PR は 1.1.0 だがもう 1.1.1 (2026-08-15) が出ている。1.1.0 で
+#         Python 2 対応が落ちたので 2to3 の前処理と python 312 固定を外せる。
+#         あわせて compat/asyncore.py と compat/asynchat.py が同梱された
+#         ので、GitHub issue #174 (asynchat が無い) もこれで閉じる。
+#         当て物は zakinko/fail2ban に置いた。
+#
+#   #153  uim: PLIST fix
+#         gtk2 を切ると make package が転ける。素の PLIST が PLIST.gtk2 と
+#         PLIST.gtk3 の中身を重ねて持っているためで、切ると組まれていない
+#         ものを PLIST が主張する。PR は gtk2 の 9 行しか消していないが、
+#         gtk3 の 9 行も同じ状態にある。
+#         中身は .github/ci/verify-uim.sh を読むこと。
+#
+#         同じ options.mk がもう一つ壊れている。xim を切ると subst.mk が
+#         「configure に当たらない」と言って止まる。uim は configure を
+#         生成する package なので、SUBST の時点ではまだ無い。上流に xim を
+#         切る口が無いので SUBST という手段自体は妥当で、掛ける先を
+#         configure.ac へ変える。中身は verify-uim-xim.sh を読むこと。
+#
+# #173 の相手は OmniOS。投稿者が omnios-r151056 で試したと書いているので
+# 既定をそれに合わせた。mule-illumos.yml が r151054 で通っているので、
+# 版で転けたらそちらへ落とす。#153 は PLIST の話なので NetBSD で見る。
+#
+# 組む土台は mule と同じ build-on-bsd.sh を使う。bootstrap から書き直すと
+# 必ず片方だけが古くなる。zakinko カテゴリからは何も組まないので PKGS は
+# 空にし、上流の package は OVERLAY_PKGS で名指しする。
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pkgsrc-prs.yml'
+      - '.github/ci/verify-lua-socket.sh'
+      - '.github/ci/verify-uim.sh'
+      - '.github/ci/verify-uim-xim.sh'
+      - '.github/ci/verify-pkg.sh'
+      - '.github/ci/verify-zls.sh'
+      - '.github/ci/verify-fail2ban.sh'
+      - '.github/ci/verify-xwpe.sh'
+      - 'zls/**'
+      - 'fail2ban/**'
+      # 建てる土台も入れる。ここを直したのに回らず、前の結果を見て
+      # 直っていないと思い込みかけた。
+      - '.github/ci/run-in-qemu.sh'
+      - '.github/ci/build-on-bsd.sh'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'OmniOS の版'
+        required: false
+        default: 'r151056'
+      uim_options:
+        description: 'PKG_OPTIONS.uim (既定は gtk2 だけ切る)'
+        required: false
+        default: '-gtk2 -gtk3 -gtk4 -qt5 -qt6'
+
+env:
+  OMNIOS: ${{ inputs.release || 'r151056' }}
+  UIM_OPTIONS: ${{ inputs.uim_options || '-gtk2 -gtk3 -gtk4 -qt5 -qt6' }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lua-socket:
+    name: net/lua-socket on OmniOS
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: pkgsrc の作りかけを持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: pkgsrc-omnios-amd64-${{ github.run_id }}
+          restore-keys: pkgsrc-omnios-amd64-
+
+      - name: OmniOS で建てて確かめる
+        uses: vmactions/omnios-vm@v1
+        with:
+          release: ${{ env.OMNIOS }}
+          # 素の OmniOS にコンパイラは無い。bootstrap がまず転ぶので入れる。
+          # gnu-tar も要る。base の tar は pkgsrc.tar.gz の pax 拡張ヘッダを
+          # 知らず、ツリーの展開そのものが非零で終わる。
+          prepare: |
+            pkg install developer/gcc14 developer/build/gnu-make \
+                        archiver/gnu-tar || true
+          # PKGS='' は「既定に戻せ」ではなく「zakinko からは何も組むな」。
+          # build-on-bsd.sh が ${PKGS-mule} で読み分けている。
+          run: |
+            PKGS='' OVERLAY_PKGS='net/lua-socket' \
+              sh .github/ci/build-on-bsd.sh
+
+  uim:
+    name: inputmethod/uim on NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          # trigger は非同期なので、待たずに -w を読むと負けることがある
+          # (run 35069883047 は四つの job が違う答えを出した)。settle で待ち、
+          # 駄目なら chmod する。
+          #
+          # 負けても遅くはならない。accel を決めるのはここではなく、後から
+          # 見直す側 (netbsd-ci-images の runvm.sh、run-freebsd-i386.sh の
+          # accel=kvm:tcg、vmactions 自身の chmod) で、そのときには規則が
+          # 当たっている。ここを直す理由は、警告が嘘をつかないようにするため。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
+          else
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
+          fi
+
+      # vmactions/netbsd-vm ではなく netbsd-ci-images を使う。理由は
+      # vmactions に NetBSD/i386 の image が無いことと、X のセットが入って
+      # いることである。amd64 だけなら vmactions でも足りる。
+      #
+      # 以前ここには「あちらは GitHub の runner で KVM を使えず TCG になる」
+      # と書いてあったが誤りで、2026-09-17 に直した。同じ段落の中で「こちらは
+      # ホストが x86_64 なので KVM が効く」と続けていて、同じ runner の話なのに
+      # 前半と後半が食い違っていた。/dev/kvm は runner に在り、amd64 ゲストは
+      # どちらでも KVM で走る。uim が 4 時間で 8 パッケージだったのは事実だが、
+      # 原因は udevadm trigger の競争に負けて TCG に落ちていた可能性が高い。
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: inputmethod/uim
+          VERIFY_SCRIPT: verify-uim.sh
+          # 公式のバイナリパッケージと版を合わせる。current のままだと依存が
+          # 一つも降ってこず、素から組んで 6 時間の上限に当たる。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true
+
+  # gtk2 を入れた側でも建てる。
+  #
+  # 直しは PLIST から 18 行を消すもので、option を入れたときは PLIST_SRC が
+  # PLIST.gtk2 / PLIST.gtk3 から同じ行を足し直す、というのが理屈である。
+  # 切った側だけを見ていると、その足し直しが実際に起きるかを確かめていない
+  # ことになる。消しすぎていれば、入れた側で「並べていないのに置かれた」
+  # として出る。
+  #
+  # gtk2 を入れ、gtk3 は切る。gtk3 を入れると wayland の buildlink で
+  # 止まるためで、これは #153 とは別の欠陥である。gtk2 だけでも足し直しは
+  # 見える。素のままの PLIST は gtk3 の 9 行を組まずに主張するので落ち、
+  # 18 行を消せば PLIST.gtk2 が 9 行を戻して通るはずである。
+  uim-gtk2:
+    name: inputmethod/uim on NetBSD (gtk2 入り)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し"
+
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: inputmethod/uim
+          VERIFY_SCRIPT: verify-uim.sh
+          UIM_OPTIONS: 'gtk2 -gtk3 -gtk4 -qt5 -qt6'
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true
+
+  fail2ban:
+    name: security/fail2ban on NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          # trigger は非同期なので、待たずに -w を読むと負けることがある
+          # (run 35069883047 は四つの job が違う答えを出した)。settle で待ち、
+          # 駄目なら chmod する。
+          #
+          # 負けても遅くはならない。accel を決めるのはここではなく、後から
+          # 見直す側 (netbsd-ci-images の runvm.sh、run-freebsd-i386.sh の
+          # accel=kvm:tcg、vmactions 自身の chmod) で、そのときには規則が
+          # 当たっている。ここを直す理由は、警告が嘘をつかないようにするため。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
+          else
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
+          fi
+
+      # python と sphinx は四半期のバイナリ集合に在るので bin-install で
+      # 降りてくる。PLIST は手で組み立てたものなので、食い違ったら
+      # verify-pkg.sh が「並べたのに無い」を並べて出す。
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: zakinko/fail2ban
+          VERIFY_SCRIPT: verify-fail2ban.sh
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true
+
+  zls:
+    name: devel/zls on NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          # trigger は非同期なので、待たずに -w を読むと負けることがある
+          # (run 35069883047 は四つの job が違う答えを出した)。settle で待ち、
+          # 駄目なら chmod する。
+          #
+          # 負けても遅くはならない。accel を決めるのはここではなく、後から
+          # 見直す側 (netbsd-ci-images の runvm.sh、run-freebsd-i386.sh の
+          # accel=kvm:tcg、vmactions 自身の chmod) で、そのときには規則が
+          # 当たっている。ここを直す理由は、警告が嘘をつかないようにするため。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
+          else
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
+          fi
+
+      # zig は 0.16.0 が公式のバイナリ集合に在るので bin-install で降りて
+      # くる。LLVM を素から積まずに済む。zls 自身は BROKEN のせいで集合に
+      # 無いので、そこだけ組む。
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: zakinko/zls
+          VERIFY_SCRIPT: verify-zls.sh
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/10.0_2026Q2
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true
+
+  uim-xim:
+    name: inputmethod/uim -xim on NetBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し。相当遅い"
+
+      # uim の job とは option の組が違う。あちらは xim も含めて全部切って
+      # PLIST の重複を見る。こちらは xim だけを切って subst.mk で止まるのを
+      # 見て、直してから通す。混ぜると、どちらの欠陥で止まったのか分からなく
+      # なる。
+      - name: NetBSD で建てて確かめる
+        env:
+          UPSTREAM_PKG: inputmethod/uim
+          VERIFY_SCRIPT: verify-uim-xim.sh
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh 'amd64-10.1'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/amd64-10.1.console.log 2>/dev/null || true

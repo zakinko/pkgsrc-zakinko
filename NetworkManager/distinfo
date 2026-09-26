@@ -1,0 +1,34 @@
+$NetBSD$
+
+BLAKE2s (NetworkManager-1.58.1.tar.bz2) = eaadf2beb155974c466444b1b167dd202f4e81faf4041c0394c54146f6eb7a87
+SHA512 (NetworkManager-1.58.1.tar.bz2) = 875f098b21286461c1e2adf255e85ad8c9c81b31829571c3c741c787ce0670818329307b0005091be084c4cb2a2f4b1910cab752b64b89eeab650d595160dd4b
+Size (NetworkManager-1.58.1.tar.bz2) = 8812900 bytes
+SHA1 (patch-meson.build) = de899c6e7c54cbc3c24353a15c2d3ab5c7d9d30c
+SHA1 (patch-src_c-stdaux_src_c-stdaux-generic.h) = ab4e7a2599158e596f036a3accb739dac0b5129f
+SHA1 (patch-src_c-stdaux_src_c-stdaux.h) = 27df916ca86947e159ce68eb861b09dac665f66a
+SHA1 (patch-src_libnm-std-aux_nm-std-aux.h) = c8772c9745e5ef60d75a4f65e3be0501f9207cf3
+SHA1 (patch-src_meson.build) = 396623eaf583b40023f9a8c29f811e59b7f7a652
+SHA1 (patch-src_n-acd_src_n-acd-bpf-fallback.c) = b069cddbdb687d02912595759f8a196696862e8a
+SHA1 (patch-src_n-acd_src_n-acd-os-bsd.c) = c5f79d2ae6bdba32730422fc518ba4a3e3e95cb9
+SHA1 (patch-src_n-acd_src_n-acd-os-linux.c) = 35da5a8cabb6247a2ee4e3ff66c6d9aeee5494c9
+SHA1 (patch-src_n-acd_src_n-acd-os.h) = 9db4fb9918fd97d95658725ed3698ac6196426f3
+SHA1 (patch-src_n-acd_src_n-acd-private.h) = ae003e03830090552d0684d79900a6898dc05d02
+SHA1 (patch-src_n-acd_src_n-acd-probe.c) = c6cd9c29f78b62dada9b5448bf272ae402142aa0
+SHA1 (patch-src_n-acd_src_n-acd.c) = 4e3d1043a06bfbbb6fe7768aa03f731a498c4498
+SHA1 (patch-src_n-acd_src_util_timer.c) = a400f176c2ca1127e8700235943f048bc1b68ef6
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-c-connection.c) = 3ec8c31814b241807b934dc7a632e619248db25f
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-c-probe.c) = d4aa33c31fdc535b037c6f78559d34ef4a3a1c3d
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-client.c) = 2838ab713878dfcef5191aa16dfeb671c9f9a043
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-incoming.c) = e86be0c3d03a1cc4e36d0b8b6e279256e18e1880
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-outgoing.c) = dcd0ac0ab158500cc6744e9b58a7357fbfdb1097
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-private.h) = 73c7fe8e4c0819f33ad0789a41ad21f0d87203eb
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-socket-bsd.c) = 4d42c71866771ad9470debe7eca8597f4aea8848
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-socket-linux.c) = 05e013e95425fb95a3a50c051a23459973283bed
+SHA1 (patch-src_n-dhcp4_src_n-dhcp4-socket.c) = f2890894840189cfefd903ca5895f2186b999ab6
+SHA1 (patch-src_n-dhcp4_src_util_packet-bsd.c) = 3eb3699144de4ad24a9bb6a378a5828962f630da
+SHA1 (patch-src_n-dhcp4_src_util_packet-linux.c) = 1078d153a2495460e191f76c4ee368cab7841a66
+SHA1 (patch-src_n-dhcp4_src_util_packet.c) = 4c4a6b54aed24aaf714641fee071e53bd2f88d4e
+SHA1 (patch-src_n-dhcp4_src_util_packet.h) = 2f40fe5c6f5154e63f49cb8130a39a3d4f42256e
+SHA1 (patch-src_n-dhcp4_src_util_socket-bsd.c) = 101bd10d46ee50c42db85929781f8624379fceca
+SHA1 (patch-src_n-dhcp4_src_util_socket-linux.c) = d7e7e9d3e77b90066129e8dc7e2a7143bbd1ab72
+SHA1 (patch-src_n-dhcp4_src_util_socket.h) = 3be4f88e74de279900e435b76fbbef1d94b99c1b

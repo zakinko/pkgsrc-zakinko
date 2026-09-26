@@ -1,0 +1,159 @@
+name: emacs22-28
+
+# 上流 pkgsrc から消えた emacs22 から emacs28 を、NetBSD の各版で組んで、
+# 実際に日本語が変換できるところまで確かめる。
+#
+# 上流は 2026-08-25 に emacs26/27/28 を、それ以前に emacs22 から emacs25 を
+# 消した。zakinko/ が引き取ったこれらはもう誰も見ていないので、ここが唯一の
+# 見張りになる。当て物 (CVE) も入っているので、当たらなくなったことに気づく
+# 口も他に無い。
+#
+# 一回で 7 版 x 6 イメージ = 42 job を投げると待ち行列が長く、しかも全部が
+# 同じ理由で転ぶことが多い。そこで押した commit が触った版だけを回す。
+# emacs/ (modules.mk) と .github/ が動いたときだけ全部に広げる。
+#
+# イメージは mule2 と同じ netbsd-ci-images の release から取る。runner が
+# x86_64 の Linux で KVM が使えるので i386 も amd64 もほぼ実速で動く。
+
+# EMACS_COEXIST=yes の検査はここには無い。emacs をもう一度丸ごと建て直す
+# ので、押すたびのこの検査に混ぜると待ち行列が倍になる。emacs-coexist.yml
+# に分けてある。
+
+# concurrency は置かない。この repo の 15 本のうち置いていたのはここだけで、
+# cancel-in-progress: true にしていたため main へ押すたび走行中の job が切られ
+# ていた。VM は一版あたり 40 分から 70 分かかるので、連続で押した二回目に
+# 一回目の結果が消える。積むほうを選ぶ。
+
+on:
+  push:
+    paths:
+      - 'emacs2[2-8]/**'
+      - 'emacs2[2-8]-nox11/**'
+      - 'emacs/**'
+      - '.github/workflows/emacs.yml'
+      - '.github/ci/verify-emacs.sh'
+      - '.github/ci/verify-anthy-elisp.sh'
+      - '.github/ci/run-in-qemu.sh'
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: '対象の版 (例 "28 27")。空なら変更のあったもの'
+        required: false
+      images:
+        description: '対象イメージ (例 "amd64-11.0")。空なら既定の 6 つ'
+        required: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.q.outputs.versions }}
+      images: ${{ steps.q.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: q
+        env:
+          IN_V: ${{ inputs.versions }}
+          IN_I: ${{ inputs.images }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -e
+          ALL="28 27 26 25 24 23 22"
+          V="$IN_V"
+          if [ -z "$V" ] && [ "${{ github.event_name }}" = push ]; then
+            B="$BEFORE"
+            case "$B" in ''|0000000000000000000000000000000000000000) B=HEAD~1 ;; esac
+            CH=$(git diff --name-only "$B" HEAD 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+            # modules.mk が動いたら全部の版に効くので全部回す。
+            #
+            # そうでなければ触られた版を拾い、.github/ が動いていれば型を見る
+            # ために 28 を足す。elif で分けていたときは、版と .github/ が同じ
+            # push に入ると .github/ の枝が先に当たって 28 だけになり、その
+            # push に含まれる emacs25 と emacs26 の変更が試験されずに通って
+            # いた。和集合にする。
+            #
+            # .github/ だけで全部に広げないのは、CI を一行直すたびに 42 job に
+            # なるからである。
+            if printf '%s\n' "$CH" | grep -q '^emacs/'; then
+              V="$ALL"
+            else
+              V=$(printf '%s\n' "$CH" | sed -n 's|^emacs\([0-9][0-9]\).*|\1|p' | sort -u | tr '\n' ' ')
+              printf '%s\n' "$CH" | grep -q '^\.github/' && V="$V 28"
+              V=$(printf '%s\n' $V | grep -E '^[0-9]+$' | sort -run | tr '\n' ' ')
+            fi
+          fi
+          [ -n "$V" ] || V=28
+          [ -n "$IN_I" ] && I="$IN_I" || I="i386-11.0 i386-10.1 i386-9.4 amd64-11.0 amd64-10.1 amd64-9.4"
+          printf 'versions=%s\n' "$(printf '%s\n' $V | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          printf 'images=%s\n'   "$(printf '%s\n' $I | jq -Rrn '[inputs] | tostring')" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+  build:
+    needs: plan
+    runs-on: ubuntu-latest
+    # emacs は mule より大きい。mule2 の実測が x11 で 89 分から 230 分に
+    # 散ったので、その上を見て置く。GitHub の上限は 360 分。
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        version: ${{ fromJSON(needs.plan.outputs.versions) }}
+        image: ${{ fromJSON(needs.plan.outputs.images) }}
+    name: emacs${{ matrix.version }} ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          # trigger は非同期なので、待たずに -w を読むと負けることがある
+          # (run 35069883047 は四つの job が違う答えを出した)。settle で待ち、
+          # 駄目なら chmod する。
+          #
+          # 負けても遅くはならない。accel を決めるのはここではなく、後から
+          # 見直す側 (netbsd-ci-images の runvm.sh、run-freebsd-i386.sh の
+          # accel=kvm:tcg、vmactions 自身の chmod) で、そのときには規則が
+          # 当たっている。ここを直す理由は、警告が嘘をつかないようにするため。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
+          else
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
+          fi
+
+      - name: 組んで確かめる
+        env:
+          # emacsNN-nox11 は emacsNN の Makefile.common と PLIST を読み、
+          # さらに zakinko/emacs/modules.mk を読む。変換の確認に anthy と
+          # anthy-elisp も要る。
+          UPSTREAM_PKG: >-
+            zakinko/emacs${{ matrix.version }}-nox11
+            zakinko/emacs${{ matrix.version }}
+            zakinko/emacs
+            zakinko/anthy
+            zakinko/anthy-elisp
+          VERIFY_SCRIPT: verify-emacs.sh
+        # BINPKG_SITES は verify-emacs.sh がゲストの中で uname -p から
+        # 決める。ここから渡すと arch を取り違える。
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true

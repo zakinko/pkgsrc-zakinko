@@ -1,0 +1,12 @@
+A new major mode for GNU Emacs for editing XML documents. It
+supports editing well-formed XML documents and also provides
+schema-sensitive editing of XML documents using RELAX NG Compact
+Syntax.
+
+site-lisp is scanned for subdirectories at startup, so this package is already
+on the load-path.  To use it, put this in ~/.emacs:
+
+    (load "rng-auto")
+    (setq auto-mode-alist
+          (cons '("\\.\\(xml\\|xsl\\|rng\\|xhtml\\)\\'" . nxml-mode)
+                auto-mode-alist))

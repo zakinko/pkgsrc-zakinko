@@ -1,0 +1,105 @@
+name: emacs-existing (当て物と更新)
+
+# 木に既に在る elisp package への当て物 (branch emacs-patches、21 本) と
+# 更新 (branch emacs-updates、33 本と新規 3 個) を、素の NetBSD の箱で
+# pkgsrc に当てて建て、主 feature を load する。
+#
+# 手元 (techne, NetBSD 11.0/amd64) では 76 個を通してある。ここは別の
+# arch と版で同じことを測る口で、i386 と、9.4/10.1 の古い base で初めて
+# 出る物を拾う。押したときだけ走る。
+#
+# 木は current の tarball。diff は trunk (2026-09-21) に対して作ってあり、
+# 四半期枝には当たらない物がある。依存の binary は同じ arch の四半期の
+# ものを引く (版がずれた物はその場で建つ)。
+#
+# flavour 30 は emacs30-nox11 を binary で入れるので数十分。20 と x は
+# emacs20 / xemacs-nox11 を当て物入りの木から建てるので、それだけで
+# 一時間かかる。
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'イメージ (netbsd-ci-images の release 名)'
+        required: false
+        default: i386-11.0
+      flavour:
+        description: 'どの Emacs の上で'
+        type: choice
+        options: ['30', '20', 'x']
+        default: '30'
+      packages:
+        description: '組む package (例 "devel/apel misc/lookup")。空なら flavour の全部'
+        required: false
+      emacs_from_source:
+        description: 'flavour 30 でも emacs30-nox11 を当て物入りの木から建てる'
+        type: boolean
+        default: false
+
+concurrency:
+  group: emacs-existing-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    name: ${{ inputs.image }} / emacs ${{ inputs.flavour }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 二つの branch から diff を取り出す
+        run: |
+          git fetch --quiet --depth 1 origin emacs-patches emacs-updates
+          # zakinko/<pkg> は run-in-qemu.sh では root 直下の <pkg>/ を指す (emacs20 と同じ)
+          mkdir -p emacs-diffs
+          git archive origin/emacs-patches emacs-patches | tar x -C emacs-diffs
+          git archive origin/emacs-updates emacs-updates | tar x -C emacs-diffs
+          cp .github/ci/emacs-existing.txt emacs-diffs/
+          echo "emacs-patches: $(ls emacs-diffs/emacs-patches/*.diff | wc -l) 本"
+          echo "emacs-updates: $(ls emacs-diffs/emacs-updates/*.diff | wc -l) 本, new/ $(ls emacs-diffs/emacs-updates/new | tr '\n' ' ')"
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::/dev/kvm が使えない。TCG になり相当遅い"
+
+      - name: binary の置き場を決める
+        id: sites
+        env:
+          IMG: ${{ inputs.image }}
+        run: |
+          arch=${IMG%%-*}; rel=${IMG#*-}
+          case $arch in amd64) arch=x86_64 ;; esac
+          # binary は major ごと: 9.4 は 9.0_2026Q2、10.1 は 10.0_2026Q2 に在る
+          case $rel in 9.*) rel=9.0 ;; 10.*) rel=10.0 ;; esac
+          echo "sites=https://cdn.NetBSD.org/pub/pkgsrc/packages/NetBSD/$arch/${rel}_2026Q2/All" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+      - name: 当てて建てる
+        env:
+          UPSTREAM_PKG: zakinko/emacs-diffs
+          VERIFY_SCRIPT: verify-emacs-existing.sh
+          VERIFY_OPTS: ${{ inputs.flavour }} ${{ inputs.packages }}
+          BINPKG_SITES: ${{ inputs.emacs_from_source && '' || steps.sites.outputs.sites }}
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh '${{ inputs.image }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/*.console.log 2>/dev/null || true

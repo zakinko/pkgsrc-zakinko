@@ -1,0 +1,59 @@
+name: emacs-new (generated packages)
+
+# emacs-new/ の 408 個を、素の NetBSD 11.0/amd64 の箱で片端から組む。
+#
+# 手元 (techne) では全部通っているが、そちらは trunk の木と、emacs-updates
+# で更新した依存 (dash-el 2.20 や reformatter-el など) が入った箱である。
+# ここは pkgsrc-2026Q2 の木に emacs30-nox11 を binary で入れただけの箱なので、
+# 「依存が木に無い」「木の版が古くて建たない」が初めて出る。
+#
+# 408 個で 2〜3 時間かかる。押したときだけ走る。
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: '組む package (例 "devel/a-el editors/avy-el")。空なら全部'
+        required: false
+      image:
+        description: 'イメージ'
+        required: false
+        default: amd64-11.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    name: emacs-new ${{ inputs.image || 'amd64-11.0' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ディスクを空ける
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h /
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # 負けても遅くはならない。accel は起動時に再判定される。
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::/dev/kvm が使えない (起動時に再判定される)"
+
+      - name: 組む
+        env:
+          UPSTREAM_PKG: zakinko/emacs-new
+          VERIFY_SCRIPT: verify-emacs-new.sh
+          VERIFY_OPTS: ${{ inputs.packages }}
+          BINPKG_SITES: https://cdn.NetBSD.org/pub/pkgsrc/packages/NetBSD/x86_64/11.0_2026Q2/All
+        run: sh .github/ci/run-in-qemu.sh '${{ inputs.image || 'amd64-11.0' }}'
+
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/*.console.log 2>/dev/null || true

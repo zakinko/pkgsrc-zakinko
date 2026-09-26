@@ -1,0 +1,43 @@
+$NetBSD$
+
+Apply the same fix to the option-format paths.
+
+patch-autoopts_tpl_cmd-doc.tlib brings in the upstream fix for
+ds-format, but the two option-format paths in the same file build the
+converter name the same unconditional way, so a definitions file that
+says
+
+	option-format = 'mdoc';
+
+still sends the template looking for a "mdoc2mdoc" converter that is
+generated but not installed.  Upstream has not fixed these; this is
+their ds-format fix applied to the remaining two places, written the
+same way so it can be offered upstream as such.
+
+Nothing in pkgsrc appears to use option-format = 'mdoc' today, so this
+is a latent defect rather than an observed failure.
+
+--- autoopts/tpl/cmd-doc.tlib.orig	2017-09-11 00:00:00.000000000 +0000
++++ autoopts/tpl/cmd-doc.tlib
+@@ -151,7 +151,9 @@
+         (define target-form   (if man-page "man" "mdoc"))
+         (define source-form   (get "option-format" "texi"))
+         (define converter     (string-append source-form "2" target-form ))
+-        (set! tmp-str (find-file converter))
++        (if (= source-form target-form)
++            (set! tmp-str (shell "command -v cat"))
++            (set! tmp-str (find-file converter)) )
+ 
+         (if (not (defined? 'tmp-str))
+             (error (string-append "cannot locate " converter)))
+@@ -586,7 +588,9 @@
+ 
+ (if formatted-doc
+     (shell (string-append
+-    "fn='" (find-file cvt-cmd)
++    "fn='" (if (= (get "option-format") "mdoc")
++               (shell "command -v cat")
++               (find-file cvt-cmd))
+     "'\ntest -f ${fn} || die '" cvt-cmd " not found'\n"
+     "${fn} <<\\_EndOfMdoc_ || die ${fn} failed in $PWD\n"
+     (out-pop #t)

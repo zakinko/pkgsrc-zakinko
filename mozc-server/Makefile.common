@@ -1,0 +1,213 @@
+# $NetBSD$
+
+# used by zakinko/mozc-elisp/Makefile
+# used by zakinko/mozc-renderer/Makefile
+# used by zakinko/mozc-server/Makefile
+# used by zakinko/mozc-tool/Makefile
+
+# 3.34.6239 carries no GYP at all: no src/build_mozc.py, no src/gyp/, not one
+# .gyp or .gypi file.  Bazel is the only way upstream builds it now.  GYP went
+# away in 3.33.6133, not in 3.34, so 3.33.6089 is the last tag that still has
+# it.
+#
+# Bazel does not build on 32-bit platforms, so GYP is what gets mozc to i386.
+# A second tarball of 3.33.6089 is fetched and only the GYP scaffolding from it
+# is laid over the 3.34.6239 tree.
+#
+# The two trees are close.  Of the 602 sources GYP names, 6 are gone in 3.34
+# and effectively 2 .cc files are new; the .gyp patches under patches/ are that
+# difference.
+
+DISTNAME=	mozc-3.34.6239
+CATEGORIES=	inputmethod
+# Eight of the distfiles have no version in their name.  Japan Post replaces
+# ken_all.zip and jigyosyo.zip under the same name every month, so unprefixed
+# they would collide in distfiles/ with the next release's copies.  The icon
+# png/svg files are unversioned too.
+DIST_SUBDIR=	${DISTNAME}
+MASTER_SITES=	${MASTER_SITE_GITHUB:=google/}
+GITHUB_PROJECT=	mozc
+GITHUB_TAG=	${PKGVERSION_NOREV}
+
+MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/google/mozc/
+COMMENT=	Japanese inputmethod Mozc engine
+LICENSE=	modified-bsd
+
+# 3.34 dropped .gitmodules and counts its dependencies in MODULE.bazel instead.
+# GYP expects the real trees to be sitting in third_party/, so the versions
+# bzlmod points at are listed again here.  abseil and protobuf are newer than
+# what 3.33.6089 used.
+GITHUB_SUBMODULES+=	google breakpad 216cea7bca53fa441a3ee0d0f5fd339a3a894224 third_party/breakpad
+GITHUB_SUBMODULES+=	google googletest 52eb8108c5bdec04579160ae17225d66034bd723 third_party/gtest
+GITHUB_SUBMODULES+=	chromium gyp 9ecf45e37677743503342ee4c6a76eaee80e4a7f third_party/gyp
+GITHUB_SUBMODULES+=	hiroyuki-komatsu japanese-usage-dictionary e5b3425575734c323e1d947009dd74709437b684 third_party/japanese_usage_dictionary
+GITHUB_SUBMODULES+=	protocolbuffers protobuf 4b0c3aacf0657fbf38253b38918d3358dd4319ec third_party/protobuf
+GITHUB_SUBMODULES+=	abseil abseil-cpp 255c84dadd029fd8ad25c5efb5933e47beaa00c7 third_party/abseil-cpp
+GITHUB_SUBMODULES+=	microsoft wil fc5dbf55989fe20351c71d038a8d12de4b397a6d third_party/wil
+
+DISTFILES+=	${DEFAULT_DISTFILES}
+
+# A second tarball, fetched only to lift the GYP scaffolding out of it.  It is
+# not used as a source tree.
+MOZC_GYP_VERSION=	3.33.6089
+MOZC_GYP_DISTFILE=	mozc-${MOZC_GYP_VERSION}.tar.gz
+SITES.${MOZC_GYP_DISTFILE}=	-https://github.com/google/mozc/archive/${MOZC_GYP_VERSION}.tar.gz
+DISTFILES+=	${MOZC_GYP_DISTFILE}
+
+MOZC_DISTS+=	dictionary.png
+SITES.dictionary.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/chrome_reader_mode/materialiconsoutlined/48dp/1x/outline_chrome_reader_mode_black_48dp.png
+
+MOZC_DISTS+=	dictionary.svg
+SITES.dictionary.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/chrome_reader_mode/materialiconsoutlined/24px.svg
+
+MOZC_DISTS+=	properties.png
+SITES.properties.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/settings/materialiconsround/48dp/1x/round_settings_black_48dp.png
+
+MOZC_DISTS+=	properties.svg
+SITES.properties.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/settings/materialiconsround/24px.svg
+
+MOZC_DISTS+=	tool.png
+SITES.tool.png=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/png/action/build/materialicons/48dp/1x/baseline_build_black_48dp.png
+
+MOZC_DISTS+=	tool.svg
+SITES.tool.svg=	-https://raw.githubusercontent.com/google/material-design-icons/4.0.0/src/action/build/materialicons/24px.svg
+
+MOZC_DISTS+=	ken_all.zip
+SITES.ken_all.zip=	https://www.post.japanpost.jp/zipcode/dl/kogaki/zip/
+
+MOZC_DISTS+=	jigyosyo.zip
+SITES.jigyosyo.zip=	https://www.post.japanpost.jp/zipcode/dl/jigyosyo/zip/
+
+.for d in ${MOZC_DISTS}
+DISTFILES+=	${d}
+.endfor
+
+# MOZC_DISTS are not archives to unpack: the png and svg files are not archives
+# at all, and post-configure opens the two zip files under dictionary/.
+# Everything else -- the source tarball, the GYP scaffolding and the tarballs
+# GITHUB_SUBMODULES adds -- does get extracted.  Subtracting MOZC_DISTS from
+# DISTFILES means adding to the list above is enough; this line needs no edit.
+EXTRACT_ONLY=	${DISTFILES:${MOZC_DISTS:@d@N${d}@:ts:}}
+
+WRKSRC=		${WRKDIR}/${DISTNAME}/src
+MOZC_GYP_SRC=	${WRKDIR}/mozc-${MOZC_GYP_VERSION}/src
+
+DISTINFO_FILE=	${.CURDIR}/../../zakinko/mozc-server/distinfo
+PATCHDIR=	${.CURDIR}/../../zakinko/mozc-server/patches
+
+PYTHON_VERSIONS_INCOMPATIBLE+=	27
+
+.include "../../mk/bsd.prefs.mk"
+
+# options.mk sets MOZC_BUILDER and every package here includes it before this
+# file.  Say so rather than letting an unset variable pick gyp quietly: a
+# package added later that forgets the include would build the other way
+# without anything to show for it.
+.if !defined(MOZC_BUILDER)
+PKG_FAIL_REASON+=	"MOZC_BUILDER is unset: include"
+PKG_FAIL_REASON+=	"zakinko/mozc-server/options.mk before this file."
+.endif
+
+.if ${MOZC_BUILDER} == "bazel"
+# The .bazeliskrc in 3.34 asks for Bazel 9.  devel/bazel in pkgsrc is 6.4.0 and
+# cannot satisfy it; zakinko/bazel is 9.2.0 taught to build on NetBSD.
+TOOL_DEPENDS+=	bazel>=9.0:../../zakinko/bazel
+# bzlmod fetches dependencies while the build runs.
+ALLOW_NETWORK_ACCESS=	yes
+.else
+TOOL_DEPENDS+=	${PYPKGPREFIX}-gyp>=0.1pre20200512.caa60026e223fc501e8b337fd5086ece4028b1c6:../../devel/gyp
+TOOL_DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
+TOOL_DEPENDS+=	ninja-build-[0-9]*:../../devel/ninja-build
+.endif
+
+USE_LANGUAGES=	c c++
+USE_TOOLS+=	pkg-config unzip
+
+USE_CXX_FEATURES+=	c++20
+
+SUBST_CLASSES+=		prefix
+SUBST_STAGE.prefix=	pre-configure
+SUBST_MESSAGE.prefix=	Setting PREFIX
+SUBST_FILES.prefix+=	base/process.cc
+SUBST_FILES.prefix+=	base/system_util.cc
+SUBST_VARS.prefix+=	PREFIX
+SUBST_VARS.prefix+=	X11BASE
+
+# Lay the GYP scaffolding from 3.33.6089 over the tree.  Where 3.34 already has
+# a file of the same name, 3.34 wins -- what is wanted here is how it builds,
+# not what it builds.  Several build_tools files are shared and were fixed in
+# 3.34, so the other direction would let the older copies take over.
+#
+# The list goes through a file rather than a pipe because the exit status of
+# ${FIND} is thrown away on the left of |.  An empty tree would walk straight
+# through the loop, no scaffolding would be laid down, and the build would get
+# as far as do-configure before failing as if build_mozc.py had never existed.
+post-extract:
+	${RUN} cd ${MOZC_GYP_SRC};						\
+	${FIND} . -type f -print > ${WRKDIR}/.mozc-gyp-files;			\
+	while read f; do							\
+		case "$$f" in							\
+		*.gyp|*.gypi|./gyp/*|./protobuf/*|./build_mozc.py|./build_tools/*) \
+			;;							\
+		*)	continue ;;						\
+		esac;								\
+		if ${TEST} -e "${WRKSRC}/$$f"; then continue; fi;		\
+		${MKDIR} "${WRKSRC}/$${f%/*}";					\
+		${CP} -p "$$f" "${WRKSRC}/$$f";					\
+	done < ${WRKDIR}/.mozc-gyp-files;					\
+	${RM} -f ${WRKDIR}/.mozc-gyp-files
+
+OPSYSVARS+=	OSDEST
+.if ${MOZC_BUILDER} == "bazel"
+OSDEST.Linux=	linux-opt
+OSDEST.NetBSD=	netbsd-opt
+.else
+OSDEST.Linux=	linux
+OSDEST.NetBSD=	bsd
+
+MOZC_BUILD_MODE?=	Release
+
+do-configure:
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${PYTHONBIN} build_mozc.py gyp \
+			--gypdir=${LOCALBASE}/bin \
+			${MOZC_GYP_ARGS}
+.endif
+
+CHECK_PIE_SUPPORTED=	no
+# The data files are read out of dist/ rather than copied in.  They live under
+# DIST_SUBDIR, so the link has to name it; pointing at ${DISTDIR} alone only
+# resolves on a machine that happens to still have an older unprefixed copy.
+pre-configure:
+	${MKDIR} ${WRKSRC}/dist
+.for d in ${MOZC_DISTS}
+	${LN} -s ${DISTDIR}/${DIST_SUBDIR}/${d} ${WRKSRC}/dist/${d}
+.endfor
+	${RM} -r ${WRKDIR}/.cwrapper
+
+# server and elisp touch neither Qt nor GL; only renderer and tool need them.
+.if !empty(PKGPATH:M*/mozc-renderer) || !empty(PKGPATH:M*/mozc-tool)
+.include "../../graphics/MesaLib/buildlink3.mk"
+.include "../../x11/qt6-qtbase/buildlink3.mk"
+.endif
+
+.include "../../lang/python/tool.mk"
+.include "../../mk/atomic64.mk"
+
+# On the Bazel path, any target that pulls a Python genrule
+# (base:gen_config_file_stream_data) fails in analysis with
+#
+#	No matching toolchains found for types:
+#	  @@bazel_tools//tools/python:toolchain_type
+#
+# unless a Python toolchain is registered, because none of the interpreters
+# rules_python ships are built for BSD.  Register the runtime_env toolchain,
+# which uses the system python3, and the name python3 then has to be on PATH
+# (pkgsrc installs only python3.13).  The lang/python/tool.mk include above
+# links both python and python3 into ${BUILDLINK_DIR}/bin, so there is nothing
+# for the package itself to create.
+#
+# server pulls no Python genrule, so it built fine and hid this; elisp, tool
+# and renderer were the ones that failed.
+BAZEL_ARGS+=		--extra_toolchains=@rules_python//python/runtime_env_toolchains:all

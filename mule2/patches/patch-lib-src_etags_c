@@ -1,0 +1,43 @@
+$NetBSD: patch-lib-src_etags_c,v 1.1 2011/12/24 17:07:07 dholland Exp $
+
+- use standard headers
+
+Also declare what this file calls, so nothing is reached through an
+implicit declaration: the standard functions through their headers (and
+the file's own hand-written declarations of them removed), the tree's own
+through the type their definition carries.
+
+Include the headers that declare what this file calls.
+
+The declarations reached this file through some other header on the systems
+it was built on, but not on glibc, where they are missing outright.  gcc 14
+made an implicit declaration an error, so the build stops here.
+
+--- lib-src/etags.c.orig
++++ lib-src/etags.c
+@@ -44,6 +44,8 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <ctype.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+@@ -54,6 +56,16 @@
+ 
+ #include "getopt.h"
+ 
++/* Declare the standard functions this file calls. */
++#include <unistd.h>
++
++/* Declare what this program calls: the standard functions through their
++   headers, the tree's own through the type their definition carries.
++   Reaching either through an implicit declaration is what C99 removed. */
++extern int prestr ();
++extern int string_numeric_p ();
++extern int substr ();
++
+ extern char *getenv ();
+ 
+ /* Define CTAGS to make the program "ctags" compatible with the usual one.

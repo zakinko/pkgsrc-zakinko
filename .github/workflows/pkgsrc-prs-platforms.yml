@@ -1,0 +1,845 @@
+name: pkgsrc PRs (platforms)
+
+# pkgsrc-prs.yml が「直っているか」を一箱で見るのに対し、こちらは
+# **同じ直しがプラットフォームをまたいで通るか**を見る。
+#
+# pkgsrc は NetBSD 専用ではない。Linux (glibc と musl)、FreeBSD、OpenBSD、
+# DragonFly、illumos、Darwin で動く。当て物が一箱で通っても、他所で
+# 落ちるなら上流へ出せない。
+#
+# 他ディストリを調べた結果が、どれをどこで見るべきかを決めている。
+#
+#   #173 lua-socket   Gentoo の当て物は makefile と API 公開の 2 本だけで、
+#                     sun_len 系は無い。Linux は UNIX_HAS_SUN_LEN を定義
+#                     しないので踏まない。BSD/SunOS 固有なので illumos で
+#                     見る (済)。他は当て物が無効化されるだけなので回帰確認
+#
+#   #153 uim          Gentoo の当て物 8 本に PLIST 系は無い。portage に静的な
+#                     PLIST が無いためで、これは pkgsrc 固有の壊れ方である。
+#                     NetBSD が本命
+#
+#   #175 fail2ban     Gentoo 10 本も FreeBSD 6 本も設定ファイルだけ。コード
+#                     修正は誰も要らない。効くのは paths-*.conf の分岐なので
+#                     Linux と BSD の両方で見る
+#
+#   #180 xwpe         **Debian 1.6.6-1 は当て物ゼロ** (series が空)。同じ人が
+#                     上流とメンテナを兼ねている。ただし Debian は gcc 既定で
+#                     組み、そこでは警告どまり。clang では error になる。
+#                     だから gcc の箱と clang の箱を両方回して、割れ方を見る。
+#                     割れ方そのものが「なぜ Debian は要らず pkgsrc は要るか」
+#                     の答えになる
+#
+# 手で起動する。長いので押すたびには回さない。
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'どれを回すか'
+        type: choice
+        options: [all, xwpe, fail2ban, zls, lua-socket, gdb7, croc, go, openssl, zlib, pkgconf]
+        default: all
+
+# target ごとに群を分ける。同じ workflow の別の target を回したら、走って
+# いた方が切られた (openssl の run 35795370136 を zlib の dispatch が
+# 落とした)。同じ target を二度押したときだけ前を切る。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.target }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------------
+  # xwpe: 当て物の要否がコンパイラで割れる。gcc と clang の両方を見る。
+  xwpe-netbsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on NetBSD ${{ matrix.image }} (${{ matrix.options }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        # 9.4 は gcc 10、10.1 は gcc 10、11.0 は gcc 12。NetBSD は版で
+        # base の compiler が動く。
+        image: ['amd64-9.4', 'amd64-10.1', 'amd64-11.0']
+        # X の在る側と無い側。無い側は上流が --without-x として設計している
+        # 道で、X を持たない箱に入るかどうかがここで決まる。
+        options: ['x11 xft', '-x11 -xft']
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          # trigger は非同期なので、待たずに -w を読むと負けることがある
+          # (run 35069883047 は四つの job が違う答えを出した)。settle で待ち、
+          # 駄目なら chmod する。
+          #
+          # 負けても遅くはならない。accel を決めるのはここではなく、後から
+          # 見直す側 (netbsd-ci-images の runvm.sh、run-freebsd-i386.sh の
+          # accel=kvm:tcg、vmactions 自身の chmod) で、そのときには規則が
+          # 当たっている。ここを直す理由は、警告が嘘をつかないようにするため。
+          sudo udevadm settle --timeout=10 || true
+          [ -w /dev/kvm ] || sudo chmod 666 /dev/kvm 2>/dev/null || true
+          # -w だけだと「device が無い」と「在るが書けない」が同じ顔で出る。
+          if [ -w /dev/kvm ]; then
+            echo "KVM あり"
+          elif [ -e /dev/kvm ]; then
+            echo "::warning::/dev/kvm は在るが書けない (起動時に再判定される)"
+          else
+            echo "::warning::/dev/kvm が無い (起動時に再判定される)"
+          fi
+      - name: 建てて確かめる
+        env:
+          UPSTREAM_PKG: zakinko/xwpe
+          VERIFY_SCRIPT: verify-xwpe.sh
+          XWPE_OPTIONS: ${{ matrix.options }}
+          # 四半期枝に留める。current を引くと公式のバイナリ集合と版が
+          # 合わず、perl から全部素で組むことになる。実際それで
+          # perl-5.44.0 の Errno_pm.PL が NetBSD 10.1 の <sys/cdefs_elf.h>
+          # を前処理できずに落ちた。MASTER_SITE_CODEBERG が四半期枝に
+          # 無い件は run-in-qemu.sh がゲスト側で補う。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q2/pkgsrc.tar.gz
+          # BINPKG_SITES は verify-xwpe.sh がゲストの中で uname -p と
+          # uname -r から組み立てる。ここで x86_64/10.0_2026Q2 と直書きして
+          # いたが、この matrix は 9.4 と 11.0 も回すので、その二つは版違いの
+          # 集合を引いていた。
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true
+
+  # GitHub Actions は uses: に matrix を書けないので、箱ごとに job を割る。
+  # FreeBSD も OpenBSD も clang なので、当て物が要る側に出るはず。
+  xwpe-freebsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on FreeBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      XWPE_OPTIONS: 'x11 xft'
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-freebsd-${{ github.run_id }}
+          restore-keys: prs-freebsd-
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          envs: 'XWPE_OPTIONS'
+          run: PKGS='xwpe' sh .github/ci/build-on-bsd.sh
+
+  xwpe-openbsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on OpenBSD (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    # X 入りにすると modular xorg を pkgsrc から積むことになり、
+    # x11/xorgproto で落ちた。X は native X を持つ NetBSD で見ている。
+    env:
+      XWPE_OPTIONS: '-x11 -xft'
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-openbsd-${{ github.run_id }}
+          restore-keys: prs-openbsd-
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          envs: 'XWPE_OPTIONS'
+          # pkgconf を先に直す。素の pkgconf は PKG_CONFIG_LOG が立って
+          # いると OpenBSD で SIGSEGV し、libxml2 の configure が
+          # "pkg-config not found" で止まって meson まで連鎖する。
+          # xwpe とは関係のない、道具側の壊れである。
+          run: TREE_PATCH=.github/ci/tree-patch-pkgconf.sh PKGS='xwpe' sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # fail2ban: 効くのは paths-*.conf の分岐なので Linux と BSD を見る。
+  fail2ban-linux:
+    if: inputs.target == 'all' || inputs.target == 'fail2ban'
+    name: fail2ban on ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'Debian 13', image: 'debian:13' }
+          # musl の箱も見る。python の拡張が libc に触る。
+          # musl の箱は bootstrap が nawk を見つけられずに止まる。pkgsrc 側の
+          # 既知の問題で (NetBSD/pkgsrc の issue #130 #132 #141)、こちらの
+          # package とは関係がない。落ちても全体は落とさない。
+          - { name: 'Alpine',    image: 'alpine:latest', optional: 'yes' }
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          if command -v apk > /dev/null; then
+            apk add --no-cache build-base curl git tar gzip perl bash coreutils procps
+          else
+            apt-get update -qq
+            apt-get install -y -qq build-essential curl git tar gzip perl bash
+          fi
+      - name: 建てて確かめる
+        continue-on-error: ${{ matrix.optional == 'yes' }}
+        run: |
+          PKGS='fail2ban' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # zls: zig が通る箱。NetBSD は pkgsrc-prs.yml で見ているので Linux を。
+  zls-linux:
+    if: inputs.target == 'all' || inputs.target == 'zls'
+    name: zls on Debian
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash
+      - name: 建てて確かめる
+        run: |
+          PKGS='zls' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # lua-socket: illumos は pkgsrc-prs.yml で済んでいる。当て物が
+  # 無効化される側 (UNIX_HAS_SUN_LEN を定義しない箱) で回帰しないかを見る。
+  lua-socket-linux:
+    if: inputs.target == 'all' || inputs.target == 'lua-socket'
+    name: lua-socket on Debian (回帰確認)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash
+      - name: 建てて確かめる
+        env:
+          UPSTREAM_PKG: net/lua-socket
+          VERIFY_SCRIPT: verify-lua-socket.sh
+        run: |
+          PKGS='' TREE_PKGS='net/lua-socket' PKGSRC_BASE=/tmp \
+            sh .github/ci/build-on-bsd.sh
+
+  # X を持たない箱に入るか。container に X server も X の library も無いので、
+  # -x11 -xft がそのまま「X 無しの環境」の試験になる。X 入りを建てようとすると
+  # modular xorg を素から積むことになり、見たいものと関係のない時間がかかる。
+  xwpe-linux:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on Debian (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash
+      - name: 建てて確かめる
+        env:
+          XWPE_OPTIONS: '-x11 -xft'
+        run: |
+          PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # DragonFly は FreeBSD から分かれた枝で、base は clang。X も native に
+  # 在るので、X 入りで見る。
+  xwpe-dragonfly:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on DragonFly (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    # OpenBSD と同じで、X 入りは x11/libXt で落ちる。
+    env:
+      XWPE_OPTIONS: '-x11 -xft'
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-dragonfly-${{ github.run_id }}
+          restore-keys: prs-dragonfly-
+      - uses: vmactions/dragonflybsd-vm@v1
+        with:
+          envs: 'XWPE_OPTIONS'
+          run: PKGS='xwpe' sh .github/ci/build-on-bsd.sh
+
+  # Fedora は glibc と新しい gcc の側。container に X は無いので端末のみ。
+  xwpe-fedora:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on Fedora (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    container: fedora:latest
+    env:
+      XWPE_OPTIONS: '-x11 -xft'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          # fedora:latest は coreutils-single を積んでいる。install(1) が
+          # pkgsrc の要求に足りず、pkgsrc が自分の sysutils/coreutils を
+          # tool として建てにいく。それが bootstrap の最中に走ると
+          #
+          #   => Tool dependency coreutils>=5.2.1: NOT found
+          #   ERROR: [bsd.pkg.mk] Circular dependency detected
+          #
+          # で止まる。本物の coreutils へ入れ替えておく。
+          dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
+            dnf -y install coreutils > /dev/null
+          # hostname は pkgsrc の既定の USE_TOOLS に入っていて、replace.mk は
+          # 無ければ sysutils/coreutils で賄う。Fedora は hostname を
+          # coreutils とは別の rpm に分けていて、container の image には
+          # 入っていないはずである。前の run の診断は 34 個を全部見つけて
+          # いて、hostname を一覧に入れていなかった。下の一覧に足したので、
+          # この見立てが外れていれば「無い」がそこに出る。
+          dnf -y install gcc gcc-c++ make curl git tar gzip perl-core diffutils \
+                         findutils which patch file gawk zlib-devel \
+                         ncurses-devel libb2-devel openssl-devel \
+                         libarchive-devel bzip2 xz hostname > /dev/null
+          # 本物の coreutils を入れても install(1) が /usr/sbin にしか
+          # 現れないことがある。pkgsrc は /usr/bin/install を探すので
+          # 見つからず、自分の sysutils/coreutils を tool として建てに
+          # いって bootstrap の最中に輪になる。
+          #
+          #   install: /usr/sbin/install  install (GNU coreutils) 9.10
+          #   => Tool dependency coreutils>=5.2.1: NOT found
+          #   ERROR: [bsd.pkg.mk] Circular dependency detected
+          [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
+          echo "install: /usr/bin/install -> $(readlink -f /usr/bin/install 2>/dev/null)"
+          /usr/bin/install --version 2>&1 | head -1
+          # pkgsrc が sysutils/coreutils を tool として引くのは、
+          # tools.Linux.mk が探す道具のどれかが見つからないときである。
+          # どれが無いのかを出す。当てずっぽうで dnf に足すのをやめる。
+          echo "--- pkgsrc が Linux で探す道具 ---"
+          for t in install readlink realpath nproc seq env printf expr \
+                   tsort nice sha1sum sha512sum md5sum cut tr sort uniq \
+                   basename dirname mkdir rm cp mv ln chmod chown touch \
+                   head tail wc date id pwd echo test \
+                   hostname numfmt tee chgrp ls cat sleep rmdir true false; do
+            printf '  %-10s %s\n' "$t" "$(command -v $t || echo '無い')"
+          done
+      - name: 建てて確かめる
+        run: PKGS='xwpe' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  # macOS は clang と BSD 系の userland だが libc も道具も別物。X は
+  # XQuartz が要るので端末のみで見る。
+  xwpe-macos:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on macOS (端末のみ)
+    runs-on: macos-latest
+    timeout-minutes: 180
+    env:
+      XWPE_OPTIONS: '-x11 -xft'
+    steps:
+      - uses: actions/checkout@v4
+      # bootstrap は /opt/pkg へ入れるので root が要る。他の箱は
+      # vmactions のゲストも container も root で走るが、macOS の runner は
+      # runner 利用者である。
+      #
+      #   You must be either root to install bootstrap-pkgsrc
+      #   or use the --unprivileged option.
+      #
+      # sudo は passwordless なので全体を root で走らせる。$HOME は sudo で
+      # /var/root に変わるので、置き場は書き下す。
+      - name: 建てて確かめる
+        run: |
+          sudo env PKGS='xwpe' XWPE_OPTIONS="$XWPE_OPTIONS" \
+                   PKGSRC_BASE=/Users/runner/pkgsrcwork \
+                   sh .github/ci/build-on-bsd.sh
+
+  # ------------------------------------------------------------------
+  # croc: net/croc を 11.5.3 へ。go の package で、pkgsrc の go-module.mk が
+  # ./... で建てるせいで、上流が tag で外した OS (NetBSD、DragonFly) だけ
+  # internal/tailcat が compile されて落ちる。GO_BUILD_PATTERN で上流の
+  # Makefile と同じ二つだけを建てる。verify-croc.sh が入れて、relay 越しに
+  # 送受信し、./... に戻すとどうなるかも記録する。
+  #
+  # go127 は Darwin / FreeBSD>=14 / aarch64 では go-bin から、それ以外は
+  # go14 → 118 → 120 → 122 → 124 → 127 と source から bootstrap する。
+  # NetBSD の qemu 箱は go124 を四半期の binary で入れ、go127 だけ組む。
+  croc-netbsd:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on NetBSD ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['amd64-9.4', 'amd64-10.1', 'amd64-11.0']
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - name: ツリーの tarball を持ち越す
+        uses: actions/cache@v4
+        with:
+          path: .vm/*.tar.gz
+          key: pkgsrc-tarball-${{ github.run_id }}
+          restore-keys: pkgsrc-tarball-
+      - name: qemu を入れて KVM を通す
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          [ -w /dev/kvm ] && echo "KVM あり" || echo "::warning::KVM 無し"
+      - name: 建てて確かめる
+        env:
+          UPSTREAM_PKG: zakinko/croc
+          VERIFY_SCRIPT: verify-croc.sh
+          # croc は GO_VERSION_REQD=127 で、lang/go127 は 2026Q2 の枝に無い。
+          # 木は current を取る。依存のうち版が噛み合うものだけが四半期の
+          # binary から入る (BINPKG_SITES は verify-croc.sh がゲストで組む)。
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
+      - name: 転けたらコンソールを出す
+        if: failure()
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true
+
+  croc-freebsd:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on FreeBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-freebsd-${{ github.run_id }}
+          restore-keys: prs-freebsd-
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          run: PKGS='croc' sh .github/ci/build-on-bsd.sh
+
+  # lang/go は OpenBSD で bootstrap できない (go14 が Abort trap)。go-bin に
+  # openbsd-amd64 を足し bootstrap.mk に OpenBSD を足す木の直しを当てて、
+  # go-bin が make distinfo と同じ物で入り、go127 がそこから建ち、作った
+  # 物が走り、pkglint が増えないことを 7.8 と 7.9 で見る。送る diff と
+  # 同じ物 (tree-go-bin-openbsd.diff) を当てる。
+  #
+  # aarch64 も送る diff に入るが、GitHub では測り切れない。vmactions の
+  # 7.9 aarch64 image は x86 の runner でも arm の runner (ubuntu-24.04-arm、
+  # /dev/kvm が無い) でも TCG で、run 35196319109 では bootstrap だけで
+  # 2 時間、go-bin の perl:run と bash:run を source で組む所で 6 時間の
+  # 上限に当たった (make distinfo と DISTFILES=openbsd-arm64 までは通った)。
+  # aarch64 は手元の Mac (Apple Silicon、QEMU + HVF) で同じ image を
+  # 起こして測る。手順は zakinko-doc の go-bootstrap-openbsd.md。
+  go-openbsd:
+    if: inputs.target == 'all' || inputs.target == 'go'
+    name: go-bin/go127 on OpenBSD ${{ matrix.release }} ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      # riscv64 は TCG。distinfo の段は全 platform の tarball を 1GB 引くので
+      # 飛ばす (arch に依らない検査で、amd64 と arm64 で見ている)。
+      GOBIN_SKIP_DISTINFO: ${{ matrix.arch == 'riscv64' && '1' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { release: '7.8', arch: x86_64,  pkgs: 'lang/go-bin lang/go127' }
+          - { release: '7.9', arch: x86_64,  pkgs: 'lang/go-bin lang/go127' }
+          # riscv64 は TCG なので go127 まで建てると 6 時間に入らない。
+          # diff が主張するのは「その arch の tarball を選んで入り、その go が
+          # 動く」ところまでなので、go-bin だけを見る。go-bin から go127 が
+          # 建つことは amd64 と arm64 で見ている。
+          - { release: '7.9', arch: riscv64, pkgs: 'lang/go-bin' }
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
+          # 木の直しは三つ: go-bin (本題)、openssl (arm64 の連鎖の底)、ncurses
+          # (configure の ldconfig -v が ld.so.hints を潰す)。ncurses の直しが
+          # 効けば持ち帰りの rsync も死なないので、copyback を戻して測る。
+          envs: 'GOBIN_SKIP_DISTINFO'
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='${{ matrix.pkgs }}' sh .github/ci/build-on-bsd.sh
+
+  # security/openssl が OpenBSD/arm64 (手元の HVF 箱) で engines/dasync.so の
+  # link に落ちる (-z defs で libc の symbol が未定義)。amd64 では通っている
+  # ので、同じ物を amd64 で出して比べる。go-bin の arm64 の測定の前提。
+  openssl-openbsd:
+    if: inputs.target == 'go' || inputs.target == 'openssl'
+    name: openssl on OpenBSD 7.9 x86_64
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          # amd64 では元から建つ。当て物が amd64 でも当たり、target の選択が
+          # 変わらず (BSD-nodef-x86_64) 建つことを見る。ncurses も同じ木で
+          # 建て、ld.so.hints が残るかを verify-openssl.sh の末尾で見る。
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='devel/ncurses security/openssl' sh .github/ci/build-on-bsd.sh
+
+  # openssl の当て物は patches/ に置くので、OpenBSD だけでなく全 platform の
+  # openssl に当たる。当てた木が他の OS でも建ち、configure が選ぶ target が
+  # 変わらないことを見る。これを見ずに送ると、OpenBSD/arm64 を直すために
+  # 木の openssl を全員分壊す形になりうる。
+  openssl-others:
+    if: inputs.target == 'go' || inputs.target == 'openssl'
+    name: openssl on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'FreeBSD 14.4',  os: ubuntu-latest, vm: freebsd }
+          - { name: 'DragonFly',     os: ubuntu-latest, vm: dragonflybsd }
+          - { name: 'macOS 26',      os: macos-latest,  vm: none }
+          - { name: 'NetBSD 11.0',   os: ubuntu-latest, vm: qemu }
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - if: matrix.vm == 'freebsd'
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'dragonflybsd'
+        uses: vmactions/dragonflybsd-vm@v1
+        with:
+          run: TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'none'
+        run: sudo env TREE_PATCH=.github/ci/tree-patch-openbsd-all.sh PKGS='' TREE_PKGS='security/openssl' PKGSRC_BASE=/Users/runner/pkgsrcwork sh .github/ci/build-on-bsd.sh
+      # NetBSD は pkgsrc の本拠地なので、当て物が当たった木で openssl が建つ
+      # ことをここで見ないと送れない。箱は croc と同じ qemu の image。
+      - if: matrix.vm == 'qemu'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          TREE_PATCH=tree-patch-openbsd-all.sh \
+          UPSTREAM_PKG=security/openssl VERIFY_SCRIPT=verify-openssl.sh \
+          PKGSRC_URL=http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz \
+            sh .github/ci/run-in-qemu.sh amd64-11.0
+
+  # devel/zlib は木の中でほぼ全員が引く。crc32_combine64 の番人は source を
+  # 直に触るので、当てた木が主要な platform で建ち、zlib 自身の test が
+  # 通り、負の長さで戻ることを見る。
+  zlib-platforms:
+    if: inputs.target == 'zlib'
+    name: zlib on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'NetBSD 11.0',   os: ubuntu-latest, vm: qemu }
+          - { name: 'FreeBSD 14.4',  os: ubuntu-latest, vm: freebsd }
+          - { name: 'OpenBSD 7.9',   os: ubuntu-latest, vm: openbsd }
+          - { name: 'DragonFly',     os: ubuntu-latest, vm: dragonflybsd }
+          - { name: 'macOS 26',      os: macos-latest,  vm: none }
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - if: matrix.vm == 'qemu'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          TREE_PATCH=tree-patch-zlib.sh \
+          UPSTREAM_PKG=devel/zlib VERIFY_SCRIPT=verify-zlib.sh \
+          PKGSRC_URL=http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz \
+            sh .github/ci/run-in-qemu.sh amd64-11.0
+      - if: matrix.vm == 'freebsd'
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          run: TREE_PATCH=.github/ci/tree-patch-zlib.sh PKGS='' TREE_PKGS='devel/zlib' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'openbsd'
+        uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          run: TREE_PATCH=.github/ci/tree-patch-zlib.sh PKGS='' TREE_PKGS='devel/zlib' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'dragonflybsd'
+        uses: vmactions/dragonflybsd-vm@v1
+        with:
+          run: TREE_PATCH=.github/ci/tree-patch-zlib.sh PKGS='' TREE_PKGS='devel/zlib' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'none'
+        run: sudo env TREE_PATCH=.github/ci/tree-patch-zlib.sh PKGS='' TREE_PKGS='devel/zlib' PKGSRC_BASE=/Users/runner/pkgsrcwork sh .github/ci/build-on-bsd.sh
+
+  # pkgconf の unveil の順序。効くのは OpenBSD だけだが、当て物は OS を
+  # 選ばないので、他の箱では回帰が無いことを見るために回す。
+  pkgconf-platforms:
+    if: inputs.target == 'pkgconf'
+    name: pkgconf on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'OpenBSD 7.9',   os: ubuntu-latest, vm: openbsd }
+          - { name: 'OpenBSD 7.8',   os: ubuntu-latest, vm: openbsd78 }
+          - { name: 'NetBSD 11.0',   os: ubuntu-latest, vm: qemu }
+          - { name: 'FreeBSD 14.4',  os: ubuntu-latest, vm: freebsd }
+          - { name: 'DragonFly',     os: ubuntu-latest, vm: dragonflybsd }
+          - { name: 'macOS 26',      os: macos-latest,  vm: none }
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - if: matrix.vm == 'qemu'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils netcat-openbsd
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          TREE_PATCH=tree-patch-pkgconf.sh \
+          UPSTREAM_PKG=devel/pkgconf VERIFY_SCRIPT=verify-pkgconf.sh \
+          PKGSRC_URL=http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz \
+            sh .github/ci/run-in-qemu.sh amd64-11.0
+      - if: matrix.vm == 'freebsd'
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          run: TREE_PATCH=.github/ci/tree-patch-pkgconf.sh PKGS='' TREE_PKGS='devel/pkgconf' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'openbsd'
+        uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          run: TREE_PATCH=.github/ci/tree-patch-pkgconf.sh PKGS='' TREE_PKGS='devel/pkgconf' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'openbsd78'
+        uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.8'
+          run: TREE_PATCH=.github/ci/tree-patch-pkgconf.sh PKGS='' TREE_PKGS='devel/pkgconf' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'dragonflybsd'
+        uses: vmactions/dragonflybsd-vm@v1
+        with:
+          run: TREE_PATCH=.github/ci/tree-patch-pkgconf.sh PKGS='' TREE_PKGS='devel/pkgconf' sh .github/ci/build-on-bsd.sh
+          copyback: false
+      - if: matrix.vm == 'none'
+        run: sudo env TREE_PATCH=.github/ci/tree-patch-pkgconf.sh PKGS='' TREE_PKGS='devel/pkgconf' PKGSRC_BASE=/Users/runner/pkgsrcwork sh .github/ci/build-on-bsd.sh
+
+  croc-openbsd:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on OpenBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-openbsd-${{ github.run_id }}
+          restore-keys: prs-openbsd-
+      - uses: vmactions/openbsd-vm@v1
+        with:
+          release: '7.9'
+          # pkgsrc の go は lang/go14 を source から組んで bootstrap するが、
+          # Go 1.4 は libc を通さず syscall を出すので、7.5 から入った
+          # pinsyscalls(2) の箱では go_bootstrap が Abort trap で死ぬ
+          # (run 35125854518)。OpenBSD 自身の go (7.9 は 1.26.2) を入れて
+          # GOROOT_BOOTSTRAP に指す。bootstrap.mk はそれが在れば go14 を
+          # 引かない。
+          # pkgsrc の go は OpenBSD で bootstrap できない (go14 が Abort trap、
+          # run 35125854518)。OpenBSD の go を GOROOT_BOOTSTRAP に指せば通る
+          # (run 35172300869) が、それは箱の側の回避なので、木の側の直し
+          # (go-bin に OpenBSD を足す) を当てて、pkgsrc だけで通るかを見る。
+          run: TREE_PATCH=.github/ci/tree-patch-go-bin-openbsd.sh PKGS='croc' sh .github/ci/build-on-bsd.sh
+          # 持ち帰りの rsync が VM の中で
+          #   ld.so: rsync: can't load library 'liblz4.so.3.3'   (run 35153723523)
+          #   ld.so: rsync: can't load library 'libiconv.so.7.2' (run 35165804296)
+          # と、回ごとに別の library を見失って Killed になり、検査は通って
+          # いるのに job が赤になる。二度目は prepare の直後に ldd を通して
+          # あるので、file が無いのではなく run の後の VM の状態の話である。
+          # 持ち帰る物は .bsdcache だけなので、この箱では持ち帰らない。
+          copyback: false
+
+  croc-dragonfly:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on DragonFly
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-dragonfly-${{ github.run_id }}
+          restore-keys: prs-dragonfly-
+      - uses: vmactions/dragonflybsd-vm@v1
+        with:
+          # libuuid は cdn の木 (2026-09-12) では DragonFly で建たない。上流
+          # rev 1.16 (2026-09-14) と同じ一行を先に足す。追いつけば何もしない。
+          run: TREE_PATCH=.github/ci/tree-patch-libuuid-dragonfly.sh PKGS='croc' sh .github/ci/build-on-bsd.sh
+
+  croc-ghostbsd:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on GhostBSD
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-ghostbsd-${{ github.run_id }}
+          restore-keys: prs-ghostbsd-
+      - uses: vmactions/ghostbsd-vm@v1
+        with:
+          run: PKGS='croc' sh .github/ci/build-on-bsd.sh
+
+  croc-linux:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on Debian
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq build-essential curl git tar gzip perl bash procps
+      - name: 建てて確かめる
+        run: PKGS='croc' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  croc-fedora:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on Fedora
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    container: fedora:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 道具を入れる
+        run: |
+          # 中身は xwpe-fedora と同じ。coreutils-single と hostname の件は
+          # そちらの comment に在る。
+          dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
+            dnf -y install coreutils > /dev/null
+          dnf -y install gcc gcc-c++ make curl git tar gzip perl-core diffutils \
+                         findutils which patch file gawk zlib-devel \
+                         ncurses-devel libb2-devel openssl-devel \
+                         libarchive-devel bzip2 xz hostname procps-ng > /dev/null
+          [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
+      - name: 建てて確かめる
+        run: PKGS='croc' PKGSRC_BASE=/tmp sh .github/ci/build-on-bsd.sh
+
+  croc-macos:
+    if: inputs.target == 'all' || inputs.target == 'croc'
+    name: croc on macOS
+    runs-on: macos-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: 建てて確かめる
+        run: |
+          sudo env PKGS='croc' PKGSRC_BASE=/Users/runner/pkgsrcwork \
+                   sh .github/ci/build-on-bsd.sh
+
+  # gdb7: GitHub NetBSD/pkgsrc #187 は Darwin-*-aarch64 を NOT_FOR_PLATFORM に
+  # する一行。前提 (同梱 zlib の fdopen が SDK と衝突) がこの runner で再現
+  # するか、一行が効くか、zlib を越えた先に native の口が無いか、を
+  # verify-gdb7.sh が三段で見る。runner は arm64 の macOS で、まさに対象。
+  # 手元の Mac では lang/perl5 の miniperl が glob で segfault して依存の
+  # 段で止まり、ここまで届かなかった。
+  gdb7-macos:
+    if: inputs.target == 'all' || inputs.target == 'gdb7'
+    name: gdb7 on macOS (Darwin/aarch64, #187)
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: 再現して確かめる
+        run: |
+          sudo env PKGS='' TREE_PKGS='devel/gdb7' \
+                   PKGSRC_BASE=/Users/runner/pkgsrcwork \
+                   sh .github/ci/build-on-bsd.sh
+
+  # GhostBSD は FreeBSD 系の desktop 向け。base は clang。X は在るが、
+  # OpenBSD と DragonFly で見たとおり pkgsrc から積むと modular xorg で
+  # 落ちるので端末のみ。
+  xwpe-ghostbsd:
+    if: inputs.target == 'all' || inputs.target == 'xwpe'
+    name: xwpe on GhostBSD (端末のみ)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      XWPE_OPTIONS: '-x11 -xft'
+    steps:
+      - uses: actions/checkout@v4
+      - name: ディスクを空ける
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+      - uses: actions/cache@v4
+        with:
+          path: .bsdcache
+          key: prs-ghostbsd-${{ github.run_id }}
+          restore-keys: prs-ghostbsd-
+      - uses: vmactions/ghostbsd-vm@v1
+        with:
+          envs: 'XWPE_OPTIONS'
+          run: PKGS='xwpe' sh .github/ci/build-on-bsd.sh

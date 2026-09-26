@@ -1,0 +1,10 @@
+$NetBSD: distinfo,v 1.5 2021/10/26 10:49:36 nia Exp $
+
+BLAKE2s (IIIMECF-0.6.tar.gz) = b64f10634bddefff617c5c3d66f6137ebd1df099daef8e67c76516e53a26c970
+SHA512 (IIIMECF-0.6.tar.gz) = 5c349c1ffbd633c3f65b1a830df7ad1e0ec9424598ce3c721d75209204dd8b7c116385ba969e64f0b20f87098f98d48824e99553ab02f687703fc8d2ee97fdfa
+Size (IIIMECF-0.6.tar.gz) = 71565 bytes
+SHA1 (patch-iiimcf-comp.el) = e72179c43d85f00c6f14112eaab1cf4ad77b7e43
+SHA1 (patch-lisp_EIMIL.el) = 30116d31b07816c85de9802b27b89ddcaccef1db
+SHA1 (patch-lisp_PCE.el) = d7e7679879a1dcb0a95bc096f069f658b62ea7ba
+SHA1 (patch-lisp_iiimcf.el) = 5ff7b7246b019d5757b938b3d1784b795f19f763
+SHA1 (patch-lisp_iiimp.el) = fc738b3b9f92c9c40dec4b0fc31cfc7ef963eb80

@@ -1,0 +1,5 @@
+OpenJDK 28 (development) for NetBSD.
+
+This is a work in progress: mainline OpenJDK does not build on NetBSD, and
+this package tracks a branch where the missing pieces are added one at a
+time so that each can be sent upstream.

@@ -1,0 +1,20 @@
+$NetBSD$
+
+leim is built separately from emacs, so src/emacs does not exist in this tree.
+Makefile.in wants it for converting the TIT files and for byte-compiling, so
+point it at the installed one instead.
+
+	BUILT-EMACS = ${dot}${dot}/src/emacs
+	  ->  ${LOCALBASE}/bin/emacs
+
+--- leim/Makefile.in.orig	Mon Jan 11 12:40:22 1999
++++ leim/Makefile.in	Tue Dec 28 14:53:29 1999
+@@ -37,7 +37,7 @@
+ 
+ # Which Emacs to use to convert TIT files to Emacs Lisp files,
+ # byte-compile Emacs Lisp files, and generate the file leim-list.el.
+-BUILT-EMACS = ${dot}${dot}/src/emacs
++BUILT-EMACS = ${LOCALBASE}/bin/emacs
+ 
+ buildlisppath=${srcdir}/${dot}${dot}/lisp
+ 

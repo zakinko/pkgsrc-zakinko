@@ -1,0 +1,273 @@
+# $NetBSD$
+#
+# editors/emacs22 が pkgsrc から消えたので、消される直前の版をここへ引き取った。
+#
+#	CVS	pkgsrc/editors/emacs22  Makefile,v 1.56
+#	削除	2017-09-29 12:40:29 UTC  wiz  commitid ZRYX7Ib64A6cG59A  (rev 1.57, state dead)
+#
+# PKGREVISION は CVS の最終値 45 に +1 した 46 で固定する。ここに手を入れても
+# 動かさない。上流の値より大きければ pkgin が入れ替えるので、それ以上に
+# 上げる意味が無い。同じ番号で入れ直すときは make replace を使う。
+#
+# emacs22-nox11 の側は 5 になる。上流のあちらは別に PKGREVISION を持って
+# いて、その最終値 4 に +1 したもの。番号が揃わないのは、もとの二つが
+# 揃っていなかったためである。
+#
+# 上流と違うところ:
+#
+#   - MAINTAINER をこちらへ移した。上流に居ないものを pkgsrc-users 宛のまま
+#     置いておくと、報告先が無い
+#   - $NetBSD$ は潰した。ここは CVS ではないので、あの番号は更新されない
+#   - EMACS_COEXIST を足した
+#   - 脆弱性の当て物を足した。何を当てたかは patches/ の各ヘッダにある
+#
+# used by zakinko/emacs22/Makefile
+# used by zakinko/emacs22-nox11/Makefile
+
+
+COMMENT?=	GNU editing macros (editor)
+
+# temacs dumps itself with unexec(), which rewrites its own ELF image.
+# PIE relocates that image and RELRO write-protects what unexec() patches.
+# The package was removed from pkgsrc in 2017, before MKPIE was turned on.
+MKPIE_SUPPORTED=	no
+RELRO_SUPPORTED=	no
+
+DISTNAME=	emacs-${EMACS_VERSION}
+PKGNAME?=	${DISTNAME:S/emacs/emacs22/}
+CATEGORIES=	zakinko editors
+MASTER_SITES=	${MASTER_SITE_GNU:=emacs/}
+
+MAINTAINER=	zakinko@snowrabbit.org
+HOMEPAGE=	https://www.gnu.org/software/emacs/emacs.html
+LICENSE=	gnu-gpl-v3
+
+CONFLICTS+=	elisp-manual-[0-9]*
+CONFLICTS+=	mule-[0-9]*
+
+USE_TOOLS+=		gmake gzip mktemp:run perl:run pkg-config
+GNU_CONFIGURE=		yes
+INFO_FILES=		yes
+
+USE_GAMESGROUP=		yes
+
+MAKEFLAGS+=		EMACSLOADPATH=${WRKSRC}/lisp
+
+CONFIGURE_ARGS+=	--localstatedir=${VARBASE:Q}
+CONFIGURE_ENV+=		GAMEOWN=${GAMES_USER}
+
+BUILD_DEFS+=		VARBASE
+BUILD_DEFS+=		GAMEDATAMODE
+
+.include "../../zakinko/emacs22/version.mk"
+
+# emacs22 だけ EMACS_VERSION を持っていなかった。DISTNAME に 22.3 を直書きして
+# いたので誰も困っていなかったが、版の出どころが二つあるのは筋が悪い。23 から
+# 28 と同じ形にする。CI の「名乗る版が合っているか」もこれを見ていて、空だった
+# ために i386 の三つが落ちていた。
+# 配布物は .el の隣に .elc を同梱していて、Emacs は .elc を先に読む。既定の
+# BUILD_TARGET=all は lisp を建て直さないので、lisp への当て物は入っても実行時
+# には効かない。2008 年の byte code が勝つ。man.el に shell-quote-argument が
+# 在るのに man.elc には無く、建てた emacs で Man-translate-references ";id" が
+# ";id" のまま返る、という形で測れた。CVE-2014-3422 と CVE-2014-3423 の当て物も
+# 同じ理由で効いていなかった。
+#
+# emacs23 から emacs28 はこれを持っているので無事だった。22 だけ落ちていた。
+#
+# 一部の .elc だけ消して建て直す手は使えない。files.elc は dump される側で、
+# src/Makefile が ../etc/DOC を作るのに要求するが、all にはそれを作る規則が
+# 無い。消すと "No rule to make target .../lisp/files.elc" で止まる。
+#
+# 二度 dump するので DOC の連番が一つ進み、site-init.el も compile と圧縮の
+# 対象に入る。PLIST の三行はそのため。
+#
+# 測ったのは NetBSD 11.0/amd64 だけである。他の BSD では確かめようが無かった。
+# FreeBSD 15.1 と GhostBSD 26.1 では、この変更の有無にかかわらず 22.3 が
+# 建たない --- FreeBSD 15 が <utmp.h> を廃したので src/filelock.c が
+# 'utmp.h' file not found で落ちる。BUILD_TARGET=all に戻しても同じ所で
+# 止まることを実測した (落ちる target が Makefile:783 bootstrap から
+# Makefile:304 src に変わるだけ)。DragonFly は configure が
+# x86_64-pc-dragonfly を知らない。OpenBSD 7.9 は依存の archivers/bzip2 が
+# package 化できず emacs まで到達しない。原因は pkgsrc ではなく箱の memory
+# 逼迫だった。16GB の RAM に対し swap が 256MB しか無く、別の Java build と
+# 同居していて、OOM killer が bmake を殺していた (/var/log/messages に
+# "UVM: pid 5530 (bmake) killed: out of swap")。書きかけの file が半端に
+# 残り、それを pkg_create が読んでいた。peer が od -c で NUL の穴を見つけて
+# 決着させた分。
+#
+# つまり DOC の連番と site-init.el.gz が他の platform でどう出るかは
+# 未測である。22.3 がそれらの platform で建つようになったら、PLIST の
+# 三行を確かめ直すこと。
+BUILD_TARGET=		bootstrap
+
+EMACS_VERSION=		${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
+
+# build PATH in the dumped emacs is not a problem
+CHECK_WRKREF_SKIP+=	bin/emacs
+CHECK_WRKREF_SKIP+=	bin/emacs-[0-9]*
+
+REPLACE_PERL=		lib-src/grep-changelog
+
+SUBST_CLASSES+=			test_equal
+SUBST_STAGE.test_equal=		pre-configure
+SUBST_MESSAGE.test_equal=	Fixing bashisms in test(1) usage.
+SUBST_FILES.test_equal=		mac/make-package
+SUBST_SED.test_equal=		-e 's/ == / = /g'
+
+MAKE_DIRS_PERMS+=	${VARBASE}/games/emacs \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDIRMODE:Q}
+CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/snake-scores \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE:Q}
+CONF_FILES_PERMS+=	/dev/null ${VARBASE}/games/emacs/tetris-scores \
+			${GAMES_USER} ${GAMES_GROUP} ${GAMEDATAMODE:Q}
+SPECIAL_PERMS+=		libexec/emacs/${PKGVERSION_NOREV}/${MACHINE_GNU_PLATFORM}/update-game-score ${SETGID_GAMES_PERMS}
+
+.include "../../mk/bsd.prefs.mk"
+
+.if (${OPSYS} == "DragonFly") && exists(/usr/lib/crtn.o)
+CPPFLAGS+=		-DDFLY_CRT_USRLIB
+.endif
+
+.include "../../mk/compiler.mk"
+
+# "emacs" uses the C pre-processor to generate makefiles. The C pre-processor
+# of newer GCC version is designed to break this by purpose. We work around
+# that using the traditional mode to generate makefiles.
+.if !empty(CC_VERSION:Mgcc-[4-9].*)
+CPP+=		-P
+CONFIGURE_ENV+=	CPP=${CPP:Q}
+.endif
+
+.if (${OPSYS} == "NetBSD") && \
+    !exists(/usr/lib/libgcc_s.so) && !exists(/usr/lib/libgcc.a)
+# NetBSD with native Clang doesn't provide libgcc, everything is in libc.
+pre-configure: fake-libgcc
+
+LDFLAGS+=	-L${PREFIX}/lib
+.PHONY: fake-libgcc
+fake-libgcc:
+	${AR} q ${BUILDLINK_DIR}/lib/libgcc.a
+.endif
+
+post-extract:
+	cp ${FILESDIR}/site-init.el ${WRKSRC}/lisp
+	cp ${FILESDIR}/dragonfly.h ${WRKSRC}/src/s
+	${CHMOD} -R go-w ${WRKSRC}
+
+# These dirs are installed by tar-copy and can sometimes come out mode
+# 754, which if PKG_DEVELOPER is set causes the build to fail.
+post-install:
+.for file in leim leim/ja-dic leim/quail
+	${CHMOD} 755 ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/${file}
+.endfor
+
+# bootstrap は二度 dump するので、etc に DOC-22.3.1 と DOC-22.3.2 が出来る。
+# 中身は同じで (cksum が両方 786476988、cmp も差を出さない)、dumped emacs が
+# 見に行くのは後のほうである。
+#
+#	emacs -Q --batch --eval '(princ internal-doc-file-name)'
+#	→ DOC-22.3.2
+#
+# install-arch-indep は "tar -chf - DOC*" で両方を写す。上流も Makefile.in に
+# "Should only install the DOC- file appropriate to this build, not DOC-*."
+# と書いたまま直していない。2.1MB の重複なので、使われないほうを落とす。
+# emacs23 以降は DOC を一つしか作らないので、この始末は 22 だけに要る。
+.PHONY: rm-bootstrap-doc
+post-install: rm-bootstrap-doc
+rm-bootstrap-doc:
+	${RM} -f ${DESTDIR}${PREFIX}/share/emacs/${PKGVERSION_NOREV}/etc/DOC-${PKGVERSION_NOREV}.1
+
+.include "../../mk/oss.buildlink3.mk"
+.include "../../mk/termcap.buildlink3.mk"
+
+# patch-lisp_international_titdic-cnv.el changes titdic-cnv.el, but the
+# tarball also ships titdic-cnv.elc and leim/Makefile loads the library by
+# name, so the stale .elc would win and the patch would never run.  Drop it
+# before the build and compile it again from the patched source afterwards,
+# so that what gets installed is the pair the PLIST expects.
+post-patch:
+	${RM} -f ${WRKSRC}/lisp/international/titdic-cnv.elc
+
+post-build:
+	cd ${WRKSRC}/lisp/international && ${WRKSRC}/src/emacs -batch -q \
+		--no-site-file -f batch-byte-compile titdic-cnv.el
+
+
+#
+# EMACS_COEXIST
+#	yes にすると無印の bin/emacs を入れず、bin/emacs22 のように版付きの
+#	名前だけを置く。zakinko の emacs22 から emacs28 を並べて入れられる。
+#
+#	その代わり、この版に対して elisp パッケージは建たなくなる。
+#	emacs/modules.mk が EMACS_BIN を ${PREFIX}/bin/emacs と版によらず
+#	決め打ちしているためで、無印を置かない以上どうにもならない。日本語
+#	入力の検査のように elisp を建てる用途は既定の no 側で行う。
+#
+#	既定は no。そのときは上流とまったく同じものが入る。PKG_OPTIONS には
+#	しない。PKG_OPTIONS_VAR が全 emacs 版で共有の PKG_OPTIONS.emacs な
+#	ので、そこに知らない名前が入ると bsd.options.mk の PKG_FAIL_REASON で
+#	上流の emacs30 などが建たなくなる。
+#
+#	info はいずれも無印なので、共存時は --infodir ごと
+#	${PKGINFODIR}/emacs22 へ振る。desktop や icons のように版で分ける
+#	すべが無いものは、共存時は入れない。
+#
+EMACS_COEXIST?=		no
+BUILD_DEFS+=		EMACS_COEXIST
+
+PLIST_VARS+=		plain coexist
+.if ${EMACS_COEXIST} == "yes"
+PLIST.coexist=		yes
+EMACS_INFOSUB=		emacs22/
+# CONFIGURE_ARGS には足さない。pkgsrc が gnu-configure.mk で
+# --infodir=${GNU_CONFIGURE_INFODIR} を後ろに足すので、そちらが勝つ。
+GNU_CONFIGURE_INFODIR=	${PREFIX}/${PKGINFODIR}/emacs22
+
+post-install: coexist-names
+
+.PHONY: coexist-names
+coexist-names:
+	cd ${DESTDIR}${PREFIX}/bin && \
+		${MV} emacs-b2m emacs22-b2m && \
+		${MV} emacs-ctags emacs22-ctags && \
+		${MV} emacs-ebrowse emacs22-ebrowse && \
+		${MV} emacs-${PKGVERSION_NOREV} emacs22 && \
+		${MV} emacsclient emacsclient22 && \
+		${MV} emacs-etags emacs22-etags && \
+		${MV} emacs-grep-changelog emacs22-grep-changelog && \
+		${MV} emacs-rcs-checkin emacs22-rcs-checkin
+	# Emacs の install-man は入れた man をその場で gzip する。configure の
+	# compress-install は既定で on なので、post-install の時点で在るのは
+	# emacs.1 ではなく emacs.1.gz になる。素の名前だけを mv すると
+	# "No such file or directory" で落ちる。pkgsrc があとで .1 へ戻すので、
+	# 改名しない既定の形では誰も踏まない。両方の綴りを見る。
+	cd ${DESTDIR}${PREFIX}/${PKGMANDIR}/man1 && \
+	for m in emacs-ctags:emacs22-ctags emacs:emacs22 \
+		 emacsclient:emacsclient22 emacs-etags:emacs22-etags; do \
+		o=$${m%%:*}; n=$${m\#*:}; \
+		for e in "" .gz; do \
+			[ -f "$$o.1$$e" ] || continue; \
+			${MV} "$$o.1$$e" "$$n.1$$e"; \
+		done; \
+	done
+	${RM} -f  ${DESTDIR}${PREFIX}/bin/emacs
+	${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/subdirs.el
+	${RM} -f  ${DESTDIR}${PREFIX}/share/emacs/site-lisp/site-start.el
+.else
+PLIST.plain=		yes
+EMACS_INFOSUB=		# 無印のまま
+.endif
+PLIST_SUBST+=		EMACS_INFOSUB=${EMACS_INFOSUB:Q}
+
+# Emacs reads site-lisp/site-start.el at startup, before ~/.emacs, because
+# site-run-file is "site-start" and site-lisp is on load-path.  pkgsrc has had
+# no such file, so every elisp package told the user to paste autoloads into
+# their own .emacs by hand.  This one loads whatever packages left in
+# site-lisp/site-start.d, so they can register themselves instead.
+.if ${EMACS_COEXIST} != "yes"
+post-install: site-start
+.PHONY: site-start
+site-start:
+	${INSTALL_DATA} ${FILESDIR}/site-start.el \
+		${DESTDIR}${PREFIX}/share/emacs/site-lisp/site-start.el
+.endif
