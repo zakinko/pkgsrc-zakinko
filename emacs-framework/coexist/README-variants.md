@@ -229,3 +229,27 @@ emacs30-nox11 を移した build に入れ替えたままにしたので、`bin/
 が箱から消え、そこへ依存する 30 本余りの elisp package が読めなくなった。
 9/22 の binary package から戻した。**実験のために入れ替えたものは、確かめ
 たらその場で戻すこと。**
+
+## emacs20 の X と nox (2026-09-26)
+
+emacs20 は上流どおり一つの package のままにする。X は `x11` option で
+入れ替えるもので、既定の option (`emacs-pop inet6`) では X 無しで建つ。
+版付きの名前 (`bin/emacs-20.7` ほか) で入るので、他の版とはこのまま
+同居できる。
+
+X 版と nox 版を並べたいときは分けられる。`emacs20-A` は既に
+`EMACS_TAG` を受け取り、`-nox11` で終わるときは `options.mk` が `x11` と
+toolkit を出さない。足すのは次の二つ。
+
+- `emacs20-A/Makefile` を読み込み `EMACS_TAG= 20.7-nox11`、
+  `PLIST_SRC= ${.CURDIR}/PLIST` を与える package (`emacs20-nox11`)
+- modules.mk の `_EMACS_VERSIONS_ALL` に `emacs20nox`、
+  `_EMACS_PKGDIR_MAP` に `emacs20nox@../../editors/emacs20-nox11`
+
+a3f8727 がその形で、techne で `x11 xaw` 付きの emacs20 (libX11 と
+libXaw に link、`x-open-connection` を持つ) と emacs20-nox11 (どちらも
+持たない) を並べて入れ、どちらを消しても残った方が起動し自分用の
+elisp-compat と data-directory を読むことを確かめた。既定を変えない
+以上、分けると既定の emacs20 と中身の同じ nox 版が並ぶので、既定では
+入れていない。
+
