@@ -1,0 +1,14 @@
+speakersafetyd is a software "smart amp": it protects the loudspeakers of
+Apple Silicon Macs from thermal damage.
+
+The amplifiers in these machines report the voltage across and the current
+through each speaker's voice coil, but do nothing with it themselves; macOS
+does the protection in userland.  speakersafetyd reads those sense signals,
+estimates the voice coil and magnet temperatures with a two-stage thermal
+model, and turns the speaker volume down when they approach their limit.
+This lets the speakers be driven well above the level that would be safe
+for the worst possible input.
+
+The per-machine thermal parameters for the supported models are included.
+The daemon needs kernel drivers that expose the sense signals and a
+volume interlock; it does nothing useful without them.

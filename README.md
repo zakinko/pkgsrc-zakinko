@@ -58,6 +58,7 @@ make makesum
 | [mule](mule/) | 多言語 Emacs (Mule 1.1 / Emacs 18.59 ベース)。pkgsrc-wip の mule11 を、tsutsui の今の木に上げたもの |
 | [mule2](mule2/) | 多言語 Emacs (Mule 2.3 / Emacs 19.28 ベース)。本家では 2022 年に削除済み |
 | [nss_stns](nss_stns/) | STNS の名前解決スイッチモジュール |
+| [speakersafetyd](speakersafetyd/) | Apple Silicon Mac のスピーカーを熱から守る Asahi Linux の daemon。NetBSD 用の backend を当て物で足した。動かすには NetBSD 側の applemacaudio(4) が要り、まだ本家に無い |
 | [stnsd](stnsd/) | 小さな STNS API サーバ |
 
 どのパッケージも第二カテゴリを併記してあるので (`stnsd` は `zakinko` と

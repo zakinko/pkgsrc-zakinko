@@ -60,6 +60,7 @@ SUBDIR+=	openjdk25
 SUBDIR+=	openjdk28
 SUBDIR+=	openjdk8
 SUBDIR+=	pcl-cvs
+SUBDIR+=	speakersafetyd
 SUBDIR+=	stnsd
 SUBDIR+=	tamago
 SUBDIR+=	w3

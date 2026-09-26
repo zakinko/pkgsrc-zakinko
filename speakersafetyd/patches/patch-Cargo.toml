@@ -1,0 +1,22 @@
+$NetBSD$
+
+ALSA is only a dependency on Linux; NetBSD uses its own backend.
+
+--- Cargo.toml.orig
++++ Cargo.toml
+@@ -28,8 +28,6 @@
+ name = "speakersafetyd"
+ path = "src/main.rs"
+ 
+-[dependencies.alsa]
+-version = "^0.11.0"
+ 
+ [dependencies.chrono]
+ version = "^0.4.44"
+@@ -56,3 +54,6 @@
+ 
+ [dependencies.simple_logger]
+ version = "^5.2.0"
++
++[target.'cfg(target_os = "linux")'.dependencies.alsa]
++version = "^0.11.0"

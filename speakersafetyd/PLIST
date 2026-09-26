@@ -1,0 +1,27 @@
+@comment $NetBSD$
+sbin/speakersafetyd
+share/doc/speakersafetyd/README.md
+share/doc/speakersafetyd/speakers.txt
+share/speakersafetyd/apple/j180.conf
+share/speakersafetyd/apple/j274.conf
+share/speakersafetyd/apple/j293.conf
+share/speakersafetyd/apple/j313.conf
+share/speakersafetyd/apple/j314.conf
+share/speakersafetyd/apple/j316.conf
+share/speakersafetyd/apple/j375.conf
+share/speakersafetyd/apple/j413.conf
+share/speakersafetyd/apple/j414.conf
+share/speakersafetyd/apple/j415.conf
+share/speakersafetyd/apple/j416.conf
+share/speakersafetyd/apple/j456.conf
+share/speakersafetyd/apple/j457.conf
+share/speakersafetyd/apple/j473.conf
+share/speakersafetyd/apple/j474.conf
+share/speakersafetyd/apple/j475.conf
+share/speakersafetyd/apple/j493.conf
+share/speakersafetyd/apple/j504.conf
+share/speakersafetyd/apple/j514.conf
+share/speakersafetyd/apple/j516.conf
+share/speakersafetyd/apple/j575.conf
+share/speakersafetyd/apple/j613.conf
+share/speakersafetyd/apple/j615.conf
