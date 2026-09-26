@@ -23,8 +23,12 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 # 触る file: pkg-fixes/*/ の差分の --- 行と、上の階の *.orig が指す二つ。
 # not-sent/ は当てないので取らない。
 {
-	grep -h '^--- ' "$SRC"/pkg-fixes/framework/*.diff "$SRC"/pkg-fixes/fixes/*.diff \
-		"$SRC"/pkg-fixes/adaptations/*.diff | awk '{print $2}' | sed 's/\.orig$//'
+	# +++ の側を読む。--- 側は diff を取った箱の絶対 path のことがあり
+	# (/usr/pkgsrc/mail/vm/Makefile)、そのまま URL にすると 404 になる。
+	# 2026-09-26 に上流が大半を取り込み、framework/ と adaptations/ は空に
+	# なった。空の glob は grep が文句を言うだけなので黙らせる。
+	grep -h '^+++ ' "$SRC"/pkg-fixes/framework/*.diff "$SRC"/pkg-fixes/fixes/*.diff \
+		"$SRC"/pkg-fixes/adaptations/*.diff 2>/dev/null | awk '{print $2}'
 	echo editors/emacs/modules.mk
 } | sort -u > "$OUT/FILES"
 
