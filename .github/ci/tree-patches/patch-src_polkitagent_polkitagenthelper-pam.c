@@ -1,6 +1,7 @@
 $NetBSD$
 
-Fix build on FreeBSD, GhostBSD and DragonFly, and keep the NetBSD fix.
+Fix build where ENODATA is missing, such as FreeBSD, and keep the
+NetBSD fix.
 
 Two upstream commits, both after polkit 127:
 
@@ -12,11 +13,12 @@ The tree's patch of this name is 72c28782b17e, hunk for hunk.  What is
 missing is the other one.  polkit defines SO_PEERPIDFD itself when the
 system does not, with no platform test, so the socket-activation block is
 compiled everywhere; inside it errno is compared against ENODATA, which
-FreeBSD does not have:
+FreeBSD, DragonFly and OpenBSD do not have:
 
   polkitagenthelper-pam.c:156:48: error: use of undeclared identifier 'ENODATA'
 
-NetBSD has ENODATA, which is why only the FreeBSD side fails.  066b55bf2e2b
+NetBSD has ENODATA, which is why its build was fine without this half.
+066b55bf2e2b
 makes the fallback define Linux-only and wraps the block in
 #ifdef SO_PEERPIDFD.
 
