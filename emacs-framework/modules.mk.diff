@@ -1,114 +1,37 @@
---- /usr/pkgsrc/editors/emacs/modules.mk	2026-09-18 05:45:56.802731822 +0000
-+++ editors/emacs/modules.mk	2026-09-25 06:36:32.799139998 +0000
-@@ -61,15 +61,31 @@
- #		Default value:
- #			<undefined>
- #
-+#	EMACS_VERSIONS_INCOMPATIBLE
-+#		Description:
-+#			Versions the ELP does not work with, subtracted
-+#			from EMACS_VERSIONS_ACCEPTED.  The same shape as
-+#			PYTHON_VERSIONS_INCOMPATIBLE.
-+#		Possible values:
-+#			any of the values below
-+#		Default value:
-+#			empty
-+#
- #	EMACS_VERSIONS_ACCEPTED
- #		Description:
- #			Versions the ELP accepts (supports).
--#		Possible values:
--#			emacs31 emacs31nox
--#			emacs30 emacs30nox
--#			emacs29 emacs29nox
--#			emacs20 xemacs215 xemacs215nox
--#			xemacs214 xemacs214nox
-+#
-+#			Naming emacs30 accepts emacs30nox as well: they are
-+#			one Emacs built two ways, and no package in the tree
-+#			installs a different file list for the two.  Write
-+#			both halves if you like; it makes no difference.  A
-+#			package that really does need one of them says so in
-+#			EMACS_VERSIONS_INCOMPATIBLE.
-+#		Possible values:
-+#			emacs31 emacs30 emacs29 emacs20
-+#			xemacs215 xemacs214
-+#			(each also accepting its nox build; append nox to
-+#			name one of the two on its own)
- #		Default value:
- #			emacs31 emacs31nox
- #			emacs30 emacs30nox
-@@ -115,6 +131,10 @@
- #			Path to the directory Info files should be
- #			installed into.  Unlike EMACS_ETCPREFIX or
- #			EMACS_LISPPREFIX, a subdirectory is not needed.
-+#			For GNU Emacs this is PKGINFODIR, which this file
-+#			sets to the version directory when PKGNAME carries
-+#			EMACS_PKGNAME_PREFIX, so a PLIST may spell either
-+#			${EMACS_INFOPREFIX}/ or info/.
- #		Possible values:
- #			${PREFIX}/${PKGINFODIR}
- #			${PREFIX}/lib/xemacs/site-packages/info
-@@ -131,8 +151,21 @@
- #		Description:
- #			The prefix of PKGNAME and DEPENDS lines.  All ELPs
- #			must honour this!
--#		Possible values:
--#			"", "xemacs-"
-+#
-+#			It carries the version, not the flavour, so that one
-+#			bulk build can make the same package for every Emacs
-+#			and the name says which one it was made for.  The two
-+#			builds of one Emacs share it: emacs30 and
-+#			emacs30-nox11 conflict with each other and install
-+#			their lisp in the same directory, so emacs30-foo
-+#			serves either.  A package that refuses one of the two
-+#			(EMACS_VERSIONS_INCOMPATIBLE) is a different thing and
-+#			gets the longer name.
-+#		Possible values:
-+#			"emacs20-", "emacs29-", "emacs30-", "emacs31-",
-+#			"xemacs214-", "xemacs215-"
-+#			and, for a package that takes only the nox build,
-+#			"emacs30-nox11-" and so on
- #
- #	EMACS_VERSION_MAJOR
- #		Description:
-@@ -200,6 +233,16 @@
- #			valid.
- #
- #			NOTFOR_* is the opposite of FOR_*.
-+#
-+#			FOR_emacs_x and FOR_emacs_nox tell the X11 build
-+#			of an Emacs from the no-X11 one, for a package
-+#			whose lisp differs between the two.  No package
-+#			does: editors/emacs30-nox11 takes its PKGDIR,
-+#			PLIST, PATCHDIR and DISTINFO_FILE from
-+#			editors/emacs30, so the pair share one PLIST, and
-+#			a package that installs the same lisp either way
-+#			has nothing to mark.  They are kept for a package
-+#			outside the tree that reads them.
- #		Possible values:
- #			"", "@comment"
- #
-@@ -233,10 +276,14 @@
- # Constants
- #
- 
-+# Newest first.  A package that names no set of its own gets this list
-+# as EMACS_VERSIONS_ACCEPTED, so the order here is the default
-+# preference; where a package does name its own, that list's order is
-+# what counts.
+--- /usr/pkgsrc/editors/emacs/modules.mk
++++ editors/emacs/modules.mk
+@@ -270,11 +270,29 @@
+ # order is what counts.
  _EMACS_VERSIONS_ALL= \
--	emacs20 emacs29 emacs29nox  \
--	emacs30 emacs30nox emacs31 emacs31nox \
--	xemacs214 xemacs214nox xemacs215 xemacs215nox
-+	emacs31 emacs31nox emacs30 emacs30nox \
-+	emacs29 emacs29nox emacs20 \
-+	xemacs215 xemacs215nox xemacs214 xemacs214nox
+ 	emacs31 emacs31nox emacs30 emacs30nox \
+-	emacs29 emacs29nox emacs20 \
++	emacs29 emacs29nox \
++	emacs28 emacs28nox emacs27 emacs27nox emacs26 emacs26nox emacs25 emacs25nox emacs24 emacs24nox emacs23 emacs23nox emacs22 emacs22nox emacs21 emacs21nox \
++	emacs20 \
+ 	xemacs215 xemacs215nox xemacs214 xemacs214nox
  
  _EMACS_PKGDIR_MAP= \
  	emacs20@../../editors/emacs20 \
-@@ -247,13 +294,28 @@
++	emacs21@../../editors/emacs21 \
++	emacs21nox@../../editors/emacs21-nox11 \
++	emacs22@../../editors/emacs22 \
++	emacs22nox@../../editors/emacs22-nox11 \
++	emacs23@../../editors/emacs23 \
++	emacs23nox@../../editors/emacs23-nox11 \
++	emacs24@../../editors/emacs24 \
++	emacs24nox@../../editors/emacs24-nox11 \
++	emacs25@../../editors/emacs25 \
++	emacs25nox@../../editors/emacs25-nox11 \
++	emacs26@../../editors/emacs26 \
++	emacs26nox@../../editors/emacs26-nox11 \
++	emacs27@../../editors/emacs27 \
++	emacs27nox@../../editors/emacs27-nox11 \
++	emacs28@../../editors/emacs28 \
++	emacs28nox@../../editors/emacs28-nox11 \
+ 	emacs29@../../editors/emacs29 \
+ 	emacs29nox@../../editors/emacs29-nox11 \
+ 	emacs30@../../editors/emacs30 \
+@@ -282,9 +300,9 @@
  	emacs31@../../editors/emacs31 \
  	emacs31nox@../../editors/emacs31-nox11 \
  	xemacs214@../../editors/xemacs \
@@ -118,130 +41,31 @@
 -	xemacs215nox@../../editors/xemacs-current-nox11
 +	xemacs215nox@../../editors/xemacs215-nox11
  
--_EMACS_ETCDIR.emacs=		share
-+# Data installed beside the lisp moves with it.  mail/mew and math/ess
-+# are the two that use this, and both bake the path into the package at
-+# build time (etcdir=, INSTALLATION_DIRS), so nothing has to be told
-+# where it went -- unlike info, which Emacs looks for at run time.
-+# Without this, emacs29-mew and emacs30-mew would both write share/mew.
-+_EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
-+# Info goes under the version too, but by way of PKGINFODIR (set once
-+# the version is known, below) rather than by a path of its own, so
-+# that everything pkgsrc already does for info files -- the PLIST
-+# canonicalisation in mk/plist/plist-info.awk, the --infodir that
-+# gnu-configure.mk passes, the dir file install-info maintains --
-+# follows without any package being told.  A PLIST that spells
-+# info/foo.info is still right.
- _EMACS_INFODIR.emacs=		${PKGINFODIR}
--_EMACS_LISPDIR.emacs=		share/emacs/site-lisp
-+# Put the lisp under the version directory of the Emacs it was built
-+# for.  Emacs already searches share/emacs/<version>/site-lisp, so what
-+# lands there is seen by that Emacs and by no other.
-+_EMACS_LISPDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
+ # Data installed beside the lisp moves with it.
+ _EMACS_ETCDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/etc
+@@ -296,7 +314,17 @@
+ # Put the lisp under the version directory of the Emacs it was built
+ # for.  Emacs already searches share/emacs/<version>/site-lisp, so what
+ # lands there is seen by that Emacs and by no other.
+-_EMACS_LISPDIR.emacs=		share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
++# Where an elisp package puts its files.  It has to be the tree the Emacs
++# it is built for actually reads, so it follows the same tag the editor
++# package used.  For the plain build that is the version and nothing
++# moves; a variant (the nox build kept beside the X one) carries its
++# suffix here too, because its whole tree lives under
++# share/emacs-<tag>/emacs/<version>.
++#
++# Set EMACS_VARIANT.<type> for a type whose editor package relocates.
++# Leave it empty and the layout is what it has always been.
++_EMACS_LISPDIR.emacs=		${_EMACS_DATADIR.emacs}/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp
++_EMACS_DATADIR.emacs=		${empty(EMACS_VARIANT):?share:share/emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}-${EMACS_VARIANT}}
  _EMACS_PKGNAME_PREFIX.emacs=
  
  _EMACS_ETCDIR.xemacs=		lib/xemacs/site-packages/etc
-@@ -276,22 +338,202 @@
- #		abort;
- #
- 
--_EMACS_TYPE=	${EMACS_TYPE}
--
- EMACS_VERSIONS_ACCEPTED?=	${_EMACS_VERSIONS_ALL}
--.if empty(EMACS_VERSIONS_ACCEPTED:M${_EMACS_TYPE})
--PKG_FAIL_REASON+=		"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
--PKG_FAIL_REASON+=		"No valid Emacs version installed found"
-+
-+# The Emacs this machine uses when the package does not care.  EMACS_TYPE
-+# is the name this has always had; keep honouring it.
-+EMACS_VERSION_DEFAULT?=		${EMACS_TYPE}
-+
-+# Which Emacs to build for.  The same three steps lang/python takes:
-+#
-+#   - EMACS_VERSION_REQD names one version.  Use it, and refuse if the
-+#     package does not accept it, so a bulk build walking the set leaves
-+#     the package alone in that pass rather than building it for some
-+#     other version.
-+#   - otherwise EMACS_VERSION_DEFAULT, if the package accepts it.
-+#   - otherwise the first version the package accepts, reading its list
-+#     in the order it was written.  Like PYTHON_VERSIONS_ACCEPTED the
-+#     order is the package's preference, so the list is written newest
-+#     first.
-+#
-+# The versions this package accepts that pkgsrc still has, in the order
-+# the package wrote them, the way pyversion.mk walks
-+# PYTHON_VERSIONS_ACCEPTED: the order is the package's preference and is
-+# meant to be honoured.
-+#
-+# The filter is not decoration.  Every time a version is retired, the
-+# packages that named it are left pointing at nothing until they are
-+# updated, and selecting one of those leaves _EMACS_PKGDIR empty, which
-+# turns a clean refusal into a fatal error further down.
-+# EMACS_VERSIONS_INCOMPATIBLE is set by devel/apel and, before this, no
-+# line of this file read it.  pyversion.mk and rubyversion.mk honour
-+# their equivalents, so subtracting it here is one of the places where
-+# this framework was thinner than theirs.
-+EMACS_VERSIONS_INCOMPATIBLE?=	# empty
-+
-+_EMACS_VERSIONS_OK=	# empty
-+# Naming emacs30 accepts the nox build of it as well, so a package does
-+# not have to write both halves of every pair.  Writing emacs30nox on its
-+# own still works.  A package that takes only one of the two names the
-+# other in EMACS_VERSIONS_INCOMPATIBLE.
-+.for _ev_ in ${EMACS_VERSIONS_ACCEPTED}
-+.  for _cand_ in ${_ev_} ${_ev_}nox
-+.    if !empty(_EMACS_VERSIONS_ALL:M${_cand_}) && \
-+        empty(EMACS_VERSIONS_INCOMPATIBLE:M${_cand_}) && \
-+        empty(_EMACS_VERSIONS_OK:M${_cand_})
-+_EMACS_VERSIONS_OK+=	${_cand_}
-+.    endif
-+.  endfor
-+.endfor
-+
-+# What a bulk build should make: one entry per name.  Where both builds
-+# of one Emacs are accepted they produce the same package, so only the
-+# plain one is listed; where only the nox build is accepted it stays,
-+# because then it is the only way to get that package at all.
-+# A .for variable is substituted as text, so it cannot be tested with
-+# empty() directly -- empty(_ev_:M*nox) asks about a variable called
-+# _ev_, which is always empty, and every entry passes.  Assign it to a
-+# real variable first.
-+_EMACS_VERSIONS_BULK=	# empty
-+.for _ev_ in ${_EMACS_VERSIONS_OK}
-+_EMACS_BULK_CAND=	${_ev_}
-+.  if empty(_EMACS_BULK_CAND:M*nox) || \
-+      empty(_EMACS_VERSIONS_OK:M${_EMACS_BULK_CAND:C/nox$//})
-+_EMACS_VERSIONS_BULK+=	${_ev_}
-+.  endif
-+.endfor
-+
-+# The bulk index wants its default to be one of the entries it lists, and
-+# the entries are the folded names, so the default folds the same way.
-+# EMACS_VERSION_DEFAULT itself is left alone: it says which build to use
-+# here, which is still a real choice between the two.
-+.if !empty(EMACS_VERSION_DEFAULT:M*nox) && \
-+    !empty(_EMACS_VERSIONS_BULK:M${EMACS_VERSION_DEFAULT:C/nox$//})
-+_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT:C/nox$//}
-+.else
-+_EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
-+.endif
-+
-+# When pkgsrc resolves a dependency it passes the pattern it is looking
-+# for as PKGNAME_REQD (mk/pkgformat/pkg/depends.mk).  Once the version is
-+# part of the name, that pattern says which Emacs the package asking for
-+# it settled on, and the dependency has to be built for the same one.
-+# pyversion.mk reads PKGNAME_REQD for exactly this reason.
-+#
-+# Without it the two ends can disagree in silence: www/emacs-w3m accepts
-+# emacs20 and devel/apel does not, so with EMACS_TYPE=emacs20 emacs-w3m
-+# asks for emacs20-apel while apel builds itself as emacs29-apel, and
-+# nothing ever says why the dependency is not there.
-+.if defined(PKGNAME_REQD)
-+.  for _ev_ in ${_EMACS_VERSIONS_ALL}
-+.    if !empty(PKGNAME_REQD:M${_ev_}-*)
-+EMACS_VERSION_REQD?=	${_ev_}
-+.    endif
-+.  endfor
+@@ -389,6 +417,19 @@
+ EMACS_VERSION_REQD?=	${_ev_}
+ .    endif
+ .  endfor
 +#
 +# EMACS_PKGNAME_PREFIX is the same for emacs30 and emacs30nox, so the
 +# pattern cannot say which of the two the other end chose.  Read
@@ -255,47 +79,25 @@
 +      ${EMACS_VERSION_REQD:C/nox$//} == ${_EMACS_TYPE_WANTED:C/nox$//}
 +EMACS_VERSION_REQD=	${_EMACS_TYPE_WANTED}
 +.  endif
-+.endif
-+
-+.if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
-+.  if !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_REQD})
-+_EMACS_TYPE=		${EMACS_VERSION_REQD}
-+.  else
-+# The version asked for cannot be used.  Refuse, but leave _EMACS_TYPE
-+# at a version that exists: _EMACS_PKGDIR is looked up from it a few
-+# lines below, and an empty one turns this clean refusal into "Cannot
-+# open /version.mk", a fatal error that stops the whole make instead of
-+# failing the one package.
-+_EMACS_TYPE=		${_EMACS_VERSIONS_ALL:[1]}
-+# Two different things send us here, and a bulk build wants to tell them
-+# apart: the package will not take that Emacs, or pkgsrc no longer has
-+# it at all.
-+.    if empty(_EMACS_VERSIONS_ALL:M${EMACS_VERSION_REQD})
-+PKG_FAIL_REASON+=	"pkgsrc no longer has ${EMACS_VERSION_REQD}"
-+PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
-+.    else
-+PKG_FAIL_REASON+=	"This package does not build with ${EMACS_VERSION_REQD}"
-+PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
-+.    endif
-+.  endif
-+.elif !empty(_EMACS_VERSIONS_OK:M${EMACS_VERSION_DEFAULT})
-+_EMACS_TYPE=		${EMACS_VERSION_DEFAULT}
-+.elif !empty(_EMACS_VERSIONS_OK)
-+_EMACS_TYPE=		${_EMACS_VERSIONS_OK:[1]}
-+.else
-+# Everything the package asks for has been removed from pkgsrc.  Say so,
-+# and pick a version that exists so that the includes below still have a
-+# directory to read; the package is failing anyway.
-+_EMACS_TYPE=		${_EMACS_VERSIONS_ALL:[1]}
-+PKG_FAIL_REASON+=	"No Emacs that pkgsrc still has is accepted here"
-+PKG_FAIL_REASON+=	"Accepted versions are: ${EMACS_VERSIONS_ACCEPTED}"
-+PKG_FAIL_REASON+=	"pkgsrc has: ${_EMACS_VERSIONS_ALL}"
  .endif
  
- _EMACS_PKGDIR=	${_EMACS_PKGDIR_MAP:M${_EMACS_TYPE}@*:C|${_EMACS_TYPE}@||}
- 
- .include "${_EMACS_PKGDIR}/version.mk"
- 
+ .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
+@@ -433,11 +474,27 @@
+ # Put info files in a version-specific directory to avoid
+ # conflicts between e.g. emacs29-foo and emacs30-foo.
+ #
+-# Unlike the lisp, Emacs does not find info under its version
+-# directory by itself: Info-default-directory-list is built from the
+-# Emacs's own --infodir at configure time, and the only runtime lever
+-# is INFOPATH.  For this reason, the Emacs packages install a
+-# site-start.el beside their site-lisp that adds ../info to the list.
++# XEmacs is left alone.  Its two builds share lib/xemacs/site-packages,
++# and one .elc serves 21.4 and 21.5 alike (measured both ways).
++.if ${_EMACS_FLAVOR} == "emacs" && !empty(_EMACS_TYPE:M*nox)
++EMACS_VARIANT?=	nox11
++.endif
++EMACS_VARIANT?=
++
 +# Info goes under the version exactly when the package's name does.
 +# The name is what makes emacs29-foo and emacs30-foo two packages, and
 +# two packages are what collide on info/foo.info; a package that keeps
@@ -310,50 +112,31 @@
 +# The Emacs packages install a site-start.el beside their site-lisp that
 +# adds ../info to the list, which is the receiving half of this; without
 +# it the files land where nothing looks.
-+.if ${_EMACS_FLAVOR} == "emacs"
-+_EMACS_PKGINFODIR_DEFAULT:=	${PKGINFODIR}
-+PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
-+.endif
-+
- #
- # Dependencies and conflicts
- #
+ .if ${_EMACS_FLAVOR} == "emacs"
+ _EMACS_PKGINFODIR_DEFAULT:=	${PKGINFODIR}
+ PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
+@@ -460,6 +517,15 @@
+ _EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
+ .endif
  
-+# One binary package serves both builds of an Emacs, so _EMACS_REQD is
-+# widened here to name either.  The nox package is <name>-nox11 for both
-+# flavours, so the pair comes out of the one version.mk that set it, and
-+# every reader -- the DEPENDS below and the BUILDLINK_API_DEPENDS line in
-+# each Emacs's buildlink3.mk -- gets the wider value without being told.
-+#
-+# A package whose dependency is already satisfied by the nox11 build must
-+# not be told to build the X11 one: on a small i386 box that means building
-+# a compiler for an Emacs that is already there.
-+#
-+# A package that genuinely needs one of the two -- cad/dinotrace-mode says
-+# it wants athena widgets -- refuses the other in
-+# EMACS_VERSIONS_INCOMPATIBLE.  Then there is nothing to be tolerant about
-+# and _EMACS_REQD is left naming the build the package was made for, so a
-+# binary package cannot be installed against an Emacs that cannot run it.
-+.if !empty(_EMACS_TYPE:M*nox)
-+_EMACS_TYPE_OTHER=	${_EMACS_TYPE:C/nox$//}
-+_EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//:C/-nox11$//}
-+.else
-+_EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
-+_EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
-+.endif
-+
-+.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER})
++# Not for GNU Emacs here: its X and nox builds live in different trees,
++# so an elisp package made for one is useless to the other.  Widening
++# would let emacs30-foo be satisfied by emacs30-nox11 alone, install into
++# a tree nothing reads, and survive the removal of the Emacs it was made
++# for.  XEmacs builds share one tree and keep the wider dependency.
++.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER}) && ${_EMACS_FLAVOR} != "emacs"
 +_EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
 +.endif
 +
  DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
  
  EMACS_MODULES?=
-@@ -306,16 +548,87 @@
+@@ -474,8 +540,28 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
--EMACS_BIN=		${PREFIX}/bin/${_EMACS_FLAVOR}
+-# Build with the versioned Emacs binary the package is being built for.
+-_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
 +# Build with the Emacs the package is being built for, not with whichever
 +# one owns bin/emacs.  Today the two are the same thing because only one
 +# Emacs can be installed at a time, but that is an accident of the Emacs
@@ -372,31 +155,18 @@
 +# pkg_alternatives wrapper: a whole run labelled 21.5 was compiled by
 +# 21.4 before anyone noticed.  A fallback that is right only when one
 +# Emacs is installed is what this framework exists to remove.
-+_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}
-+_EMACS_BIN_NAME.xemacs=	xemacs
-+_EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
-+EMACS_BIN=		${PREFIX}/bin/${_EMACS_BIN_NAME}
- EMACS_VERSION_MAJOR=	${_EMACS_VERSION_MAJOR}
- EMACS_VERSION_MINOR=	${_EMACS_VERSION_MINOR}
- EMACS_VERSION_MICRO=	${_EMACS_VERSION_MICRO}
- EMACS_ETCPREFIX=	${PREFIX}/${_EMACS_ETCDIR.${_EMACS_FLAVOR}}
- EMACS_INFOPREFIX=	${PREFIX}/${_EMACS_INFODIR.${_EMACS_FLAVOR}}
- EMACS_LISPPREFIX=	${PREFIX}/${_EMACS_LISPDIR.${_EMACS_FLAVOR}}
--EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.${_EMACS_FLAVOR}}
-+# Which Emacs a package was built for belongs in its name, the way
-+# PYPKGPREFIX carries the Python version, so the set can be built and
-+# told apart.
-+# The nox build and the X build of one Emacs conflict with each other and
-+# share a lisp directory, and no package in the tree installs a different
-+# file list for the two, so by default they do not get different names:
-+# one emacs30-foo serves either, and a bulk build makes one of it rather
-+# than two.
-+#
-+# The exception earns the longer name.  A package that refuses the X
-+# build -- it says so in EMACS_VERSIONS_INCOMPATIBLE -- is not the same
-+# thing as the ordinary one, so it is called emacs30-nox11-foo, after the
-+# Emacs it needs.  A package that refuses the nox build keeps the plain
-+# name, because there is no other emacs30-foo for it to be confused with.
++# The binary carries the variant too: a relocated build installs
++# bin/emacs-<version>-<variant>, and byte-compiling with the plain one
++# would write .elc into the variant's tree using the wrong Emacs.
++_EMACS_BIN_NAME.emacs=	emacs-${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}${empty(EMACS_VARIANT):?:-${EMACS_VARIANT}}
+ _EMACS_BIN_NAME.xemacs=	xemacs
+ _EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
+ EMACS_BIN=		${PREFIX}/bin/${_EMACS_BIN_NAME}
+@@ -498,12 +584,50 @@
+ # thing as the ordinary one, so it is called emacs30-nox11-foo, after the
+ # Emacs it needs.  A package that refuses the nox build keeps the plain
+ # name, because there is no other emacs30-foo for it to be confused with.
+-.if !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
 +#
 +# XEmacs keeps one name for both of its versions.  Its lisp goes to a
 +# hierarchy that is not divided by version -- lib/xemacs/site-packages,
@@ -415,13 +185,16 @@
 +# has the two packages that separate them.
 +.if ${_EMACS_FLAVOR} == "xemacs"
 +EMACS_PKGNAME_PREFIX=	${_EMACS_PKGNAME_PREFIX.xemacs}
++.elif !empty(EMACS_VARIANT)
++# A variant reads its own tree, so its elisp is a different package from
++# the plain build's and must not share the name.
++EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-${EMACS_VARIANT}-
 +.elif !empty(_EMACS_TYPE:M*nox) && empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE:C/nox$//})
-+EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
-+.else
-+EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
-+.endif
+ EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$/-nox11/}-
+ .else
+ EMACS_PKGNAME_PREFIX=	${_EMACS_TYPE:C/nox$//}-
+ .endif
  
--GNU_CONFIGURE_INFODIR?=	${EMACS_INFOPREFIX}
 +# A CONFLICTS pattern written before the prefix existed spells the
 +# flavour out: devel/elib says emacs20-elib-[0-9]*.  With the prefix
 +# empty the package was always plain elib-1.0nb9, so that line matched
@@ -437,44 +210,21 @@
 +.  endif
 +.endfor
 +CONFLICTS=	${_EMACS_CONFLICTS}
- 
++
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
-@@ -325,7 +638,7 @@
+ .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
+@@ -512,6 +636,13 @@
  _EMACS_PLIST_SUBST+=	FOR_${e}="@comment " NOTFOR_${e}=""
  .  endif
  .endfor
--.if empty(EMACS_TYPE:M*nox)
 +.if empty(_EMACS_TYPE:M*nox)
- _EMACS_PLIST_SUBST+=	FOR_emacs_x="" NOTFOR_emacs_x="@comment "
- _EMACS_PLIST_SUBST+=	FOR_emacs_nox="@comment " NOTFOR_emacs_nox=""
- .else
-@@ -338,6 +651,12 @@
- _EMACS_PLIST_SUBST+=	EMACS_ETCPREFIX=${EMACS_ETCPREFIX:C|^${PREFIX}/||}
- _EMACS_PLIST_SUBST+=	EMACS_INFOPREFIX=${EMACS_INFOPREFIX:C|^${PREFIX}/||}
- _EMACS_PLIST_SUBST+=	EMACS_LISPPREFIX=${EMACS_LISPPREFIX:C|^${PREFIX}/||}
-+# A package whose name carries the prefix installs its documentation and
-+# its info files under share/doc/<name> and info/, which do not.  Two
-+# Emacsen then cannot both have it: pkg_add refuses the second on
-+# share/doc/artist/BUGS.  The prefix is offered to the PLIST so those
-+# paths can carry it too.
-+_EMACS_PLIST_SUBST+=	EMACS_PKGNAME_PREFIX=${EMACS_PKGNAME_PREFIX:Q}
++_EMACS_PLIST_SUBST+=	FOR_emacs_x="" NOTFOR_emacs_x="@comment "
++_EMACS_PLIST_SUBST+=	FOR_emacs_nox="@comment " NOTFOR_emacs_nox=""
++.else
++_EMACS_PLIST_SUBST+=	FOR_emacs_x="@comment " NOTFOR_emacs_x=""
++_EMACS_PLIST_SUBST+=	FOR_emacs_nox="" NOTFOR_emacs_nox="@comment "
++.endif
  
- _EMACS_PLIST_SUBST+=	FOR_emacs_no_byte_compile="${${EMACS_VERSION_MAJOR}>22:?@comment :}"
- 
-@@ -354,8 +673,14 @@
- .if defined(EMACS_BUILDLINK)
- _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
- # A development version usually claims three digits, say, 27.0.50 etc.
--ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/site-lisp
-+# The lisp of other packages now lives under the version directory, so
-+# the build-time load path has to name it too; ${_EMACS_DIR}/site-lisp
-+# alone finds nothing and the byte-compile fails with "Cannot open load
-+# file".  The shared directory stays last for anything still installed
-+# there.
-+ALL_ENV+=	EMACSLOADPATH=${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/lisp:${_EMACS_DIR}/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/site-lisp:${_EMACS_DIR}/site-lisp
- .include	"${_EMACS_PKGDIR}/buildlink3.mk"
- .endif
- 
- .endif	# EMACS_MK
-+
+ _EMACS_PLIST_SUBST+=	EMACS_FLAVOR=${EMACS_FLAVOR:Q}
+ _EMACS_PLIST_SUBST+=	EMACS_VERSION=${_EMACS_VERSION_MAJOR:Q}.${_EMACS_VERSION_MINOR:Q}

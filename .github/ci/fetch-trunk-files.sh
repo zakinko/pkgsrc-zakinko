@@ -26,7 +26,6 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 	grep -h '^--- ' "$SRC"/pkg-fixes/framework/*.diff "$SRC"/pkg-fixes/fixes/*.diff \
 		"$SRC"/pkg-fixes/adaptations/*.diff | awk '{print $2}' | sed 's/\.orig$//'
 	echo editors/emacs/modules.mk
-	echo mk/pbulk/pbulk-index.mk
 } | sort -u > "$OUT/FILES"
 
 n=0; miss=0

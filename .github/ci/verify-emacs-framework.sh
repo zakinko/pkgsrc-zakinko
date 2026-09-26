@@ -67,7 +67,7 @@ fi
 # file を置き換えると、その差にある上流の変更を黙って戻してしまう。
 # 差分を当てる形にした。送る物とも揃う。版が違うことは止める理由には
 # しない (当たるなら当たる) が、読めるように出す。
-for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
+for f in editors/emacs/modules.mk; do
 	b=${f##*/}
 	printf '  %-28s ツリー %s\n' "$f" "$(sed -n '1p' "$TREE/$f" | sed 's/.*,v //;s/ Exp \$//')"
 	printf '  %-28s 手元   %s\n' "" "$(sed -n '1p' "$SRC/$b.orig" | sed 's/.*,v //;s/ Exp \$//')"
@@ -80,7 +80,7 @@ echo "=== 枠組みを当てる ==="
 # どちらを取ったかを必ず出す。file を置いた場合、**その file の外に在る
 # 上流の変更は入っていない**ので、測ったものが何なのかが変わる。黙って
 # 置き換えると、それが分からなくなる。
-for f in editors/emacs/modules.mk mk/pbulk/pbulk-index.mk; do
+for f in editors/emacs/modules.mk; do
 	b=${f##*/}
 	if patch -f -C -F0 "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1; then
 		patch -f "$TREE/$f" "$SRC/$b.diff" >/dev/null 2>&1
@@ -129,6 +129,42 @@ done
 echo "=== pbulk が版ごとに並べるか ==="
 ( cd "$TREE/devel/apel" && make pbulk-index 2>/dev/null | grep '^PKGNAME=' ) || true
 
+echo "=== 同居版の Emacs を置いて素から建てる ==="
+# modules.mk は nox 型に EMACS_VARIANT=nox11 を立て、emacs-<版>-nox11 と
+# share/emacs-<版>-nox11 を指す。それを入れるのは coexist/A の editor
+# package で、木の editors/emacs30-nox11 は素の bin/emacs を入れる。
+# 2026-09-26 まではここが無く、しかも CI は同居の部分を含まない古い
+# modules.mk.diff を当てていたので、同居の枠組みはここで測られていな
+# かった。A 版は nox も木と同じ nb1 なので、依存として解かせると cdn の
+# 素の binary が選ばれる。名指しで先に建てる。
+case $EMACS_TYPE in
+emacs[0-9]*)
+	v=${EMACS_TYPE#emacs}; v=${v%nox}
+	A=$SRC/coexist/A
+	if [ -d "$A/emacs$v-A" ]; then
+		# A 版は兄弟を手元の category 名で指している。
+		mkdir -p "$TREE/netbsd-i386-3e"
+		rm -rf "$TREE/netbsd-i386-3e/emacs$v-A"
+		cp -R "$A/emacs$v-A" "$TREE/netbsd-i386-3e/"
+		case $EMACS_TYPE in
+		*nox) e=editors/emacs$v-nox11; rm -rf "$TREE/$e"; cp -R "$A/emacs$v-nox11-A" "$TREE/$e";;
+		*)    e=netbsd-i386-3e/emacs$v-A;;
+		esac
+		echo "  $e を建てる"
+		if ( cd "$TREE/$e" && make clean >/dev/null 2>&1 && \
+		     make package-install BINPKG_SITES="${BINPKG_SITES:-}" ) > "$OUT/emacs$v.log" 2>&1; then
+			echo "  入れた $(cd "$TREE/$e" && make show-var VARNAME=PKGNAME)"
+		else
+			echo "  ★ 同居版の Emacs が建たない"; tail -40 "$OUT/emacs$v.log"
+		fi
+	else
+		echo "  ★ $A/emacs$v-A が無い。木の editor のまま建てる"
+	fi
+	;;
+esac
+EB=$(cd "$TREE/devel/apel" && make show-var VARNAME=EMACS_BIN EMACS_TYPE="$EMACS_TYPE")
+echo "  EMACS_BIN=$EB  $(ls -l "$EB" 2>&1 | cut -c1-60)"
+
 echo "=== 建てる (EMACS_TYPE=$EMACS_TYPE) ==="
 R=$OUT/result.txt
 : > "$R"
@@ -162,7 +198,8 @@ done
 
 echo "=== 入れた lisp に Emacs が届くか ==="
 # 置き場を版の下へ動かす変更なので、ここが本題。建っただけでは足りない。
-E=$PREFIX/bin/emacs
+# 同居版に bin/emacs は無い (pkg_alternatives が作る)。枠組みが指す物を見る。
+E=$EB
 if [ -x "$E" ]; then
 	# -Q は --no-site-lisp を含む。site-lisp が空に見えて「届かない」と
 	# 誤診した。-q で測る。

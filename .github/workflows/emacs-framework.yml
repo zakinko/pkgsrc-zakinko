@@ -73,7 +73,7 @@ jobs:
       - name: trunk の現物を当て先に敷く
         # ゲストの木は image を焼いた日で止まっている。送る相手は trunk
         # なので、差分が触る file は今日の trunk から取って被せる。
-        run: sh .github/ci/fetch-trunk-files.sh zakinko/emacs-framework
+        run: sh .github/ci/fetch-trunk-files.sh emacs-framework
 
       - name: 枠組みを踏む
         env:
