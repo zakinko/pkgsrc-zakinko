@@ -1,9 +1,9 @@
 # $NetBSD: Makefile,v 1.20 2026/01/07 08:48:48 wiz Exp $
 #
 # 上流 pkgsrc の sysutils/augeas/Makefile の写し。上流には patches が一本も
-# 無く、PKGREVISION は 1 である。ここで足しているのは当て物 12 本。
+# 無く、PKGREVISION は 1 である。ここで足しているのは当て物 6 本。
 #
-# 一本を除いて全て上流 augeas にも出してあり、取り込まれたものから順に消せる。
+# 全て上流 augeas にも出してあり、取り込まれたものから順に消す。
 #
 #	patch-CVE-2025-2588			上流 commit af2aa88 の写し
 #	patch-Makefile.in			hercules-team/augeas#889
@@ -11,12 +11,21 @@
 #	patch-src_augtool.c			#890
 #	patch-examples_dump.c			#890
 #	patch-man_Makefile.in			#892
-#	patch-lenses_pg_hba.aug			#888
-#	patch-lenses_postgresql.aug		#888
-#	patch-lenses_rsyslog.aug		#888
-#	patch-lenses_shellvars.aug		#893
-#	patch-lenses_simplevars.aug		#893 と #887
-#	patch-lenses_tests_test_simplevars.aug	#893
+#
+# 2026-09-27 に六本消した。上流 master へ入ったため。
+#
+#	#888	merged 2026-09-11	patch-lenses_pg_hba.aug
+#					patch-lenses_postgresql.aug
+#					patch-lenses_rsyslog.aug
+#	#887	merged 2026-09-21	patch-lenses_simplevars.aug の一部
+#	#893	merged 2026-09-25	patch-lenses_shellvars.aug
+#					patch-lenses_simplevars.aug
+#					patch-lenses_tests_test_simplevars.aug
+#
+# 入ったのは master で、release ではない。上流の最新 release は
+# release-1.14.1 (2023-07-15) で、ここが建てる distfile もそれである。
+# つまり次の release までの間、この三本ぶんの lens の直しは package に
+# 入らない。承知のうえで落としている。
 #
 # 本題は #889 で、上流の Makefile.am が
 #
