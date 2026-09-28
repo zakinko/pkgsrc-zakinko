@@ -124,7 +124,14 @@ jobs:
           # にだけ値が入る。
           MACHINE_ARCH: ${{ matrix.march }}
         run: |
-          docker run --rm --platform ${{ matrix.platform }} \
+          # container に CPU と memory の上限を付ける。qemu-user の中の build が
+          # runner を丸ごと食い、agent が server との通信を失って job ごと消えた
+          # (ppc64 と riscv64、2026-09-26。annotation は "The hosted runner lost
+          # communication with the server"、log は残らない)。一 CPU と 2G を
+          # agent のために残す。
+          LIM="--cpus=$(( $(nproc) - 1 )) --memory=$(( $(free -g | awk '/^Mem:/{print $2}') - 2 ))g"
+          echo "container の上限: $LIM"
+          docker run --rm --platform ${{ matrix.platform }} $LIM \
             -v "$PWD:/w" -w /w \
             -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
             -e MACHINE_ARCH \
@@ -199,7 +206,14 @@ jobs:
         # docker が arch を知っている必要はない。翻訳が効いているかは rootfs を
         # 作る段で uname -m を見て確かめてある。
         run: |
-          docker run --rm \
+          # container に CPU と memory の上限を付ける。qemu-user の中の build が
+          # runner を丸ごと食い、agent が server との通信を失って job ごと消えた
+          # (ppc64 と riscv64、2026-09-26。annotation は "The hosted runner lost
+          # communication with the server"、log は残らない)。一 CPU と 2G を
+          # agent のために残す。
+          LIM="--cpus=$(( $(nproc) - 1 )) --memory=$(( $(free -g | awk '/^Mem:/{print $2}') - 2 ))g"
+          echo "container の上限: $LIM"
+          docker run --rm $LIM \
             -v "$PWD:/w" -w /w \
             -e PKGS -e TREE_PKGS -e MKCONF_EXTRA -e TREE_PATCH -e BUILD_DEADLINE \
             -e MACHINE_ARCH \

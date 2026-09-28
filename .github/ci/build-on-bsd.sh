@@ -423,7 +423,20 @@ elif [ ! -x "$PREFIX/bin/bmake" ]; then
 		--workdir="$REAL/bootstrap-work" \
 		--make-jobs "$JOBS" \
 		$ABI $MARCH \
-		--gzip-binary-kit="$CACHE/bootstrap-kit.tar.gz"
+		--gzip-binary-kit="$CACHE/bootstrap-kit.tar.gz" || {
+		# 落ちたら、bmake が sys.mk を探した場所を印字してから止まる。
+		# mipsle が「no system rules (sys.mk)」で止まり、readdir と
+		# stat はどちらも健全だった (2026-09-26 の probe)。推測を重ねず、
+		# 在るはずの物が在るかを見る。
+		_w=$REAL/bootstrap-work
+		echo "=== bootstrap が落ちた。sys.mk の在処を見る" >&2
+		ls -la "$_w/share/mk" 2>&1 | head -30 >&2
+		[ -x "$_w/bin/bmake" ] &&
+		    "$_w/bin/bmake" -r -f /dev/null -V MAKE_VERSION -V MAKESYSPATH \
+			-V .MAKE.MAKEFILE_PREFERENCE -V .SYSPATH 2>&1 | sed 's/^/  bmake: /' >&2
+		file "$_w/bin/bmake" 2>&1 | sed 's/^/  /' >&2
+		exit 1
+	}
 	rm -rf "$REAL/bootstrap-work"
 fi
 test -x "$PREFIX/bin/bmake" || { echo "bmake が無い"; exit 1; }
