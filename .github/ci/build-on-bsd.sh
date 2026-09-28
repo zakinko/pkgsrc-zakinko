@@ -85,11 +85,22 @@ report() {
 trap report EXIT
 
 # 取得の道具は OS ごとに違う。base にあるもので済ませる。
+# The CDN truncates large transfers now and then (curl 18, fetch
+# "transfer timed out"), which failed a whole run before it reached
+# anything under test.  Retry, and check a .gz arrived whole.
 dl() {
-	if command -v curl > /dev/null 2>&1; then curl -fsSL -o "$2" "$1"
-	elif command -v fetch > /dev/null 2>&1; then fetch -q -o "$2" "$1"
-	else ftp -o "$2" "$1"
-	fi
+	_n=0
+	while :; do
+		rm -f "$2"
+		if command -v curl > /dev/null 2>&1; then curl -fsSL -o "$2" "$1"
+		elif command -v fetch > /dev/null 2>&1; then fetch -q -o "$2" "$1"
+		else ftp -o "$2" "$1"
+		fi && case "$2" in *.gz) gzip -t "$2" ;; esac && return 0
+		_n=$((_n + 1))
+		[ $_n -ge 4 ] && return 1
+		echo "dl: retry $_n: $1" >&2
+		sleep $((_n * 15))
+	done
 }
 
 # illumos の base の tar は pax 拡張ヘッダ (typeflag 'x') を知らない。
