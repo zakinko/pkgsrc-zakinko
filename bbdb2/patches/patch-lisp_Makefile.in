@@ -2,9 +2,21 @@ $NetBSD$
 
 Fixes dependency for parallel build.
 
+Name the autoloads file instead of using $^, which is GNU make syntax.
+NetBSD's make expands it, but the bootstrap bmake (20240909) leaves it
+empty, so batch-byte-compile got "./", bbdb-autoloads.elc was never
+written and the PLIST check failed.
+
 --- lisp/Makefile.in.orig	2002-01-07 09:00:08.000000000 +0000
 +++ lisp/Makefile.in
-@@ -114,7 +114,7 @@ bbdb.elc:            bbdb.el
+@@ -97,13 +97,13 @@
+ 		-f batch-update-autoloads `pwd`
+ 
+ bbdb-autoloads.elc: bbdb-autoloads.el
+-	@HUSHMAKE@$(EMACS_PROG) -batch -q -f batch-byte-compile ./$^
++	@HUSHMAKE@$(EMACS_PROG) -batch -q -f batch-byte-compile ./bbdb-autoloads.el
+ 
+ bbdb.elc:            bbdb.el
  bbdb-com.elc:        bbdb.elc bbdb-com.el
  bbdb-ftp.elc:        bbdb.elc bbdb-ftp.el
  bbdb-gui.elc:		 bbdb.elc bbdb-gui.el
