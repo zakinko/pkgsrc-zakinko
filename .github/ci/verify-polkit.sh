@@ -42,6 +42,7 @@ P=${1:?usage: verify-polkit.sh <category>/<pkg>}
 TREE=${TREE:-/usr/pkgsrc}
 PREFIX=${PREFIX:-/usr/pkg}
 WS=${WS:-$(cd "$(dirname "$0")/../.." && pwd)}
+RUN_START=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
 
 # bootstrap した系は $PREFIX/bin/bmake、NetBSD は base の make が bmake で
 # ある。名前で決め打ちしない。
@@ -171,6 +172,15 @@ for b in polkit-agent-helper-1 pkexec pkttyagent; do
 	fi
 done
 "$PREFIX/bin/pkexec" --version 2>&1 | head -1 | sed 's/^/  /'
+# 依存を一行ずつ出さないので、glib2 がこの run で当て物ごと組まれたのか、
+# 前回の作り置きが入ったのかが log から読めなかった。版と組んだ日時を出す。
+for pi in pkg_info "$PREFIX/sbin/pkg_info" /usr/sbin/pkg_info; do
+	command -v "$pi" > /dev/null 2>&1 && break
+done
+echo "  run 開始 $RUN_START"
+for q in glib2; do
+	echo "  $("$pi" -e $q 2>/dev/null)  BUILD_DATE $("$pi" -Q BUILD_DATE $q 2>/dev/null)"
+done
 
 echo
 echo "=== 通った"
