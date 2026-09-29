@@ -1629,8 +1629,12 @@ share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/cl-print.el.gz
 share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/cl-print.elc
 share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/cl-seq.el.gz
 share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/cl-seq.elc
-share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp-cstr.el
-share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp.el
+${PLIST.native}share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp-cstr.el.gz
+${PLIST.native}share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp-cstr.elc
+${PLIST.nonative}share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp-cstr.el
+${PLIST.native}share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp.el.gz
+${PLIST.native}share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp.elc
+${PLIST.nonative}share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/comp.el
 share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/copyright.el.gz
 share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/copyright.elc
 share/emacs/${EMACS_VERSION}/lisp/emacs-lisp/crm.el.gz
