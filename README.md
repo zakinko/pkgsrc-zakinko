@@ -169,6 +169,24 @@ feature がその destdir から読まれたことまで見ています。
 
 上の四本は 2026-09-27、下の五本は 2026-09-26 の数字です。
 
+2026-09-30 に anoncvs の HEAD (2026-09-29 20:46 UTC に cvs up) で、
+techne の私設 prefix に建て直して測り直しました。modules.mk は同居の物と
+上流の 1.43 のままの物の両方で、数字は同じです。上の表と違ったのは次の
+三つです。
+
+- `lookup` は emacs20 で建たない。上流の `devel/apel` が 1.47
+  (2026-09-25) で `EMACS_VERSIONS_INCOMPATIBLE= emacs20` になった。
+  受け付けを戻しても apel 10.8 が `subr-x` と `cl-lib` を求めて
+  emacs20 では compile できない
+- `jde` の emacs21 は建たない。依存の `semantic` と、その依存の上流
+  `editors/speedbar` `lang/eieio` が emacs20 しか受け付けない
+- `elscreen` の emacs20 は、`speedbar` が入っていないと 12 中 10。
+  `elscreen-server` が `dframe` を求め、Emacs 20 では `speedbar` の
+  package がそれを入れる。29、30、31 は 12 中 10
+
+`bbdb2` は bootstrap の bmake で `bbdb-autoloads.elc` が出来ずに落ちて
+いたので直しました (当て物の説明を参照)。
+
 ### bbdb2
 
 2.35 は Emacs 23 より前の Emacs 向けの最後の BBDB で、今の Emacs には
