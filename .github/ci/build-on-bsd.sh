@@ -358,7 +358,29 @@ echo "ツリーは $TREE、prefix は $PREFIX"
 # ------------------------------------------------------------------
 stage "pkgsrc のツリーを置く"
 if [ ! -d "$TREE/mk" ]; then
-	dl "$PKGSRC_URL" "$REAL/pkgsrc.tar.gz"
+	# cdn.NetBSD.org が転送の途中で切れることがある。2026-09-29 01:38〜01:40Z
+	# に NetBSD と DragonFly の二箱が同時に
+	#     curl: (18) end of response with 100466397 bytes missing
+	# を三度ずつ返して落ちた (101MB のうち 1MB ほどで切れる)。5 秒おきの
+	# 撃ち直しでは数分続く不調を越えられない。cdn と ftp.NetBSD.org は同じ
+	# 基盤で一緒に落ちるので、別系統の mirror へ逃げる。jaist と allbsd は
+	# 同じ file (大きさ 101514973、Last-Modified 同じ) を持つことを確かめた。
+	# jaist は http なので、https が引けない箱でも使える。
+	# 候補は先に変数で組む。$( case ... ) の中の ) を古い sh が $( の
+	# 閉じと読んで構文 error にする。
+	_urls=$PKGSRC_URL
+	case $PKGSRC_URL in
+	*/pub/pkgsrc/*)
+		_p=/pub/pkgsrc/${PKGSRC_URL#*/pub/pkgsrc/}
+		_urls="$_urls http://ftp.jaist.ac.jp$_p https://ftp.allbsd.org$_p"
+		;;
+	esac
+	_ok=
+	for _u in $_urls; do
+		if dl "$_u" "$REAL/pkgsrc.tar.gz"; then _ok=1; break; fi
+		echo "  $_u は諦めて次の mirror へ" >&2
+	done
+	[ -n "$_ok" ] || { echo "!! どの mirror からも木が取れなかった" >&2; exit 1; }
 	# 書庫の頂上が pkgsrc/ なので、/usr/pkgsrc の指す先の親へ展開する。
 	$TAR xzf "$REAL/pkgsrc.tar.gz" -C "$TOP"
 	rm -f "$REAL/pkgsrc.tar.gz"
