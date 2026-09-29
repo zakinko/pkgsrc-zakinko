@@ -1,8 +1,8 @@
-# $NetBSD: Makefile,v 1.68 2026/09/14 12:38:31 wiz Exp $
+# $NetBSD: Makefile,v 1.69 2026/09/25 09:48:07 wiz Exp $
 
 DISTNAME=	emacs-20.7
 PKGNAME?=	${DISTNAME:S/emacs/emacs20/}
-PKGREVISION=	28
+PKGREVISION=	27
 CATEGORIES=	editors
 MASTER_SITES=	http://ftp.gnu.org/pub/old-gnu/emacs/
 MASTER_SITES+=	ftp://ftp.gnu.org/pub/old-gnu/emacs
@@ -152,5 +152,20 @@ post-install:
 # The versioned copy sits beside it; the unversioned one would be the same
 # file from every Emacs in the prefix, so only one package could own it.
 	${RM} -f ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/site-lisp/subdirs.el
+
+# The lisp of other packages lives under this version's directory and so
+# does their info, but Emacs builds Info-default-directory-list from its
+# own --infodir at configure time and cannot be told at run time except
+# through INFOPATH.  This adds the version's info directory to the list
+# at startup.
+#
+# Upstream writes it to share/emacs/<version>/site-lisp.  Here the nox
+# build has its own datadir, so the path goes through _EMACS_DATADIR.
+post-install: emacs-info-path
+emacs-info-path:
+	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
+		> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
+	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
+		>> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 
 .include "../../mk/bsd.pkg.mk"

@@ -4360,6 +4360,7 @@ share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/lisp/xwidget.el.gz
 share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/lisp/xwidget.elc
 share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/lisp/yank-media.el.gz
 share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/lisp/yank-media.elc
+share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/site-lisp/site-start.el
 share/emacs-${EMACS_TAG}/emacs/${EMACS_VERSION}/site-lisp/subdirs.el
 share/emacs-${EMACS_TAG}/emacs/site-lisp/subdirs.el
 share/icons/hicolor/128x128/apps/emacs-${EMACS_TAG}.png

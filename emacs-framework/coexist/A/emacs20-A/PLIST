@@ -1275,5 +1275,6 @@ share/emacs/${EMACS_VERSION}/lisp/xt-mouse.el
 share/emacs/${EMACS_VERSION}/lisp/xt-mouse.elc
 share/emacs/${EMACS_VERSION}/lisp/zone-mode.el
 share/emacs/${EMACS_VERSION}/lisp/zone-mode.elc
+share/emacs/${EMACS_VERSION}/site-lisp/site-start.el
 share/emacs/${EMACS_VERSION}/site-lisp/subdirs.el
 @pkgdir share/emacs/${EMACS_VERSION}/leim

@@ -1,4 +1,4 @@
-# $NetBSD: Makefile.common,v 1.1 2026/08/25 17:22:37 wiz Exp $
+# $NetBSD: Makefile.common,v 1.2 2026/09/25 09:48:08 wiz Exp $
 #
 # used by editors/emacs31/Makefile
 # used by editors/emacs31-nox11/Makefile
@@ -154,3 +154,18 @@ PLIST_SUBST+=		EMACS_TAG=${EMACS_TAG}
 FILES_SUBST+=		EMACS_TAG=${EMACS_TAG}
 PRINT_PLIST_AWK+=	{ gsub(/${EMACS_TAG}/, "$${EMACS_TAG}"); }
 PRINT_PLIST_AWK+=	{ gsub(/${EMACS_VERSION}/, "$${EMACS_VERSION}"); }
+
+# The lisp of other packages lives under this version's directory and so
+# does their info, but Emacs builds Info-default-directory-list from its
+# own --infodir at configure time and cannot be told at run time except
+# through INFOPATH.  This adds the version's info directory to the list
+# at startup; without it the files land where nothing looks.
+#
+# Upstream writes it to share/emacs/<version>/site-lisp.  Here the nox
+# build has its own datadir, so the path goes through _EMACS_DATADIR.
+post-install: emacs-info-path
+emacs-info-path:
+	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
+		> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
+	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
+		>> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el

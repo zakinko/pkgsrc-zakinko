@@ -4428,6 +4428,7 @@ share/emacs/${EMACS_TAG}/lisp/xwidget.el.gz
 share/emacs/${EMACS_TAG}/lisp/xwidget.elc
 share/emacs/${EMACS_TAG}/lisp/yank-media.el.gz
 share/emacs/${EMACS_TAG}/lisp/yank-media.elc
+share/emacs/${EMACS_TAG}/site-lisp/site-start.el
 share/emacs/${EMACS_TAG}/site-lisp/subdirs.el
 share/icons/hicolor/128x128/apps/emacs-${EMACS_TAG}.png
 share/icons/hicolor/16x16/apps/emacs-${EMACS_TAG}.png
