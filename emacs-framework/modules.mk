@@ -495,9 +495,14 @@ EMACS_VARIANT?=
 # The Emacs packages install a site-start.el beside their site-lisp that
 # adds ../info to the list, which is the receiving half of this; without
 # it the files land where nothing looks.
+#
+# A variant's info goes under its own tree, as its lisp does.  With the
+# plain share/emacs/<version>/info, emacs30-nox11-foo put its info where
+# emacs30-foo puts the same file, so the two collided, and the nox
+# Emacs, whose site-start.el adds its own ../info, never saw it.
 .if ${_EMACS_FLAVOR} == "emacs"
 _EMACS_PKGINFODIR_DEFAULT:=	${PKGINFODIR}
-PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
+PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?${_EMACS_DATADIR.emacs}/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
 .endif
 
 #

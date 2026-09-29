@@ -82,7 +82,7 @@
  .endif
  
  .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
-@@ -433,11 +474,27 @@
+@@ -433,14 +474,35 @@
  # Put info files in a version-specific directory to avoid
  # conflicts between e.g. emacs29-foo and emacs30-foo.
  #
@@ -112,13 +112,24 @@
 +# The Emacs packages install a site-start.el beside their site-lisp that
 +# adds ../info to the list, which is the receiving half of this; without
 +# it the files land where nothing looks.
++#
++# A variant's info goes under its own tree, as its lisp does.  With the
++# plain share/emacs/<version>/info, emacs30-nox11-foo put its info where
++# emacs30-foo puts the same file, so the two collided, and the nox
++# Emacs, whose site-start.el adds its own ../info, never saw it.
  .if ${_EMACS_FLAVOR} == "emacs"
  _EMACS_PKGINFODIR_DEFAULT:=	${PKGINFODIR}
- PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
-@@ -460,6 +517,15 @@
- _EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
+-PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?share/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
++PKGINFODIR=	${"${PKGNAME:M${EMACS_PKGNAME_PREFIX}*}" != "":?${_EMACS_DATADIR.emacs}/emacs/${_EMACS_VERSION_MAJOR}.${_EMACS_VERSION_MINOR}/info:${_EMACS_PKGINFODIR_DEFAULT}}
  .endif
  
+ #
+@@ -458,6 +520,15 @@
+ .else
+ _EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
+ _EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
++.endif
++
 +# Not for GNU Emacs here: its X and nox builds live in different trees,
 +# so an elisp package made for one is useless to the other.  Widening
 +# would let emacs30-foo be satisfied by emacs30-nox11 alone, install into
@@ -126,12 +137,10 @@
 +# for.  XEmacs builds share one tree and keep the wider dependency.
 +.if !empty(_EMACS_VERSIONS_OK:M${_EMACS_TYPE_OTHER}) && ${_EMACS_FLAVOR} != "emacs"
 +_EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
-+.endif
-+
- DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
+ .endif
  
- EMACS_MODULES?=
-@@ -474,8 +540,28 @@
+ DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
+@@ -474,8 +545,28 @@
  #
  
  EMACS_FLAVOR=		${_EMACS_FLAVOR}
@@ -162,7 +171,7 @@
  _EMACS_BIN_NAME.xemacs=	xemacs
  _EMACS_BIN_NAME?=	${_EMACS_BIN_NAME.${_EMACS_FLAVOR}}
  EMACS_BIN=		${PREFIX}/bin/${_EMACS_BIN_NAME}
-@@ -498,12 +584,50 @@
+@@ -498,12 +589,50 @@
  # thing as the ordinary one, so it is called emacs30-nox11-foo, after the
  # Emacs it needs.  A package that refuses the nox build keeps the plain
  # name, because there is no other emacs30-foo for it to be confused with.
@@ -214,7 +223,7 @@
  _EMACS_PLIST_SUBST=
  .for e in ${_EMACS_VERSIONS_ALL} emacs xemacs
  .  if "${e}" == ${EMACS_FLAVOR} || "${e}" == ${_EMACS_TYPE}
-@@ -512,6 +636,13 @@
+@@ -512,6 +641,13 @@
  _EMACS_PLIST_SUBST+=	FOR_${e}="@comment " NOTFOR_${e}=""
  .  endif
  .endfor
@@ -228,7 +237,7 @@
  
  _EMACS_PLIST_SUBST+=	EMACS_FLAVOR=${EMACS_FLAVOR:Q}
  _EMACS_PLIST_SUBST+=	EMACS_VERSION=${_EMACS_VERSION_MAJOR:Q}.${_EMACS_VERSION_MINOR:Q}
-@@ -533,7 +664,13 @@
+@@ -533,7 +669,13 @@
  #
  
  .if defined(EMACS_BUILDLINK)
