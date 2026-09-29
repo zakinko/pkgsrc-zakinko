@@ -456,7 +456,11 @@ elif [ ! -x "$PREFIX/bin/bmake" ]; then
 		[ -x "$_w/bin/bmake" ] &&
 		    "$_w/bin/bmake" -r -f /dev/null -V MAKE_VERSION -V MAKESYSPATH \
 			-V .MAKE.MAKEFILE_PREFERENCE -V .SYSPATH 2>&1 | sed 's/^/  bmake: /' >&2
-		file "$_w/bin/bmake" 2>&1 | sed 's/^/  /' >&2
+		# 32bit と 64bit の readdir で share/mk を読ませる (go-bin.yml が
+		# 組んで置いた物があれば)。file(1) は無い箱があるので使わない。
+		for _rd in /tmp/rd32 /tmp/rd64; do
+			[ -x "$_rd" ] && "$_rd" "$_w/share/mk" 2>&1 | sed 's/^/  /' >&2
+		done
 		exit 1
 	}
 	rm -rf "$REAL/bootstrap-work"
