@@ -275,3 +275,75 @@ emacs.pdmp を読む (27、28 は <argv0>.pdmp が無ければ emacs.pdmp も探
 make_float で落ち、番地が dump 前と違う。-z nocombreloc は効かなかった。
 22 は nox 版だけにしてある。
 
+## CVS HEAD で測り直す (2026-09-29)
+
+A の 20、29、30、31 を anoncvs の HEAD (2026-09-29 07:12 UTC に `cvs up`)
+へ揃え (885f632)、techne で私設の木・prefix (`--unprivileged` の
+bootstrap。/usr/pkg と /usr/pkgsrc は使わない) に素から建てて測った。
+
+	emacs20        Makefile 1.69, PLIST 1.9
+	emacs29        Makefile 1.52, Makefile.common 1.4, nox11/version.mk 1.2
+	emacs30        Makefile 1.21, Makefile.common 1.5, nox11/version.mk 1.3
+	emacs31        Makefile 1.6,  Makefile.common 1.2, nox11/version.mk 1.2
+	emacs/modules.mk 1.43 (これに modules.mk.diff を当てた)
+
+上流から入ったのは site-start.el で版の下の info を足す post-install と、
+nox 版の version.mk を X 版の include にしたこと。21 から 28 は土台の
+zakinko/emacsNN が A の取り込み後に動いていないので触っていない。
+
+### 版違い 12 本 (a)
+
+20、21、23 から 31 の X 版と 22 の nox 版、それぞれの elisp-compat を
+入れて、各版が起動し自分の site-lisp の elisp-compat を読む。
+
+	emacs-20.7        20.7.1  share/emacs/20.7/site-lisp/elisp-compat.elc
+	emacs-21.4        21.4.1  share/emacs/21.4/site-lisp/elisp-compat.elc
+	emacs-22.3-nox11  22.3.2  share/emacs-22.3-nox11/emacs/22.3/site-lisp/...
+	emacs-23.4 … emacs-31.1  各 share/emacs/<版>/site-lisp/elisp-compat.elc
+	package の間で重なる path   0
+	bin/emacs は pkg_alternatives の wrapper
+
+測って直した物が三つ。
+
+- 29 の X 版は libgccjit が既定で入る箱では check-files で落ちた。PLIST が
+  native 無しの build から取られ、`${PLIST.native}` と
+  `${PLIST.nonative}` の組を失っていた。上流の形に戻した
+- 22 の ALTERNATIVES は `bin/etags-22.3…` を指していたが、22 は
+  `emacs-etags-…`、`emacs-ctags-…` の名で入れる。pkg_alternatives が
+  "is not an executable" と言っていた
+- 変種の elisp の info が X 版の木 (`share/emacs/30.2/info`) へ入って
+  いた (560c8fc、modules.mk)
+
+pkg_alternatives は依存ではない (入っていれば +INSTALL が呼ぶ) ので、
+私設 prefix では先に入れて `pkg_alternatives rebuild` した。
+
+22 の X 版は今も建たない。bootstrap-emacs の dump で Segmentation fault。
+
+svg と imagemagick の option はこの測定では切った
+(`PKG_OPTIONS.emacs= -svg -imagemagick`、`PKG_OPTIONS.gd= -libimagequant`)。
+librsvg と libimagequant が rust と llvm を引き、2GB の techne では建て
+られないため。同居の仕組みには関わらない。
+
+### 30 の X 版と nox 版 (b)
+
+両方と、それぞれの elisp-compat と sml-mode を入れた。
+
+	emacs-30.2        share/emacs/30.2/site-lisp/elisp-compat.elc
+	                  share/emacs/30.2/info/sml-mode.info
+	emacs-30.2-nox11  share/emacs-30.2-nox11/emacs/30.2/site-lisp/elisp-compat.elc
+	                  share/emacs-30.2-nox11/emacs/30.2/info/sml-mode.info
+
+`pkg_delete -r` で X 版を消しても nox 版は起動して両方を見つけ、X 版を
+戻して nox 版を消しても同じ。消すときに
+
+	original MD5 checksum failed, not deleting: .../emacs/30.2/info/dir
+
+が出る。Emacs 自身が入れた `info/dir` を elisp package の install-info が
+書き換えるためで、dir が一つ残る。直していない。
+
+### CI (c)
+
+run 36536375255 (trunk 43da7ee、2026-09-29T09:20Z) で、同居版の
+emacs30-nox11-30.2nb2 の上に 10 本すべて OK。建てる package の directory
+を trunk から丸ごと被せるようにした (f09a532) ので、emacs-w3m は 1.42
+の Makefile で建っている。
