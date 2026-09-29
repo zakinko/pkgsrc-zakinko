@@ -55,6 +55,21 @@ if [ -f "$SRC/trunk/COMMIT" ]; then
 		mkdir -p "$TREE/$(dirname "$f")"
 		cp "$SRC/trunk/$f" "$TREE/$f"
 	done < "$SRC/trunk/FILES"
+	# 建てる package は directory ごと trunk に置き換える
+	# (fetch-trunk-files.sh の注記。run 36261175795 の emacs-w3m)。
+	if [ -f "$SRC/trunk/DIRS" ]; then
+		while read -r d; do
+			[ -f "$SRC/trunk/tree/$d/Makefile" ] || continue
+			was=$(sed -n '1p' "$TREE/$d/Makefile" 2>/dev/null | sed 's/.*,v //;s/ [^ ]* Exp \$//')
+			rm -rf "$TREE/$d"; mkdir -p "$TREE/$(dirname "$d")"
+			cp -R "$SRC/trunk/tree/$d" "$TREE/$d"
+			printf '  %-28s %s -> %s\n' "$d" "${was:-無し}" \
+				"$(sed -n '1p' "$TREE/$d/Makefile" | sed 's/.*,v //;s/ [^ ]* Exp \$//')"
+		done < "$SRC/trunk/DIRS"
+		for p in $PKGS; do
+			grep -qx "$p" "$SRC/trunk/DIRS" || echo "  ★ $p は trunk から取っていない (木の版で建てる)"
+		done
+	fi
 else
 	echo "  ★ $SRC/trunk が無い。image の木のまま当てる (trunk に当たるかは測れない)"
 fi
