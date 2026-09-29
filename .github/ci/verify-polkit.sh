@@ -129,6 +129,20 @@ else
 fi
 
 echo
+echo "=== 木の -DENODATA=ENOATTR を外す (送る diff と同じ形で測る)"
+# 2026-09-27 に木へ入った FreeBSD 向けの手当て。上流 backport に置き換える
+# diff はこの行も消すので、残したまま測ると送る物と測る物が別になる。
+if grep -q 'DENODATA=ENOATTR' "$d/Makefile"; then
+	grep -v -e '^# FreeBSD does not have ENODATA\.$' -e 'DENODATA=ENOATTR' \
+	    "$d/Makefile" > "$d/Makefile.new" && mv "$d/Makefile.new" "$d/Makefile" || exit 1
+fi
+if grep -q 'ENODATA' "$d/Makefile" ||
+   "$BMAKE" -C "$d" show-var VARNAME=CPPFLAGS 2>/dev/null | grep -q ENODATA; then
+	echo "★ ENODATA がまだ残っている"; exit 1
+fi
+echo "  Makefile にも CPPFLAGS にも ENODATA は無い"
+
+echo
 echo "=== 当てて、当たった跡を見る"
 "$BMAKE" -C "$d" patch > "$WS/.polkit-patch.log" 2>&1 || {
 	echo "★ patch 段で落ちた (polkit の依存を建てている途中)"
