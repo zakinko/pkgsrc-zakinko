@@ -310,7 +310,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
           path: .bsdcache
           key: gobin-${{ matrix.action }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -351,6 +351,16 @@ jobs:
           envs: 'PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
           prepare: pkg install -y curl
           run: sh .github/ci/build-on-bsd.sh
+      # 期限で降りると driver は exit 1 で終わり、job は失敗扱いになる。
+      # actions/cache の保存は成功した job でしか走らないので、途中まで
+      # 建てた依存が一度も保存されず、毎回ゼロから建て直していた
+      # (OpenBSD aarch64 は二度とも 7 個目の perl で止まった)。保存を分けて
+      # 必ず走らせる。
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .bsdcache
+          key: gobin-${{ matrix.action }}-${{ matrix.arch }}-${{ github.run_id }}
 
   illumos:
     name: ${{ matrix.name }}
@@ -366,7 +376,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
           path: .bsdcache
           key: gobin-${{ matrix.action }}-${{ github.run_id }}
@@ -397,3 +407,13 @@ jobs:
           envs: 'PKGS MKCONF_EXTRA TREE_PATCH BUILD_DEADLINE'
           prepare: pkg install --accept developer/gcc developer/build/gnu-make || true
           run: sh .github/ci/build-on-bsd.sh
+      # 期限で降りると driver は exit 1 で終わり、job は失敗扱いになる。
+      # actions/cache の保存は成功した job でしか走らないので、途中まで
+      # 建てた依存が一度も保存されず、毎回ゼロから建て直していた
+      # (OpenBSD aarch64 は二度とも 7 個目の perl で止まった)。保存を分けて
+      # 必ず走らせる。
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .bsdcache
+          key: gobin-${{ matrix.action }}-${{ github.run_id }}
