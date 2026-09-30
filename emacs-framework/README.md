@@ -17,6 +17,25 @@ pkgsrc-zakinko cannot hold `editors/emacs/modules.mk` in place.  The
 base is trunk `c8e5216` (2026-09-18); every diff applies with `patch -p0`
 from the top of a pkgsrc tree, in any order, with no offset and no fuzz.
 
+## 2026-09-30: this branch is version coexistence only
+
+The branch `emacs-coexist-versions` keeps only the part that lets
+emacs20, emacs29, emacs30 and emacs31 be installed side by side: the
+versioned names and ALTERNATIVES of the `coexist/A` editor packages, the
+CONFLICTS pruning in `modules.mk`, and the `pkg-fixes/fixes/` diffs that
+pass `EMACS_BIN` to packages which used to call a bare `emacs`.  The X and
+nox builds of one version still conflict with each other, as upstream
+has them: `emacs30-nox11` declares `CONFLICTS+= emacs30-[0-9]*` and shares
+`share/emacs/30.2`.  Two nox builds of different versions install
+together.  `emacs21` to `emacs28`, which upstream no longer has, are gone
+from the types and from `coexist/A`.
+
+`main` additionally keeps the X and nox builds of one version side by
+side (`EMACS_VARIANT`, `share/emacs-<ver>-nox11`, `emacsNN-nox11-`
+elisp packages, `FOR_emacs_x`), and the 21 to 28 types.  Its
+`modules.mk.diff` is 253 lines against 1.43; this branch's is 62.
+What is written below about variants describes `main`.
+
 ## 2026-09-26: most of it is upstream
 
 wiz@ committed the framework on 2026-09-25: `modules.mk,v 1.43`

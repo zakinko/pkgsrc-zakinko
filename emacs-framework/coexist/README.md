@@ -11,6 +11,39 @@ Python solves the same problem with three pieces: `make altinstall`
 line, and an `ALTERNATIVES` file for `bin/python`.  Emacs has no
 `altinstall`, so the question is what plays its part.
 
+
+## 2026-09-30: on the branch `emacs-coexist-versions`
+
+This branch has only the version coexistence.  `A/emacsNN-nox11-A` keep
+`EMACS_TAG` at the version and install into `share/emacs/<ver>` like the
+X build, so each conflicts with the X build of its own version and with
+nothing else.  `README-variants.md`, which records the X/nox layout, is
+not on this branch; it is on `main`.
+
+Measured on techne (NetBSD 11.0/amd64), unprivileged prefix, pkgsrc from
+anoncvs HEAD of 2026-09-30 05:24 UTC (`modules.mk` 1.43 plus this
+branch's diff), options `x11 xaw -gtk3 -libgccjit` and the other
+heavy ones off, `X11_TYPE=native`:
+
+    emacs20 emacs29 emacs30 emacs31 (X, linked to libX11 and libXaw)
+    and emacsNN-elisp-compat-0.0.1 for each: installed together,
+    0 paths shared between packages, bin/emacs is the
+    pkg_alternatives wrapper.  Each emacs-<ver> -batch -q requires
+    elisp-compat from share/emacs/<ver>/site-lisp, and
+    (require 'no-such-feature-cv1) fails in each.
+
+    pkg_add emacs30-nox11 with emacs30 installed:
+      conflicts with `emacs30-[0-9]*', and `emacs30-30.2nb18' is installed.
+      1 package addition failed
+    and bin/emacs-30.* is unchanged; the same for 31.
+
+    emacs30-nox11 and emacs31-nox11 (no libX11) with their elisp-compat:
+    installed together, 0 shared paths, each loads its own.
+
+`emacs29-nox11` was built and packaged (check-files passed), not
+installed.  Removing emacs30 and emacs31 prints "original MD5 checksum
+failed, not deleting: .../info/dir", as on `main`.
+
 ## A: let configure do it (`A/`)
 
     CONFIGURE_ARGS+=	--program-transform-name='s/$$/-${EMACS_VERSION}/'
