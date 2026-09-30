@@ -123,24 +123,13 @@ pre-install:
 # 版付きにする。20.7 の Makefile.in は program_transform_name を受け取る
 # だけで使っていないので、patch-ae と patch-ak が 22.3 の形を backport
 # している。
-#
-# EMACS_TAG は X 版では版そのもの、nox 版 (emacs20-nox11) では -nox11 が
-# 付き、nox 版は datadir と libexecdir も自分の場所へ移す。emacs30-A と
-# 同じ形。
 EMACS_TAG?=		20.7
 # The transform is written without "$": configure copies it verbatim
 # into TRANSFORM, and gmake reads "$/" in s/$/-20.7/ as a variable, so
 # every renamed file came out of sed as "s/-20.7/" (unterminated).
 CONFIGURE_ARGS+=	--program-transform-name='s/.*/&-${EMACS_TAG}/'
-.if ${EMACS_TAG} != "20.7"
-_EMACS_DATADIR=		share/emacs-${EMACS_TAG}
-_EMACS_LIBEXEC=		libexec/emacs-${EMACS_TAG}
-CONFIGURE_ARGS+=	--datadir=${PREFIX}/${_EMACS_DATADIR}
-CONFIGURE_ARGS+=	--libexecdir=${PREFIX}/${_EMACS_LIBEXEC}
-.else
 _EMACS_DATADIR=		share
 _EMACS_LIBEXEC=		libexec
-.endif
 GNU_CONFIGURE_INFODIR=	${PREFIX}/${_EMACS_DATADIR}/emacs/20.7/info
 PLIST_SUBST+=		EMACS_VERSION=20.7
 PLIST_SUBST+=		EMACS_TAG=${EMACS_TAG}
@@ -158,9 +147,6 @@ post-install:
 # own --infodir at configure time and cannot be told at run time except
 # through INFOPATH.  This adds the version's info directory to the list
 # at startup.
-#
-# Upstream writes it to share/emacs/<version>/site-lisp.  Here the nox
-# build has its own datadir, so the path goes through _EMACS_DATADIR.
 post-install: emacs-info-path
 emacs-info-path:
 	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \

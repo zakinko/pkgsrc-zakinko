@@ -1,14 +1,9 @@
 # $NetBSD: options.mk,v 1.2 2007/10/16 21:33:00 wiz Exp $
 
 PKG_OPTIONS_VAR=		PKG_OPTIONS.emacs
-.if !empty(EMACS_TAG:M*-nox11)
-# emacs20-nox11: the same Emacs without X, so x11 is not on offer.
-PKG_SUPPORTED_OPTIONS=		emacs-pop inet6
-.else
 PKG_SUPPORTED_OPTIONS=		emacs-pop inet6 x11
 PKG_OPTIONS_OPTIONAL_GROUPS=	toolkit
 PKG_OPTIONS_GROUP.toolkit=	motif xaw
-.endif
 PKG_SUGGESTED_OPTIONS=		emacs-pop inet6
 
 .include "../../mk/bsd.options.mk"

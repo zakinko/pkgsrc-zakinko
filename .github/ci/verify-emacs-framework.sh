@@ -145,13 +145,14 @@ echo "=== pbulk が版ごとに並べるか ==="
 ( cd "$TREE/devel/apel" && make pbulk-index 2>/dev/null | grep '^PKGNAME=' ) || true
 
 echo "=== 同居版の Emacs を置いて素から建てる ==="
-# modules.mk は nox 型に EMACS_VARIANT=nox11 を立て、emacs-<版>-nox11 と
-# share/emacs-<版>-nox11 を指す。それを入れるのは coexist/A の editor
-# package で、木の editors/emacs30-nox11 は素の bin/emacs を入れる。
-# 2026-09-26 まではここが無く、しかも CI は同居の部分を含まない古い
-# modules.mk.diff を当てていたので、同居の枠組みはここで測られていな
-# かった。A 版は nox も木と同じ nb1 なので、依存として解かせると cdn の
-# 素の binary が選ばれる。名指しで先に建てる。
+# 同居版の editor package は coexist/A に在り、bin/emacs-<版> を入れて
+# bin/emacs は持たない。木の editors/emacs30-nox11 は bin/emacs も
+# 入れるので、建てる側がそれに頼っていないかを測れない。
+# この branch では nox 版は X 版の木へ移らず、同じ版の X 版とは
+# CONFLICTS で並ばない (上流と同じ)。i386 で X の依存を建てるのは重い
+# ので、nox 版で版付きの名前と置き場を測る。A 版は nox も木と同じ nb
+# なので、依存として解かせると cdn の素の binary が選ばれる。名指しで
+# 先に建てる。
 case $EMACS_TYPE in
 emacs[0-9]*)
 	v=${EMACS_TYPE#emacs}; v=${v%nox}

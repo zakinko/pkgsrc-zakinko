@@ -3,9 +3,7 @@
 PKGNAME=	${DISTNAME:S/emacs/emacs29/:S/-/-nox11-/}
 PKGREVISION=	1
 
-# No CONFLICTS: with EMACS_TAG carrying the variant, this build shares
-# no path with the X one.
-EMACS_TAG=	${EMACS_VERSION}-nox11
+CONFLICTS+=	emacs29-[0-9]*
 
 FILESDIR=	${.CURDIR}/../../netbsd-i386-3e/emacs29-A/files
 PATCHDIR=	${.CURDIR}/../../netbsd-i386-3e/emacs29-A/patches
