@@ -31,5 +31,5 @@ CONFIGURE_ARGS+=	--with-emacs=${EMACS_BIN:Q}
 
 .include "../../editors/emacs/modules.mk"
 
-.include "../../devel/apel/buildlink3.mk"
+.include "../../zakinko/apel/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"

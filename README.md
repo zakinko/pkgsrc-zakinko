@@ -77,10 +77,12 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | --- | --- | --- |
 | [anthy/](anthy/) | `inputmethod/anthy` | anthy.el が Emacs 27 以降で使えない廃止シンボル、人名と辞書の誤り |
 | [anthy-elisp/](anthy-elisp/) | `inputmethod/anthy-elisp` | emacs29〜31 を受け付けるように |
+| [apel/](apel/) | `devel/apel` | 2025-05-31 の snapshot へ上げ、emacs20 と XEmacs をまた受け付ける。上流が 2020 年に外した Emacs 20/XEmacs 向けの層を戻す。byte-compile に版付きの binary を渡す |
 | [augeas/](augeas/) | `sysutils/augeas` | CVE-2025-2588 の修正と、lens が一本も入らないのを直す |
 | [autogen/](autogen/) | `devel/autogen` | mmap の失敗を見ずに走査していたのを直す (CVE-2025-8746) |
 | [bbdb2/](bbdb2/) | `misc/bbdb2` | emacs20 と emacs21 で建つように。configure が PATH の emacs を拾っていたので版付きの binary を渡す |
 | [calc/](calc/) | `math/calc` | **/tmp に予測できる名前で書いていたのを直す**。LICENSE が gnu-gpl-v1 (1989 年版)。site-start.d で autoload を登録。当て物の説明 |
+| [cl-lib-el/](cl-lib-el/) | (上流に無い) | GNU ELPA の cl-lib 0.6.1。Emacs 24.3 より前の Emacs で flim と semi が求める |
 | [ecb/](ecb/) | `devel/ecb` | 2.52 へ上げる。2.50 は Emacs 29 で defmethod が eieio-compat へ移って止まる |
 | [emacs-ilisp/](emacs-ilisp/) | `devel/emacs-ilisp` | GPL でない独自許諾の文面を files/ に用意。当て物 4 本の説明 |
 | [emacs-jabber/](emacs-jabber/) | `chat/emacs-jabber` | Emacs 29 で autoload.el が obsolete/ へ移り、autoload を作る段で止まっていた |
@@ -88,6 +90,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [emacs21/](emacs21/) / [emacs21-nox11/](emacs21-nox11/) | `editors/emacs21` | 本家に残っている CVE 二本 (etags と copy-file) を当てる |
 | [croc/](croc/) | `net/croc` | 11.5.3 へ上げ、GO_BUILD_PATTERN で NetBSD と DragonFly でも建つようにする |
 | [fail2ban/](fail2ban/) | `security/fail2ban` | 1.1.1 へ上げ、2to3 と python 固定を外す (pkgsrc PR #175) |
+| [flim/](flim/) | `devel/flim` | emacs20 と XEmacs で建つように。`?\s` を綴り直し、Emacs 22 より前では hmac-def.el を残す。XEmacs の build target を戻す |
 | [iiimecf/](iiimecf/) | `inputmethod/iiimecf` | LICENSE と category の順。shell を ${RUN} で書く |
 | [jde/](jde/) | `editors/jde` | emacs20 でも建つように。効いていなかった PKGSRC_MAKE_ENV+= EMACS=${EMACS} を直す。compile の失敗を無視しない。LICENSE |
 | [leim20/](leim20/) | `editors/leim20` | 版を四箇所直書きしていたのを `${VERSION}` へ。LICENSE と当て物の説明 |
@@ -100,6 +103,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
 | [queue-el/](queue-el/) | (上流に無い) | GNU ELPA の queue 0.2。undo-tree 0.8 が求める |
 | [semantic/](semantic/) | `devel/semantic` | emacs20 で建つように。Emacs 20 同梱の speedbar 0.8 が先に読まれていた |
+| [semi/](semi/) | `devel/semi` | emacs20 と XEmacs で建つように。XEmacs で何も入らなかった do-install と XEmacs 21.5 の autoload を直す。版付きの binary を渡す |
 | [tamago/](tamago/) | `editors/tamago` | LICENSE。12786 行の当て物が何かを書く |
 | [undo-tree/](undo-tree/) | `wip/undo-tree` (pkgsrc-wip) | GNU ELPA の 0.8.2 へ上げる |
 | [vm/](vm/) | `mail/vm` | 8.3.2 へ上げ、8.2.0b の当て物 4 本を外す。版付きの Emacs を configure に渡す |
@@ -174,10 +178,13 @@ techne の私設 prefix に建て直して測り直しました。modules.mk は
 上流の 1.43 のままの物の両方で、数字は同じです。上の表と違ったのは次の
 三つです。
 
-- `lookup` は emacs20 で建たない。上流の `devel/apel` が 1.47
-  (2026-09-25) で `EMACS_VERSIONS_INCOMPATIBLE= emacs20` になった。
-  受け付けを戻しても apel 10.8 が `subr-x` と `cl-lib` を求めて
-  emacs20 では compile できない
+- `lookup` は上流の `devel/apel` のままでは emacs20 で建たない。上流の
+  `devel/apel` が 1.47 (2026-09-25) で `EMACS_VERSIONS_INCOMPATIBLE= emacs20`
+  になり、受け付けを戻しても apel 10.8 が `subr-x` と `cl-lib` を求めて
+  emacs20 では compile できない。同じ日に `apel` `flim` `semi` と
+  `cl-lib-el` をここへ写して lookup をそちらへ向け、emacs20 で建って
+  24 中 23 が読める。残る `stem` は `stem-english.el` が provide するもので、
+  名前では require できない
 - `jde` の emacs21 は建たない。依存の `semantic` と、その依存の上流
   `editors/speedbar` `lang/eieio` が emacs20 しか受け付けない
 - `elscreen` の emacs20 は、`speedbar` が入っていないと 12 中 10。

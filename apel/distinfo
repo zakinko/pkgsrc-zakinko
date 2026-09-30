@@ -1,0 +1,22 @@
+$NetBSD: distinfo,v 1.13 2022/01/31 00:17:58 mef Exp $
+
+BLAKE2s (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = c6261eba992d1a9e96185964552ccb48661d8c79c31c52cf61fe7e3214460501
+SHA512 (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 76b01d6e41ad345a96c93d1526a499080546e8f839b7a697895b61a754cf9aa49b995d55909d47c8a957cefe9d3e5f49802390d5c81d168d9d458e86bf003e21
+Size (apel-10.8.0.20250531-2383abfd3a27c094ae9095b05103167cf810379b.tar.gz) = 69826 bytes
+SHA1 (patch-EMU-ELS) = b18d288911f8d603a14627faa802bd5cfacdb3dc
+SHA1 (patch-calist.el) = 74eed741b268a21cafc9f98b2a7ac4df1dd1daf5
+SHA1 (patch-emu.el) = 76451bc1331d5760bf273a97ace364824a48ace1
+SHA1 (patch-filename.el) = 07599cb53c394d86fd5b0f0d243abf9f1fa71b61
+SHA1 (patch-install.el) = 024ad1e93b240e38f399228c10d9eede9ef1f487
+SHA1 (patch-invisible.el) = 635da61600e028ca9bf40add41fe3458a13d3d7d
+SHA1 (patch-mcharset.el) = 1579789f6d05c905e09afc569952e4a5d8bf0469
+SHA1 (patch-mcs-20.el) = c77800247d6b3f4b0c726b122615623718a95da2
+SHA1 (patch-mcs-e20.el) = 4185bd017a32cba317fb1e294a3e29ccee8444ac
+SHA1 (patch-pccl-20.el) = 521d20dde4b609199da6e76c6ff5ff5767684201
+SHA1 (patch-pccl.el) = c347b8d6d786b9b8b1b06b0b9a9c307907013ad1
+SHA1 (patch-pces-e20.el) = 021dfe2ebcdac5b6291765de22c2d0e53accf5b0
+SHA1 (patch-pces.el) = 09b351de96dfc6af5c1a6ae5b53f33a0051cc9ff
+SHA1 (patch-poe.el) = b17ad6a6661a0c0069d285c35f36837c962225a2
+SHA1 (patch-poem-e20_3.el) = 06ef84c86fb290657402b10ae695575206052bf3
+SHA1 (patch-poem.el) = 93f4b95175ffe71a5a88a660e6f95011c01cfa2a
+SHA1 (patch-product.el) = 03e692126e9682b5158bc1250abe8b3fa9aa5a38

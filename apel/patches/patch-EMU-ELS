@@ -1,0 +1,117 @@
+$NetBSD$
+
+Restore what upstream removed on 2020-06-25 ("Drop old platforms support"),
+so APEL still serves Emacs 20 and XEmacs; pkgsrc has packages that need
+it there (misc/lookup, devel/flim, devel/semi).  The functional changes
+made upstream since are kept.
+
+The mcharset block is written as a cond again: the 2017 rewrite turned it
+into an if whose XEmacs branch only set emu-modules-not-to-compile and
+returned nil, so mcs-20, mcs-xm and mcharset were neither compiled nor
+installed under XEmacs.
+
+--- EMU-ELS.orig
++++ EMU-ELS
+@@ -21,27 +21,94 @@
+    '(product apel-ver)
+ 
+    ;; poe modules; poe modules depend on static.
+-   '(pym poe)
++   '(pym)
++   (if (featurep 'xemacs)
++       ;; XEmacs.
++       '(poe-xemacs poe)
++     ;; Emacs 20 and later.
++     '(poe))
+ 
+    ;; pcustom modules; pcustom modules depend on poe.
+    '(pcustom)
+ 
+    ;; pccl modules; pccl modules depend on broken.
+-   '(pccl-20 pccl)
++   (cond
++    ((featurep 'xemacs)
++     (cond
++      ;; XEmacs 21 w/ mule.
++      ((and (featurep 'mule)
++	    (>= emacs-major-version 21))
++       '(pccl-20 pccl))
++      (t
++       '(pccl))))
++    ((featurep 'mule)
++     ;; Emacs 20.
++     '(pccl-20 pccl))
++    (t
++     '(pccl)))
+ 
+    ;; pces modules; pces modules depend on poe.
+-   ;; pces-e20 depends pces-20, so we compile pces-20 first.
+-   '(pces-20 pces-e20 pces)
++   (cond
++    ((featurep 'xemacs)
++     (cond
++      ((featurep 'mule)
++       ;; XEmacs w/ mule.
++       ;; pces-xfc depends pces-20, so we compile pces-20 first.
++       '(pces-20 pces-xm pces-xfc pces))
++      ((featurep 'file-coding)
++       ;; XEmacs w/ file-coding.
++       ;; pces-xfc depends pces-20, so we compile pces-20 first.
++       '(pces-20 pces-xfc pces))
++      (t
++       '(pces-raw pces))))
++    ((featurep 'mule)
++     ;; Emacs 20.3 and later.
++     ;; pces-e20 depends pces-20, so we compile pces-20 first.
++     '(pces-20 pces-e20 pces))
++    (t
++     '(pces-raw pces)))
+ 
+    ;; poem modules; poem modules depend on pces.
+-   '(poem-e20_3 poem-e20 poem)
++   (cond
++    ((featurep 'mule)
++     (if (featurep 'xemacs)
++	 ;; XEmacs w/ mule.
++	 '(poem-xm poem)
++       ;; Emacs 20.3 and later.
++       '(poem-e20_3 poem-e20 poem)))
++    (t
++     '(poem-ltn1 poem)))
+ 
+    ;; mcharset modules; mcharset modules depend on poem and pcustom.
+-   ;; mcs-e20 depends mcs-20, so we compile mcs-20 first.
+-   '(mcs-20 mcs-e20 mcharset)
++   (cond
++    ((featurep 'mule)
++     (cond
++      ((featurep 'xemacs)
++       ;; XEmacs w/ mule.
++       (if (featurep 'utf-2000)
++	   ;; XEmacs w/ UTF-2000.
++	   (setq emu-modules-not-to-compile
++		 (cons 'mcs-xmu emu-modules-not-to-compile)))
++       ;; mcs-xm depends mcs-20, so we compile mcs-20 first.
++       '(mcs-20 mcs-xmu mcs-xm mcharset))
++      (t
++       ;; Emacs 20 and later.
++       ;; mcs-e20 depends mcs-20, so we compile mcs-20 first.
++       '(mcs-20 mcs-e20 mcharset))))
++    (t
++     '(mcs-ltn1 mcharset)))
+ 
+    ;; invisible modules; provided for backward compatibility with old "tm".
+-   '(inv-23 invisible)
++   (cond
++    ((featurep 'xemacs)
++     ;; XEmacs.
++     '(inv-xemacs invisible))
++    ((>= emacs-major-version 23)
++     ;; Emacs 23 and later
++     '(inv-23 invisible))
++    (t
++     ;; Emacs 19 and later.
++     '(inv-19 invisible)))
+ 
+    ;; emu modules; provided for backward compatibility with old "tm".
+    '(emu)
