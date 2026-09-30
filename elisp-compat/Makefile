@@ -10,13 +10,16 @@
 # measured: "Invalid escape character syntax" and "Weird old-backquote
 # syntax").  And under the xemacs prefix emacs-compat would come out as
 # xemacs-emacs-compat.
-DISTNAME=	elisp-compat-20260927
+DISTNAME=	elisp-compat-0.0.1
 PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
 CATEGORIES=	devel editors
-MASTER_SITES=	# empty
-DISTFILES=	# empty
+MASTER_SITES=	${MASTER_SITE_GITHUB:=zakinko/}
+# github.mk takes the project from PKGBASE, which carries the Emacs prefix.
+GITHUB_PROJECT=	elisp-compat
+GITHUB_TAG=	v${PKGVERSION_NOREV}
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
+HOMEPAGE=	https://github.com/zakinko/elisp-compat
 COMMENT=	What an older Emacs lacks, for elisp written since
 LICENSE=	gnu-gpl-v3
 
@@ -32,21 +35,13 @@ EMACS_VERSIONS_ACCEPTED=	emacs31 emacs31nox emacs30 emacs30nox \
 				emacs21 emacs21nox emacs20 \
 				xemacs215 xemacs215nox xemacs214 xemacs214nox
 
-NO_CHECKSUM=	yes
 NO_CONFIGURE=	yes
-WRKSRC=		${WRKDIR}
 
 INSTALLATION_DIRS=	${EMACS_LISPPREFIX}
 
 # The old names each need a file of their own: require looks for a file,
 # so a provide inside elisp-compat.el does not answer (require 'emacs-compat).
 _COMPAT_ALIASES=	e20-compat emacs-compat xemacs-compat
-
-do-extract:
-	${CP} ${FILESDIR}/elisp-compat.el ${WRKSRC}/
-.for _a_ in ${_COMPAT_ALIASES}
-	${CP} ${FILESDIR}/${_a_}.el ${WRKSRC}/
-.endfor
 
 do-build:
 	cd ${WRKSRC} && ${EMACS_BIN} -batch -q ${_ELISP_COMPAT_BATCH} \
