@@ -30,6 +30,13 @@ has them: `emacs30-nox11` declares `CONFLICTS+= emacs30-[0-9]*` and shares
 together.  `emacs21` to `emacs28`, which upstream no longer has, are gone
 from the types and from `coexist/A`.
 
+The branch keeps the XEmacs prefix on purpose: an elisp package built
+for XEmacs 21.4 or 21.5 is one `xemacs-foo`, not `xemacs214-foo` and
+`xemacs215-foo`.  Both XEmacs versions install elisp into the same
+`lib/xemacs/site-packages`, so two per-version packages would own the
+same files and `pkg_add` would refuse the second.  The pkgdir map for
+the `xemacs214nox` and `xemacs215nox` types points at `coexist/xemacs`.
+
 `main` additionally keeps the X and nox builds of one version side by
 side (`EMACS_VARIANT`, `share/emacs-<ver>-nox11`, `emacsNN-nox11-`
 elisp packages, `FOR_emacs_x`), and the 21 to 28 types.  Its
