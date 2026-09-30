@@ -1,4 +1,0 @@
-bin/emacs @PREFIX@/bin/emacs-@EMACS_TAG@
-bin/emacsclient @PREFIX@/bin/emacsclient-@EMACS_TAG@
-bin/etags @PREFIX@/bin/emacs-etags-@EMACS_TAG@
-bin/ctags @PREFIX@/bin/emacs-ctags-@EMACS_TAG@
