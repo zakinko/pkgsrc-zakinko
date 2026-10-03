@@ -1,12 +1,12 @@
---- devel/libuuid/Makefile.orig
-+++ devel/libuuid/Makefile
-@@ -10,6 +10,11 @@
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/devel/libuuid/Makefile devel/libuuid/Makefile
+--- /usr/pkgsrc/devel/libuuid/Makefile	2024-12-28 14:10:23.000000000 +0000
++++ devel/libuuid/Makefile	2026-10-03 05:01:51.904668007 +0000
+@@ -10,6 +10,10 @@
  CONFIGURE_ARGS+=	--enable-libuuid
  CONFIGURE_ARGS+=	--enable-uuidgen
  
-+# configure probes the C++ compiler (libtool's CXX test); without this
-+# the probe runs with no c++ and libtool stops with "problem compiling CXX
-+# test program".
++# configure runs libtool's C++ probe; without c++ here the wrappers refuse
++# it ("problem compiling CXX test program").
 +USE_LANGUAGES=		c c++
 +
  PKGCONFIG_OVERRIDE+=	libuuid/uuid.pc.in

@@ -1,6 +1,7 @@
 # Updates for the Emacs packages in pkgsrc
 
-Diffs against pkgsrc trunk (2026-09-21) bringing the packages that read
+Diffs against pkgsrc trunk (made 2026-09-21, rebased onto the CVS HEAD
+of 2026-10-03 -- see the next section) bringing the packages that read
 `editors/emacs/modules.mk` up to their current upstream releases.  One
 diff per package, `patch -p0` from the top of a pkgsrc tree; they are
 independent of each other except where noted.
@@ -10,6 +11,156 @@ Each (but ruby-rd-mode, see the table) was built on NetBSD 11.0/amd64 against em
 package's main library loaded into that Emacs afterwards.  Where the
 PLIST changed it was regenerated from the installed files, keeping the
 original `$NetBSD$` line and any `${PLIST.*}` conditionals.
+
+## 2026-10-03: CVS HEAD に当て直した
+
+上流は 2026-09-25 に emacs の新しい枠組みを入れた (modules.mk 1.43、
+"*: adapt packages to new emacs framework")。この枝の diff はそれより前の
+木に対して作ってあったので、ほぼ全部が Makefile の一 hunk で当たらなく
+なっていた。今日の木に当て直し、techne (NetBSD 11.0/amd64、2GB) で建てて
+読み込みを数え直した。
+
+**木。** anoncvs の HEAD を `cvs up -dPAC` (2026-10-03 00:43 UTC)。
+editors/emacs/modules.mk 1.43。比べる元は同じ package の 2026-09-24 00:00
+UTC の版 (`cvs co -D`) で、古い diff は全部そこへ -F0 で当たった。
+
+**やり方。** 古い diff を 09-24 の木に当てたものと、今日の木とを、09-24 を
+共通の祖先にして `diff3 -m` で三方向に併せた。衝突したのは 30 file で、
+上流側の変更は次の四種類だった。
+
+- PKGNAME に `${EMACS_PKGNAME_PREFIX}` が付いた。版を上げる行には同じ形で
+  付け直した。上流が名前から `emacs-` を外した三本 (neotree、dict-client、
+  w3m) は上流の名前に合わせた
+- `EMACS_VERSIONS_INCOMPATIBLE` が書き足された。こちらが同じ範囲を
+  `EMACS_VERSIONS_ACCEPTED` で書いていた php-mode と neotree はこちらの行を
+  落とした (上流がやっている)。こちらが受け付けを広げる三本では、上流の
+  行から外した: tamago-tsunagi の emacs20、emacs-w3m-snapshot の
+  emacs30/31、wl-snapshot の options.mk の emacs30/31
+- `EMACS=` の分岐が消え `${EMACS_BIN}` になった。こちらは既に `EMACS_BIN`
+- doc の置き場が `share/doc/${PKGBASE}` から固定の名前になった
+  (gnuserv、dictem、xslide)
+
+併せた木から作り直した diff は、全部 `patch -p0 -f -C -F0` で今日の木に
+当たる。建てた木と diff の中身は file ごとに一致する (0 byte の当て物を
+消した分だけが違う)。
+
+**落としたもの。** main の最上位にある fork と重なるものは、そちらを
+正として diff を消した。
+
+| diff | 行き先 |
+|---|---|
+| devel_apel.diff | zakinko/apel (523c36c)。この枝の 27b5842 で patch-poe.el が落ちていた件も向こうで直っている |
+| devel_flim.diff, devel_semi.diff | zakinko/flim, zakinko/semi (523c36c) |
+| devel_ecb.diff | zakinko/ecb (2.52) |
+| misc_elscreen.diff, new/elscreen-current/ | zakinko/elscreen (20180321、emacs20 も受ける) |
+| new/elisp-compat/ | zakinko/elisp-compat (github.com/zakinko/elisp-compat v0.0.1) |
+| new/cl-lib-el/ | zakinko/cl-lib-el |
+| editors_gnuserv.diff | 上流が doc を `share/doc/gnuserv` に固定した。版付きの doc にしても bin/gnuclient など 11 file が emacs30 版と emacs31 版で同じ path なので、同居はもともとできない |
+
+verilog-mode、graphviz-dot-mode、tamago-tsunagi は `../../devel/elisp-compat`
+と `../../devel/cl-lib-el` を指す。木にはまだ無いので、測るときは
+zakinko/ の二つを devel/ へ写し、中の `../../zakinko/` を `../../devel/` に
+置き換えて使った。
+
+**今日の作り直しで新しく直したもの。**
+
+- rainbow-delimiters-el と emacs-w3m に `GITHUB_PROJECT=` を足した。
+  github.mk は既定で PKGBASE を使うが、今は emacs30- が付くので distfile が
+  404 になった (rainbow-delimiters で測った)
+- emacs-muse: doc だけを版付きにしていたので、share/examples/emacs-muse の
+  3 file が emacs30 版と emacs31 版で重なっていた。examples も版付きにした
+- print/auctex: `pax -s ',^\./latex.*,,'` が latex/ だけでなく latex.el と
+  latex-flymake.el も落としていた。bib-cite、preview、tex-jp など 7 本が
+  "Cannot open load file latex" で読めなかった。dir 名に錨を付け、PLIST に
+  4 行足した。直したあと 24/24
+- matlab-mode を 8.2.2 (2026-09-22) へ。8.2.1 からの差は 8 file の小修正で
+  PLIST は変わらない
+- 版を変えずに中身が変わる六本に PKGREVISION を一つ足した (artist、etach、
+  emacs-muse、xslide、tamago-tsunagi、dictem)
+- libuuid の注記を測った内容に合わせた。今日の木では、素の devel/libuuid も
+  同じ警告と "problem compiling CXX test program" を出したうえで rc=0 で
+  建った。09-22 に見た「止まる」は再現していない
+
+**測り方。** 私設 prefix を三つ (`bootstrap --unprivileged`)。今日の木では
+emacs20 と emacs30-nox11 が bin/emacs で、emacs31-nox11 と emacs30-nox11 が
+bin/ebrowse でぶつかり、一つの prefix に入らない。emacs30-nox11 30.2、
+emacs31-nox11 31.1、emacs20 20.7 をそれぞれ同じ木から建て、各 package を
+`bmake EMACS_TYPE=<型> package-install`。読み込みは、package の .el と
+.el.gz に `(provide '...)` で書かれた feature を一つずつ別の emacs
+(`-batch -q -no-site-file`) で require し、結果を file に書かせて数えた。
+毎回 `zz-no-such-feature` を混ぜ、それが NG になることを確かめている。
+
+依存として建つ package は命令行の EMACS_TYPE を受け継がない。emacs-w3m-snapshot
+の依存として devel/apel が X 版 emacs30 向けに建ち、gtk3 → gdk-pixbuf2 →
+libjpeg-turbo → nasm → gcc14 まで引いて箱の / を使い切った。apel、flim、
+semi を先に同じ EMACS_TYPE で入れてから建て直した。
+
+| diff | 状態 | 版 | 建てた Emacs | 読めた/全部 | 注 |
+|---|---|---|---|---|---|
+| cad_verilog-mode | 作り直し | 2026.08.31 | 20, 30 | 2/2, 2/2 | |
+| devel_bazel | そのまま当たる | 9.2.0 | – | – | 未検証。下を参照 |
+| devel_cflow-mode | 作り直し | 1.8 | 30, 31 | 1/1 | |
+| devel_dash-el | 作り直し | 2.20.0 | 30, 31 | 1/1 | |
+| devel_haskell-mode | 作り直し | 17.5 | 30, 31 | 42/42 | |
+| devel_js2-mode | 作り直し | 20231224 | 30, 31 | 3/3 | |
+| devel_libuuid | そのまま当たる | 2.42.3 | – | – | 建てて uuid_generate の小さな program が UUID を返す。上の注。注記の文言は建てた後に直した (comment だけ) |
+| devel_php-mode | 作り直し | 1.28.0 | 30, 31 | 18/18 | |
+| devel_rainbow-delimiters-el | 作り直し | 2.1.5 | 30, 31 | 1/1 | GITHUB_PROJECT |
+| devel_reformatter-el | そのまま当たる (新規) | 0.7 | 30, 31 | 1/1 | |
+| devel_ruby-rd-mode | そのまま当たる | 0.6.39 | 30 | 1/1 | lang/ruby34 は `PKG_OPTIONS.ruby= -ruby-yjit ruby-rjit` で建てた (yjit は rust を引き、2GB の箱では llvm が建たない) |
+| devel_sml-mode | 作り直し | 6.12 | 30, 31 | 1/1 | |
+| devel_zig-mode | 作り直し | 2025-11-21 snapshot | 30, 31 | 1/1 | |
+| editors_matlab-mode | 作り直し | 8.2.2 | 30 (8.2.2), 31 (8.2.1) | 30/30 | |
+| graphics_artist | そのまま当たる | 1.2.6nb5 | 20, 30, 31 | 1/1 | 30 版と 31 版の file 一覧に重なり 0 |
+| graphics_graphviz-dot-mode | 作り直し | 0.5.0 | 20, 30, 31 | 2/2, 1/1, 1/1 | |
+| inputmethod_mozc-{server,elisp,renderer,tool} | 作り直し | 3.34.6239 | – | – | 未検証。下を参照 |
+| inputmethod_skk | そのまま当たる | 17.2 | 30, 31 | 40/43 | NG: skk-cursor (色の関数)、skk-jisx0213 (rx の引数)、skk-jisyo-edit (provide と file 名が違う) |
+| inputmethod_tamago-tsunagi | 作り直し | 5.0.7.1nb4 | 20, 30 | 24/24, 25/25 | egg と its を先に読んだ数。its/* は単独では読めない作り。main の fixes/tamago-tsunagi-emacs-bin.diff は fuzz 1 で重ねて当たる |
+| mail_etach | そのまま当たる | 1.2.9nb6 | 30, 31 | 1/1 | 重なり 0 |
+| mail_wl-snapshot | 作り直し | 2025-10-29 snapshot | 30, 31 | 19/25 | NG 6 は別名の file の中にある provide。options.mk の行を外さないと emacs29 へ黙って落ちる (PKGNAME が emacs29-wl になった) |
+| math_ess | 作り直し | 25.01.0 | 30, 31 | 33/33 | |
+| misc_bbdb3 | そのまま当たる | 3.2.2.4 | 30, 31 | 16/18 | NG は mu4e と VM の glue (相手が入っていない) |
+| misc_emacs-neotree | 作り直し | 0.6.0 | 30, 31 | 1/1 | |
+| misc_mic-paren | 作り直し | 3.15 | 30, 31 | 2/2 | |
+| print_auctex | 作り直し + 修正 | 14.2.0 | 30 | 24/24 | `DEPENDS=` で建てた (texlive はこの箱に乗らない) |
+| textproc_dictem | 作り直し | 1.0.4nb4 | 30, 31 | 1/1 | 重なり 0 |
+| textproc_emacs-dict-client | 作り直し | 1.11 | 30, 31 | 3/3 | |
+| textproc_emacs-muse | 作り直し + examples | 3.20nb3 | 30, 31 | 35/38 | NG: htmlize 無し、assoc (Emacs から消えた)、muse-nested-tags (別名 file)。重なり 0 |
+| textproc_flycheck-mode | 作り直し | 39.0 | 30, 31 | 1/1 | |
+| textproc_markdown-mode | 作り直し | 2.8 | 30, 31 | 1/1 | |
+| textproc_po-mode | 作り直し | 2.32 | 30, 31 | 2/2 | |
+| textproc_psgml-mode | そのまま当たる | 1.4.0 | 30, 31 | 13/13 | |
+| textproc_xslide | 作り直し | 0.2.2nb5 | 30, 31 | 3/5 | NG 2 は本体を先に読む前提の変数。重なり 0 |
+| www_emacs-w3m | 作り直し | 1.4.632 | 30 | 162/164 | w3m を先に読んだ数。NG は mew が無いため |
+| www_emacs-w3m-snapshot | 作り直し | 2022-12-06 snapshot | 30, 31 | 159/164 | 先読み無し。NG の 3 本は w3m を先に読めば通る (release 版で確かめた)、2 本は mew |
+
+「重なり」は emacs30 版と emacs31 版の package の file 一覧 (prefix を
+除く) で共通する path の数。
+
+**bazel と mozc は今日は建てていない。** 二つは main の zakinko/bazel と
+zakinko/mozc-* を木の形にしたもので、今日の木に当てた結果を main の
+package と file ごとに比べると、違いは `../../zakinko/` と
+`../../inputmethod/` の path、`$NetBSD$` 行、bazel の注記 2 行と
+`CONFLICTS+= bazel-[0-9]*` (devel/bazel では自分の名前に当たるので外した)
+だけだった。建てなかった理由: bazel は bootstrap に JDK が要り、この 2GB
+の箱では JDK から建てることになる。mozc は gyp で建つが、この日 techne の
+/ を一度使い切っており (上の gcc14)、空きが 13GB の共有の箱で mozc を
+もう一度試すことはしなかった。作り直しで変わったのは `$NetBSD$` 行と、
+版を上げるので消える PKGREVISION (上流で 14 → 16) だけ。
+
+**0 byte で残る当て物** (`find <pkgdir> -type f -size 0 -delete` で消す):
+上の九つに加え、devel/bazel の 30 本と inputmethod/mozc-elisp の MESSAGE、
+inputmethod/mozc-server の 16 本。
+
+**上流の新しい版 (2026-10-03 に確かめた)。** 版を上げたのは matlab-mode
+8.2.2 だけ。他はどれも diff の版が最新 (haskell-mode 17.5、php-mode
+1.28.0、js2-mode 20231224、reformatter 0.7、rainbow-delimiters 2.1.5、
+graphviz-dot-mode 0.5.0、ESS 25.01.0、neotree 0.6.0、dictionary-el 1.11、
+flycheck 39.0、markdown-mode 2.8、ddskk 17.2、dash 2.20.0、sml-mode 6.12、
+auctex 14.2.0、bbdb 3.2.2.4、cflow 1.8、gettext 1.0、bazel 9.2.0、mozc
+3.34.6239)。zig-mode、wanderlust、emacs-w3m は git の先頭が diff の commit と
+同じ。verilog-mode は veripool の配布 file の SHA512 が distinfo と同じ。
+ELPA の cl-lib は 0.7.1 が出ているが、それは zakinko/cl-lib-el の話。
 
 `new/elisp-compat` is the exception to "one Emacs": it is the file the
 older Emacsen load, so it was exercised on all fourteen that pkgsrc can

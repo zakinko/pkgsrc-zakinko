@@ -1,3 +1,0 @@
-cl-lib.el is a forward compatibility package which provides (a subset
-of) the features of the cl-lib package introduced in Emacs 24.3, for
-use on the Emacsen before it.

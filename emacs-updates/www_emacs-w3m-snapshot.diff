@@ -1,8 +1,8 @@
-diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile www/emacs-w3m-snapshot/Makefile
---- /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile	2026-09-18 05:50:22.956697480 +0000
-+++ www/emacs-w3m-snapshot/Makefile	2026-09-21 11:52:39.394679110 +0000
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile www/emacs-w3m-snapshot/Makefile
+--- /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile	2026-09-26 07:14:48.000000000 +0000
++++ www/emacs-w3m-snapshot/Makefile	2026-10-03 01:08:49.531527507 +0000
 @@ -1,11 +1,10 @@
- # $NetBSD: Makefile,v 1.22 2026/09/12 14:31:51 wiz Exp $
+ # $NetBSD: Makefile,v 1.24 2026/09/26 07:14:48 wiz Exp $
  
  VERSION=	1.4.632
 -DATE_TIME=	20210106.2144
@@ -10,23 +10,23 @@ diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/Makefile www/emacs-w
 +DATE_TIME=	20221206.2328
 +HASH=		4f27810
  DISTNAME=	w3m-el-snapshot_${VERSION}+0.${DATE_TIME}.${HASH}
- PKGNAME=	${EMACS_PKGNAME_PREFIX}emacs-${DISTNAME:S/-el-snapshot_/-/:S/+0//:S/.${HASH}//}
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/-el-snapshot_/-/:S/+0//:S/.${HASH}//}
 -PKGREVISION=	1
  CATEGORIES=	www
  MASTER_SITES=	${MASTER_SITE_DEBIAN:=pool/main/w/w3m-el-snapshot/}
  EXTRACT_SUFX=	.orig.tar.gz
-@@ -36,7 +35,7 @@
- BUILD_DEFS+=		VARBASE
- BUILD_DEFS+=		GAMEDATAMODE
+@@ -18,7 +17,7 @@
+ USE_TOOLS+=	makeinfo gzip autoconf
+ INFO_FILES=	yes
  
--EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
-+EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox emacs20 xemacs215 xemacs215nox xemacs214 xemacs214nox
+-EMACS_VERSIONS_INCOMPATIBLE=	emacs20 xemacs214 xemacs215 xemacs214nox xemacs215nox emacs30 emacs30nox emacs31 emacs31nox
++EMACS_VERSIONS_INCOMPATIBLE=	emacs20 xemacs214 xemacs215 xemacs214nox xemacs215nox
  
- .include "options.mk"
+ DEPENDS+=	w3m{,-img}>=0.5.2nb3:../../www/w3m
  
-diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST www/emacs-w3m-snapshot/PLIST
---- /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST	2026-09-18 05:50:22.961885011 +0000
-+++ www/emacs-w3m-snapshot/PLIST	2026-09-21 11:55:18.765027297 +0000
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST www/emacs-w3m-snapshot/PLIST
+--- /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST	2026-09-12 14:31:51.000000000 +0000
++++ www/emacs-w3m-snapshot/PLIST	2026-10-03 01:01:01.000000000 +0000
 @@ -309,8 +309,7 @@
  ${EMACS_LISPPREFIX}/w3m/w3m-image.elc
  ${EMACS_LISPPREFIX}/w3m/w3m-lnum.el.gz
@@ -46,9 +46,9 @@ diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/PLIST www/emacs-w3m-
  ${EMACS_LISPPREFIX}/w3m/w3m-session.el.gz
  ${EMACS_LISPPREFIX}/w3m/w3m-session.elc
  ${EMACS_LISPPREFIX}/w3m/w3m-symbol.el.gz
-diff -ruN -x CVS -x work /usr/pkgsrc/www/emacs-w3m-snapshot/distinfo www/emacs-w3m-snapshot/distinfo
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/www/emacs-w3m-snapshot/distinfo www/emacs-w3m-snapshot/distinfo
 --- /usr/pkgsrc/www/emacs-w3m-snapshot/distinfo	2021-10-26 11:29:25.000000000 +0000
-+++ www/emacs-w3m-snapshot/distinfo	2026-09-21 11:52:45.699615632 +0000
++++ www/emacs-w3m-snapshot/distinfo	2026-10-03 01:01:01.000000000 +0000
 @@ -1,8 +1,8 @@
  $NetBSD: distinfo,v 1.16 2021/10/26 11:29:25 nia Exp $
  

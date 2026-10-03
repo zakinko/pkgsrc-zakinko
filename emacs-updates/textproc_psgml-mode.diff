@@ -1,6 +1,6 @@
-diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/Makefile textproc/psgml-mode/Makefile
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/textproc/psgml-mode/Makefile textproc/psgml-mode/Makefile
 --- /usr/pkgsrc/textproc/psgml-mode/Makefile	2022-05-14 22:25:41.000000000 +0000
-+++ textproc/psgml-mode/Makefile	2026-09-25 06:57:45.425538605 +0000
++++ textproc/psgml-mode/Makefile	2026-10-03 01:01:00.000000000 +0000
 @@ -1,24 +1,35 @@
  # $NetBSD: Makefile,v 1.25 2022/05/14 22:25:41 dholland Exp $
  
@@ -45,9 +45,9 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/
  INSTALLATION_DIRS+=	${EMACS_INFOPREFIX} ${EMACS_LISPPREFIX}/psgml-mode
  
  do-install:
-diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/distinfo textproc/psgml-mode/distinfo
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/textproc/psgml-mode/distinfo textproc/psgml-mode/distinfo
 --- /usr/pkgsrc/textproc/psgml-mode/distinfo	2021-10-26 11:22:58.000000000 +0000
-+++ textproc/psgml-mode/distinfo	2026-09-24 09:33:10.026646849 +0000
++++ textproc/psgml-mode/distinfo	2026-10-03 01:01:01.000000000 +0000
 @@ -1,9 +1,5 @@
  $NetBSD: distinfo,v 1.7 2021/10/26 11:22:58 nia Exp $
  
@@ -61,9 +61,9 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/
 +BLAKE2s (psgml_1.4.0.orig.tar.gz) = b706b97330355539e2b722b505a6548ef6ed0debdd9073790f95a84df8c92d7c
 +SHA512 (psgml_1.4.0.orig.tar.gz) = 99bab6440a0f437009edff6371412c16f47d48c6b1eaa5b894523130e3a8d604ea79dc81f1895ceecd4283d0c7fd908d4e5bdeace63e54b9ac048a80fc0f6f44
 +Size (psgml_1.4.0.orig.tar.gz) = 262246 bytes
-diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-dtd.el textproc/psgml-mode/patches/patch-psgml-dtd.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-dtd.el textproc/psgml-mode/patches/patch-psgml-dtd.el
 --- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-dtd.el	2012-08-16 11:54:56.000000000 +0000
-+++ textproc/psgml-mode/patches/patch-psgml-dtd.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml-dtd.el	2026-10-03 01:01:00.000000000 +0000
 @@ -1,65 +0,0 @@
 -$NetBSD: patch-psgml-dtd.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
 -
@@ -130,9 +130,9 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/
 - 
 - (put 'sgml-code-sequence 'lisp-indent-hook 1)
 - (put 'sgml-code-sequence 'edbug-forms-hook '(sexp &rest form))
-diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-edit.el textproc/psgml-mode/patches/patch-psgml-edit.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-edit.el textproc/psgml-mode/patches/patch-psgml-edit.el
 --- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-edit.el	2012-08-16 11:54:56.000000000 +0000
-+++ textproc/psgml-mode/patches/patch-psgml-edit.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml-edit.el	2026-10-03 01:01:00.000000000 +0000
 @@ -1,42 +0,0 @@
 -$NetBSD: patch-psgml-edit.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
 -
@@ -176,9 +176,9 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/
 -       (insert (format "&#%d;" c))))))
 - 
 - (defun sgml-expand-entity-reference ()
-diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-parse.el textproc/psgml-mode/patches/patch-psgml-parse.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-parse.el textproc/psgml-mode/patches/patch-psgml-parse.el
 --- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml-parse.el	2012-08-16 11:54:56.000000000 +0000
-+++ textproc/psgml-mode/patches/patch-psgml-parse.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml-parse.el	2026-10-03 01:01:00.000000000 +0000
 @@ -1,347 +0,0 @@
 -$NetBSD: patch-psgml-parse.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
 -
@@ -527,9 +527,9 @@ diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/
 -     (let ((i (if nobol 1 0)))
 -       (while (numberp i)
 - 	(setq i
-diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml.el textproc/psgml-mode/patches/patch-psgml.el
+diff -ruN -x CVS -x work -x '*.orig' -x '*.rej' -x '._*' /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml.el textproc/psgml-mode/patches/patch-psgml.el
 --- /usr/pkgsrc/textproc/psgml-mode/patches/patch-psgml.el	2012-08-16 11:54:56.000000000 +0000
-+++ textproc/psgml-mode/patches/patch-psgml.el	1970-01-01 00:00:00.000000000 +0000
++++ textproc/psgml-mode/patches/patch-psgml.el	2026-10-03 01:01:00.000000000 +0000
 @@ -1,51 +0,0 @@
 -$NetBSD: patch-psgml.el,v 1.1 2012/08/16 11:54:56 wiz Exp $
 -
