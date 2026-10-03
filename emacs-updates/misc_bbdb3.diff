@@ -1,0 +1,128 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/bbdb3/Makefile misc/bbdb3/Makefile
+--- /usr/pkgsrc/misc/bbdb3/Makefile	2026-08-27 07:51:11.767805400 +0000
++++ misc/bbdb3/Makefile	2026-09-21 21:40:36.798791922 +0000
+@@ -1,10 +1,10 @@
+ # $NetBSD: Makefile,v 1.7 2026/08/26 14:37:06 wiz Exp $
+ 
+-DISTNAME=		bbdb-3.2.2a
+-PKGREVISION=		3
++DISTNAME=		bbdb-3.2.2.4
+ PKGNAME=		${EMACS_PKGNAME_PREFIX}${DISTNAME}
+ CATEGORIES=		misc mail news
+-MASTER_SITES=		http://git.savannah.nongnu.org/cgit/bbdb.git/snapshot/
++MASTER_SITES=		https://elpa.gnu.org/packages/
++EXTRACT_SUFX=		.tar
+ 
+ MAINTAINER=		pkgsrc-users@NetBSD.org
+ HOMEPAGE=		https://elpa.gnu.org/packages/bbdb.html
+@@ -19,27 +19,44 @@
+ 
+ CONFLICTS+=		xemacs-packages-[0-9]*
+ 
+-USE_PKGLOCALEDIR=	yes
+-GNU_CONFIGURE=		yes
+-USE_TOOLS+=		autoconf automake autoreconf
++NO_CONFIGURE=		yes
+ LISPDIR=		${EMACS_LISPPREFIX}/bbdb
+-INSTALLATION_DIRS=	${EMACS_INFOPREFIX}
++INSTALLATION_DIRS=	${LISPDIR:C|^${PREFIX}/||} share/bbdb
+ 
+-# The info document is an example info document,
+-# no real documentary content yet. If this will
+-# change, remove this from doc/Makefile.am:
+-# doc_DATA = bbdb.pdf
+-#
+-# bbdb.info bbdb.pdf: $(bbdb_TEXINFOS)
+-CONFIGURE_ARGS+=	--enable-docs=no
+-
+-pre-configure:
+-	cd ${WRKSRC} && autoreconf --verbose --install
++# The GNU ELPA tarball is the release; git.savannah.nongnu.org, where
++# the earlier snapshot came from, answers 400 and 502 too often to
++# fetch from.  ELPA ships bbdb-site.el with the configure placeholders
++# still in it, so fill them in here.
++SUBST_CLASSES+=		site
++SUBST_STAGE.site=	post-extract
++SUBST_FILES.site=	bbdb-site.el
++SUBST_SED.site=		-e 's|@PACKAGE_VERSION@|${PKGVERSION_NOREV}|'
++SUBST_SED.site+=	-e 's|@pkgdatadir@|${PREFIX}/share/bbdb|'
++
++# bbdb-vm, bbdb-mu4e, bbdb-notmuch and bbdb-wl need their MUA to
++# compile; bbdb-pkg.el is package.el metadata.  Same set upstream's
++# make leaves as source.  bbdb-loaddefs.el gets the load-path prelude
++# upstream's make puts in front of the autoloads.
++COMPILE_EL=	bbdb bbdb-anniv bbdb-com bbdb-gnus bbdb-ispell bbdb-message \
++		bbdb-mhe bbdb-migrate bbdb-mua bbdb-pgp bbdb-rmail bbdb-site \
++		bbdb-snarf bbdb-tex
++
++# The info file is a placeholder ("First Chapter"), as it was in the git
++# snapshot, so it is not installed.
++do-build:
++	cd ${WRKSRC} && ${EMACS_BIN} -batch -q --no-site-file -L . \
++		-f batch-byte-compile ${COMPILE_EL:=.el}
++	cd ${WRKSRC} && ${EMACS_BIN} -batch -q --no-site-file -L . \
++		-f loaddefs-generate-batch bbdb-loaddefs.el .
++	${ECHO} "(if (and load-file-name (file-name-directory load-file-name))" > ${WRKSRC}/bbdb-loaddefs.el.tmp
++	${ECHO} "    (add-to-list 'load-path (file-name-directory load-file-name)))" >> ${WRKSRC}/bbdb-loaddefs.el.tmp
++	${ECHO} "" >> ${WRKSRC}/bbdb-loaddefs.el.tmp
++	${CAT} ${WRKSRC}/bbdb-loaddefs.el >> ${WRKSRC}/bbdb-loaddefs.el.tmp
++	${MV} ${WRKSRC}/bbdb-loaddefs.el.tmp ${WRKSRC}/bbdb-loaddefs.el
+ 
+ do-install:
+-	${MKDIR} ${DESTDIR}${LISPDIR}
+-	${INSTALL_DATA} ${WRKSRC}/lisp/*.el ${DESTDIR}${LISPDIR}
+-	${INSTALL_DATA} ${WRKSRC}/lisp/*.elc ${DESTDIR}${LISPDIR}
++	${INSTALL_DATA} ${WRKSRC}/*.el ${WRKSRC}/*.elc ${DESTDIR}${LISPDIR}
++	${INSTALL_DATA} ${WRKSRC}/tex/bbdb.sty ${DESTDIR}${PREFIX}/share/bbdb
+ 
+ .include "../../editors/emacs/modules.mk"
+ .include "../../mk/bsd.pkg.mk"
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/bbdb3/PLIST misc/bbdb3/PLIST
+--- /usr/pkgsrc/misc/bbdb3/PLIST	2022-04-20 18:07:19.000000000 +0000
++++ misc/bbdb3/PLIST	2026-09-21 21:40:37.266489353 +0000
+@@ -1,10 +1,9 @@
+ @comment $NetBSD: PLIST,v 1.2 2022/04/20 18:07:19 nikita Exp $
++share/bbdb/bbdb.sty
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-anniv.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-anniv.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-com.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-com.elc
+-${EMACS_LISPPREFIX}/bbdb/bbdb-gnus-aux.el
+-${EMACS_LISPPREFIX}/bbdb/bbdb-gnus-aux.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-gnus.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-gnus.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-ispell.el
+@@ -19,20 +18,18 @@
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-mu4e.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-mua.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-mua.elc
++${EMACS_LISPPREFIX}/bbdb/bbdb-notmuch.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-pgp.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-pgp.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-pkg.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-rmail.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-rmail.elc
+-${EMACS_LISPPREFIX}/bbdb/bbdb-sc.el
+-${EMACS_LISPPREFIX}/bbdb/bbdb-sc.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-site.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-site.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-snarf.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-snarf.elc
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-tex.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-tex.elc
+-${EMACS_LISPPREFIX}/bbdb/bbdb-vm-aux.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-vm.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb-wl.el
+ ${EMACS_LISPPREFIX}/bbdb/bbdb.el
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/bbdb3/distinfo misc/bbdb3/distinfo
+--- /usr/pkgsrc/misc/bbdb3/distinfo	2022-04-14 12:40:48.000000000 +0000
++++ misc/bbdb3/distinfo	2026-09-21 21:38:35.202282589 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.1 2022/04/14 12:40:48 nikita Exp $
+ 
+-BLAKE2s (bbdb-3.2.2a.tar.gz) = d3d1ef940b974ecbd9382124c5b2d84c0e2ed7c180d4150a9eae188224b50dda
+-SHA512 (bbdb-3.2.2a.tar.gz) = 767aa7a046a9456dbf0b622a6efabe5c1d87c0022507b3bb6bec07be54e57a7285a9fe39f870599a248d5e78883300de870c168dc9918c2d1a139ef31fd53ac8
+-Size (bbdb-3.2.2a.tar.gz) = 198749 bytes
++BLAKE2s (bbdb-3.2.2.4.tar) = 330e36a926c63ac6ea1b63660f081e129356e213771545a70ab1c66bcffc4f16
++SHA512 (bbdb-3.2.2.4.tar) = 5cfdc2fdf303b8c9877542528366df5f3fb9c34f48ec250a93c6cc71fbcc5b2aa9b550392e839871a75edd899f28fde6797342c166cdb6cf87d45223b59cd085
++Size (bbdb-3.2.2.4.tar) = 839680 bytes

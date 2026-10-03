@@ -1,0 +1,25 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/cflow-mode/Makefile devel/cflow-mode/Makefile
+--- /usr/pkgsrc/devel/cflow-mode/Makefile	2025-03-02 00:24:21.000000000 +0000
++++ devel/cflow-mode/Makefile	2026-09-21 10:58:28.612060649 +0000
+@@ -1,7 +1,7 @@
+ # $NetBSD: Makefile,v 1.12 2025/03/02 00:24:21 mef Exp $
+ 
+-DISTNAME=	cflow-1.7
+-PKGNAME=	cflow-mode-1.7
++DISTNAME=	cflow-1.8
++PKGNAME=	cflow-mode-1.8
+ CATEGORIES=	devel
+ MASTER_SITES=	${MASTER_SITE_GNU:=cflow/}
+ 
+diff -ruN -x CVS -x work /usr/pkgsrc/devel/cflow-mode/distinfo devel/cflow-mode/distinfo
+--- /usr/pkgsrc/devel/cflow-mode/distinfo	2025-03-02 00:24:21.000000000 +0000
++++ devel/cflow-mode/distinfo	2026-09-21 10:58:33.053333492 +0000
+@@ -1,5 +1,5 @@
+ $NetBSD: distinfo,v 1.7 2025/03/02 00:24:21 mef Exp $
+ 
+-BLAKE2s (cflow-1.7.tar.gz) = c4d2415fe27177ef4f824e3fbdffb1edfd4c9947bb2bc9c0c2db2ee2288e9df1
+-SHA512 (cflow-1.7.tar.gz) = d283602ceec6d380fa5f3f2321894369556f6083683f664295106f04b23c41c1eb99e1d4d7dce15631d81c7fcff5dbcee3c4250e5584ed44fe2df61e7e0e6b68
+-Size (cflow-1.7.tar.gz) = 1163618 bytes
++BLAKE2s (cflow-1.8.tar.gz) = c29003c56d56ec2b2b268d49a5ad6848f97186a040effee461ef0d255a4c0d64
++SHA512 (cflow-1.8.tar.gz) = 3f44e91d91b1f58dcc4936d3d64a2ae893077fd75cc3e4a77171d4c65714f10889c54173c2eb02895b218f6fee3fa7e0dba4c24281dfde7e5b7574fb6af596c3
++Size (cflow-1.8.tar.gz) = 1194209 bytes

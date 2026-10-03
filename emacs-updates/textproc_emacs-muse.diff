@@ -1,0 +1,38 @@
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/textproc/emacs-muse/Makefile textproc/emacs-muse/Makefile
+--- /usr/pkgsrc/textproc/emacs-muse/Makefile	2023-12-30 16:40:42.000000000 +0000
++++ textproc/emacs-muse/Makefile	2026-09-22 23:58:38.044697473 +0000
+@@ -16,7 +16,7 @@
+ INFO_FILES=	yes
+ 
+ MAKE_FLAGS+=		-I..
+-INSTALLATION_DIRS=	share/doc/emacs-muse share/examples/emacs-muse
++INSTALLATION_DIRS=	share/doc/${EMACS_PKGNAME_PREFIX}emacs-muse share/examples/emacs-muse
+ 
+ pre-build:
+ 	sed -e "s,@PREFIX@,${PREFIX}," -e "s,@LISPDIR@,${EMACS_LISPPREFIX}," \
+@@ -25,9 +25,9 @@
+ 
+ post-install:
+ 	${INSTALL_DATA} ${WRKSRC}/etc/emacs-wiki-migration.txt \
+-		${DESTDIR}${PREFIX}/share/doc/emacs-muse
++		${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}emacs-muse
+ 	${INSTALL_DATA} ${WRKSRC}/etc/muse.rnc \
+-		${DESTDIR}${PREFIX}/share/doc/emacs-muse
++		${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}emacs-muse
+ 	${INSTALL_DATA} ${WRKSRC}/examples/QuickStart.muse \
+ 		${DESTDIR}${PREFIX}/share/examples/emacs-muse
+ 	${INSTALL_DATA} ${WRKSRC}/examples/*.png \
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/textproc/emacs-muse/PLIST textproc/emacs-muse/PLIST
+--- /usr/pkgsrc/textproc/emacs-muse/PLIST	2017-09-08 22:21:05.000000000 +0000
++++ textproc/emacs-muse/PLIST	2026-09-22 23:58:38.048599924 +0000
+@@ -66,8 +66,8 @@
+ ${EMACS_LISPPREFIX}/muse/muse-xml.elc
+ ${EMACS_LISPPREFIX}/muse/muse.el
+ ${EMACS_LISPPREFIX}/muse/muse.elc
+-share/doc/emacs-muse/emacs-wiki-migration.txt
+-share/doc/emacs-muse/muse.rnc
++share/doc/${EMACS_PKGNAME_PREFIX}emacs-muse/emacs-wiki-migration.txt
++share/doc/${EMACS_PKGNAME_PREFIX}emacs-muse/muse.rnc
+ share/examples/emacs-muse/QuickStart.muse
+ share/examples/emacs-muse/emacs-muse.png
+ share/examples/emacs-muse/muse-made-with.png

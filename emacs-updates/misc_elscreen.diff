@@ -1,0 +1,40 @@
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/elscreen/Makefile misc/elscreen/Makefile
+--- /usr/pkgsrc/misc/elscreen/Makefile	2026-09-18 05:47:46.132017807 +0000
++++ misc/elscreen/Makefile	2026-09-22 01:22:15.024075861 +0000
+@@ -2,7 +2,7 @@
+ 
+ DISTNAME=	elscreen-1.4.6
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME}
+-PKGREVISION=	3
++PKGREVISION=	4
+ CATEGORIES=	misc
+ MASTER_SITES=	ftp://ftp.morishima.net/pub/morishima.net/naoto/ElScreen/
+ MASTER_SITES+=	ftp://ftp.morishima.net/pub/morishima.net/naoto/ElScreen/old/
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/elscreen/distinfo misc/elscreen/distinfo
+--- /usr/pkgsrc/misc/elscreen/distinfo	2021-10-26 10:59:02.000000000 +0000
++++ misc/elscreen/distinfo	2026-09-22 01:21:49.922268788 +0000
+@@ -30,3 +30,4 @@
+ BLAKE2s (elscreen-wl-0.8.0.tar.gz) = bde62eb69e216d46070719d93115014722b2e22abc1c286289194acaccc009c9
+ SHA512 (elscreen-wl-0.8.0.tar.gz) = 95170f6a5e6c53d82ef0b38d8366ba2f342ad2482a6adb71dfb80cc14467949675d1145316f9d2f6889268eedd74308d4d79becc142bc50508d8c49b1b44a7fa
+ Size (elscreen-wl-0.8.0.tar.gz) = 1921 bytes
++SHA1 (patch-elscreen.el) = 019a7c9b615c0e6af5a5a28239a909b9db777153
+diff -ruN -x CVS -x work /usr/pkgsrc/misc/elscreen/patches/patch-elscreen.el misc/elscreen/patches/patch-elscreen.el
+--- /usr/pkgsrc/misc/elscreen/patches/patch-elscreen.el	1970-01-01 00:00:00.000000000 +0000
++++ misc/elscreen/patches/patch-elscreen.el	2026-09-22 01:21:48.544759077 +0000
+@@ -0,0 +1,16 @@
++$NetBSD$
++
++booleanp arrived in Emacs 22; on Emacs 20, the only version this package
++accepts, APEL's poe.el supplies it, and nothing loaded before the :set
++function in elscreen-display-tab runs pulls poe in (alist.el does not).
++
++--- elscreen.el.orig
+++++ elscreen.el
++@@ -26,6 +26,7 @@
++ 
++ (provide 'elscreen)
++ (require 'alist)
+++(require 'poe)				; booleanp, on Emacs 20
++ (eval-when-compile
++   (require 'static))
++ 

@@ -1,0 +1,115 @@
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-elisp/DESCR new/mozc-elisp/DESCR
+--- inputmethod/mozc-elisp/DESCR	2026-09-24 05:22:28.364068506 +0000
++++ inputmethod/mozc-elisp/DESCR	2026-09-24 05:22:28.354469800 +0000
+@@ -3,3 +3,10 @@
+ project originates from Google Japanese Input.
+ 
+ This package includes Emacs LISP and helper program to use mozc on emacs.
++
++To activate mozc on emacs, add the following to your .emacs or to
++site-start.el under the Emacs lisp directory:
++
++	(set-language-environment "Japanese")
++	(require 'mozc)
++	(setq default-input-method "japanese-mozc")
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-elisp/MESSAGE new/mozc-elisp/MESSAGE
+--- inputmethod/mozc-elisp/MESSAGE	2026-09-24 05:22:28.363343833 +0000
++++ inputmethod/mozc-elisp/MESSAGE	1970-01-01 00:00:00.000000000 +0000
+@@ -1,11 +0,0 @@
+-===========================================================================
+-$NetBSD: MESSAGE,v 1.1 2013/03/13 15:07:38 ryoon Exp $
+-
+-To activate mozc on emacs, you will need to add the following lines to
+-your .emacs or ${EMACS_LISPPREFIX}/site-start.el:
+-
+-	(set-language-environment "Japanese")
+-	(require 'mozc)
+-	(setq default-input-method "japanese-mozc")
+-
+-===========================================================================
+diff -urN -x CVS -x '*.orig' -x '*.rej' old/mozc-elisp/Makefile new/mozc-elisp/Makefile
+--- inputmethod/mozc-elisp/Makefile	2026-09-24 05:22:28.365004379 +0000
++++ inputmethod/mozc-elisp/Makefile	2026-09-24 05:22:28.689478020 +0000
+@@ -1,8 +1,16 @@
+-# $NetBSD: Makefile,v 1.96 2026/09/02 19:03:07 wiz Exp $
++# $NetBSD$
+ 
+ PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/mozc-/mozc-elisp-/}
+-PKGREVISION=	14
+-CATEGORIES=	inputmethod editors
++
++# The helper does no conversion itself; it only talks to mozc_server, and the
++# client refuses a server whose version string differs
++# (CheckVersionOrRestartServer in client.cc).  So the dependency is pinned by
++# version, not by package.
++DEPENDS+=	mozc-server-${PKGVERSION_NOREV}{,nb*}:../../inputmethod/mozc-server
++
++.include "../../inputmethod/mozc-server/options.mk"
++
++MOZC_GYP_ARGS=	--noqt
+ 
+ EMACS_MODULES=	base leim
+ 
+@@ -10,23 +18,26 @@
+ 
+ INSTALLATION_DIRS=	${EMACS_LISPPREFIX} bin
+ 
++post-configure:
++	cd ${WRKSRC}/dist && \
++		unzip -o -d ../dictionary jigyosyo.zip && \
++		unzip -o -d ../dictionary ken_all.zip
++
++.if ${MOZC_BUILDER} == "bazel"
+ do-build:
+ 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+ 		${PREFIX}/bin/bazel \
+ 			--output_user_root=${WRKDIR}/bazel \
+-			--client_debug \
+ 			build \
+ 			unix/emacs:mozc_emacs_helper \
+-			--distdir=${WRKSRC}/dist \
+ 			--jobs=${MAKE_JOBS:U1} \
+ 			--host_action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
+ 			--action_env=CWRAPPERS_CONFIG_DIR=${CWRAPPERS_CONFIG_DIR} \
+-			--host_action_env=PATH=${PATH} \
+-			--action_env=PATH=${PATH} \
+-			--sandbox_debug \
++			--host_action_env=PATH=${PATH:Q} \
++			--action_env=PATH=${PATH:Q} \
+ 			--verbose_failures \
+-			--subcommands \
+-			--config oss_linux --compilation_mode opt && \
++			${BAZEL_ARGS} \
++			--config oss_linux --config release_build && \
+ 		${EMACS_BIN} --no-init-file --no-site-file -batch \
+ 			-f batch-byte-compile ${WRKSRC}/unix/emacs/mozc.el
+ 
+@@ -37,6 +48,28 @@
+ 		${DESTDIR}${EMACS_LISPPREFIX}
+ 	${INSTALL_DATA} ${WRKSRC}/unix/emacs/mozc.elc \
+ 		${DESTDIR}${EMACS_LISPPREFIX}
++.else
++do-build:
++	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
++		${PYTHONBIN} build_mozc.py build -c ${MOZC_BUILD_MODE} \
++			--jobs=${MAKE_JOBS:U1} \
++			unix/emacs/emacs.gyp:mozc_emacs_helper && \
++		${EMACS_BIN} --no-init-file --no-site-file -batch \
++			-f batch-byte-compile ${WRKSRC}/unix/emacs/mozc.el
++
++do-install:
++	${INSTALL_PROGRAM} ${WRKSRC}/out_${OSDEST}/${MOZC_BUILD_MODE}/mozc_emacs_helper \
++		${DESTDIR}${PREFIX}/bin
++	${INSTALL_DATA} ${WRKSRC}/unix/emacs/mozc.el \
++		${DESTDIR}${EMACS_LISPPREFIX}
++	${INSTALL_DATA} ${WRKSRC}/unix/emacs/mozc.elc \
++		${DESTDIR}${EMACS_LISPPREFIX}
++.endif
+ 
+ .include "../../inputmethod/mozc-server/Makefile.common"
++
++# Makefile.common assigns CATEGORIES, so this has to come after the include.
++# Put it before and editors is silently dropped.
++CATEGORIES+=	editors
++
+ .include "../../mk/bsd.pkg.mk"

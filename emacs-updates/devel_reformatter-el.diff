@@ -1,0 +1,53 @@
+--- /dev/null	2026-09-21 12:06:06.985750043 +0000
++++ devel/reformatter-el/DESCR	2026-09-21 11:19:24.511992624 +0000
+@@ -0,0 +1,5 @@
++reformatter.el lets you define an Emacs command which runs a
++reformatting program (such as zig fmt, black or prettier) on the
++current buffer or region, together with a minor mode that reformats
++on save.  Packages such as zig-mode use it to provide their
++format-on-save commands.
+--- /dev/null	2026-09-21 12:06:06.985750043 +0000
++++ devel/reformatter-el/Makefile	2026-09-21 11:19:24.511475798 +0000
+@@ -0,0 +1,28 @@
++# $NetBSD$
++
++DISTNAME=	reformatter-0.7
++PKGNAME=	${EMACS_PKGNAME_PREFIX}${DISTNAME:S/reformatter/reformatter-el/}
++CATEGORIES=	devel
++MASTER_SITES=	${MASTER_SITE_GITHUB:=purcell/}
++GITHUB_PROJECT=	emacs-reformatter
++GITHUB_TAG=	${PKGVERSION_NOREV}
++
++MAINTAINER=	pkgsrc-users@NetBSD.org
++HOMEPAGE=	https://github.com/purcell/emacs-reformatter
++COMMENT=	Define commands which run reformatters on the current Emacs buffer
++LICENSE=	gnu-gpl-v3
++
++EMACS_VERSIONS_ACCEPTED=	emacs29 emacs29nox emacs30 emacs30nox emacs31 emacs31nox
++
++INSTALLATION_DIRS=	${EMACS_LISPPREFIX}/reformatter
++
++do-build:
++	${EMACS_BIN} --no-init-file --no-site-file -batch \
++		-f batch-byte-compile ${WRKSRC}/reformatter.el
++
++do-install:
++	${INSTALL_DATA} ${WRKSRC}/reformatter.el ${WRKSRC}/reformatter.elc \
++		${DESTDIR}${EMACS_LISPPREFIX}/reformatter
++
++.include "../../editors/emacs/modules.mk"
++.include "../../mk/bsd.pkg.mk"
+--- /dev/null	2026-09-21 12:06:06.985750043 +0000
++++ devel/reformatter-el/PLIST	2026-09-21 11:19:24.510794986 +0000
+@@ -0,0 +1,3 @@
++@comment $NetBSD$
++${EMACS_LISPPREFIX}/reformatter/reformatter.el
++${EMACS_LISPPREFIX}/reformatter/reformatter.elc
+--- /dev/null	2026-09-21 12:06:06.985750043 +0000
++++ devel/reformatter-el/distinfo	2026-09-21 11:19:25.514285373 +0000
+@@ -0,0 +1,5 @@
++$NetBSD$
++
++BLAKE2s (reformatter-0.7.tar.gz) = 488c4615efb73770e01b0f2d80d2cc095336f1cc67de847109764b1aa0198ca2
++SHA512 (reformatter-0.7.tar.gz) = 2b45dfc1440dbbb4f8ec0ab6a2e69b2686ad6983a074bb9bf1863347186ced197e2f5b23baf2fccd382e113d1813211a0173c246af1ef47447722b3c33fb4207
++Size (reformatter-0.7.tar.gz) = 8294 bytes

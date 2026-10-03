@@ -1,0 +1,38 @@
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/editors/gnuserv/Makefile editors/gnuserv/Makefile
+--- /usr/pkgsrc/editors/gnuserv/Makefile	2023-09-11 21:18:49.000000000 +0000
++++ editors/gnuserv/Makefile	2026-09-22 23:58:37.547822032 +0000
+@@ -22,7 +22,7 @@
+ EL_FILES=		devices.el gnuserv.el gnuserv-compat.el
+ 
+ INSTALLATION_DIRS+=	${EMACS_LISPPREFIX} share/applications	\
+-			share/doc/${PKGBASE}
++			share/doc/${EMACS_PKGNAME_PREFIX}gnuserv
+ 
+ .PHONY: el-install doc-install
+ 
+@@ -34,9 +34,9 @@
+ 
+ doc-install:
+ 	${INSTALL_DATA} ${WRKSRC}/README		\
+-	${DESTDIR}${PREFIX}/share/doc/gnuserv
++	${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}gnuserv
+ 	${INSTALL_DATA} ${FILESDIR}/README.pkgsrc	\
+-		${DESTDIR}${PREFIX}/share/doc/gnuserv
++		${DESTDIR}${PREFIX}/share/doc/${EMACS_PKGNAME_PREFIX}gnuserv
+ 
+ post-install: el-install doc-install
+ 	${INSTALL_SCRIPT} ${FILESDIR}/dtemacs		\
+diff -ruN -x CVS -x work -x '*.zkdoc' -x '*.zkbak' /usr/pkgsrc/editors/gnuserv/PLIST editors/gnuserv/PLIST
+--- /usr/pkgsrc/editors/gnuserv/PLIST	2023-09-11 21:18:49.000000000 +0000
++++ editors/gnuserv/PLIST	2026-09-22 23:58:37.551630617 +0000
+@@ -10,8 +10,8 @@
+ man/man1/gnudoit.1
+ man/man1/gnuserv.1
+ share/applications/gnuserv.desktop
+-share/doc/gnuserv/README
+-share/doc/gnuserv/README.pkgsrc
++share/doc/${EMACS_PKGNAME_PREFIX}gnuserv/README
++share/doc/${EMACS_PKGNAME_PREFIX}gnuserv/README.pkgsrc
+ ${EMACS_LISPPREFIX}/devices.el
+ ${EMACS_LISPPREFIX}/devices.elc
+ ${EMACS_LISPPREFIX}/gnuserv-compat.el
