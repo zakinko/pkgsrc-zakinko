@@ -1,0 +1,38 @@
+name: makepatchsum probe
+
+# 新しい pkgsrc で make makepatchsum が distinfo を壊すこと、
+# checksum.mk に bootstrap-depends を前置すると直ることを、
+# 同じ VM の前後で測る。中身は .github/ci/probe-makepatchsum.sh。
+
+on:
+  push:
+    paths:
+      - '.github/workflows/makepatchsum-probe.yml'
+      - '.github/ci/probe-makepatchsum.sh'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  freebsd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.4'
+          usesh: true
+          run: sh .github/ci/probe-makepatchsum.sh
+  netbsd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/netbsd-vm@v1
+        with:
+          release: '11.0'
+          usesh: true
+          run: sh .github/ci/probe-makepatchsum.sh
