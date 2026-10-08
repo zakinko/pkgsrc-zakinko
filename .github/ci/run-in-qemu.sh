@@ -43,6 +43,14 @@
 
 set -e
 
+# macOS の tar は拡張属性 (com.apple.provenance など) を tarball に入れ、
+# ゲストの NetBSD の tar はそれを戻せずに "Cannot restore extended
+# attributes" で失敗する。self-hosted の Mac runner でだけ起きる。
+TAR_NOX=
+case $(uname -s) in
+Darwin)	TAR_NOX=--no-xattrs; COPYFILE_DISABLE=1; export COPYFILE_DISABLE ;;
+esac
+
 NAME=$1
 OPTS=$2
 [ -n "$NAME" ] || { echo "usage: $0 <arch>-<release> [pkg options]"; exit 1; }
@@ -356,13 +364,13 @@ if [ -n "${UPSTREAM_PKG:-}" ]; then
 		P=
 		for u in $UPSTREAM_PKG; do P="$P ${u#zakinko/}"; done
 		echo "=== 検査と $UPSTREAM_PKG を送り込む ==="
-		tar czf - -C "$TREE" .github/ci $P | $SSH "tar xzf - -C /tmp"
+		tar $TAR_NOX -czf - -C "$TREE" .github/ci $P | $SSH "tar xzf - -C /tmp"
 		$SSH "mkdir -p /usr/pkgsrc/zakinko && for p in $P; do cp -R /tmp/\$p /usr/pkgsrc/zakinko/; done"
 		;;
 	*)
 		# 素の上流。ツリーに在るものをそのまま見る。
 		echo "=== 検査を送り込む ($UPSTREAM_PKG) ==="
-		tar czf - -C "$TREE" .github/ci | $SSH "tar xzf - -C /tmp"
+		tar $TAR_NOX -czf - -C "$TREE" .github/ci | $SSH "tar xzf - -C /tmp"
 		;;
 	esac
 
@@ -401,7 +409,7 @@ GUEST
 echo "=== パッケージと検査を送り込む ==="
 # 送るのは mule2 (Mule 2.3)。8d71ae8 で mule という名前は Mule 1.1 に
 # 移ったので、そのまま送るとゲストで別物を建てることになる。
-tar czf - -C "$TREE" mule2 .github/ci | $SSH "tar xzf - -C /tmp && \
+tar $TAR_NOX -czf - -C "$TREE" mule2 .github/ci | $SSH "tar xzf - -C /tmp && \
 	mkdir -p /usr/pkgsrc/zakinko/mule2 && \
 	cp -R /tmp/mule2/. /usr/pkgsrc/zakinko/mule2/"
 if [ -s "$TREE/distfiles/mule-2.3.tar.gz" ]; then
