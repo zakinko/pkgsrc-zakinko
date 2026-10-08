@@ -389,19 +389,6 @@ _EMACS_VERSION_BULK_DEFAULT=	${EMACS_VERSION_DEFAULT}
 EMACS_VERSION_REQD?=	${_ev_}
 .    endif
 .  endfor
-#
-# EMACS_PKGNAME_PREFIX is the same for emacs30 and emacs30nox, so the
-# pattern cannot say which of the two the other end chose.  Read
-# literally it always picks the X11 one, because that is what comes
-# first in _EMACS_VERSIONS_ALL, and an elisp package built as a
-# dependency then pulls in gtk3 while EMACS_TYPE still says nox.
-# The version is what the pattern really carries; where that agrees,
-# keep the type this build was asked for.
-_EMACS_TYPE_WANTED=	${EMACS_TYPE:U${EMACS_VERSION_DEFAULT}}
-.  if defined(EMACS_VERSION_REQD) && \
-      ${EMACS_VERSION_REQD:C/nox$//} == ${_EMACS_TYPE_WANTED:C/nox$//}
-EMACS_VERSION_REQD=	${_EMACS_TYPE_WANTED}
-.  endif
 .endif
 
 .if defined(EMACS_VERSION_REQD) && !empty(EMACS_VERSION_REQD)
@@ -473,6 +460,7 @@ _EMACS_TYPE_OTHER=	${_EMACS_TYPE}nox
 _EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
 .endif
 
+_EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
 DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
 
 EMACS_MODULES?=
@@ -580,6 +568,7 @@ PRINT_PLIST_AWK+=	{ gsub(/${EMACS_LISPPREFIX:S|${PREFIX}/||:S|/|\\/|g}/, \
 #
 
 .if defined(EMACS_BUILDLINK)
+BUILDLINK_ABI_DEPENDS.emacs?=	${_EMACS_REQD}
 _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
 # A development version usually claims three digits, say, 27.0.50 etc.
 # The lisp of other packages now lives under the version directory, so

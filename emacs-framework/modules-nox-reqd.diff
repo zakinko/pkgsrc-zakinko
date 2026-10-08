@@ -1,0 +1,18 @@
+--- editors/emacs/modules.mk.orig
++++ editors/emacs/modules.mk
+@@ -460,6 +460,7 @@
+ _EMACS_REQD_OTHER=	${_EMACS_REQD:C/[<>=].*//}-nox11
+ .endif
+ 
++_EMACS_REQD:=	{${_EMACS_REQD:C/[<>=].*//},${_EMACS_REQD_OTHER}}${_EMACS_REQD:C/^[^<>=]*//}
+ DEPENDS+=	${_EMACS_REQD}:${_EMACS_PKGDIR}
+ 
+ EMACS_MODULES?=
+@@ -533,6 +534,7 @@
+ #
+ 
+ .if defined(EMACS_BUILDLINK)
++BUILDLINK_ABI_DEPENDS.emacs?=	${_EMACS_REQD}
+ _EMACS_DIR=	${BUILDLINK_DIR}/share/emacs
+ # A development version usually claims three digits, say, 27.0.50 etc.
+ # The lisp of other packages now lives under the version directory, so

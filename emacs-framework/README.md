@@ -17,6 +17,27 @@ pkgsrc-zakinko cannot hold `editors/emacs/modules.mk` in place.  The
 base is trunk `c8e5216` (2026-09-18); every diff applies with `patch -p0`
 from the top of a pkgsrc tree, in any order, with no offset and no fuzz.
 
+## 2026-10-09: elisp dependencies on a nox-only box
+
+`modules-nox-reqd.diff` is a two-line fix for modules.mk 1.43 on its own,
+apart from the coexistence work in `modules.mk.diff`.  1.43 computes
+`_EMACS_REQD_OTHER` and never uses it, so an elisp package depends only on
+the build it was made for.  On a box with only emacs30-nox11, building
+with `EMACS_TYPE=emacs30nox` something that needs apel, flim or semi
+builds that dependency from the pattern `emacs30-apel`, reads it as
+emacs30, and asks for editors/emacs30.  The first line widens the
+dependency to `{emacs30,emacs30-nox11}`; the second stops
+editors/emacs30/buildlink3.mk from narrowing `BUILDLINK_ABI_DEPENDS.emacs`
+back to `emacs30>=30.1`.  Measured on 2026-10-04 on a clean 1.43 tree with
+only emacs30-nox11 installed: without it, apel, flim and semi built as
+dependencies all ask for editors/emacs30; with it all three build and record
+`{emacs30,emacs30-nox11}>=30.1<31`.
+
+It was described in mail to upstream before it was put here.  It replaces
+the earlier `_EMACS_TYPE_WANTED` attempt, which is gone from
+`modules.mk.diff`.  `pkg-fixes/fixes/vm-lispdir.diff` is gone too:
+mail/vm was removed upstream on 2026-10-03.
+
 ## 2026-09-30: this branch is version coexistence only
 
 The branch `emacs-coexist-versions` keeps only the part that lets
