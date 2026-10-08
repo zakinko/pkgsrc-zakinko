@@ -24,9 +24,6 @@ on:
       - '.github/workflows/emacs-framework.yml'
   workflow_dispatch:
     inputs:
-      image:
-        description: 'イメージ。空なら i386-11.0'
-        required: false
       pkgs:
         description: '建てる package。空なら六つ'
         required: false
@@ -36,10 +33,18 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
-  i386:
+  x86:
     runs-on: ubuntu-latest
     timeout-minutes: 340
-    name: ${{ inputs.image || 'i386-11.0' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: i386-11.0
+            arch: i386
+          - image: amd64-11.0
+            arch: x86_64
+    name: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
 
@@ -84,9 +89,42 @@ jobs:
           VERIFY_SCRIPT: verify-emacs-framework.sh
           VERIFY_OPTS: ${{ inputs.pkgs }}
           PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
-          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/i386/11.0
-        run: sh .github/ci/run-in-qemu.sh '${{ inputs.image || 'i386-11.0' }}'
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/${{ matrix.arch }}/11.0
+        run: sh .github/ci/run-in-qemu.sh '${{ matrix.image }}'
 
       - name: 転けたらコンソールを出す
         if: failure()
-        run: tail -80 .vm/${{ inputs.image || 'i386-11.0' }}.console.log 2>/dev/null || true
+        run: tail -80 .vm/${{ matrix.image }}.console.log 2>/dev/null || true
+
+  aarch64:
+    # Apple Silicon の self-hosted runner で、NetBSD 11.0/aarch64 を HVF に
+    # 載せる。GitHub の arm runner には /dev/kvm が無く、x86 の runner では
+    # aarch64 は TCG になって 6 時間に収まらない。
+    #
+    # この workflow は push と workflow_dispatch でしか起きないので、PR の
+    # code がこの runner で走ることはない。repo 側も外部の PR は毎回承認が
+    # 要る設定にしてある。
+    runs-on: [self-hosted, netbsd-aarch64-hvf]
+    timeout-minutes: 340
+    name: aarch64-11.0 (hvf)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: trunk の現物を当て先に敷く
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh .github/ci/fetch-trunk-files.sh emacs-framework
+
+      - name: 枠組みを踏む
+        env:
+          UPSTREAM_PKG: zakinko/emacs-framework
+          VERIFY_SCRIPT: verify-emacs-framework.sh
+          VERIFY_OPTS: ${{ inputs.pkgs }}
+          PKGSRC_URL: http://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc.tar.gz
+          BINPKG_SITES: http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/aarch64/11.0
+          PORT: '2245'
+        run: sh .github/ci/run-in-qemu.sh aarch64-11.0-hvf
+
+      - name: 転けたら serial を出す
+        if: failure()
+        run: tail -80 .vm/serial.log 2>/dev/null || true

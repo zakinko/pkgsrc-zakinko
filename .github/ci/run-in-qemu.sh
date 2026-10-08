@@ -57,32 +57,83 @@ TREE=$(cd "$(dirname "$0")/../.." && pwd)
 mkdir -p "$WORK"
 cd "$WORK"
 
-echo "=== $NAME を用意する ==="
-RAW=https://raw.githubusercontent.com/$IMGREPO/$IMGREF
-for f in runvm.sh stopvm.sh; do
-	[ -s "$f" ] || curl -fsSL -o "$f" "$RAW/$f"
-done
-REL=https://github.com/$IMGREPO/releases/download/$IMGTAG
-for f in $NAME.qcow2 $NAME.qemu; do
-	[ -s "$f" ] || { echo "--- $f を落とす ---"; curl -fsSL -o "$f" "$REL/$f"; }
-done
+case $NAME in
+*-hvf)
+	# aarch64 を Apple Silicon の self-hosted runner で HVF に載せる。
+	# 元の image (vmactions の netbsd-11.0-aarch64) は runner の .env の
+	# HVF_BASE と HVF_KEY が指す。読み取り専用のまま、その上に job ごとの
+	# 差分の disk を重ねて、終われば差分ごと捨てる。
+	#
+	# machine type は virt-11.0 に固定する。qemu 11.1 の virt は hvf で vGIC
+	# を既定にし、そこでは MDCCSR_EL0 の読みが undefined instruction で返る。
+	# NetBSD 11.0 の vmt(4) はその読みで VMware を探すので、起動のたびに
+	# vmt_probe で panic する (PR port-arm/60655、kernel 側の直しは -current
+	# にしかない)。virt-11.0 は vGIC を使わず、11.0 の kernel のまま起動する。
+	: "${HVF_BASE:?HVF_BASE (base qcow2) is not set on this runner}"
+	: "${HVF_KEY:?HVF_KEY (ssh key for root) is not set on this runner}"
+	echo "=== $NAME を用意する (HVF) ==="
+	Q=$(command -v qemu-system-aarch64)
+	QSHARE=$(dirname "$(dirname "$Q")")/share/qemu
+	rm -f overlay.qcow2 efi-vars.fd serial.log qemu.pid
+	qemu-img create -q -f qcow2 -b "$HVF_BASE" -F qcow2 overlay.qcow2
+	dd if=/dev/zero of=efi-vars.fd bs=1048576 count=64 2>/dev/null
+	cleanup() {
+		rc=$?
+		[ -s qemu.pid ] && kill "$(cat qemu.pid)" 2>/dev/null || true
+		rm -f overlay.qcow2 efi-vars.fd
+		exit $rc
+	}
+	trap cleanup EXIT INT TERM
+	echo "=== 起動 ==="
+	"$Q" -machine virt-11.0,gic-version=3 -accel hvf -cpu host -smp 4 -m 6144 \
+		-drive if=pflash,format=raw,readonly=on,file="$QSHARE/edk2-aarch64-code.fd" \
+		-drive if=pflash,format=raw,file=efi-vars.fd \
+		-drive file=overlay.qcow2,format=qcow2,if=none,id=disk0 \
+		-device virtio-blk-pci,drive=disk0,bootindex=0 \
+		-netdev user,id=net0,hostfwd=tcp:127.0.0.1:$PORT-:22 \
+		-device virtio-net-pci,ctrl_vq=off,netdev=net0 \
+		-object rng-builtin,id=rng0 -device virtio-rng-pci,rng=rng0 \
+		-display none -serial file:serial.log -pidfile qemu.pid -daemonize
+	SSH="ssh -i $HVF_KEY -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=10 root@127.0.0.1"
+	i=0
+	until $SSH true 2>/dev/null; do
+		i=$((i+1))
+		if [ $i -ge 60 ] || grep -qa 'panic' serial.log 2>/dev/null; then
+			echo "ゲストに入れない"; tail -30 serial.log; exit 1
+		fi
+		sleep 5
+	done
+	echo "OK: $SSH"
+	;;
+*)
+	echo "=== $NAME を用意する ==="
+	RAW=https://raw.githubusercontent.com/$IMGREPO/$IMGREF
+	for f in runvm.sh stopvm.sh; do
+		[ -s "$f" ] || curl -fsSL -o "$f" "$RAW/$f"
+	done
+	REL=https://github.com/$IMGREPO/releases/download/$IMGTAG
+	for f in $NAME.qcow2 $NAME.qemu; do
+		[ -s "$f" ] || { echo "--- $f を落とす ---"; curl -fsSL -o "$f" "$REL/$f"; }
+	done
 
 
-# 落ちても VM を残さない。runner は使い捨てだが、手元で回したときに掴んだ
-# ままだと次が起動できない。止め方は ACPI で、モニタの quit は使わない。
-cleanup() {
-	rc=$?
-	DIR=. sh stopvm.sh "$NAME" > /dev/null 2>&1 || true
-	exit $rc
-}
+	# 落ちても VM を残さない。runner は使い捨てだが、手元で回したときに掴んだ
+	# ままだと次が起動できない。止め方は ACPI で、モニタの quit は使わない。
+	cleanup() {
+		rc=$?
+		DIR=. sh stopvm.sh "$NAME" > /dev/null 2>&1 || true
+		exit $rc
+	}
 
-echo "=== 起動 ==="
-DIR=. sh runvm.sh "$NAME" "$PORT"
-trap cleanup EXIT INT TERM
+	echo "=== 起動 ==="
+	DIR=. sh runvm.sh "$NAME" "$PORT"
+	trap cleanup EXIT INT TERM
 
-# 入り方は runvm.sh が決めて書き出す。古い sshd 向けの指定が要るので、
-# ここで書き写さずに読む。
-SSH=$(cat "$WORK/$NAME.ssh")
+	# 入り方は runvm.sh が決めて書き出す。古い sshd 向けの指定が要るので、
+	# ここで書き写さずに読む。
+	SSH=$(cat "$WORK/$NAME.ssh")
+	;;
+esac
 
 echo "=== pkgsrc を用意する ==="
 # ツリーの出どころ。既定は current だが、公式のバイナリパッケージと版を
