@@ -98,7 +98,11 @@ case $NAME in
 	i=0
 	until $SSH true 2>/dev/null; do
 		i=$((i+1))
-		if [ $i -ge 60 ] || grep -qa 'panic' serial.log 2>/dev/null; then
+		# 'panic' や 'panic: ' だけだと、起動途中の "ddb.onpanic: 1 -> 0" に
+		# 当たり、正常に起動している最中に失敗と判定していた。本物の panic は
+		# 行頭か時刻の "] " の直後に "panic: " が来る。ddb に落ちれば
+		# "Stopped in" が出る。
+		if [ $i -ge 60 ] || grep -qaE '(^|\] )panic: |Stopped in' serial.log 2>/dev/null; then
 			echo "ゲストに入れない"; tail -30 serial.log; exit 1
 		fi
 		sleep 5
