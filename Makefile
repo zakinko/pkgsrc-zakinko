@@ -44,6 +44,7 @@ SUBDIR+=	iiimecf
 SUBDIR+=	jde
 SUBDIR+=	leim20
 SUBDIR+=	leim21
+SUBDIR+=	kronosnet
 SUBDIR+=	libhimmelblau
 SUBDIR+=	libndp
 SUBDIR+=	libqb

@@ -1,0 +1,11 @@
+$NetBSD$
+
+BLAKE2s (kronosnet-1.35.tar.xz) = c6b719fb4ac5b17c5ac5da022e668e8f5a4812bc1d2d808656f18e9a4c75e266
+SHA512 (kronosnet-1.35.tar.xz) = b6636f7f73d05a14945cf08ef1bc5795f111b906a7e6aa523c38323f4065b912f07a25173ea164f8411c4bc2c2ca0ca018cf4cde829b63dc1022de12373ef2fb
+Size (kronosnet-1.35.tar.xz) = 546068 bytes
+SHA1 (patch-libknet_crypto__openssl.c) = f9ca45a519867b554f05047533d40fd842206f36
+SHA1 (patch-libknet_handle.c) = 5a4608e8253e40fd9667b9f96ced021398141d3b
+SHA1 (patch-libknet_tests_fun__pmtud__crypto.c) = b3e6e07177da0e7b5facff06f2249bd1ab8f629c
+SHA1 (patch-libknet_tests_test-common.c) = 797d2bb83efd506884c0c034a9e990a67016c8af
+SHA1 (patch-libknet_threads__common.h) = 3f9baf13b364e468d89736d1a6412c8f967acb31
+SHA1 (patch-libknet_transport__common.c) = dc1d3ff80e304e9b69b5924f77add08a45dd3759

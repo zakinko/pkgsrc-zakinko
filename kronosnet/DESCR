@@ -1,0 +1,5 @@
+kronosnet, often referred to as knet, is a network abstraction layer
+designed for high availability use cases, where redundancy, security,
+fault tolerance and fast fail-over are the core requirements of the
+application.  It manages multiple links between nodes, with pluggable
+encryption and compression.  It is the transport of corosync 3.

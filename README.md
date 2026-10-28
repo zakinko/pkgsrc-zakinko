@@ -54,6 +54,7 @@ make makesum
 | [emacs26](emacs26/) / [emacs26-nox11](emacs26-nox11/) | GNU Emacs 26.3。本家では 2026 年 8 月に削除済み |
 | [emacs27](emacs27/) / [emacs27-nox11](emacs27-nox11/) | GNU Emacs 27.2。本家では 2026 年 8 月に削除済み |
 | [emacs28](emacs28/) / [emacs28-nox11](emacs28-nox11/) | GNU Emacs 28.2。本家では 2026 年 8 月に削除済み |
+| [kronosnet](kronosnet/) | corosync 3 の通信層 (libknet)。本家 pkgsrc には無い。socket buffer と IP_BINDANY の扱いを BSD に合わせる当て物ほか |
 | [libqb](libqb/) | ClusterLabs の HA 群 (corosync と pacemaker) の土台にあるログ・主循環・プロセス間通信の library。本家 pkgsrc には無い。NetBSD の semaphore に合わせる当て物二本 |
 | [meibo](meibo/) | 日本の会社と学校のための ID ライフサイクル管理と SSO のサーバ |
 | [mule](mule/) | 多言語 Emacs (Mule 1.1 / Emacs 18.59 ベース)。pkgsrc-wip の mule11 を、tsutsui の今の木に上げたもの |

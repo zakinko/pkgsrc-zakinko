@@ -1,0 +1,18 @@
+@comment $NetBSD$
+include/libknet.h
+lib/kronosnet/compress_bzip2.la
+lib/kronosnet/compress_lz4.la
+lib/kronosnet/compress_lz4hc.la
+lib/kronosnet/compress_lzma.la
+lib/kronosnet/compress_lzo2.la
+lib/kronosnet/compress_zlib.la
+lib/kronosnet/compress_zstd.la
+lib/kronosnet/crypto_openssl.la
+lib/libknet.la
+lib/pkgconfig/libknet.pc
+share/doc/kronosnet/COPYING.applications
+share/doc/kronosnet/COPYING.libraries
+share/doc/kronosnet/COPYRIGHT
+share/doc/kronosnet/README.licence
+share/doc/kronosnet/README.md
+share/doc/kronosnet/README.pkgsrc

@@ -1,0 +1,17 @@
+Socket buffers on NetBSD
+========================
+
+libknet asks for 8 MB send and receive buffers on every socket.  With
+NetBSD's default kern.sbmax (262144) the kernel refuses that size, and
+libknet settles for the largest it is given, 128 KB.
+
+That is enough for an unprivileged handle, which logs the cap and
+carries on.  A privileged handle, which is what corosync opens when it
+runs as root, treats the cap as an error (_configure_sockbuf() in
+libknet/transport_common.c) and the link is not created.
+Raise the limit before starting corosync, in /etc/sysctl.conf:
+
+	kern.sbmax=16777216
+
+With that value both UDP and local datagram sockets get the full 8 MB
+(measured on NetBSD 11.0/amd64).
