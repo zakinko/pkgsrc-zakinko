@@ -1,0 +1,4 @@
+libqb provides high-performance, reusable features for client-server
+architecture, such as logging, tracing, inter-process communication
+(IPC), and polling.  It is the base of the ClusterLabs stack, corosync
+and pacemaker among it.

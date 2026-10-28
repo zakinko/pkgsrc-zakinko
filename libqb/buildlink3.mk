@@ -1,0 +1,12 @@
+# $NetBSD$
+
+BUILDLINK_TREE+=	libqb
+
+.if !defined(LIBQB_BUILDLINK3_MK)
+LIBQB_BUILDLINK3_MK:=
+
+BUILDLINK_API_DEPENDS.libqb+=	libqb>=2.0.0
+BUILDLINK_PKGSRCDIR.libqb?=	../../zakinko/libqb
+.endif	# LIBQB_BUILDLINK3_MK
+
+BUILDLINK_TREE+=	-libqb

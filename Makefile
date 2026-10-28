@@ -46,6 +46,7 @@ SUBDIR+=	leim20
 SUBDIR+=	leim21
 SUBDIR+=	libhimmelblau
 SUBDIR+=	libndp
+SUBDIR+=	libqb
 SUBDIR+=	libuuid
 SUBDIR+=	lookup
 SUBDIR+=	meibo

@@ -1,0 +1,7 @@
+$NetBSD$
+
+BLAKE2s (libqb-2.0.10.tar.xz) = e23ac73a098b25dfb4aed1663970675a2dcba51941582022630e5a26c474003c
+SHA512 (libqb-2.0.10.tar.xz) = 98a3b6967d5de3b525420fd61c48d7cfeb36441674e665aa6ef3b616f943c68cb51b727a0aed689ecc84795690d7f5ef260e508a7181a6f23e1752506ad36a04
+Size (libqb-2.0.10.tar.xz) = 530376 bytes
+SHA1 (patch-include_os__base.h) = 63969e67478c202bea80e42bee7b1c28b06affed
+SHA1 (patch-lib_ringbuffer__helper.c) = 24b0d433fdb34fca64abeb45c3464d0bf224fc97
