@@ -1,9 +1,9 @@
-# $NetBSD: Makefile,v 1.21 2026/09/29 06:04:46 wiz Exp $
+# $NetBSD: Makefile,v 1.23 2026/10/18 19:41:14 wiz Exp $
 
 # No CONFLICTS with emacs30-nox11: that build now keeps its own tree
 # (EMACS_TAG), so the two share no path.
 
-PKGREVISION= 18
+PKGREVISION= 20
 .include "../../netbsd-i386-3e/emacs30-A/Makefile.common"
 
 .include "options.mk"

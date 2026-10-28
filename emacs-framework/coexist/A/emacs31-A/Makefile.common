@@ -1,4 +1,4 @@
-# $NetBSD: Makefile.common,v 1.3 2026/09/30 12:16:41 wiz Exp $
+# $NetBSD: Makefile.common,v 1.4 2026/10/14 19:32:13 markd Exp $
 #
 # used by editors/emacs31/Makefile
 # used by editors/emacs31-nox11/Makefile
@@ -163,6 +163,8 @@ PRINT_PLIST_AWK+=	{ gsub(/${EMACS_VERSION}/, "$${EMACS_VERSION}"); }
 #
 # Upstream writes it to share/emacs/<version>/site-lisp.  Here the nox
 # build has its own datadir, so the path goes through _EMACS_DATADIR.
+# Since we are using site-start.el allow it to load a local-site-start.el
+# if it exists.
 post-install: emacs-info-path
 emacs-info-path:
 	${ECHO} ';;; -*- lexical-binding: nil -*-' \
@@ -170,4 +172,6 @@ emacs-info-path:
 	${ECHO} '(setq Info-default-directory-list (append Info-default-directory-list' \
 		>> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
 	${ECHO} '  (list (expand-file-name "../info" (file-name-directory load-file-name)))))' \
+		>> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el
+	${ECHO} '  (load "local-site-start" t)' \
 		>> ${DESTDIR}${PREFIX}/${_EMACS_DATADIR}/emacs/${PKGVERSION_NOREV}/site-lisp/site-start.el

@@ -1,7 +1,7 @@
-# $NetBSD: Makefile,v 1.1 2026/08/25 17:23:51 wiz Exp $
+# $NetBSD: Makefile,v 1.3 2026/10/14 19:32:14 markd Exp $
 
 PKGNAME=	${DISTNAME:S/emacs/emacs31/:S/-/-nox11-/}
-PKGREVISION=	1
+PKGREVISION=	3
 
 # No CONFLICTS: with EMACS_TAG carrying the variant, this build shares
 # no path with the X one.
