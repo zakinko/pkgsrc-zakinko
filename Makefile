@@ -16,6 +16,7 @@ SUBDIR+=	bazel
 SUBDIR+=	bbdb2
 SUBDIR+=	calc
 SUBDIR+=	cl-lib-el
+SUBDIR+=	corosync
 SUBDIR+=	ecb
 SUBDIR+=	elisp-compat
 SUBDIR+=	elscreen

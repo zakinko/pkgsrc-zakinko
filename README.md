@@ -50,6 +50,7 @@ make makesum
 | パッケージ | 内容 |
 | --- | --- |
 | [anthy-unicode](anthy-unicode/) / [anthy-unicode-elisp](anthy-unicode-elisp/) | anthy の Unicode 版 fork。本家 pkgsrc にはまだ無い |
+| [corosync](corosync/) | cluster の membership、CPG、quorum の daemon。pacemaker の土台。本家 pkgsrc には無い。kern.sbmax と crypto_model の要る設定を README.pkgsrc に |
 | [elscreen](elscreen/) | ElScreen を 1.4.6 (2007) から knu/elscreen の 20180321 へ。本家は Emacs 24 以降に非対応のまま、作者のサイトも消えている。当て物一本で emacs20 でも使える |
 | [emacs26](emacs26/) / [emacs26-nox11](emacs26-nox11/) | GNU Emacs 26.3。本家では 2026 年 8 月に削除済み |
 | [emacs27](emacs27/) / [emacs27-nox11](emacs27-nox11/) | GNU Emacs 27.2。本家では 2026 年 8 月に削除済み |

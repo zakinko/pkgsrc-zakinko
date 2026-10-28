@@ -1,0 +1,4 @@
+The Corosync Cluster Engine is a group communication system providing
+cluster membership, an ordered and reliable messaging service across
+the cluster (closed process groups), quorum, and an in-memory
+configuration and statistics database.  Pacemaker runs on top of it.

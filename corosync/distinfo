@@ -1,0 +1,8 @@
+$NetBSD$
+
+BLAKE2s (corosync-3.2.0.tar.gz) = 13ec16326809d9cf6e8108c7e8924525901fff3511d6ab14306eb43aa44c38c3
+SHA512 (corosync-3.2.0.tar.gz) = 438e13339ed34c9abac9bc2e06bd596959be39ad353954549da522490dbf138c35872b9bd48b952796ded4d3fa96342ff21c6ecc4dbbb147058df638f023099e
+Size (corosync-3.2.0.tar.gz) = 1190639 bytes
+SHA1 (patch-exec_logsys.c) = a6c40534fe6c8f5ecb8106a6d7968f3e795be58d
+SHA1 (patch-test_testcpg.c) = a410e09f16355ea47c956d4eee4cf7774ab8ade6
+SHA1 (patch-tools_corosync-cmapctl.c) = a98d7a03ef22ff507d9786f6e4dcdf89a0a019ce

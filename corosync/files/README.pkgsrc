@@ -1,0 +1,34 @@
+Corosync on NetBSD
+==================
+
+Two settings differ from what the upstream documentation assumes.
+
+Socket buffers.  libknet asks for 8 MB socket buffers and, when corosync
+runs as root, refuses to create the link if the kernel will not give
+them.  NetBSD's default kern.sbmax (262144) will not, and corosync then
+exits at start-up with
+
+	knet_handle_new failed: File name too long (63)
+
+Set, in /etc/sysctl.conf,
+
+	kern.sbmax=16777216
+
+The rc.d script checks this and will not start corosync below it.
+
+Crypto model.  corosync uses the nss crypto model unless told otherwise,
+and this build of kronosnet has only the openssl one.  With encryption
+enabled, name it in the totem section of corosync.conf:
+
+	totem {
+		crypto_model: openssl
+		crypto_cipher: aes256
+		crypto_hash: sha256
+		...
+	}
+
+Without it corosync exits with "this version of libknet was built
+without nss support".
+
+The example configuration is in @PREFIX@/share/examples/corosync.
+Generate the shared key with corosync-keygen.
