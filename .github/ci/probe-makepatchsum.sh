@@ -1,11 +1,12 @@
 #!/bin/sh
 # 新しい pkgsrc で、最初に make makepatchsum を打つと distinfo が壊れるか。
-# checksum.mk に bootstrap-depends を前置すると直るか。
+# bsd.checksum.mk で makepatchsum を bootstrap-depends に依存させると直るか。
 #
 # bootstrap は digest を入れない。digest は USE_TOOLS の digest:bootstrap
-# として bootstrap-depends が入れるが、fetch と違い distinfo / makesum /
-# makepatchsum はそれを走らせない。NetBSD は base の道具で pkgsrc を使う
-# ので bootstrap はしないが、digest は base に無いので同じことになる。
+# として bootstrap-depends が入れる。distinfo と makesum は fetch に依存
+# するので通るが、makepatchsum だけはどちらにも依存しない。NetBSD は base
+# の道具で pkgsrc を使うので bootstrap はしないが、digest は base に無いので
+# 同じことになる。
 #
 # 当て物を持つ package として devel/libffi を使う。security/polkit は
 # 128 で当て物が無くなった。当て物を直さない場合と一本直す場合を、
@@ -38,19 +39,19 @@ NetBSD)
 	;;
 esac
 
-M=$W/pkgsrc/mk/checksum/checksum.mk
+M=$W/pkgsrc/mk/checksum/bsd.checksum.mk
 cp $M $M.orig
 P=$W/pkgsrc/devel/libffi
 cd $P || exit 1
 p=$(ls patches/patch-* | head -1)
 cp distinfo $W/distinfo.orig
 cp $p $W/patch.orig
-echo "=== $(uname -sr), $(sed -n 's/.*\$NetBSD: \(checksum.mk,v [0-9.]* [0-9/]*\).*/\1/p' $M.orig), edited: $p"
+echo "=== $(uname -sr), $(sed -n 's/.*\$NetBSD: \(bsd.checksum.mk,v [0-9.]* [0-9/]*\).*/\1/p' $M.orig), edited: $p"
 
 for fix in no yes; do
 	cp $M.orig $M
-	[ $fix = yes ] && awk '/^distinfo:$/ && !d {print "distinfo makesum makepatchsum: bootstrap-depends"; print ""; d=1} {print}' $M.orig > $M
-	[ $fix = yes ] && (cd $W/pkgsrc && diff -u mk/checksum/checksum.mk.orig mk/checksum/checksum.mk)
+	[ $fix = yes ] && awk '{print} /^checksum checksum-phase distinfo makesum: fetch$/ {print "makepatchsum: bootstrap-depends"}' $M.orig > $M
+	[ $fix = yes ] && (cd $W/pkgsrc && diff -u mk/checksum/bsd.checksum.mk.orig mk/checksum/bsd.checksum.mk)
 	for edit in no yes; do
 		echo "=== fix=$fix edit=$edit"
 		$PKG_INFO -q -e digest && $PKG_DELETE digest
@@ -72,5 +73,15 @@ for fix in no yes; do
 			[ "$got" = "$want" ] && echo "  edited patch hash correct" || echo "  edited patch hash WRONG ($got != $want)"
 			echo "  lines changed: $(diff $W/distinfo.orig distinfo | grep -c '^>')"
 		fi
+	done
+	for tgt in distinfo makesum; do
+		echo "=== fix=$fix $tgt"
+		$PKG_INFO -q -e digest && $PKG_DELETE digest
+		cp $W/distinfo.orig distinfo
+		cp $W/patch.orig $p
+		$MAKE $tgt > $W/out 2> $W/err; echo "  rc=$?"
+		echo "  'not found' on stderr: $(grep -c 'digest: not found' $W/err)"
+		echo "  joined lines: $(grep -c '= SHA1 (' distinfo)"
+		cmp -s distinfo $W/distinfo.orig && echo "  distinfo identical to the tree's" || echo "  distinfo differs from the tree's"
 	done
 done
