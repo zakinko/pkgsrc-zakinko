@@ -69,6 +69,7 @@ SUBDIR+=	openjdk21
 SUBDIR+=	openjdk25
 SUBDIR+=	openjdk28
 SUBDIR+=	openjdk8
+SUBDIR+=	openssl4
 SUBDIR+=	pcl-cvs
 SUBDIR+=	queue-el
 SUBDIR+=	semantic

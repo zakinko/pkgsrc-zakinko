@@ -103,6 +103,7 @@ FreeBSD ports 版は [ports-zakinko](https://github.com/zakinko/ports-zakinko)
 | [mule-ucs/](mule-ucs/) | `editors/mule-ucs` | LICENSE。MESSAGE を DESCR へ。当て物の説明 |
 | [ntp4/](ntp4/) | `net/ntp4` | 4.2.8p16 で直った境界外書き込みを当てる |
 | [nxml-mode/](nxml-mode/) | `textproc/nxml-mode` | emacs20 でも建つように。同梱の Makefile が PATH の emacs で compile していた。LICENSE。MESSAGE を DESCR へ。要らない :Q と字下げ |
+| [openssl4/](openssl4/) | `security/openssl` | OpenSSL 4.1.0 へ上げる。soname は .so.4、engine と c_rehash が消えた。木の openssl と同じ所に入るので CONFLICTS |
 | [pcl-cvs/](pcl-cvs/) | `devel/pcl-cvs` | 当たらない CONFLICTS 二本と、重複した emacs20 判定を落とす。LICENSE と当て物の説明 |
 | [queue-el/](queue-el/) | (上流に無い) | GNU ELPA の queue 0.2。undo-tree 0.8 が求める |
 | [semantic/](semantic/) | `devel/semantic` | emacs20 で建つように。Emacs 20 同梱の speedbar 0.8 が先に読まれていた |
