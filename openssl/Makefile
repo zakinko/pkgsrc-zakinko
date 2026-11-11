@@ -6,7 +6,6 @@
 # is not possible for users who have bootstrapped without OpenSSL
 # to install it and enable HTTPS fetching.
 DISTNAME=	openssl-4.1.0
-PKGNAME=	${DISTNAME:S/openssl/openssl4/}
 CATEGORIES=	security
 MASTER_SITES=	${MASTER_SITE_GITHUB:=openssl/}
 GITHUB_RELEASE=	${DISTNAME}
@@ -20,10 +19,6 @@ LICENSE=	openssl
 BROKEN_ON_PLATFORM=	QNX-*-*
 
 USE_GCC_RUNTIME=	yes
-
-# Installs the same libcrypto/libssl names, headers, bin/openssl and
-# man pages into the same prefix as security/openssl.
-CONFLICTS+=		openssl-[0-9]*
 
 USE_TOOLS+=		fgrep gmake perl
 USE_TOOLS.SunOS+=	gm4
