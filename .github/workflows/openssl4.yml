@@ -239,8 +239,16 @@ jobs:
               tar gzip xz-utils git procps
             ;;
           dnf)
+            # pkgsrc-prs-platforms.yml の xwpe-fedora と同じ手当て。
+            # coreutils-single と /usr/sbin にしか無い install(1) のせいで、
+            # bootstrap が sysutils/coreutils を tool として引いて輪になる
+            # (run 43081520291 で同じ Circular dependency を踏んだ)。
+            dnf -y swap coreutils-single coreutils > /dev/null 2>&1 || \
+              dnf -y install coreutils > /dev/null
             dnf install -y -q gcc gcc-c++ make curl ca-certificates file \
-              perl patch tar gzip xz git diffutils findutils which procps-ng
+              perl patch tar gzip xz git diffutils findutils which procps-ng \
+              hostname gawk
+            [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
             ;;
           apk)
             apk add --no-cache build-base curl ca-certificates file perl \
