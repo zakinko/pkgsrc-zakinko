@@ -60,6 +60,10 @@ else
 	echo "!! install が落ちた"; rc=1
 	_first=$(grep -n '\*\*\* Error code' "$T/openssl-install.log" | head -1 | cut -d: -f1)
 	[ -n "$_first" ] && sed -n "$((_first > 30 ? _first - 30 : 1)),${_first}p" "$T/openssl-install.log" | cut -c1-200 | sed 's/^/     /'
+	# Configure が target を受け付けないと、文句の一行のあとに target の
+	# 一覧が何百行も続き、上の末尾 30 行には文句が入らない。頭を出す。
+	echo "  -- Configure の頭"
+	grep -n -A6 'Configuring OpenSSL' "$T/openssl-install.log" | head -12 | cut -c1-200 | sed 's/^/     /'
 fi
 echo "  -- dasync.so の link (wrapper の前と後)"
 grep -n 'dasync\.so' "$WRK/.work.log" 2>/dev/null | head -2 | cut -c1-500 | sed 's/^/     /'

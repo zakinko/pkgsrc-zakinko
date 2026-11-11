@@ -117,7 +117,9 @@ jobs:
           release: '11.4-gcc'
           mem: 8192
           copyback: false
-          run: env ${{ env.CI_ENV }} sh .github/ci/build-on-bsd.sh
+          # bootstrap の libnbcompat が Solaris で chflags を呼んで落ちる。
+          # 木の側の bug で、当て物の理由は tree-patch-nbcompat-solaris.sh。
+          run: env ${{ env.CI_ENV }} TREE_PATCH=.github/ci/tree-patch-nbcompat-solaris.sh sh .github/ci/build-on-bsd.sh
 
   omnios:
     name: OmniOS r151058 x86_64
