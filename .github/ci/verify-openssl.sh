@@ -8,6 +8,13 @@
 # で落ちた。DSO に -lc が無く、-z defs がそれを咎める。amd64 の CI では同じ
 # package が通っているので、何が違うのかを両方で同じ形で出して比べる。
 PKG=${1:-security/openssl}
+# run-in-qemu.sh はゲストへ VERIFY_OPTS しか運ばないので、そこからも読む。
+for _o in ${VERIFY_OPTS:-}; do
+	case $_o in
+	test)	OPENSSL_TEST=yes ;;
+	nolint)	SKIP_PKGLINT=yes ;;
+	esac
+done
 PREFIX=${PREFIX:-/usr/pkg}
 TREE=${TREE:-/usr/pkgsrc}
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:$PREFIX/bin:$PREFIX/sbin; export PATH
@@ -99,6 +106,12 @@ if [ -x "$PREFIX/bin/openssl" ]; then
 	else
 		echo "!! sha256('pkgsrc') が合わない: $_got"; rc=1
 	fi
+	# 暗号を時間で回す。speed は EVP の実装 (asm が在れば asm) を通る。
+	if "$PREFIX/bin/openssl" speed -seconds 1 -evp aes-256-gcm > "$T/speed.log" 2>&1; then
+		echo "  ok speed aes-256-gcm: $(tail -1 "$T/speed.log")"
+	else
+		echo "!! openssl speed が落ちた"; tail -5 "$T/speed.log"; rc=1
+	fi
 	# 共有 library が全部解決しているか (nodef の当て物は link を変える)
 	if ldd "$PREFIX/bin/openssl" 2>/dev/null | grep -q 'not found'; then
 		echo "!! 解決していない library が在る"
@@ -108,8 +121,51 @@ else
 	echo "  ($PREFIX/bin/openssl が無い。入れていない回)"
 fi
 
+# 上流の試験。OPENSSL_TEST=yes のときだけ回す (openssl4.yml)。
+#
+# 04-test_bio_dgram.t は NetBSD 11.1/amd64 (techne) で recvmmsg の後に戻らず、
+# 42 分止まった。全体に混ぜるとそこで job の時間切れまで待つので、外して
+# 回し、それだけ別に時間を切って回す。結果はどちらも数で出す。
+if [ "${OPENSSL_TEST:-}" = yes ]; then
+	echo "########## make test (test_bio_dgram を除く) ##########"
+	SRC=$($BMAKE show-var VARNAME=WRKSRC)
+	GM=$(command -v gmake || command -v make)
+	J=$(getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+	( cd "$SRC" && HARNESS_JOBS=$J "$GM" test TESTS=-test_bio_dgram ) \
+		> "$T/openssl-test.log" 2>&1
+	_trc=$?
+	grep -E '^(Files=|Result:)' "$T/openssl-test.log" | sed 's/^/  /'
+	grep -E '^[0-9]+-test_[a-z0-9_]+\.t +\(Wstat' "$T/openssl-test.log" | sed 's/^/  FAIL /'
+	_ok=$(grep -c -E '\.\. ok' "$T/openssl-test.log")
+	_sk=$(grep -c -E '\.\. skipped' "$T/openssl-test.log")
+	echo "  ok の行 $_ok、skipped の行 $_sk、exit $_trc"
+	if [ $_trc -ne 0 ]; then
+		rc=1
+		sed -n '/^Test Summary Report/,/^Result:/p' "$T/openssl-test.log" | head -40 | sed 's/^/     /'
+	fi
+	echo "########## test_bio_dgram を 300 秒で切って回す ##########"
+	( cd "$SRC" && "$GM" test TESTS=test_bio_dgram V=1 ) > "$T/openssl-dgram.log" 2>&1 &
+	_dp=$!
+	_n=0
+	while kill -0 $_dp 2>/dev/null && [ $_n -lt 300 ]; do sleep 5; _n=$((_n + 5)); done
+	if kill -0 $_dp 2>/dev/null; then
+		echo "  HANG: 300 秒で戻らない (bio_dgram_test を止める)"
+		pkill -f bio_dgram_test 2>/dev/null || true
+		wait $_dp 2>/dev/null
+		tail -12 "$T/openssl-dgram.log" | sed 's/^/     /'
+	else
+		wait $_dp; _drc=$?
+		echo "  test_bio_dgram: exit $_drc ($_n 秒)"
+		grep -E '^(Result:|not ok|ok )' "$T/openssl-dgram.log" | head -8 | sed 's/^/     /'
+	fi
+fi
+
+# pkglint は Go で書かれていて、入っていない箱では lang/go から組む。
+# 異 arch の TCG ではそれだけで何時間もかかるので、openssl4.yml は外す。
+if [ "${SKIP_PKGLINT:-}" != yes ]; then
 echo "########## pkglint ##########"
 sh "$(dirname "$0")/pkglint-check.sh" "$PKG" || rc=1
+fi
 
 [ $rc -eq 0 ] && echo "RESULT: openssl は建って動く" || echo "RESULT: 通らなかったものがある (上を読む)"
 exit $rc

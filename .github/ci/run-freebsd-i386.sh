@@ -170,10 +170,17 @@ $SSH "uname -a; df -h /"
 # ------------------------------------------------------------------
 echo "=== パッケージと検査を送り込む ==="
 $SSH "rm -rf $GUEST && mkdir -p $GUEST"
-tar czf - -C "$TREE" mule .github/ci \
+# SHIP は送る package の dir。既定は従来どおり mule だけ。
+tar czf - -C "$TREE" ${SHIP:-mule} .github/ci \
 	$([ -d "$TREE/distfiles" ] && echo distfiles) \
 	$([ -d "$TREE/.bsdcache" ] && echo .bsdcache) \
 	| $SSH "tar xzf - -C $GUEST"
 
 echo "=== 組んで確かめる ==="
-$SSH "sh $GUEST/.github/ci/build-on-bsd.sh '$OPTS'"
+# ゲストにはホストの環境変数が届かない。設定されているものだけ運ぶ
+# (PKGS は未設定と空で意味が違うので、set かどうかで見分ける)。
+GENV=
+for v in PKGS CARRY TREE_PKGS OPENSSL_TEST SKIP_PKGLINT; do
+	eval "[ -n \"\${$v+x}\" ]" && eval "GENV=\"\$GENV $v='\$$v'\""
+done
+$SSH "env $GENV sh $GUEST/.github/ci/build-on-bsd.sh '$OPTS'"
