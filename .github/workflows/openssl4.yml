@@ -134,7 +134,10 @@ jobs:
           mem: 8192
           copyback: false
           # base の tar は pax 拡張ヘッダを知らない (build-on-bsd.sh)。
-          prepare: pkg install archiver/gnu-tar || true
+          # pkg.omnios.org が TLS の途中で切れることがある (run 43081520291
+          # で gnu-tar が入らず、素の tar がツリーの展開で落ちた)。数回試す。
+          prepare: |
+            for i in 1 2 3 4; do pkg install archiver/gnu-tar; r=$?; [ $r = 0 ] || [ $r = 4 ] && break; sleep 30; done
           run: env ${{ env.CI_ENV }} sh .github/ci/build-on-bsd.sh
 
   openindiana:
@@ -149,7 +152,10 @@ jobs:
           release: '202610-build'
           mem: 8192
           copyback: false
-          prepare: pkg install archiver/gnu-tar || true
+          # pkg.omnios.org が TLS の途中で切れることがある (run 43081520291
+          # で gnu-tar が入らず、素の tar がツリーの展開で落ちた)。数回試す。
+          prepare: |
+            for i in 1 2 3 4; do pkg install archiver/gnu-tar; r=$?; [ $r = 0 ] || [ $r = 4 ] && break; sleep 30; done
           run: env ${{ env.CI_ENV }} sh .github/ci/build-on-bsd.sh
 
   # vmactions に i386 の NetBSD は無い。netbsd-ci-images の image を使う。
