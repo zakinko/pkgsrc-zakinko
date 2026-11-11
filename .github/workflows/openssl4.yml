@@ -251,8 +251,11 @@ jobs:
             [ -x /usr/bin/install ] || ln -s "$(command -v install)" /usr/bin/install
             ;;
           apk)
+            # gawk が無いと bootstrap が /usr/pkg/bin/nawk を探して止まる
+            # (run 43081520291)。anthy-linux.yml の Alpine も gawk を入れている。
             apk add --no-cache build-base curl ca-certificates file perl \
-              patch tar gzip xz git bash procps coreutils diffutils findutils
+              patch tar gzip xz git bash procps coreutils diffutils findutils \
+              gawk
             ;;
           esac
       - uses: actions/checkout@v4
