@@ -107,6 +107,11 @@ OPENSSL_HOST.SunOS-x86_64=	solaris64-x86_64-cc
 OPENSSL_HOST.SunOS-x86_64=	solaris64-x86_64-gcc
 .endif
 OPENSSL_HOST.Darwin-aarch64=	darwin64-arm64-cc
+# NetBSD's uname -m is the port name (evbarm, riscv), so config guesses
+# "riscv-whatever-netbsd", matches none of the *bsd patterns that look
+# for aarch64/arm64/riscv64, and falls back to BSD-generic32 with no asm.
+OPENSSL_HOST.NetBSD-aarch64=	BSD-aarch64
+OPENSSL_HOST.NetBSD-riscv64=	BSD-riscv64
 
 # Ensure consistent socket interfaces are used across the codebase.
 CPPFLAGS.SunOS+=	-D_XOPEN_SOURCE=600 -D__EXTENSIONS__

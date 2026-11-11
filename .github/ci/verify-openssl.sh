@@ -91,6 +91,14 @@ OpenBSD-BSD-nodef-*)	;;
 OpenBSD-*)		echo "!! OpenBSD で nodef でない target を選んだ"; rc=1 ;;
 *-BSD-nodef-aarch64)	echo "!! OpenBSD 以外で BSD-nodef-aarch64 を選んだ"; rc=1 ;;
 esac
+# 64bit の箱で generic32 は、config の推測が外れて asm も 64bit の bn も
+# 使わない形。NetBSD/riscv64 がこれで黙って通っていた。
+case "$_t" in
+*generic32*)
+	if [ "$(getconf LONG_BIT 2>/dev/null)" = 64 ]; then
+		echo "!! 64bit の箱で $_t を選んだ"; rc=1
+	fi ;;
+esac
 # 建っただけでは動く証拠にならない。入れた binary を走らせる。
 # croc で croc-web を入れただけにしていたら、起動すらしない物を配って
 # いたのが分かった。
