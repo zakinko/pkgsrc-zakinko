@@ -146,6 +146,15 @@ if [ "${OPENSSL_TEST:-}" = yes ]; then
 	if [ $_trc -ne 0 ]; then
 		rc=1
 		sed -n '/^Test Summary Report/,/^Result:/p' "$T/openssl-test.log" | head -40 | sed 's/^/     /'
+		# 要約は番号しか言わない。落ちた試験を V=1 で回し直し、not ok の
+		# 前後を出す (DragonFly の 02-test_errstr.t は 54 と 59 としか
+		# 分からなかった)。
+		for _f in $(grep -E '^[0-9]+-test_[a-z0-9_]+\.t +\(Wstat' "$T/openssl-test.log" |
+		    sed 's/^[0-9]*-\(test_[a-z0-9_]*\)\.t.*/\1/' | sort -u); do
+			echo "  -- $_f を V=1 で"
+			( cd "$SRC" && "$GM" test TESTS=$_f V=1 ) 2>&1 |
+				grep -B4 -A2 'not ok' | head -60 | cut -c1-200 | sed 's/^/     /'
+		done
 	fi
 	echo "########## test_bio_dgram を 300 秒で切って回す ##########"
 	( cd "$SRC" && "$GM" test TESTS=test_bio_dgram V=1 ) > "$T/openssl-dgram.log" 2>&1 &
