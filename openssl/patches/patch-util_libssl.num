@@ -1,0 +1,19 @@
+$NetBSD$
+
+DTLS Connection IDs: RFC 9146, RFC 9853 and RFC 9147.
+https://github.com/zakinko/openssl/tree/dtls-cid-series
+
+--- util/libssl.num.orig
++++ util/libssl.num
+@@ -626,3 +626,11 @@ SSL_CTX_ech_set1_outer_alpn_protos      625	4_0_0	EXIST::FUNCTION:ECH
+ SSL_set1_ech_config_list                626	4_0_0	EXIST::FUNCTION:ECH
+ SSL_get0_sigalg                         627	4_0_0	EXIST::FUNCTION:
+ SSL_get0_shared_sigalg                  628	4_0_0	EXIST::FUNCTION:
++SSL_set1_dtls_cid                       ?	4_2_0	EXIST::FUNCTION:
++SSL_clear_dtls_cid                      ?	4_2_0	EXIST::FUNCTION:
++SSL_get0_dtls_cid                       ?	4_2_0	EXIST::FUNCTION:
++SSL_CTX_set_dtls_peer_addr_change_cb    ?	4_2_0	EXIST::FUNCTION:
++SSL_set_dtls_rrc                        ?	4_2_0	EXIST::FUNCTION:
++SSL_get_dtls_rrc                        ?	4_2_0	EXIST::FUNCTION:
++SSL_dtls_new_connection_id              ?	4_2_0	EXIST::FUNCTION:
++SSL_dtls_request_connection_id          ?	4_2_0	EXIST::FUNCTION:

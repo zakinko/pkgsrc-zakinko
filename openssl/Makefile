@@ -1,11 +1,13 @@
 # $NetBSD$
 #
 # Fork of security/openssl (3.6.5, Makefile 1.321) for OpenSSL 4.x.
+# Carries the DTLS Connection ID series from zakinko/openssl dtls-cid-series.
 
 # Remember to upload-distfiles when updating OpenSSL -- otherwise it
 # is not possible for users who have bootstrapped without OpenSSL
 # to install it and enable HTTPS fetching.
 DISTNAME=	openssl-4.1.0
+PKGREVISION=	1
 CATEGORIES=	security
 MASTER_SITES=	${MASTER_SITE_GITHUB:=openssl/}
 GITHUB_RELEASE=	${DISTNAME}
